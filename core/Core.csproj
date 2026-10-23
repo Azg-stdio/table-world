@@ -21,8 +21,11 @@
     <InternalsVisibleTo Include="Core.Tests" />
   </ItemGroup>
 
-  <!-- Unity consumes Core.dll from Assets/Plugins/Core/. Only Core.dll is copied; dependencies come from Unity packages. -->
-  <Target Name="CopyToUnity" AfterTargets="Build" Condition="Exists('$(MSBuildThisFileDirectory)..\unity\Assets')">
+  <!--
+    Unity consumes Core.dll from Assets/Plugins/Core/. Only Core.dll is copied; dependencies come from Unity packages.
+    Debug only, so Release/CI builds never overwrite the committed dll.
+  -->
+  <Target Name="CopyToUnity" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug' And Exists('$(MSBuildThisFileDirectory)..\unity\Assets')">
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(UnityPluginDir)" SkipUnchangedFiles="true" />
   </Target>
 

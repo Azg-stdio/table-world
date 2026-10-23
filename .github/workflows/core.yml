@@ -1,0 +1,22 @@
+name: core
+
+on:
+  push:
+    paths-ignore: ["docs/**", "**/*.md", "unity/**"]
+  pull_request:
+    paths-ignore: ["docs/**", "**/*.md", "unity/**"]
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - run: dotnet build TableWorld.sln --configuration Release
+      - run: dotnet test TableWorld.sln --configuration Release --no-build --logger "console;verbosity=normal"
