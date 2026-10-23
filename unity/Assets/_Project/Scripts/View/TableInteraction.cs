@@ -36,6 +36,12 @@ namespace TableWorld.View
         public ObjectView Held { get; private set; }
         public ObjectView Hovered { get; private set; }
 
+        /// <summary>Last object clicked (the HUD shows its actions). Cleared by clicking empty table.</summary>
+        public ObjectView Selected { get; private set; }
+
+        /// <summary>Set by the HUD: true when a screen point is over UI, so clicks there never reach the table.</summary>
+        public System.Func<Vector2, bool> PointerBlocked { get; set; }
+
         public void Configure(TableView table, Camera camera, TableCamera tableCamera)
         {
             _table = table;
@@ -55,11 +61,19 @@ namespace TableWorld.View
             if (mouse == null)
                 return;
 
-            var ray = _camera.ScreenPointToRay(mouse.position.ReadValue());
-            Hovered = RaycastObject(ray, Held, out _);
+            var pointer = mouse.position.ReadValue();
+            var overUi = Held == null && PointerBlocked != null && PointerBlocked(pointer);
+            var ray = _camera.ScreenPointToRay(pointer);
+            Hovered = overUi ? null : RaycastObject(ray, Held, out _);
 
-            if (mouse.leftButton.wasPressedThisFrame && Held == null && Hovered != null)
-                Grab(Hovered, moveContainer: keyboard != null && keyboard.shiftKey.isPressed);
+            if (mouse.leftButton.wasPressedThisFrame && Held == null && !overUi)
+            {
+                Selected = Hovered;
+                if (Hovered != null)
+                    Grab(Hovered, moveContainer: keyboard != null && keyboard.shiftKey.isPressed);
+            }
+            if (Selected == null)
+                Selected = null; // destroyed views compare equal to null; drop the dead reference
 
             if (Held != null)
             {
@@ -113,6 +127,8 @@ namespace TableWorld.View
         }
 
         // ---- gestures ---------------------------------------------------------------------------------------------
+
+        public void Select(ObjectView view) => Selected = view;
 
         /// <summary>Starts holding <paramref name="view"/>, or one item taken out of it when it is a deck or bag.</summary>
         public bool Grab(ObjectView view, bool moveContainer)

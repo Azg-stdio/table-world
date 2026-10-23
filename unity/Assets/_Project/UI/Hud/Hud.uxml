@@ -1,0 +1,19 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Style src="Hud.uss" />
+    <ui:VisualElement name="root" class="hud" picking-mode="Ignore">
+        <ui:VisualElement name="topBar" class="top-bar">
+            <ui:Label name="turnLabel" class="turn-label" text="Free play" />
+            <ui:VisualElement name="seatList" class="seat-list" picking-mode="Ignore" />
+            <ui:Button name="saveButton" class="hud-button" text="Save (F5)" />
+            <ui:Button name="loadButton" class="hud-button" text="Load (F9)" />
+        </ui:VisualElement>
+        <ui:VisualElement name="bottomRow" class="bottom-row" picking-mode="Ignore">
+            <ui:VisualElement name="selectionPanel" class="selection-panel hidden">
+                <ui:Label name="selectionTitle" class="selection-title" />
+                <ui:Label name="selectionDetail" class="selection-detail" />
+                <ui:VisualElement name="actions" class="actions" />
+            </ui:VisualElement>
+            <ui:Label name="statusLabel" class="status-label hidden" picking-mode="Ignore" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

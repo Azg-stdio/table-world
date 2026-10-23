@@ -17,7 +17,7 @@
 | T2.7 | Save/load table to the `core` JSON | S | T2.1, T2.4 | Save → reload → identical state hash | done 2026-10-22 |
 | T2.8 ⚗ | Performance: generated scene with 2 000 cards + 200 tokens; measure fps and memory; instancing/atlas if needed | S | T2.4 | Numbers recorded below | deferred past MVP (500 objects is the MVP bar) |
 | T2.9 ⚗ | PlayMode smoke test: load sample table, run 50 random commands | S | T2.5 | `unity command test run --mode PlayMode` green | done 2026-10-22 |
-| T2.10 | HUD v0 with UI Toolkit under `_Project/UI/` (UXML/USS, one `PanelSettings`): turn indicator, seat list, context actions for the selected object. Load the `unity:ui-uitk` skill first | S | T2.5 | HUD visible; buttons issue `Command`s | todo |
+| T2.10 | HUD v0 with UI Toolkit under `_Project/UI/` (UXML/USS, one `PanelSettings`): turn indicator, seat list, context actions for the selected object. Load the `unity:ui-uitk` skill first | S | T2.5 | HUD visible; buttons issue `Command`s | done 2026-10-22 |
 
 ## Simulation record
 
@@ -37,6 +37,7 @@
 | T2.5 | Controls: left drag grabs; on a non-empty deck or a bag it takes one item (top card / first object), Shift + left drag moves the container. Release over a card, deck or bag inserts (card on card forms a deck); within 4 cm of a snap point it snaps (and takes its yaw if `rotationSnap`). F flip, R roll/shuffle, L lock, Q/E rotate held object 15°, 1–9 over a deck deals to the local seat (solo: first seat). Physics sync: a free body that falls asleep (or stays awake 2 s) away from its stored pose (> 0.5 mm or 0.5°) sends a `Move`. Dice: a 0.55 s kinematic tumble lands on the engine's value, then reports its pose. |
 | T2.7 | Saves are the core table JSON in `<persistentDataPath>/Saves/<name>.json` (F5 quick save, F9 quick load). `Save` first records every live physics pose. Asset paths in a save resolve against the package the table was first loaded from. The RNG state is not saved: a reloaded table shuffles differently. |
 | T2.9 | Player setting **Run In Background = on** (kept on purpose after the CLI override wrote it): the authoritative host in M3 must keep simulating while its window is unfocused, and it lets the CLI drive Play mode. |
+| T2.10 | HUD: `UI/Hud/Hud.uxml` + `Hud.uss`, one `UI/PanelSettings.asset` (made by `HudBuilder`), own theme `UI/TableWorld.tss` (only stretches the document root; no Unity default theme). The controller lives in `Scripts/View/Hud/` instead of next to the UXML so it stays in the `TableWorld.Runtime` asmdef. Seat colours are USS modifier classes. Clicks over opaque HUD elements never reach the table. Turn line says "Free play" until the rules engine (M2) provides turns. |
 
 ## Manual checklist (T2.5, needs a human with a mouse)
 
@@ -53,3 +54,5 @@ Open `Assets/_Project/Scenes/Table.unity`, press Play, and check:
 - [ ] L over the d20 locks it; dragging it does nothing; L again unlocks.
 - [ ] Dropping a card near the empty spot right of the decks snaps it there.
 - [ ] Drag from the brown bag: a green token comes out. Drag from the purple bag: a new coin every time.
+- [ ] Click the deck: the HUD panel bottom-left shows its actions; "Deal 5 to me" works; clicking a HUD button does not grab the object behind it.
+- [ ] Save (F5), move things around, Load (F9): the table returns to the saved state.

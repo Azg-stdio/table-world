@@ -1,0 +1,134 @@
+.hud {
+    flex-grow: 1;
+    justify-content: space-between;
+    padding: 12px;
+}
+
+.top-bar {
+    flex-direction: row;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background-color: rgba(16, 18, 22, 0.82);
+}
+
+.turn-label {
+    -unity-font-style: bold;
+    font-size: 16px;
+    color: rgb(240, 236, 226);
+    margin-right: 16px;
+}
+
+.seat-list {
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+.seat-chip {
+    flex-direction: row;
+    align-items: center;
+    margin-right: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+.seat-chip--local {
+    background-color: rgba(255, 255, 255, 0.18);
+}
+
+.seat-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 6px;
+    margin-right: 6px;
+    background-color: rgb(230, 230, 230);
+}
+
+.seat-swatch--red { background-color: rgb(219, 51, 46); }
+.seat-swatch--blue { background-color: rgb(51, 107, 230); }
+.seat-swatch--green { background-color: rgb(64, 191, 77); }
+.seat-swatch--yellow { background-color: rgb(242, 217, 51); }
+.seat-swatch--orange { background-color: rgb(242, 140, 38); }
+.seat-swatch--purple { background-color: rgb(153, 77, 204); }
+.seat-swatch--pink { background-color: rgb(242, 128, 179); }
+.seat-swatch--teal { background-color: rgb(38, 179, 179); }
+.seat-swatch--brown { background-color: rgb(128, 82, 46); }
+
+.seat-name {
+    font-size: 13px;
+    color: rgb(220, 216, 206);
+}
+
+.hud-button {
+    margin-left: 6px;
+    padding: 4px 12px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    background-color: rgb(46, 52, 62);
+    color: rgb(240, 236, 226);
+    font-size: 13px;
+    transition-duration: 0.1s;
+}
+
+.hud-button:hover {
+    background-color: rgb(66, 76, 92);
+}
+
+.hud-button:active {
+    background-color: rgb(34, 38, 46);
+}
+
+.bottom-row {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+}
+
+.selection-panel {
+    width: 300px;
+    padding: 10px;
+    border-radius: 6px;
+    background-color: rgba(16, 18, 22, 0.82);
+}
+
+.selection-title {
+    -unity-font-style: bold;
+    font-size: 15px;
+    color: rgb(240, 236, 226);
+}
+
+.selection-detail {
+    font-size: 12px;
+    color: rgb(170, 168, 160);
+    margin-bottom: 8px;
+    white-space: normal;
+}
+
+.actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.actions .hud-button {
+    margin: 0 6px 6px 0;
+}
+
+.status-label {
+    max-width: 60%;
+    padding: 6px 10px;
+    border-radius: 4px;
+    background-color: rgba(16, 18, 22, 0.7);
+    font-size: 12px;
+    color: rgb(220, 216, 206);
+    white-space: normal;
+}
+
+.status-label--error {
+    color: rgb(255, 150, 140);
+}
+
+.hidden {
+    display: none;
+}

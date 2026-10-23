@@ -1,10 +1,12 @@
 using System.Linq;
 using TableWorld.View;
+using TableWorld.View.Hud;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 
 namespace TableWorld.Editor
 {
@@ -41,7 +43,14 @@ namespace TableWorld.Editor
             var tableGo = new GameObject("TableView");
             var table = tableGo.AddComponent<TableView>();
             table.Configure("Tables/sample", objects.transform, seed: 0);
-            tableGo.AddComponent<TableInteraction>().Configure(table, camera, camera.GetComponent<TableCamera>());
+            var interaction = tableGo.AddComponent<TableInteraction>();
+            interaction.Configure(table, camera, camera.GetComponent<TableCamera>());
+
+            var hud = new GameObject("Hud");
+            var document = hud.AddComponent<UIDocument>();
+            document.panelSettings = HudBuilder.GetOrCreatePanelSettings();
+            document.visualTreeAsset = HudBuilder.Hud;
+            hud.AddComponent<HudController>().Configure(table, interaction);
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             AddToBuildSettingsFirst(ScenePath);
