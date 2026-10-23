@@ -90,7 +90,10 @@ namespace Core.Tests.Engine
                     Assert.Equal(hashBefore, TableJson.Hash(engine.State));
             }
             engine.AssertValid();
-            return TableJson.Hash(engine.State);
+            var hash = TableJson.Hash(engine.State);
+            var reloaded = TableJson.Parse(TableJson.Serialize(engine.State)).State!;
+            Assert.Equal(hash, TableJson.Hash(reloaded));
+            return hash;
         }
 
         private static List<string> Play(ulong seed)

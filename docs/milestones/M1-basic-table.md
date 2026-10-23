@@ -14,7 +14,7 @@
 | T2.4 | Code-generated prefabs: `Card`/`Deck` from sprite sheet (columns × rows, face/back, 10×7 default), `Token`, `Tile`, `Die` d4–d20; generated placeholder sheet for the standard deck | M | T2.1, T2.3 | A sample table with all types renders; cards show the right cell | done 2026-10-22 |
 | T2.5 | Interaction: raycast pick, grab/drop with PhysX, lift height, rotate in hand, flip, snap to `SnapPoint`; every gesture ends in a `Command` | M | T2.2, T2.4 | Manual check list in the PR + T2.9 | done 2026-10-22 (scripted gesture run passed; manual mouse checklist below pending) |
 | T2.6 | Zones: `HandZone` per seat (hidden from others, visual only in solo), `ScriptingZone`, `SnapPoint`; enter/leave events | S | T2.5 | Tests in core for zone membership; visual check | done 2026-10-22 |
-| T2.7 | Save/load table to the `core` JSON | S | T2.1, T2.4 | Save → reload → identical state hash | todo |
+| T2.7 | Save/load table to the `core` JSON | S | T2.1, T2.4 | Save → reload → identical state hash | done 2026-10-22 |
 | T2.8 ⚗ | Performance: generated scene with 2 000 cards + 200 tokens; measure fps and memory; instancing/atlas if needed | S | T2.4 | Numbers recorded below | deferred past MVP (500 objects is the MVP bar) |
 | T2.9 ⚗ | PlayMode smoke test: load sample table, run 50 random commands | S | T2.5 | `unity command test run --mode PlayMode` green | todo |
 | T2.10 | HUD v0 with UI Toolkit under `_Project/UI/` (UXML/USS, one `PanelSettings`): turn indicator, seat list, context actions for the selected object. Load the `unity:ui-uitk` skill first | S | T2.5 | HUD visible; buttons issue `Command`s | todo |
@@ -25,6 +25,7 @@
 |---|---|---|
 | — | T2.8 2 000 objects | — |
 | — | T2.9 smoke test | — |
+| 2026-10-22 | M1 scenario in play mode: deal 5, flip, shuffle, roll d20, save, exit play mode, start, load, wait 6 s | hash identical after load and after 6 s of physics (`sha256:5824b774…`); first attempt drifted 2–30 mm because old views overlapped new ones for one physics step, fixed by deactivating before `Destroy` |
 
 ## Assumptions recorded during implementation
 
@@ -50,3 +51,4 @@ Open `Assets/_Project/Scenes/Table.unity`, press Play, and check:
 - [ ] L over the d20 locks it; dragging it does nothing; L again unlocks.
 - [ ] Dropping a card near the empty spot right of the decks snaps it there.
 - [ ] Drag from the brown bag: a green token comes out. Drag from the purple bag: a new coin every time.
+| T2.7 | Saves are the core table JSON in `<persistentDataPath>/Saves/<name>.json` (F5 quick save, F9 quick load). `Save` first records every live physics pose. Asset paths in a save resolve against the package the table was first loaded from. The RNG state is not saved: a reloaded table shuffles differently. |

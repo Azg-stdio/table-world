@@ -13,7 +13,7 @@ namespace TableWorld.View
     /// <item>Release over a deck, card or bag: insert into it. Near a snap point: snap. Otherwise physics settles it and
     /// <see cref="TableView"/> reports the final pose.</item>
     /// <item>F flip, R roll a die / shuffle a deck or bag, L lock/unlock, 1–9 over a deck deal to the local seat, Q/E rotate
-    /// the held object.</item>
+    /// the held object. F5 quick save, F9 quick load.</item>
     /// </list>
     /// The public methods are the same gestures without input devices, for tests and tools.
     /// </summary>
@@ -87,6 +87,11 @@ namespace TableWorld.View
 
         private void HandleKeys(Keyboard keyboard)
         {
+            if (Held == null && keyboard.f5Key.wasPressedThisFrame)
+                Debug.Log($"[Table] Saved {_table.Save(TableView.SavePath(TableView.QuickSaveName))}");
+            if (Held == null && keyboard.f9Key.wasPressedThisFrame)
+                _table.LoadFile(TableView.SavePath(TableView.QuickSaveName));
+
             var target = Held != null ? Held : Hovered;
             if (target == null)
                 return;

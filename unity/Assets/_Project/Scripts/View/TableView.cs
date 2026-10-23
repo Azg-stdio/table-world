@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Core.Engine;
 using Core.Rules;
@@ -31,7 +32,16 @@ namespace TableWorld.View
         private readonly Dictionary<string, float> _awakeSince = new Dictionary<string, float>();
         private readonly List<ObjectView> _scratch = new List<ObjectView>();
 
+        public const string QuickSaveName = "quicksave";
+
+        private string _packageRoot;
+
         public TableEngine Engine { get; private set; }
+
+        /// <summary>Where saves live: &lt;persistentDataPath&gt;/Saves/&lt;name&gt;.json.</summary>
+        public static string SavesFolder => Path.Combine(Application.persistentDataPath, "Saves");
+
+        public static string SavePath(string name) => Path.Combine(SavesFolder, name + ".json");
         public AssetLibrary Assets { get; private set; }
         public IReadOnlyDictionary<string, ObjectView> Views => _views;
 
@@ -69,6 +79,7 @@ namespace TableWorld.View
             }
 
             Clear();
+            _packageRoot = packageRoot;
             var seed = _seed != 0 ? (ulong)_seed : (ulong)DateTime.UtcNow.Ticks;
             Engine = new TableEngine(parsed.State, seed);
             Assets = new AssetLibrary(parsed.State.Assets, packageRoot);
@@ -76,6 +87,31 @@ namespace TableWorld.View
                 Spawn(obj);
             SpawnZones();
             return true;
+        }
+
+        /// <summary>
+        /// Writes the table to <paramref name="path"/> as core JSON after recording every live physics pose, so the file
+        /// matches what is on screen. Returns the state hash written.
+        /// </summary>
+        public string Save(string path)
+        {
+            foreach (var view in _views.Values.ToList())
+                if (view != null && !view.Held && !view.Animating)
+                    ReportPose(view);
+            Directory.CreateDirectory(Path.GetDirectoryName(path) ?? ".");
+            File.WriteAllText(path, TableJson.Serialize(Engine.State));
+            return TableJson.Hash(Engine.State);
+        }
+
+        /// <summary>Loads a saved table. Asset paths keep resolving against the package the table was first loaded from.</summary>
+        public bool LoadFile(string path)
+        {
+            if (!File.Exists(path))
+            {
+                Debug.LogWarning($"[TableView] No save at {path}.");
+                return false;
+            }
+            return Load(File.ReadAllText(path), _packageRoot);
         }
 
         public CommandResult Execute(Command command)
@@ -225,7 +261,10 @@ namespace TableWorld.View
             {
                 _views.Remove(id);
                 if (view != null)
+                {
+                    view.gameObject.SetActive(false);
                     Destroy(view.gameObject);
+                }
             }
         }
 
@@ -242,16 +281,27 @@ namespace TableWorld.View
             }
         }
 
+        /// <summary>
+        /// Removes every view. They are deactivated first: Destroy is deferred, and colliders still alive during the next
+        /// physics step would overlap the freshly loaded objects and shove them apart.
+        /// </summary>
         private void Clear()
         {
             foreach (var zone in _zoneViews)
                 if (zone != null)
+                {
+                    zone.SetActive(false);
                     Destroy(zone);
+                }
             _zoneViews.Clear();
             foreach (var view in _views.Values)
                 if (view != null)
+                {
+                    view.gameObject.SetActive(false);
                     Destroy(view.gameObject);
+                }
             _views.Clear();
+            _awakeSince.Clear();
         }
     }
 }
