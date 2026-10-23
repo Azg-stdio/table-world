@@ -39,13 +39,14 @@ namespace TableWorld.Tests.PlayMode
         [UnityTest]
         public IEnumerator Hands_StandForTheirOwner_AndHideFromOthers()
         {
+            yield return new WaitForSeconds(0.4f);
             var me = _table.LocalSeat;
             var other = _table.Engine.State.Players.Seats.First(s => s.Id != me).Id;
             foreach (var card in _table.Engine.ObjectsIn(HandOf(me)))
             {
                 var view = _table.ViewOf(card.Id);
                 Assert.IsTrue(view.InHand && !view.HideFace, card.Id);
-                Assert.Greater(Vector3.Angle(view.transform.up, Vector3.up), 45f, "stands up");
+                Assert.AreEqual(TableView.HandTiltDegrees, Vector3.Angle(view.transform.up, Vector3.up), 1f, "leans toward its owner");
             }
             foreach (var card in _table.Engine.ObjectsIn(HandOf(other)))
                 Assert.IsTrue(_table.ViewOf(card.Id).HideFace, card.Id);

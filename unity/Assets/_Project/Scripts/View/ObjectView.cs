@@ -45,6 +45,10 @@ namespace TableWorld.View
         /// <summary>True for a card in someone else's hand: its face shows the back, and its name is not shown.</summary>
         public bool HideFace { get; internal set; }
 
+        /// <summary>Where the hand presentation wants this card; <see cref="TableView"/> glides it there.</summary>
+        internal Vector3 HandPosition;
+        internal Quaternion HandRotation;
+
         /// <summary>Stands in a hand: kinematic, and its collider a trigger so it is still picked but never pushes anything.</summary>
         internal void EnterHand()
         {

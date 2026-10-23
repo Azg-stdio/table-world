@@ -100,6 +100,47 @@ namespace TableWorld.View
         /// <summary>Set by the HUD: true when a screen point is over UI, so clicks there never reach the table.</summary>
         public Func<Vector2, bool> PointerBlocked { get; set; }
 
+        /// <summary>
+        /// Set by the HUD's hand bar: for a release at a screen point, where across the bar it lands (0..1), or null when
+        /// the pointer is not over the bar.
+        /// </summary>
+        public Func<Vector2, float?> HandDrop { get; set; }
+
+        /// <summary>Set by the HUD's hand bar: the id of the hand card drawn under a screen point, or null.</summary>
+        public Func<Vector2, string> HandCardAt { get; set; }
+
+        private Vector2 _lastPointer;
+
+        /// <summary>Layer of held objects: it collides with nothing, so a carried object never shoves dice or cards aside.</summary>
+        public const int HeldLayer = 30;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ConfigureHeldLayer()
+        {
+            for (var layer = 0; layer < 32; layer++)
+                Physics.IgnoreLayerCollision(HeldLayer, layer, true);
+        }
+
+        private readonly Dictionary<GameObject, int> _layerBeforeHold = new Dictionary<GameObject, int>();
+
+        private void SetHeldLayer(ObjectView view, bool held)
+        {
+            foreach (var t in view.GetComponentsInChildren<Transform>(true))
+            {
+                var go = t.gameObject;
+                if (held)
+                {
+                    _layerBeforeHold[go] = go.layer;
+                    go.layer = HeldLayer;
+                }
+                else if (_layerBeforeHold.TryGetValue(go, out var before))
+                {
+                    go.layer = before;
+                    _layerBeforeHold.Remove(go);
+                }
+            }
+        }
+
         /// <summary>Ignore the real mouse and keyboard: tests that drive gestures from code set it, or a cursor over the Game view would steer held objects.</summary>
         public bool IgnoreDevices { get; set; }
 
@@ -133,6 +174,7 @@ namespace TableWorld.View
                 return;
 
             var pointer = mouse.position.ReadValue();
+            _lastPointer = pointer;
             var overUi = Held == null && PointerBlocked != null && PointerBlocked(pointer);
             var ray = _camera.ScreenPointToRay(pointer);
             Hovered = overUi ? null : RaycastObject(ray, Held, out _);
@@ -145,8 +187,16 @@ namespace TableWorld.View
             UpdateTooltip();
             UpdateLook(alt, shift);
 
+            // Left button on a card in the hand bar: pick that card up (it then follows the pointer like any grab).
+            if (mouse.leftButton.wasPressedThisFrame && Held == null && HandCardAt?.Invoke(pointer) is { } handCard && _table.ViewOf(handCard) is { } fromBar)
+            {
+                _leftDown = pointer;
+                _leftTime = Time.unscaledTime;
+                ClearSelection();
+                Grab(fromBar, moveContainer: false);
+            }
             // Left button: grab, box select, or (with Tab) ping and measure.
-            if (mouse.leftButton.wasPressedThisFrame && Held == null && !overUi)
+            else if (mouse.leftButton.wasPressedThisFrame && Held == null && !overUi)
             {
                 _leftDown = pointer;
                 _leftTime = Time.unscaledTime;
@@ -488,15 +538,18 @@ namespace TableWorld.View
             _table.NotifyTouched(view.Id);
             if (view.InHand)
             {
-                // Out of the hand's standing pose: it is carried flat, as the state has it.
+                // Out of the hand's standing pose: it is carried flat and face up, as the state has it.
                 view.LeaveHand();
-                view.transform.rotation = view.Model.Transform.Rotation.ToRotation();
+                var flat = view.Model.Transform.Rotation.ToRotation();
+                view.Body.rotation = flat;
+                view.transform.rotation = flat;
             }
             _table.ForgetRest(view.Id);
             _held.Add(view);
             _offsets[view] = offset;
             view.Held = true;
             view.Body.isKinematic = true;
+            SetHeldLayer(view, true);
         }
 
         /// <summary>Moves the held objects so they hover above <paramref name="surfacePoint"/>.</summary>
@@ -555,7 +608,21 @@ namespace TableWorld.View
         private void ReleaseOne(ObjectView view, bool joinBelow, Vector3 velocity, Vector3 spin)
         {
             view.Held = false;
+            SetHeldLayer(view, false);
             _table.NotifyTouched(view.Id);
+            // Into your own hand (over the hand bar, or over your hand zone): straight into its slot, no fall.
+            if (view.Model is Card && HandOfLocalSeat() is { } ownHand)
+            {
+                var slot = IgnoreDevices ? null : HandDrop?.Invoke(_lastPointer);
+                var at = view.transform.position;
+                var overZone = Geometry.Contains(ownHand, new Vec3(at.x, ownHand.Transform.Position.Y, at.z));
+                if (slot != null || overZone)
+                {
+                    _playFromHand = null;
+                    if (PutInHand(view, ownHand, slot))
+                        return;
+                }
+            }
             if (_playFromHand is { } hand)
             {
                 _playFromHand = null;
@@ -595,6 +662,32 @@ namespace TableWorld.View
                 view.Body.WakeUp();
                 _table.ReportWhenResting(view);
             }
+        }
+
+        /// <summary>
+        /// Moves <paramref name="card"/> into <paramref name="hand"/>, flat and face up in the state, at <paramref name="slot"/>
+        /// (0..1 across the hand) or where it is. The view then glides to its standing place in the hand.
+        /// </summary>
+        private bool PutInHand(ObjectView card, Zone hand, float? slot)
+        {
+            var yaw = Quaternion.Euler(0f, hand.Transform.Rotation.Y, 0f);
+            var center = hand.Transform.Position.ToUnity();
+            var width = hand.Size.X * hand.Transform.Scale.X;
+            var local = Quaternion.Inverse(yaw) * (card.transform.position - center);
+            var x = slot is { } s ? (s - 0.5f) * width : Mathf.Clamp(local.x, -width / 2f, width / 2f);
+            var position = center + yaw * new Vector3(x, 0f, 0f);
+            var result = _table.Execute(new MoveCommand
+            {
+                ObjectId = card.Id,
+                Position = new Vector3(position.x, 0f, position.z).ToCore(),
+                Rotation = new Vec3(0f, hand.Transform.Rotation.Y, 0f),
+                Actor = _table.LocalSeat,
+            });
+            if (!result.Ok)
+                return false;
+            card.Body.isKinematic = true;
+            _table.PresentHands();
+            return true;
         }
 
         // ---- rules gestures -------------------------------------------------------------------------------------

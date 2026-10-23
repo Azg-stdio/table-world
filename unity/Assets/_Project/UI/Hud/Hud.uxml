@@ -39,6 +39,7 @@
             <ui:Label name="gameLog" class="game-log" />
             <ui:VisualElement name="gameActions" class="actions" />
         </ui:VisualElement>
+        <ui:VisualElement name="handBar" class="hand-bar hidden" picking-mode="Ignore" />
         <ui:VisualElement name="bottomRow" class="bottom-row" picking-mode="Ignore">
             <ui:VisualElement name="selectionPanel" class="selection-panel hidden">
                 <ui:Label name="selectionTitle" class="selection-title" />

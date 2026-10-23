@@ -77,15 +77,34 @@ namespace TableWorld.View
                 return;
             }
             var bounds = _target.Renderer.bounds;
-            var size = Mathf.Max(bounds.size.x, bounds.size.z, bounds.size.y * 0.5f, 0.02f);
-            var distance = size / (2f * Mathf.Tan(_camera.fieldOfView * 0.5f * Mathf.Deg2Rad)) * 1.15f * _zoom;
-            // Seen from straight above (or below for a peek), with the object's yaw so cards read upright.
+            if (IsFlat(_target.Model))
+            {
+                // Cards, decks, tokens, tiles, boards: always square on to their face, whatever their pose (a card
+                // standing in a hand, a tilted token), top edge up. Peek looks at the other side.
+                var normal = _target.transform.up;
+                var side = normal.y >= -0.01f ? normal : -normal;
+                var direction = _peek ? -side : side;
+                var top = Quaternion.AngleAxis(_yaw, direction) * _target.transform.forward;
+                var local = _target.Filter.sharedMesh.bounds.size;
+                var scale = _target.transform.lossyScale;
+                var size = Mathf.Max(local.x * scale.x, local.z * scale.z, 0.02f);
+                var distance = size / (2f * Mathf.Tan(_camera.fieldOfView * 0.5f * Mathf.Deg2Rad)) * 1.15f * _zoom;
+                transform.position = bounds.center + direction * (distance + local.y * scale.y);
+                transform.rotation = Quaternion.LookRotation(-direction, _peek ? -top : top);
+                return;
+            }
+            var extent = Mathf.Max(bounds.size.x, bounds.size.z, bounds.size.y * 0.5f, 0.02f);
+            var away = extent / (2f * Mathf.Tan(_camera.fieldOfView * 0.5f * Mathf.Deg2Rad)) * 1.15f * _zoom;
+            // Seen from straight above (or below for a peek), with the object's yaw so it reads upright.
             var yaw = _target.transform.eulerAngles.y + _yaw;
-            var direction = _peek ? Vector3.down : Vector3.up;
+            var vertical = _peek ? Vector3.down : Vector3.up;
             var up = Quaternion.Euler(0f, yaw, 0f) * Vector3.forward;
-            transform.position = bounds.center + direction * (distance + bounds.extents.y);
-            transform.rotation = Quaternion.LookRotation(-direction, _peek ? -up : up);
+            transform.position = bounds.center + vertical * (away + bounds.extents.y);
+            transform.rotation = Quaternion.LookRotation(-vertical, _peek ? -up : up);
         }
+
+        private static bool IsFlat(Core.Rules.TableObject model) =>
+            model is Core.Rules.Card || model is Core.Rules.Deck || model is Core.Rules.Token || model is Core.Rules.Tile || model is Core.Rules.Board;
 
         private void RestoreLayers()
         {

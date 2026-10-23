@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Linq;
+using Core.Engine;
 using Core.Rules;
 using NUnit.Framework;
 using TableWorld.View;
@@ -8,6 +9,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 using UnityEngine.TestTools;
 
 namespace TableWorld.Tests.PlayMode
@@ -210,6 +212,54 @@ namespace TableWorld.Tests.PlayMode
             Assert.AreEqual(count - 1, ((Deck)M("deck_main")).Cards.Count);
             Release(_mouse.leftButton);
             yield return null;
+        }
+
+        /// <summary>Screen position (Input System pixels, origin bottom left) of a HUD element's centre.</summary>
+        private static Vector2 ScreenOf(UnityEngine.UIElements.VisualElement element)
+        {
+            var root = element.panel.visualTree;
+            var scale = Screen.width / root.worldBound.width;
+            var c = element.worldBound.center;
+            return new Vector2(c.x * scale, Screen.height - c.y * scale);
+        }
+
+        [UnityTest]
+        public IEnumerator HandBar_DragACardOutOntoTheTable_ThenDropItBackOnTheBar()
+        {
+            Assert.IsTrue(_table.Execute(new MoveCommand { ObjectId = "king_hearts", Position = new Vec3(0f, 0f, -0.42f), Actor = "seat_south" }).Ok);
+            yield return new WaitForSeconds(0.5f);
+            var root = Object.FindAnyObjectByType<HudController>().GetComponent<UnityEngine.UIElements.UIDocument>().rootVisualElement;
+            var card = root.Q("hand-king_hearts");
+            Assert.IsNotNull(card, "the hand bar shows the card");
+
+            // Out of the bar onto the table.
+            yield return Point(ScreenOf(card));
+            Press(_mouse.leftButton);
+            for (var i = 0; i < 5 && _interaction.Held == null; i++)
+                yield return null;
+            Assert.AreEqual("king_hearts", _interaction.Held?.Id, $"pressing a card in the bar picks it up (pressed at {ScreenOf(card)}, screen {Screen.width}x{Screen.height}, card {card.worldBound})");
+            yield return Point(ScreenOf(new Vector3(0.2f, 0f, 0.05f)));
+            yield return new WaitForSeconds(0.4f);
+            Release(_mouse.leftButton);
+            yield return new WaitForSeconds(1f);
+            Assert.IsFalse(_table.Engine.ZonesOf("king_hearts").Contains("hand_south"));
+            Assert.AreEqual(0.2f, M("king_hearts").Transform.Position.X, 0.03f);
+            Assert.IsNull(root.Q("hand-king_hearts"));
+
+            // Back: pick it up on the table, release over the bar.
+            yield return Point(ScreenOf("king_hearts"));
+            Press(_mouse.leftButton);
+            yield return null;
+            Assert.AreEqual("king_hearts", _interaction.Held?.Id);
+            var bar = root.Q("handBar");
+            yield return Point(ScreenOf(bar));
+            yield return new WaitForSeconds(0.3f);
+            Release(_mouse.leftButton);
+            yield return null;
+            Assert.IsTrue(_table.Engine.ZonesOf("king_hearts").Contains("hand_south"), "released over the bar: back in the hand, at once");
+            yield return new WaitForSeconds(0.4f);
+            Assert.IsTrue(_table.ViewOf("king_hearts").InHand);
+            Assert.IsNotNull(root.Q("hand-king_hearts"));
         }
 
         [UnityTest]

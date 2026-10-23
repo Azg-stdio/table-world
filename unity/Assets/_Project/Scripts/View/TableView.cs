@@ -220,8 +220,15 @@ namespace TableWorld.View
 
         // ---- hands (TTS style) ------------------------------------------------------------------------------------
 
-        /// <summary>How far hand cards lean back from upright, toward their owner.</summary>
-        public const float HandTiltDegrees = 70f;
+        /// <summary>
+        /// How far hand cards are raised from lying flat, toward their owner: 40° faces the default camera (55° pitch)
+        /// almost square on, so the owner reads them without them standing like a wall.
+        /// </summary>
+        public const float HandTiltDegrees = 40f;
+        /// <summary>Hand cards are shown this much closer to the owner's table edge than the zone's centre line.</summary>
+        public const float HandEdgeOffset = 0.03f;
+        /// <summary>Hand cards glide to their places at this rate (about 0.15 s).</summary>
+        public const float HandMotionRate = 22f;
         private string _presentedSeat;
 
         /// <summary>
@@ -284,9 +291,26 @@ namespace TableWorld.View
                 var view = cards[i];
                 view.EnterHand();
                 // Later cards sit a little closer to the owner, so overlapping cards never z-fight.
-                var local = new Vector3((i - (cards.Count - 1) / 2f) * step, 0f, -0.0015f * i);
+                var local = new Vector3((i - (cards.Count - 1) / 2f) * step, 0f, -HandEdgeOffset - 0.0015f * i);
                 var p = center + yaw * local;
-                view.transform.SetPositionAndRotation(new Vector3(p.x, lift, p.z), pose);
+                view.HandPosition = new Vector3(p.x, lift, p.z);
+                view.HandRotation = pose;
+            }
+        }
+
+        /// <summary>Hand cards move to their places smoothly (a drop into the hand, a reorder, a card leaving) instead of jumping.</summary>
+        private void GlideHandCards()
+        {
+            var k = 1f - Mathf.Exp(-HandMotionRate * Time.fixedDeltaTime);
+            foreach (var view in _views.Values)
+            {
+                if (view == null || !view.InHand || view.Held)
+                    continue;
+                var body = view.Body;
+                if ((body.position - view.HandPosition).sqrMagnitude < 1e-8f && Quaternion.Angle(body.rotation, view.HandRotation) < 0.05f)
+                    continue;
+                body.MovePosition(Vector3.Lerp(body.position, view.HandPosition, k));
+                body.MoveRotation(Quaternion.Slerp(body.rotation, view.HandRotation, k));
             }
         }
 
@@ -444,6 +468,7 @@ namespace TableWorld.View
             if (Engine == null)
                 return;
             ReturnLostObjects();
+            GlideHandCards();
             var damping = Mathf.Exp(-DieSettleRate * Time.fixedDeltaTime);
             foreach (var view in _views.Values)
             {
@@ -714,7 +739,8 @@ namespace TableWorld.View
                             ObjectViewFactory.Refresh(view, Assets);
                             // A pose reported from this view's own physics is already on screen; snapping would stop
                             // the body (velocity reset) and fight the simulation.
-                            if (updated.ObjectId != _reportingId)
+                            // Hand cards are placed by the hand presentation (they glide), not snapped to the state's flat slot.
+                            if (updated.ObjectId != _reportingId && HandZoneOf(updated.ObjectId) == null)
                                 view.SnapToState();
                         }
                         break;

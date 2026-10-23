@@ -139,7 +139,7 @@
 }
 
 .status-label {
-    max-width: 60%;
+    max-width: 420px;
     padding: 6px 10px;
     border-radius: 4px;
     background-color: rgba(16, 18, 22, 0.7);
@@ -389,4 +389,32 @@
     background-color: rgb(36, 40, 48);
     color: rgb(240, 236, 226);
     font-size: 15px;
+}
+
+.hand-bar {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    translate: -50% 0;
+    height: 140px;
+}
+
+.hand-card {
+    position: absolute;
+    bottom: 0;
+    width: 100px;
+    height: 140px;
+    border-width: 1px;
+    border-color: rgba(0, 0, 0, 0.45);
+    border-radius: 6px;
+    background-color: rgb(250, 248, 240);
+    -unity-background-scale-mode: stretch-to-fill;
+    transform-origin: center bottom;
+    transition-duration: 0.12s;
+}
+
+.hand-card:hover {
+    scale: 1.6 1.6;
+    translate: 0 -8px;
+    border-color: rgba(255, 255, 255, 0.9);
 }

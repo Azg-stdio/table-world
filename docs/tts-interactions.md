@@ -28,7 +28,7 @@ The list of player interactions Table World must reproduce, taken from Tabletop 
 |---|---|---|---|---|
 | Pick up / drop | LMB press / release | KB:basic | ✅ | play, input |
 | Drop onto deck/card/bag joins it | release over it | unverified | ✅ (a card or deck covering ≥ 15 % of a card or deck joins it; anything covering ≥ 30 % of a bag goes in) | play |
-| Held objects lift, then hover above what is under them (Auto Raise, on by default in TTS) | automatic while holding | KB:menu | ✅ (a held object never sweeps its neighbours) | play |
+| Held objects lift, then hover above what is under them (Auto Raise, on by default in TTS) | automatic while holding | KB:menu | ✅ and a held object collides with nothing (its own layer), so even pressed down it never shoves dice or cards | play |
 | Snap to snap points when dropped | release near point | KB:menu (Snap toggle) | ✅ | play |
 | Take top card by dragging a deck; move whole deck | press and drag at once = take the top card/item; press and hold still ≈0.35 s = lift the whole deck or bag; click = select only | TTS (Miguel, 2026-10-23) | ✅ (Shift+drag also lifts the whole container) | input |
 | Box select | LMB drag on empty table, release highlights | KB:basic | ✅ | play, input |
@@ -50,7 +50,7 @@ The list of player interactions Table World must reproduce, taken from Tabletop 
 
 | Interaction | TTS binding | Source | Status | Test |
 |---|---|---|---|---|
-| Alt zoom (close-up of hovered object, best for cards) | hold Alt | KB:basic, KB:adv | ✅ | play, input |
+| Alt zoom (close-up of hovered object, best for cards) | hold Alt | KB:basic, KB:adv | ✅ flat objects (cards, decks, tokens, tiles, boards) are always shown square on to their face, even standing in a hand | play, input |
 | Zoom further / rotate in Alt zoom | wheel / Q E | KB:basic | ✅ | play |
 | Peek (see the underside; others are alerted) | hold Alt + Shift | KB:adv | ✅ (alerting others: M3) | play |
 | Magnify area | M (+ wheel) | KB:adv | ⏭ polish (after playtest) | — |
@@ -74,7 +74,8 @@ The list of player interactions Table World must reproduce, taken from Tabletop 
 | Create states from a selection | menu "Create States" | KB:states | ⏭ authoring (M7 / MCP) | — |
 | Lock | menu toggle "Lock" (L: unverified) | KB:menu | ✅ (L) | play |
 | Hands toggle (can go to hand) | menu toggle | KB:menu | ⏭ polish (every card can go to a hand today) | — |
-| Hand view: your cards stand at your table edge facing you, others see backs; others' hand cards cannot be picked up, and their name never shows | automatic in a hand zone | KB:basic | ✅ (view only: every client still receives the whole table) | play |
+| Hand view: your cards stand at your table edge facing you, others see backs; others' hand cards cannot be picked up, and their name never shows | automatic in a hand zone | KB:basic | ✅ leaning 40° (faces the default camera), shown 3 cm toward your table edge, gliding into place (≈0.15 s); hiding is view only (every client still receives the whole table) | play |
+| Hand bar: your hand at the bottom of the screen, whatever the camera does | automatic | KB:basic | ✅ hover raises and enlarges a card (×1.6); press a card to pick it up; release over the bar (or over your hand zone) to put a card straight into your hand at that spot, without a physics fall | input |
 | Reorder your hand | drag a card within your hand | KB:basic | ✅ | play |
 
 ## 4b. Playing a rules game by hand (Table World; TTS has no rules engine)
@@ -128,7 +129,7 @@ Miguel's playtest showed that sections 1–6 cover single-player gestures but no
 | G5 | Sound | pick up, drop, card slide, shuffle, dice, chips | silent | P1 |
 | G6 | Deck count | hovering a deck or bag shows how many items | tooltip shows only the name | P1 |
 | G7 | Search shows cards | a grid of card faces, drag one out | a text list with Take buttons | P1 |
-| G8 | Hand card close-up | hovering a card in your hand raises and enlarges it | hand cards are small at the table edge | P1 |
+| G8 | Hand card close-up | hovering a card in your hand raises and enlarges it | ✅ hand bar (2026-10-23) | P1 |
 | G9 | Motion | flips, draws and deals animate | they snap | P2 |
 | G10 | Seats | click a colour to sit there, spectator, change seat | assigned in join order | P2 |
 | G11 | Chat and game log | chat box, messages and rule messages scroll back | only the last rules message | P2 |

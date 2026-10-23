@@ -193,6 +193,27 @@ namespace TableWorld.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator Card_CarriedLowThroughTheDice_PushesNothing()
+        {
+            // Pressed down (tap down) and swept along the row of dice: a held object collides with nothing.
+            var dice = new[] { "d4", "d6", "d8", "d10", "d12", "d20" };
+            var before = dice.ToDictionary(d => d, d => V(d).transform.position);
+            Assert.IsTrue(_interaction.Grab(V("ace_spades"), false));
+            _interaction.SetTapDown(true);
+            _interaction.DragTo(new Vector3(-0.35f, 0f, -0.28f));
+            yield return new WaitForSeconds(0.5f);
+            _interaction.DragTo(new Vector3(0.05f, 0f, -0.28f));
+            yield return new WaitForSeconds(1.0f);
+            _interaction.SetTapDown(false);
+            _interaction.DragTo(new Vector3(0.2f, 0f, 0f));
+            yield return new WaitForSeconds(0.5f);
+            _interaction.Release();
+            yield return new WaitForSeconds(1f);
+            foreach (var d in dice)
+                Assert.Less(Vector3.Distance(before[d], V(d).transform.position), 0.002f, d + " was pushed");
+        }
+
+        [UnityTest]
         public IEnumerator Card_DroppedFromHigh() => Drop("queen_clubs", new Vector3(-0.05f, 0f, 0.05f), Vector3.zero, 0.2f, new List<string>());
 
         [UnityTest]

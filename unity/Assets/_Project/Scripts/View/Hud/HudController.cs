@@ -37,6 +37,7 @@ namespace TableWorld.View.Hud
         private string _shownGameKey;
         private GameUiRenderer _gameUi;
         private TableOverlay _overlay;
+        private HandBar _handBar;
         private LookCamera _look;
 
         public TableOverlay Overlay => _overlay;
@@ -74,6 +75,7 @@ namespace TableWorld.View.Hud
                 _look = _look != null ? _look : LookCamera.Create(transform);
                 var camera = Camera.main != null ? Camera.main.GetComponent<TableCamera>() : null;
                 _overlay = new TableOverlay(_root, _table, _interaction, camera, _look);
+                _handBar = new HandBar(_root, _table, _interaction);
                 _interaction.Pinged += OnPing;
             }
 
@@ -159,6 +161,7 @@ namespace TableWorld.View.Hud
             FaceLocalSeat();
             RefreshSelection();
             _overlay?.Update();
+            _handBar?.Update();
             if (_netStatus != null && _session != null)
                 _netStatus.text = _session.Status == "offline" ? "" : _session.Status;
             if (Time.unscaledTime >= _nextGameRefresh)
