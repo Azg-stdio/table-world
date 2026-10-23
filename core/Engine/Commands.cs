@@ -108,6 +108,24 @@ namespace Core.Engine
     {
     }
 
+    /// <summary>
+    /// Switches free-play turns on or off and sets their order (TTS Turns). Host only. Refused while a rules game is
+    /// running, whose own turns apply. <see cref="First"/> (default: the first seat of the order) starts.
+    /// </summary>
+    public sealed class SetTurnOrderCommand : Command, IHostCommand
+    {
+        public bool Enabled { get; set; } = true;
+        public List<string> Seats { get; set; } = new List<string>();
+        public bool Reverse { get; set; }
+        public bool SkipEmptyHands { get; set; }
+        public string? First { get; set; }
+    }
+
+    /// <summary>Ends the current free-play turn; the next seat in order (skipping empty hands if set) plays. Sent by the seat whose turn it is.</summary>
+    public sealed class EndTurnCommand : Command
+    {
+    }
+
     /// <summary>Sets how the table simulates objects (TTS: Options > Physics). Host only.</summary>
     public sealed class SetPhysicsCommand : Command, IHostCommand
     {

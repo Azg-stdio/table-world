@@ -38,6 +38,13 @@
     border-color: rgba(240, 236, 226, 0.7);
 }
 
+/* Whose turn it is (rules or free-play turns): a warm outline. */
+.seat-chip--turn {
+    border-width: 2px;
+    border-color: rgb(242, 196, 82);
+    background-color: rgba(242, 196, 82, 0.16);
+}
+
 .seat-chip--local .seat-name {
     color: rgb(255, 252, 244);
     -unity-font-style: bold;

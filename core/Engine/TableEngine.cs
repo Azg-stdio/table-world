@@ -186,6 +186,8 @@ namespace Core.Engine
             GroupCommand c => Group(c),
             RollCommand c => Roll(c),
             SetPhysicsCommand c => SetPhysics(c),
+            SetTurnOrderCommand c => SetTurnOrder(c),
+            EndTurnCommand c => EndTurn(c),
             ScaleCommand c => Scale(c),
             DeleteCommand c => Delete(c),
             CloneCommand c => Clone(c),
@@ -434,6 +436,68 @@ namespace Core.Engine
                 return CommandResult.Fail("mode", ErrorCodes.InvalidValue, $"Unknown physics mode {(int)c.Mode}.", "Use full, semiLock or locked.");
             State.Physics = c.Mode;
             return CommandResult.Success(new List<StateEvent> { new TableSettingsChanged() });
+        }
+
+        // ---- free-play turns (G22) ---------------------------------------------------------------------------------
+
+        private CommandResult SetTurnOrder(SetTurnOrderCommand c)
+        {
+            if (!c.Enabled)
+            {
+                State.FreeTurns = null;
+                return CommandResult.Success(new List<StateEvent> { new TableSettingsChanged() });
+            }
+            if (State.Session is { Started: true, Over: false })
+                return CommandResult.Fail("", ErrorCodes.GameAlreadyStarted, "The game's rules run the turns.", "Turns can be set when no rules game is running.");
+            for (var i = 0; i < c.Seats.Count; i++)
+                if (State.Players.Seats.All(s => s.Id != c.Seats[i]))
+                    return CommandResult.Fail($"seats[{i}]", ErrorCodes.UnknownSeat, $"Seat '{c.Seats[i]}' does not exist.");
+            if (c.Seats.Distinct().Count() != c.Seats.Count)
+                return CommandResult.Fail("seats", ErrorCodes.InvalidValue, "A seat appears twice in the turn order.");
+            var order = new FreeTurns { Enabled = true, Seats = new List<string>(c.Seats), Reverse = c.Reverse, SkipEmptyHands = c.SkipEmptyHands };
+            var seats = TurnSeats(order);
+            if (seats.Count == 0)
+                return CommandResult.Fail("seats", ErrorCodes.PlayerCount, "There are no seats to take turns.");
+            if (c.First != null && !seats.Contains(c.First))
+                return CommandResult.Fail("first", ErrorCodes.UnknownSeat, $"Seat '{c.First}' is not in the turn order.");
+            order.Current = c.First ?? (State.FreeTurns?.Current is { } kept && seats.Contains(kept) ? kept : seats[0]);
+            State.FreeTurns = order;
+            return CommandResult.Success(new List<StateEvent> { new TableSettingsChanged() });
+        }
+
+        private CommandResult EndTurn(EndTurnCommand c)
+        {
+            if (!(State.FreeTurns is { Enabled: true, Current: { } current } order))
+                return CommandResult.Fail("", ErrorCodes.InvalidValue, "Turns are off.", "The host can switch them on from the table menu.");
+            if (c.Actor != null && c.Actor != current)
+                return CommandResult.Fail("actor", ErrorCodes.NotYourTurn, $"It is {current}'s turn.");
+            order.Current = NextTurnSeat(order, current);
+            order.Count++;
+            return CommandResult.Success(new List<StateEvent> { new TableSettingsChanged() });
+        }
+
+        private List<string> TurnSeats(FreeTurns order) =>
+            order.Seats.Count > 0 ? order.Seats : State.Players.Seats.Select(s => s.Id).ToList();
+
+        /// <summary>The seat after <paramref name="current"/> in play direction, passing over empty hands when asked (but never all of them).</summary>
+        public string NextTurnSeat(FreeTurns order, string current)
+        {
+            var seats = TurnSeats(order);
+            var at = seats.IndexOf(current);
+            var step = order.Reverse ? -1 : 1;
+            for (var i = 1; i <= seats.Count; i++)
+            {
+                var next = seats[((at + step * i) % seats.Count + seats.Count) % seats.Count];
+                if (!order.SkipEmptyHands || !HasEmptyHand(next))
+                    return next;
+            }
+            return seats[((at + step) % seats.Count + seats.Count) % seats.Count];
+        }
+
+        private bool HasEmptyHand(string seatId)
+        {
+            var hand = State.Players.Seats.FirstOrDefault(s => s.Id == seatId)?.HandZone;
+            return hand != null && !ObjectsIn(hand).Any();
         }
 
         private CommandResult Lock(LockCommand c)

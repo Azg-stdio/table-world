@@ -446,12 +446,14 @@ namespace TableWorld.View
         }
 
         /// <summary>
-        /// Seat that commands from this machine act as. Solo (hot seat): the seat whose turn it is during a game,
-        /// otherwise the first seat. Multiplayer (M3) will pin it per client.
+        /// Seat that commands from this machine act as. Solo (hot seat): the seat whose turn it is during a game or with
+        /// free-play turns on (G22), otherwise the first seat. Online it is pinned per machine.
         /// </summary>
         public string LocalSeat => SeatOverride ?? (Game?.Session is { Started: true, Over: false } session
             ? session.CurrentSeat
-            : Engine?.State.Players.Seats.FirstOrDefault()?.Id);
+            : Engine?.State.FreeTurns is { Enabled: true, Current: { } turn }
+                ? turn
+                : Engine?.State.Players.Seats.FirstOrDefault()?.Id);
 
         /// <summary>
         /// Physics moves free objects; the state learns their final pose here. When a body falls asleep (or has been

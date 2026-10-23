@@ -127,7 +127,7 @@ namespace Core.Net
                 var hostOnly = CommandResult.Fail("", ErrorCodes.HostOnly, "Only the host can change that.", "Ask the host.");
                 return (hostOnly, new Outgoing(origin, Rejection(origin, clientSeq, hostOnly.Error!)));
             }
-            if (command is PerformActionCommand && origin != HostId && Seats.TryGetValue(origin, out var seat) && command.Actor != seat)
+            if ((command is PerformActionCommand || command is EndTurnCommand) && origin != HostId && Seats.TryGetValue(origin, out var seat) && command.Actor != seat)
             {
                 var refused = CommandResult.Fail("actor", ErrorCodes.NotYourSeat,
                     $"You play {seat}; this action was sent as {command.Actor ?? "the current seat"}.", $"Send it with actor '{seat}'.");

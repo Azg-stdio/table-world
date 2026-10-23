@@ -143,7 +143,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G19 | Physics modes | host sets full, semi-lock (nothing topples) or locked | ✅ table menu (right-click the felt) → Physics: Full / Semi-lock / Locked, host only, saved with the table. Semi-lock freezes tipping (dice still tumble); locked sets drops down right where they are released, on the felt or on top of what is below (2026-10-23) | P1 |
 | G20 | Several dice at once | select dice, R rolls them all | ✅ R (or the menu's "Roll N selected dice") rolls every selected or held die together, one throw sound, status line lists each value and the total (2026-10-23) | P1 |
 | G21 | Custom dice | faces and rotation values from images (TTS `Custom_Dice`) | model only | P2 |
-| G22 | Turns without rules | turn order, end turn button, skip empty hands | turns only with a rules file | P1 |
+| G22 | Turns without rules | turn order, end turn button, skip empty hands | ✅ host: table menu → Turns: Off / In order / Reversed, Skip empty hands; the current seat gets End turn, its chip is outlined, online players are told "Your turn"; a hot-seat table hands the controls to whoever plays (2026-10-23). Unoccupied seats are not skipped yet (needs seat occupancy, G10) | P1 |
 | G23 | Player management | colours and teams, Game Master (Black) sees everything, promote, kick, mute, per-player permissions | host and seats only | P2 |
 | G24 | Chat commands and dice announcements | `/roll`, results in chat; per-team chat | none | P2 |
 | G25 | Shared notebook | tabs per colour | none | P3 |

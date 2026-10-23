@@ -34,6 +34,9 @@
         "environment": {
           "$ref": "#/$defs/EnvironmentDef"
         },
+        "freeTurns": {
+          "$ref": "#/$defs/FreeTurns"
+        },
         "physics": {
           "enum": [
             "full",
@@ -1246,6 +1249,33 @@
           "items": {
             "type": "number"
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "FreeTurns": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "seats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "current": {
+          "type": "string"
+        },
+        "reverse": {
+          "type": "boolean"
+        },
+        "skipEmptyHands": {
+          "type": "boolean"
+        },
+        "count": {
+          "type": "integer"
         }
       },
       "additionalProperties": false

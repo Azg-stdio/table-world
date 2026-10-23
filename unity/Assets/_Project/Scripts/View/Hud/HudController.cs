@@ -35,6 +35,8 @@ namespace TableWorld.View.Hud
         private Label _gameLog;
         private VisualElement _gameActions;
         private string _shownGameKey;
+        private string _shownSeatsKey;
+        private string _announcedTurn;
         private GameUiRenderer _gameUi;
         private TableOverlay _overlay;
         private HandBar _handBar;
@@ -216,10 +218,15 @@ namespace TableWorld.View.Hud
         {
             if (_table == null || _table.Engine == null)
                 return;
+            var seatsKey = $"{_table.LocalSeat}|{CurrentTurnSeat()}";
+            if (_shownEngine != _table.Engine || seatsKey != _shownSeatsKey)
+            {
+                _shownSeatsKey = seatsKey;
+                RebuildSeats();
+            }
             if (_shownEngine != _table.Engine)
             {
                 _shownEngine = _table.Engine;
-                RebuildSeats();
                 _gameUi.Build();
                 _shownSelection = null;
             }
@@ -250,21 +257,32 @@ namespace TableWorld.View.Hud
                 ? state.Players.Seats.Where(s => !_table.Networked || s.Id == _table.LocalSeat)
                     .SelectMany(s => game.LegalActions(s.Id).Select(a => (Seat: s.Id, Action: a))).ToList()
                 : new List<(string Seat, LegalAction Action)>();
+            var turns = state.FreeTurns;
             var key = $"{state.HasRules}|{session?.Turn}|{session?.Phase}|{session?.CurrentSeat}|{session?.Over}|{session?.Log.Count}|" +
+                      $"{turns?.Current}|{turns?.Count}|{turns?.Reverse}|{_table.LocalSeat}|" +
                       string.Join(",", legal.Select(l => $"{l.Seat}/{l.Action.ActionId}/{l.Action.Choices.Count}"));
             if (key == _shownGameKey)
                 return;
             _shownGameKey = key;
 
-            _turnLabel.text = !state.HasRules ? "Free play"
+            AnnounceTurn();
+            _turnLabel.text = !state.HasRules ? (turns is { Enabled: true } ? FreeTurnText(turns) : "Free play")
                 : session == null ? $"{state.Game?.Name ?? "Game"}: not started"
                 : session.Over ? $"Game over: {session.Winner ?? "nobody"} wins"
                 : $"Turn {session.Turn} · {PhaseName(state, session.Phase)} · {session.CurrentSeat}";
 
             _gameActions.Clear();
-            _gamePanel.EnableInClassList(Hidden, !state.HasRules);
             if (!state.HasRules)
+            {
+                // Free-play turns (G22): the seat whose turn it is ends it (any seat at a hot-seat table).
+                var canEnd = turns is { Enabled: true } && (!_table.Networked || turns.Current == _table.LocalSeat);
+                _gamePanel.EnableInClassList(Hidden, !canEnd);
+                _gameLog.AddToClassList(Hidden);
+                if (canEnd)
+                    AddGameButton($"End turn ({turns.Current})", () => _table.Execute(new EndTurnCommand { Actor = _table.Networked ? _table.LocalSeat : null }));
                 return;
+            }
+            _gamePanel.RemoveFromClassList(Hidden);
             _gameLog.text = session?.Log.LastOrDefault() ?? "";
             _gameLog.EnableInClassList(Hidden, string.IsNullOrEmpty(_gameLog.text));
             if (session == null)
@@ -286,6 +304,44 @@ namespace TableWorld.View.Hud
                     AddGameButton(label, () => _table.Execute(new PerformActionCommand { Actor = seat, ActionId = action.ActionId, Params = new Dictionary<string, string>(parameters) }));
                 }
             }
+        }
+
+        private string TurnText(Command command)
+        {
+            var turns = _table.Engine.State.FreeTurns;
+            return command switch
+            {
+                SetTurnOrderCommand { Enabled: false } => "Turns: off",
+                SetTurnOrderCommand c => $"Turns: on{(c.Reverse ? ", reversed" : "")}{(c.SkipEmptyHands ? ", skipping empty hands" : "")} · {turns?.Current}'s turn",
+                EndTurnCommand _ => $"{turns?.Current}'s turn",
+                _ => null,
+            };
+        }
+
+        /// <summary>Whose turn it is: the rules game's, or free play's (G22); null when nobody has a turn.</summary>
+        private string CurrentTurnSeat()
+        {
+            var state = _table.Engine?.State;
+            if (state == null)
+                return null;
+            if (_table.Game?.Session is { Started: true, Over: false } session)
+                return session.CurrentSeat;
+            return state.FreeTurns is { Enabled: true } turns ? turns.Current : null;
+        }
+
+        private string FreeTurnText(FreeTurns turns) =>
+            (turns.Current == _table.LocalSeat && _table.Networked ? "Your turn" : $"{turns.Current}'s turn") +
+            $" · turn {turns.Count + 1}" + (turns.Reverse ? " · reversed" : "");
+
+        /// <summary>Online, a player whose turn just came is told so (TTS flashes "your turn").</summary>
+        private void AnnounceTurn()
+        {
+            var current = CurrentTurnSeat();
+            if (current == _announcedTurn)
+                return;
+            _announcedTurn = current;
+            if (current != null && _table.Networked && current == _table.LocalSeat)
+                ShowStatus("Your turn", error: false);
         }
 
         private static string PhaseName(TableState state, string phase) => state.Phases.FirstOrDefault(p => p.Id == phase)?.Name ?? phase;
@@ -317,6 +373,8 @@ namespace TableWorld.View.Hud
                 chip.AddToClassList("seat-chip");
                 if (seat.Id == local)
                     chip.AddToClassList("seat-chip--local");
+                if (seat.Id == CurrentTurnSeat())
+                    chip.AddToClassList("seat-chip--turn");
                 var swatch = new VisualElement { pickingMode = PickingMode.Ignore };
                 swatch.AddToClassList("seat-swatch");
                 swatch.AddToClassList("seat-swatch--" + seat.Color.ToLowerInvariant());
@@ -396,7 +454,7 @@ namespace TableWorld.View.Hud
             if (result.Ok && command is MoveCommand)
                 return;
             var name = command.GetType().Name.Replace("Command", "");
-            _status.text = result.Ok ? (command is RollCommand ? RollText(result) : command is SetPhysicsCommand physics ? $"Physics: {PhysicsName(physics.Mode)}" : $"{name}: done")
+            _status.text = result.Ok ? (command is RollCommand ? RollText(result) : command is SetPhysicsCommand physics ? $"Physics: {PhysicsName(physics.Mode)}" : TurnText(command) ?? $"{name}: done")
                 : $"{name} rejected: {result.Error.Message} {result.Error.Suggestion}";
             _status.EnableInClassList("status-label--error", !result.Ok);
             _status.RemoveFromClassList(Hidden);

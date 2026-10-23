@@ -243,6 +243,38 @@ namespace TableWorld.Tests.PlayMode
         }
 
         /// <summary>A point on the visible top strip of a hand card (resting cards are mostly below the screen edge).</summary>
+        [UnityTest]
+        public IEnumerator FreeTurns_OnFromTheTableMenu_EndTurnPassesThePlay()
+        {
+            var hud = Object.FindAnyObjectByType<HudController>();
+            var root = hud.GetComponent<UIDocument>().rootVisualElement;
+            hud.Overlay.OpenMenu(null, new Vector2(Screen.width / 2f, Screen.height / 2f));
+            Assert.IsTrue(hud.Overlay.Choose("Turns: In order"));
+            Assert.AreEqual("seat_south", _table.Engine.State.FreeTurns?.Current);
+            yield return new WaitForSeconds(0.4f);
+            StringAssert.StartsWith("seat_south's turn", root.Q<Label>("turnLabel").text);
+            Assert.AreEqual(1, root.Query(className: "seat-chip--turn").ToList().Count, "the current seat's chip is marked");
+
+            var endTurn = root.Q("gameActions").Q<Button>();
+            Assert.IsNotNull(endTurn);
+            StringAssert.StartsWith("End turn", endTurn.text);
+            Assert.AreEqual(endTurn, endTurn.panel.Pick(endTurn.worldBound.center), "nothing covers the button");
+            // Same as the hand toggle test: the fixture's virtual mouse does not reach UI Toolkit buttons, a submit does.
+            using (var click = NavigationSubmitEvent.GetPooled()) { click.target = endTurn; endTurn.SendEvent(click); }
+            yield return null;
+            Assert.AreEqual("seat_north", _table.Engine.State.FreeTurns.Current, "End turn passes the turn");
+            Assert.AreEqual("seat_north", _table.LocalSeat, "at a hot-seat table the next seat plays");
+            yield return new WaitForSeconds(0.4f);
+            StringAssert.StartsWith("seat_north's turn", root.Q<Label>("turnLabel").text);
+
+            hud.Overlay.OpenMenu(null, Vector2.zero);
+            Assert.IsTrue(hud.Overlay.Choose("Turns: Off"));
+            Assert.IsNull(_table.Engine.State.FreeTurns);
+            yield return new WaitForSeconds(0.4f);
+            Assert.AreEqual("Free play", root.Q<Label>("turnLabel").text);
+            Assert.IsTrue(root.Q("gamePanel").ClassListContains("hidden"));
+        }
+
         private static Vector2 TopOf(VisualElement element)
         {
             var root = element.panel.visualTree;

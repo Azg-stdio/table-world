@@ -6,6 +6,60 @@ namespace Core.Tests.Engine
 {
     public class CommandTests
     {
+        /// <summary>The fixture's seats: seat_1 and seat_2 with hand zones, seat_3 without (never skipped).</summary>
+        private static TableEngine ThreeSeats() => EngineFixture.Create();
+
+        [Fact]
+        public void Turns_GoRoundInOrder_Reverse_AndOnlyTheCurrentSeatEndsATurn()
+        {
+            var engine = ThreeSeats();
+            Assert.False(engine.Execute(new EndTurnCommand()).Ok, "turns are off");
+
+            Assert.True(engine.Execute(new SetTurnOrderCommand()).Ok);
+            Assert.Equal("seat_1", engine.State.FreeTurns!.Current);
+            var refused = engine.Execute(new EndTurnCommand { Actor = "seat_2" });
+            Assert.Equal(ErrorCodes.NotYourTurn, refused.Error!.Code);
+            Assert.True(engine.Execute(new EndTurnCommand { Actor = "seat_1" }).Ok);
+            Assert.True(engine.Execute(new EndTurnCommand()).Ok);
+            Assert.True(engine.Execute(new EndTurnCommand()).Ok);
+            Assert.Equal("seat_1", engine.State.FreeTurns!.Current);
+            Assert.Equal(3, engine.State.FreeTurns.Count);
+
+            Assert.True(engine.Execute(new SetTurnOrderCommand { Reverse = true }).Ok);
+            Assert.Equal("seat_1", engine.State.FreeTurns!.Current);   // changing settings keeps whose turn it is
+            engine.Execute(new EndTurnCommand());
+            Assert.Equal("seat_3", engine.State.FreeTurns!.Current);
+
+            Assert.True(engine.Execute(new SetTurnOrderCommand { Seats = { "seat_2", "seat_1" }, First = "seat_1" }).Ok);
+            engine.Execute(new EndTurnCommand());
+            Assert.Equal("seat_2", engine.State.FreeTurns!.Current);
+
+            Assert.Equal(ErrorCodes.UnknownSeat, engine.Execute(new SetTurnOrderCommand { Seats = { "nobody" } }).Error!.Code);
+            Assert.True(engine.Execute(new SetTurnOrderCommand { Enabled = false }).Ok);
+            Assert.Null(engine.State.FreeTurns);
+        }
+
+        [Fact]
+        public void Turns_SkipEmptyHands_ButNeverEveryone_AndAreSaved()
+        {
+            var engine = ThreeSeats();
+            Assert.True(engine.Execute(new SetTurnOrderCommand { SkipEmptyHands = true }).Ok);
+            // Both hands empty: seat_1 -> seat_2 is skipped -> seat_3 (no hand zone) plays.
+            engine.Execute(new EndTurnCommand());
+            Assert.Equal("seat_3", engine.State.FreeTurns!.Current);
+            // seat_3 -> seat_1 empty, skipped -> seat_2 empty, skipped -> seat_3 again.
+            engine.Execute(new EndTurnCommand());
+            Assert.Equal("seat_3", engine.State.FreeTurns!.Current);
+
+            var deck = engine.State.Objects.OfType<Deck>().First(d => d.Cards.Count > 0);
+            Assert.True(engine.Execute(new DealCommand { DeckId = deck.Id, Count = 1, Seats = { "seat_2" } }).Ok);
+            engine.Execute(new EndTurnCommand());
+            Assert.Equal("seat_2", engine.State.FreeTurns!.Current);
+
+            var json = TableJson.Serialize(engine.State);
+            Assert.Equal("seat_2", TableJson.Parse(json).State!.FreeTurns!.Current);
+        }
+
         [Fact]
         public void SetPhysics_ChangesTheMode_IsSaved_AndRejectsUnknownModes()
         {

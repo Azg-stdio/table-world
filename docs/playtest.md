@@ -77,6 +77,7 @@ Everything below already passes automated tests on one machine (two processes, s
 - [ ] Rolling several dice at once (select or pick them up together, R) reads clearly for everyone.
 - [ ] Hidden zone (the sample table's dark block on the left belongs to the north seat): the north player sees the Ace of hearts inside, the south player sees only the block; dropping a card in hides it from the other seat.
 - [ ] Physics modes (host: right-click the felt → Physics): with semi-lock nothing gets knocked over, with locked dropped pieces stay exactly where they are put; friends see the same; a friend has no Physics row.
+- [ ] Free-play turns (host: right-click the felt → Turns: In order): everyone sees whose turn it is, only that player has End turn, and "Your turn" shows up when it comes round.
 - [ ] Sounds: picking up, dropping, shuffling, rolling, dealing feel right and are not too loud or repetitive; friends' actions are heard too.
 
 **After the session**

@@ -53,6 +53,10 @@ Optional. The room around the table, so a game (a mod) can set its own place. Om
 
 **Light on game pieces is kept neutral.** The lamp, its fill and the room colours set the mood and light only the room and the table's wooden frame; game pieces and the felt are lit only by the table light (neutral white by default), so card art keeps its true colours whatever mood a game picks. Ambient light reaches everything, so keep it low and neutral. A game can still tint the table light on purpose.
 
+## Free-play turns
+
+`"freeTurns": { "enabled": true, "seats": ["seat_south", "seat_north"], "current": "seat_north", "reverse": false, "skipEmptyHands": true, "count": 4 }` (top level, absent when off). Turns for tables without rules (TTS Turns). `seats` empty means the seat list's order. `SetTurnOrderCommand` (host only; refused while a rules game runs) switches them on or off and keeps the current seat when only the settings change; `EndTurnCommand`, sent by the current seat (`not_your_turn` otherwise), passes play to the next seat, over seats whose hand zone is empty when `skipEmptyHands` (a seat without a hand zone is never skipped, and if every hand is empty the next seat plays anyway).
+
 ## Physics mode
 
 `"physics": "full" | "semiLock" | "locked"` (top level, default `full`, omitted when full). Semi-lock: objects slide and fall but cannot tip over (dice still tumble). Locked: nothing moves on its own; a dropped object is set down where it was released. Changed with `SetPhysicsCommand`, which only the host may send (`host_only` for a client). TTS keeps this as a host option, not in the save; we save it so a game can ship with the mode it needs.

@@ -15,7 +15,8 @@ namespace TableWorld.View.Net
     /// 0.1 s, once synced), <c>-tw-report path</c> (after autoplay, once the table has not changed for 5 s, writes the state hash, seat and order
     /// as JSON), <c>-tw-quit</c> (quit after reporting), <c>-tw-game file</c> (the host loads a game package first),
     /// <c>-tw-cache folder</c> (asset cache, e.g. an empty one to check T3.4), <c>-tw-wait-players N</c> (a host waits for
-    /// N players to join before playing and reporting), <c>-tw-carry id [seconds]</c> (pick it up and sweep it around). Online (T3.3): <c>-tw-host online
+    /// N players to join before playing and reporting), <c>-tw-carry id [seconds]</c> (pick it up and sweep it around), <c>-tw-turns</c> (the host switches free-play
+    /// turns on; every player ends its turn when it comes during autoplay). Online (T3.3): <c>-tw-host online
     /// -tw-code-file f</c>, <c>-tw-join CODE</c> or <c>-tw-join @f</c>, <c>-tw-profile name</c> (one per process on a machine). <see cref="Run"/> starts the same from code.
     /// </summary>
     public sealed class NetworkAutoplay : MonoBehaviour
@@ -28,6 +29,9 @@ namespace TableWorld.View.Net
 
         public bool Done { get; private set; }
         public int Performed { get; private set; }
+
+        /// <summary>Turns this player ended during autoplay (G22 check).</summary>
+        public int TurnsEnded { get; private set; }
 
         public void Configure(TableView table, NetworkTableSession session)
         {
@@ -56,7 +60,7 @@ namespace TableWorld.View.Net
             var carrySeconds = Array.IndexOf(args, "-tw-carry") is var c && c >= 0 && c + 2 < args.Length && float.TryParse(args[c + 2], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var s) ? s : 10f;
             yield return Run(host, host ? Arg("-tw-host") : join, autoplay, Arg("-tw-report"), Array.IndexOf(args, "-tw-quit") >= 0,
                 seed: host ? 1 : 2, codeFile: Arg("-tw-code-file"), carry: carry, carrySeconds: carrySeconds,
-                waitPlayers: int.TryParse(Arg("-tw-wait-players"), out var w) ? w : 0);
+                waitPlayers: int.TryParse(Arg("-tw-wait-players"), out var w) ? w : 0, turns: Array.IndexOf(args, "-tw-turns") >= 0);
         }
 
         /// <summary>
@@ -65,7 +69,7 @@ namespace TableWorld.View.Net
         /// address[:port], a join code, or <c>@file</c> (wait for a host to write its code there).
         /// </summary>
         public IEnumerator Run(bool host, string target, int commands, string report, bool quit, int seed, string codeFile = null,
-            string carry = null, float carrySeconds = 10f, int waitPlayers = 0)
+            string carry = null, float carrySeconds = 10f, int waitPlayers = 0, bool turns = false)
         {
             if (host && target == "online")
             {
@@ -119,13 +123,19 @@ namespace TableWorld.View.Net
 
             if (carry != null)
                 yield return Carry(carry, carrySeconds);
+            if (host && turns && !_table.Execute(new SetTurnOrderCommand()).Ok)
+                Debug.LogError("[Autoplay] Could not switch turns on.");
 
             var random = new DeterministicRandom((ulong)seed);
             for (var i = 0; i < commands; i++)
             {
                 var command = _table.Engine.State.HasRules ? RulesCommand(random, host) : RandomCommand(random);
                 if (command != null && _table.Execute(command).Ok)
+                {
                     Performed++;
+                    if (command is EndTurnCommand)
+                        TurnsEnded++;
+                }
                 yield return new WaitForSeconds(StepSeconds);
             }
             // Report once the table has not changed (and a host has sent no asset chunks) for QuietSeconds: the other
@@ -155,6 +165,8 @@ namespace TableWorld.View.Net
                     ["order"] = _session.Host?.Order ?? -1,
                     ["performed"] = Performed,
                     ["objects"] = state.Objects.Count,
+                    ["turnsEnded"] = TurnsEnded,
+                    ["turn"] = state.FreeTurns == null ? null : $"{state.FreeTurns.Current} after {state.FreeTurns.Count}",
                     ["zoneHidden"] = new JArray(_table.Views.Values.Where(v => v != null && v.ZoneHidden).Select(v => v.Id).OrderBy(id => id)),
                     ["game"] = state.Session == null ? null : $"turn {state.Session.Turn}, phase {state.Session.Phase}, over {state.Session.Over}, winner {state.Session.Winner ?? "-"}",
                     ["images"] = images.Count,
@@ -228,6 +240,9 @@ namespace TableWorld.View.Net
                 return null;
             string Pick() => ids[r.Next(ids.Count)];
             var seat = _table.LocalSeat;
+            // Free-play turns: when it is ours, end it now and then (the others wait for it).
+            if (_table.Engine.State.FreeTurns is { Enabled: true } turns && turns.Current == seat && r.Next(3) == 0)
+                return new EndTurnCommand { Actor = seat };
             return r.Next(8) switch
             {
                 0 => new FlipCommand { ObjectId = Pick() },

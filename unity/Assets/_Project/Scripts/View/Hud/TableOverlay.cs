@@ -136,6 +136,21 @@ namespace TableWorld.View.Hud
             Item("Paste (Ctrl+V)", () => _interaction.Paste(_menuWorldPoint));
             Item("Undo (Ctrl+Z)", () => _table.Undo());
             Item("Redo (Ctrl+Y)", () => _table.Redo());
+            if (_table.HostsTable && !_table.Engine.State.HasRules)
+            {
+                // Free-play turns (G22). A rules game runs its own turns.
+                var turns = _table.Engine.State.FreeTurns;
+                var on = turns is { Enabled: true };
+                var skip = turns?.SkipEmptyHands ?? false;
+                Row("Turns", new[]
+                {
+                    ((on ? "" : "● ") + "Off", (Action)(() => Run(new SetTurnOrderCommand { Enabled = false }))),
+                    ((on && !turns.Reverse ? "● " : "") + "In order", (Action)(() => Run(new SetTurnOrderCommand { SkipEmptyHands = skip }))),
+                    ((on && turns.Reverse ? "● " : "") + "Reversed", (Action)(() => Run(new SetTurnOrderCommand { Reverse = true, SkipEmptyHands = skip }))),
+                });
+                if (on)
+                    Item(skip ? "● Skip empty hands" : "Skip empty hands", () => Run(new SetTurnOrderCommand { Reverse = turns.Reverse, SkipEmptyHands = !skip }));
+            }
             if (_table.HostsTable)
                 Row("Physics", new[] { (PhysicsMode.Full, "Full"), (PhysicsMode.SemiLock, "Semi-lock"), (PhysicsMode.Locked, "Locked") }
                     .Select(m => ((_table.PhysicsMode == m.Item1 ? "● " : "") + m.Item2, (Action)(() => Run(new SetPhysicsCommand { Mode = m.Item1 })))));

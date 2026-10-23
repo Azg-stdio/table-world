@@ -54,6 +54,25 @@ namespace Core.Rules
         public List<Seat> Seats { get; set; } = new List<Seat>();
     }
 
+    /// <summary>
+    /// Free-play turns (TTS "Turns", G22): whose turn it is, without a rules file. A game with rules runs its own turns
+    /// (<see cref="TableState.Turn"/>) and leaves this off.
+    /// </summary>
+    public sealed class FreeTurns
+    {
+        public bool Enabled { get; set; }
+        /// <summary>Seats in turn order; empty means the order of <see cref="Players.Seats"/>.</summary>
+        public List<string> Seats { get; set; } = new List<string>();
+        /// <summary>The seat whose turn it is.</summary>
+        public string? Current { get; set; }
+        /// <summary>Play goes backwards through the order.</summary>
+        public bool Reverse { get; set; }
+        /// <summary>Seats with a hand zone holding nothing are passed over (a seat without a hand zone never is).</summary>
+        public bool SkipEmptyHands { get; set; }
+        /// <summary>Counts turns ended since turns were switched on.</summary>
+        public int Count { get; set; }
+    }
+
     /// <summary>How the table simulates objects (TTS physics modes, chosen by the host).</summary>
     public enum PhysicsMode
     {
@@ -81,6 +100,8 @@ namespace Core.Rules
         public Players Players { get; set; } = new Players();
         /// <summary>The room around the table; null means the default room.</summary>
         public EnvironmentDef? Environment { get; set; }
+        /// <summary>Free-play turns (G22); null means off.</summary>
+        public FreeTurns? FreeTurns { get; set; }
         /// <summary>How objects are simulated (G19). Saved with the table; only the host changes it.</summary>
         public PhysicsMode Physics { get; set; }
 
