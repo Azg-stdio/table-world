@@ -1,0 +1,12 @@
+<Project>
+  <!-- Shared settings for every .NET project in the repo (core/, core.tests/, mcp-server/). -->
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <Authors>Miguel Arbelaez</Authors>
+    <Product>Table World</Product>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+</Project>

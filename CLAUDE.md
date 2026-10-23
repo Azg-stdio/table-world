@@ -160,9 +160,9 @@ Active ragdoll, talking interaction. DnD assistant.
 ## 9. Commands
 
 ```bash
-# Core
-dotnet build core/
-dotnet test core.tests/
+# Core (build copies Core.dll to unity/Assets/Plugins/Core/; commit it when core/ changes)
+dotnet build TableWorld.sln
+dotnet test TableWorld.sln
 
 # Unity: open unity/ with Unity Hub (6.6). Builds with Windows Build Support (Mono).
 
@@ -178,4 +178,4 @@ unity doctor                 # diagnostics
 unity command script eval_file --file tools/unity-probes/ProbeBundles.cs --timeout 120   # read-only experiment
 ```
 
-(Update this section when `core/` and `mcp-server/` exist.)
+(Update this section when `mcp-server/` exists.)

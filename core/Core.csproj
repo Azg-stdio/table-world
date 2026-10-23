@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Pure C# library. ZERO Unity dependencies.
+    netstandard2.1 + C# 9 is what the Unity 6.6 compiler accepts.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <AssemblyName>Core</AssemblyName>
+    <RootNamespace>Core</RootNamespace>
+    <UnityPluginDir>$(MSBuildThisFileDirectory)..\unity\Assets\Plugins\Core\</UnityPluginDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Unity provides the same assembly through com.unity.nuget.newtonsoft-json 3.2.2. Do not copy it to Plugins. -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Core.Tests" />
+  </ItemGroup>
+
+  <!-- Unity consumes Core.dll from Assets/Plugins/Core/. Only Core.dll is copied; dependencies come from Unity packages. -->
+  <Target Name="CopyToUnity" AfterTargets="Build" Condition="Exists('$(MSBuildThisFileDirectory)..\unity\Assets')">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(UnityPluginDir)" SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>
