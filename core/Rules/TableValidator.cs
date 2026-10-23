@@ -51,6 +51,7 @@ namespace Core.Rules
                     CheckZone(_state.Zones[i], $"zones[{i}]");
                 for (var i = 0; i < _state.Players.Seats.Count; i++)
                     CheckSeat(_state.Players.Seats[i], $"players.seats[{i}]");
+                RulesValidator.Validate(_state, Errors);
             }
 
             private void CollectIds()

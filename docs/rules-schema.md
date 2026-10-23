@@ -1,6 +1,6 @@
 # Rules format — v0
 
-Status: **v0, the target `core/` implements** (table model in T2.1, rules in T4.1). When `core/Rules` implements something different, change this doc in the same commit. A machine-readable JSON Schema goes in `docs/rules-schema.v0.json` (T4.1).
+Status: **v0, implemented by `core/`** (table model T2.1, commands T2.2, rules format T4.1, interpreter T4.2). When `core/Rules` implements something different, change this doc in the same commit. Machine-readable schema: `docs/rules-schema.v0.json`, generated from the code.
 
 ## Goals
 
@@ -21,13 +21,14 @@ Status: **v0, the target `core/` implements** (table model in T2.1, rules in T4.
   "players":  { "seats": [ /* Seat */ ] },
   "resources": [ /* Resource */ ],
   "variables": { "round": 0 },
-  "turn":     { "order": "clockwise", "startingPlayer": "random", "phases": ["draw", "battle", "cleanup"] },
+  "turn":     { "order": "clockwise", "startingPlayer": "first", "phases": ["battle", "resolve"] },
   "phases":   [ /* Phase */ ],
   "actions":  [ /* Action */ ],
   "events":   { /* event name -> Effect[] */ },
   "winConditions": [ /* WinCondition */ ],
   "ui":       { "panels": [ /* Panel */ ] },
-  "scripts":  { "global": "-- optional Lua" }
+  "scripts":  { "global": "-- optional Lua (M5)" },
+  "session":  { /* written by the engine once a game starts */ }
 }
 ```
 
@@ -114,107 +115,126 @@ Physical interaction goes through `Core.Engine.TableEngine.Execute(Command)`; th
 ## Resources and variables
 
 ```jsonc
-"resources": [ { "id": "score", "name": "Score", "perPlayer": true, "initial": 0, "min": 0 } ]
-"variables": { "round": 0, "warDepth": 0 }
+"resources": [ { "id": "score", "name": "Score", "initial": 0, "min": 0, "max": 99 } ],   // one value per seat
+"variables": { "battles": 0, "color": "red" }                                           // declared with their initial value
 ```
+
+Effects can only set declared variables and resources; the validator rejects undeclared names with a suggestion.
 
 ## Turn structure and phases
 
 ```jsonc
-"turn": { "order": "clockwise", "startingPlayer": "random", "phases": ["play", "resolve"] },
+"turn": { "order": "clockwise", "startingPlayer": "first", "phases": ["battle", "resolve"] },
 "phases": [
-  { "id": "play",    "name": "Play a card", "actions": ["play_top_card"], "onEnter": [], "onExit": [],
-    "advanceWhen": { "allPlayersActed": true } },
-  { "id": "resolve", "name": "Resolve", "actions": [], "onEnter": [ /* Effects */ ], "advanceWhen": { "immediate": true } }
+  { "id": "battle",  "name": "Battle",  "actions": ["play_top_card"], "advanceWhen": { "allPlayersActed": true } },
+  { "id": "resolve", "name": "Resolve", "advanceWhen": { "immediate": true }, "onEnter": [ /* Effects */ ], "onExit": [] }
 ]
 ```
 
-`advanceWhen` options: `immediate`, `allPlayersActed`, `currentPlayerEnds` (an `endPhase` action), `condition` (a Condition).
+- `order`: `clockwise` (seat list order) or `counterclockwise`. `startingPlayer`: a seat id, `first` or `random`.
+- A turn plays the listed phases in order; after the last one the turn ends (`onTurnEnd`, win checks with `checkAfter: turnEnd`), the next seat becomes current, `onTurnStart` runs and the first phase begins.
+- `advanceWhen` sets exactly one of: `immediate` (right after `onEnter`), `allPlayersActed` (every seat performed an action in this phase visit), `currentPlayerEnds` (only through an `endPhase`/`endTurn` effect; the default when `advanceWhen` is omitted), `condition` (a Condition, checked after every action).
+- `actions` is a whitelist: only those actions can be performed during the phase.
+- Entering a phase resets who has acted and the per-phase action counts. `gotoPhase` re-enters a phase (War uses it for ties).
+- More than 200 phase changes without waiting for a player is reported as `rules_loop` and rolled back.
 
 ## Actions
 
-What a player may do. The engine exposes the legal actions for the current player and phase; the UI and the MCP `get_table_state` tool read the same list.
-
 ```jsonc
 {
-  "id": "play_top_card", "name": "Play top card", "actor": "current",      // current | any | owner
-  "params": [],                                                            // or [{ "name": "card", "type": "object", "filter": { "inZone": "$actor.hand", "type": "Card" } }]
-  "preconditions": [ { "zoneCount": { "zone": "$actor.deck", "op": ">", "value": 0 } } ],
-  "effects": [ { "move": { "from": "$actor.deck", "take": "top", "to": "battlefield", "faceUp": true } } ],
-  "limitPerTurn": 1
+  "id": "play_card", "name": "Play a card", "actor": "current",              // current | any
+  "params": [ { "name": "card", "type": "object", "filter": { "inZone": "$actor.hand", "type": "Card" } } ],
+  "preconditions": [ { "or": [
+    { "compare": { "left": "$param.card.meta.suit", "op": "==", "right": "$obj.discard.top.meta.suit" } },
+    { "compare": { "left": "$param.card.meta.rank", "op": "==", "right": "$obj.discard.top.meta.rank" } } ] } ],
+  "effects": [ { "move": { "object": "$param.card", "to": "discard" } }, { "endTurn": {} } ],
+  "limitPerPhase": 1                                                          // optional, per seat per phase visit
 }
 ```
 
-Param types: `object`, `zone`, `player`, `number`, `choice` (with `options`). Filters: `inZone`, `type`, `hasTag`, `ownedBy`, `faceUp`.
+Param types: `object` (filter `inZone` — a zone, deck or reference —, `type`, `hasTag`), `seat`, `number`, `choice` (with `options`). The engine lists the legal actions of a seat with every parameter combination that passes the preconditions (`GameEngine.LegalActions`); the HUD, the MCP `get_table_state` tool and random test players all use that list.
 
-References starting with `$` resolve at runtime: `$actor`, `$current`, `$owner`, `$actor.hand`, `$actor.deck` (the zone/object tagged for that seat), `$param.card`, `$event.object`, `$event.zone`.
+## References
 
-## Effects (v0 vocabulary)
+Fields that name a thing accept a plain id (object, zone, or a card inside a deck by its id) or a `$` reference:
+
+| Root | Meaning |
+|---|---|
+| `$actor` | seat performing the action |
+| `$current` | seat whose turn it is |
+| `$player` | seat being checked by a win condition |
+| `$other` | the seat after `$it` (when it is a seat), else after `$player`, else after `$actor` |
+| `$it` | current item of a `forEach` (seat, object or card) |
+| `$seat.<id>`, `$obj.<id>` | a seat; an object, zone or deck by id |
+| `$param.<name>`, `$var.<name>` | an action parameter; a variable's current value |
+
+Properties: on a seat `.hand` (its HandZone), `.<tag>` (the object or zone tagged `<tag>:<seatId>`, e.g. `$actor.deck` → tag `deck:seat_1`), `.id`, `.color`, `.res.<resource>`. On decks `.top`, `.bottom`, `.count`; on zones `.top`/`.bottom` (highest/lowest object in the zone), `.count`; on cards and objects `.meta.<key>`, `.name`, `.id`, `.faceUp`, `.value` (die). A reference to something that does not exist right now (the top of an empty deck) is null: comparisons with null are false except `!=`.
+
+## Effects (v0)
+
+Each effect is a single-key object, e.g. `{ "shuffle": { "object": "deck_main" } }`; effects without fields take `{}`.
 
 | Effect | Fields |
 |---|---|
-| `move` | `object` or (`from`, `take`: `top` \| `bottom` \| `random` \| `all` \| n), `to` (zone or object id), `faceUp`, `position` |
-| `flip` | `object` or `zone` |
-| `shuffle` | `zone` or `object` (Deck/Bag) |
-| `draw` | `from`, `to` (`$player.hand`), `count` |
-| `deal` | `from`, `count`, `to`: `allPlayers` \| seat ids |
-| `roll` | `object` (Die) or `faces`, `store`: variable name |
-| `setResource` | `player`, `resource`, `value` or `delta` |
-| `setVariable` | `name`, `value` or `delta` |
-| `reveal` / `hide` | `object`, `to`: players |
-| `lock` / `unlock` | `object` |
-| `spawn` | `object` (inline TableObject), `at` |
-| `destroy` | `object` |
-| `if` | `condition`, `then`: Effect[], `else`: Effect[] |
-| `forEach` | `players` \| `objectsIn`: zone, `do`: Effect[] (binds `$it`) |
-| `prompt` | `player`, `text`, `choices`, `store` |
-| `message` | `to`: `all` \| players, `text` (supports `{$var}` templates) |
-| `endPhase` / `endTurn` | — |
-| `win` / `lose` | `player` |
-| `lua` | `function`: name in the global script, `args` |
+| `move` | `object` (one thing), or `from` (deck or zone) + `take` (`top` default, `bottom`, `all`, `allButTop`) + `count` (default 1); `to` (deck, bag or zone); `at` (`top`/`bottom`, into decks); `faceUp` |
+| `deal` | `from`, `count` per seat, `seats` (default all), exactly one of `toZone` (with `$it` = seat, e.g. `$it.hand`) or `toTag` (the deck tagged `<tag>:<seat>`), `faceDown` |
+| `shuffle` / `flip` | `object` |
+| `lock` | `object`, `locked` (default true) |
+| `roll` | `object` (a die), `store` (variable for the value) |
+| `setVariable` | `name`, exactly one of `value` (literal or reference) or `delta` |
+| `setResource` | `player`, `resource`, exactly one of `value` or `delta`; clamped to `min`/`max` |
+| `if` | `condition`, `then`, `else` |
+| `forEach` | exactly one of `players: true` or `objectsIn` (zone, deck or bag); `do` (binds `$it`) |
+| `message` | `text`; `{$reference}` is replaced by its value; goes to the session log |
+| `endTurn` / `endPhase` | `{}` — take effect after the current effect list |
+| `gotoPhase` | `phase` |
+| `win` | `player` |
 
-Every effect is validated against the current state at authoring time where possible (`zone` exists, `resource` exists) and at runtime always. A failing effect aborts the whole command (transactional).
+Moving cards into a deck makes them take the deck's orientation; into a zone they are laid out (hand slots for a HandZone, a stack at the centre otherwise). Not in v0: `spawn`, `destroy`, `prompt`, `reveal`/`hide`, `lua` (M5).
 
-## Conditions (v0 vocabulary)
+**Transactions:** a rules command either applies completely or not at all. Refusals before any change (wrong turn, failed precondition, bad parameter) leave the table untouched; if an effect fails midway, objects, zones, session and random state are restored and the result says `stateRestored`.
+
+## Conditions (v0)
 
 | Condition | Fields |
 |---|---|
-| `zoneCount` | `zone`, `op`, `value` |
-| `resource` | `player`, `resource`, `op`, `value` |
+| `zoneCount` | `zone` (deck: cards; bag: contents; zone: objects inside, decks counting their cards), `op`, `value` |
+| `compare` | `left`, `op`, `right` — literals or references; numbers compare numerically, anything else as text |
 | `variable` | `name`, `op`, `value` |
-| `objectIn` | `object`, `zone` |
-| `hasTag` | `object`, `tag` |
-| `compare` | `left`, `op`, `right` (values or `$` references incl. `$card.rank`) |
+| `resource` | `player`, `resource`, `op`, `value` |
 | `isCurrentPlayer` | `player` |
-| `and` / `or` / `not` | nested conditions |
-| `lua` | `function` returning boolean |
+| `objectIn` | `object`, `zone` (zone, deck or bag) |
+| `hasTag` | `object`, `tag` |
+| `and` / `or` | an array of conditions: `{ "and": [ ..., ... ] }` |
+| `not` | one condition: `{ "not": { "isCurrentPlayer": { "player": "$actor" } } }` |
 
 `op` is one of `==`, `!=`, `<`, `<=`, `>`, `>=`.
-
-Card metadata for comparisons comes from `Deck.cards[].tags` and an optional `meta` object (`{ "rank": 11, "suit": "hearts" }`).
 
 ## Events
 
 ```jsonc
 "events": {
-  "onGameStart":  [ { "shuffle": { "object": "deck_main" } }, { "deal": { "from": "deck_main", "count": 26, "to": "allPlayers" } } ],
-  "onTurnStart":  [],
-  "onDrop":       [ { "filter": { "zone": "battlefield", "type": "Card" }, "effects": [ /* ... */ ] } ],
-  "onEnterZone":  [], "onLeaveZone": [], "onPhaseEnter": [], "onRoll": [], "onFlip": []
+  "onGameStart": [ { "shuffle": { "object": "deck_main" } }, { "deal": { "from": "deck_main", "count": 26, "toTag": "deck", "faceDown": true } } ],
+  "onTurnStart": [],
+  "onTurnEnd":   [ { "setVariable": { "name": "battles", "delta": 1 } } ]
 }
 ```
 
-Events from physical interaction (`onDrop`) fire only on the host after the engine accepted the `Move` command.
+v0 events: `onGameStart`, `onTurnStart`, `onTurnEnd`. Zone and physical events (`onEnterZone`, `onDrop`, ...) come with the Lua work (M5); the engine already emits `ZoneEntered`/`ZoneLeft`.
 
 ## Win conditions
 
 ```jsonc
 "winConditions": [
-  { "when": { "zoneCount": { "zone": "$player.deck", "op": "==", "value": 52 } }, "winner": "$player", "checkAfter": "anyCommand" }
+  { "when": { "zoneCount": { "zone": "$player.hand", "op": "==", "value": 0 } }, "winner": "$player", "checkAfter": "anyCommand" }
 ]
 ```
 
-`checkAfter`: `anyCommand` | `turnEnd` | `phase:<id>`.
+`when` is checked once per seat with `$player` bound to it; the first that holds ends the game with `winner` (a reference or seat id). `checkAfter`: `anyCommand` (after every action, and after physical commands while a game runs) or `turnEnd`. A `win` effect ends the game directly.
+
+## Session (written by the engine)
+
+`StartGameCommand` adds a `session` object: `started`, `over`, `winner`, `turn`, `currentSeat`, `phase`, `acted`, `actionCounts`, `variables`, `resources`, `log` (last 50 messages) and `randomState`. It is saved with the table, so a saved game resumes exactly, including the shuffle sequence. An authored game file has no session.
 
 ## UI
 
@@ -222,56 +242,28 @@ Events from physical interaction (`onDrop`) fire only on the host after the engi
 "ui": { "panels": [
   { "id": "score", "anchor": "top-right", "visibleTo": "all",
     "elements": [
-      { "type": "label",   "text": "Round {$round}" },
+      { "type": "label",   "text": "Battle {$var.battles}" },
       { "type": "counter", "bind": "resource:score", "player": "$viewer" },
-      { "type": "button",  "text": "End turn", "action": "end_turn" }
+      { "type": "button",  "text": "Play", "action": "play_top_card" }
     ] }
 ] }
 ```
 
-Rendered with UI Toolkit (T4.6). `bind` values: `resource:<id>`, `variable:<name>`, `zoneCount:<zone>`.
+Carried as-is in v0; rendered with UI Toolkit in T4.6.
 
 ## Validation errors (format for an LLM reader)
 
 ```json
-{ "path": "actions[2].effects[0].move.to", "code": "unknown_zone", "message": "Zone 'discard' does not exist.", "suggestion": "Define it with define_zone or use one of: battlefield, hand_p1, hand_p2." }
+{ "path": "actions[0].effects[0].shufle", "code": "unknown_effect", "message": "Unknown effect 'shufle'.", "suggestion": "Did you mean 'shuffle'?" }
 ```
 
-Rules: always a `path`, a stable `code`, a one-sentence `message`, and a `suggestion` when one is computable. Multiple errors per validation call.
+Always a `path`, a stable `code` (`Core.Rules.ErrorCodes`; never renamed), a one-sentence `message`, and a `suggestion` when one is computable. All errors are returned in one call. Rules codes: `unknown_effect`, `unknown_condition`, `unknown_phase`, `unknown_action`, `unknown_variable`, `unknown_resource`, `unknown_event`, `invalid_reference`, `invalid_operator`, `player_count`, plus the table codes. Engine refusals use the same shape: `no_rules`, `game_already_started`, `game_not_started`, `game_over`, `action_not_available`, `not_your_turn`, `limit_reached`, `precondition_failed`, `missing_param`, `invalid_param`, `rules_loop`, `rule_failed`.
 
-## Minimal example: War
+The machine-readable schema is `docs/rules-schema.v0.json` (JSON Schema 2020-12), generated from the C# model by `SchemaGenerator`; a test fails when it is stale (`TW_UPDATE_SCHEMA=1 dotnet test` rewrites it). It checks shape only; references and ids are checked by the validator.
 
-```jsonc
-{
-  "schemaVersion": "0.1",
-  "game": { "id": "war", "name": "War", "minPlayers": 2, "maxPlayers": 2 },
-  "assets": [ { "id": "std_faces", "type": "image", "path": "assets/standard_faces.png", "columns": 13, "rows": 4 }, { "id": "std_back", "type": "image", "path": "assets/standard_back.png" } ],
-  "objects": [
-    { "id": "deck_main", "type": "Deck", "transform": { "position": [0, 0, 0] },
-      "faceAsset": "std_faces", "backAsset": "std_back",
-      "cards": [ { "faceIndex": 0, "name": "2 of clubs", "meta": { "rank": 2 } } /* ... 52 */ ] },
-    { "id": "deck_p1", "type": "Deck", "tags": ["deck:seat_1"], "transform": { "position": [-0.3, 0, 0] }, "faceAsset": "std_faces", "backAsset": "std_back", "cards": [] },
-    { "id": "deck_p2", "type": "Deck", "tags": ["deck:seat_2"], "transform": { "position": [0.3, 0, 0] },  "faceAsset": "std_faces", "backAsset": "std_back", "cards": [] }
-  ],
-  "zones": [ { "id": "battlefield", "type": "ScriptingZone", "transform": { "position": [0, 0, 0.2] }, "size": [0.4, 0.1, 0.2] } ],
-  "players": { "seats": [ { "id": "seat_1", "color": "red" }, { "id": "seat_2", "color": "blue" } ] },
-  "variables": { "warDepth": 0 },
-  "turn": { "order": "clockwise", "startingPlayer": "seat_1", "phases": ["play", "resolve"] },
-  "phases": [
-    { "id": "play", "actions": ["play_top_card"], "advanceWhen": { "allPlayersActed": true } },
-    { "id": "resolve", "actions": [], "advanceWhen": { "immediate": true },
-      "onEnter": [ { "lua": { "function": "resolveBattle" } } ] }
-  ],
-  "actions": [ { "id": "play_top_card", "actor": "any", "limitPerTurn": 1,
-    "preconditions": [ { "zoneCount": { "zone": "$actor.deck", "op": ">", "value": 0 } } ],
-    "effects": [ { "move": { "from": "$actor.deck", "take": "top", "to": "battlefield", "faceUp": true } } ] } ],
-  "events": { "onGameStart": [ { "shuffle": { "object": "deck_main" } }, { "deal": { "from": "deck_main", "count": 26, "to": "allPlayers" } } ] },
-  "winConditions": [ { "when": { "zoneCount": { "zone": "$player.deck", "op": "==", "value": 0 } }, "winner": "$otherPlayer", "checkAfter": "turnEnd" } ],
-  "scripts": { "global": "function resolveBattle() --[[ compare ranks on battlefield, move to winner's deck bottom, handle ties via warDepth ]] end" }
-}
-```
+## Examples
 
-The tie-breaking of War is the kind of logic that is awkward declaratively; it is the first test case for the Lua escape hatch. If T4.2 finds a clean declarative form (`compare` on `$event.objects` with `forEach`), prefer it and drop the Lua.
+`games/war.json` and `games/uno-lite.json` (generated by `tools/samples/make_games.py`). War is fully declarative: per-seat decks tagged `deck:<seat>` and battle piles tagged `battle:<seat>`, a `resolve` phase that compares `$seat.<id>.battle.top.meta.rank`, and ties handled with `gotoPhase` back to `battle` (no Lua needed). House rule: after 500 battles the player with more cards wins. Simplified UNO uses the standard deck: match the suit or rank of the top discard, or draw one (reshuffling the discard pile when the draw pile is empty); first to empty their hand wins.
 
 ## Resolved questions (T1.3, 2026-10-22)
 

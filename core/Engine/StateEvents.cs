@@ -83,6 +83,17 @@ namespace Core.Engine
         }
     }
 
+    /// <summary>A line for the game log (a <c>message</c> effect or a win). Not tied to an object.</summary>
+    public sealed class GameMessage : StateEvent
+    {
+        public string Text { get; }
+
+        public GameMessage(string text) : base("")
+        {
+            Text = text;
+        }
+    }
+
     /// <summary>Someone looked through a container. Other players see that it happened, not what was seen.</summary>
     public sealed class Searched : StateEvent
     {
@@ -99,6 +110,12 @@ namespace Core.Engine
         public bool Ok => Error == null;
         public ValidationError? Error { get; }
         public IReadOnlyList<StateEvent> Events { get; }
+
+        /// <summary>
+        /// True when a rules command failed after changing the table: objects, zones and session were restored to their
+        /// state before the command, so the view must re-read everything.
+        /// </summary>
+        public bool StateRestored { get; internal set; }
 
         /// <summary>Id of the object a take, group or card-on-card insert created; null otherwise.</summary>
         public string? CreatedId { get; internal set; }

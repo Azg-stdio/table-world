@@ -35,6 +35,9 @@ namespace Core.Rules
     {
         private static readonly IContractResolver Resolver = new TableContractResolver();
 
+        /// <summary>The contracts the reader and writer use (camelCase keys, empty collections omitted).</summary>
+        internal static IContractResolver ContractResolver => Resolver;
+
         private static readonly JsonSerializerSettings WriteSettings = new JsonSerializerSettings
         {
             ContractResolver = Resolver,
@@ -119,6 +122,8 @@ namespace Core.Rules
             new StringEnumConverter(new CamelCaseNamingStrategy(), allowIntegerValues: false),
             new PolymorphicConverter<TableObject>(TableObjectTypes.ByName),
             new PolymorphicConverter<Zone>(ZoneTypes.ByName),
+            new SingleKeyConverter<Effect>(EffectKinds.ByName),
+            new SingleKeyConverter<Condition>(ConditionKinds.ByName),
         };
 
         /// <summary>Drops Newtonsoft's " Path 'x', line 1, position 2." suffix: the path is reported separately.</summary>
@@ -201,6 +206,99 @@ namespace Core.Rules
                 throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// <c>{ "kind": { fields } }</c> for effects and conditions. <c>and</c>/<c>or</c> hold an array, <c>not</c> one condition.
+        /// Malformed entries read as null (KeyChecker reports them).
+        /// </summary>
+        private sealed class SingleKeyConverter<TBase> : JsonConverter where TBase : class
+        {
+            private readonly IReadOnlyDictionary<string, Type> _kinds;
+
+            public SingleKeyConverter(IReadOnlyDictionary<string, Type> kinds)
+            {
+                _kinds = kinds;
+            }
+
+            // Writing matches converters on the runtime type (MoveEffect), reading on the declared one (Effect).
+            public override bool CanConvert(Type objectType) => typeof(TBase).IsAssignableFrom(objectType);
+
+            public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+            {
+                if (reader.TokenType == JsonToken.Null)
+                    return null;
+                var path = reader.Path;
+                if (!(JToken.Load(reader) is JObject jo) || jo.Count != 1)
+                    return null;
+                var property = jo.Properties().First();
+                if (!_kinds.TryGetValue(property.Name, out var concrete))
+                    return null;
+
+                var instance = Activator.CreateInstance(concrete);
+                if (ConditionKinds.IsListForm(concrete))
+                {
+                    var list = new List<Condition>();
+                    if (property.Value is JArray array)
+                        foreach (var item in array)
+                            if (item.ToObject<Condition>(serializer) is { } c)
+                                list.Add(c);
+                    if (instance is AndCondition and)
+                        and.Conditions = list;
+                    else
+                        ((OrCondition)instance).Conditions = list;
+                    return instance;
+                }
+                if (instance is NotCondition not)
+                {
+                    not.Condition = property.Value.ToObject<Condition>(serializer);
+                    return instance;
+                }
+                if (property.Value is JObject inner)
+                {
+                    using var sub = new JTokenReader(inner, path.Length == 0 ? property.Name : path + "." + property.Name);
+                    serializer.Populate(sub, instance);
+                }
+                return instance;
+            }
+
+            public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+            {
+                writer.WriteStartObject();
+                switch (value)
+                {
+                    case AndCondition and:
+                        writer.WritePropertyName("and");
+                        serializer.Serialize(writer, and.Conditions);
+                        break;
+                    case OrCondition or:
+                        writer.WritePropertyName("or");
+                        serializer.Serialize(writer, or.Conditions);
+                        break;
+                    case NotCondition not:
+                        writer.WritePropertyName("not");
+                        serializer.Serialize(writer, not.Condition);
+                        break;
+                    default:
+                        writer.WritePropertyName(value is Effect e ? e.Kind : ((Condition)value!).Kind);
+                        // The concrete type with its own contract; this converter only handles the base type.
+                        var contract = (JsonObjectContract)serializer.ContractResolver.ResolveContract(value!.GetType());
+                        writer.WriteStartObject();
+                        foreach (var property in contract.Properties)
+                        {
+                            if (property.Ignored || !property.Readable || (property.ShouldSerialize != null && !property.ShouldSerialize(value)))
+                                continue;
+                            var v = property.ValueProvider!.GetValue(value);
+                            if (v == null || (property.PropertyType != null && property.PropertyType.IsValueType && Equals(v, Activator.CreateInstance(property.PropertyType))))
+                                continue;
+                            writer.WritePropertyName(property.PropertyName!);
+                            serializer.Serialize(writer, v);
+                        }
+                        writer.WriteEndObject();
+                        break;
+                }
+                writer.WriteEndObject();
+            }
+        }
+
         /// <summary>Walks the raw JSON alongside the model's contracts and reports every key the model does not have.</summary>
         private static class KeyChecker
         {
@@ -209,6 +307,12 @@ namespace Core.Rules
                 type = Nullable.GetUnderlyingType(type) ?? type;
                 if (token.Type == JTokenType.Null || typeof(JToken).IsAssignableFrom(type))
                     return;
+
+                if (type == typeof(Effect) || type == typeof(Condition))
+                {
+                    CheckSingleKey(token, type, errors);
+                    return;
+                }
 
                 if (type == typeof(TableObject) || type == typeof(Zone))
                 {
@@ -262,6 +366,45 @@ namespace Core.Rules
             }
 
             private static string Noun(Type type) => type == typeof(Zone) ? "zone" : "object";
+
+            private static void CheckSingleKey(JToken token, Type baseType, List<ValidationError> errors)
+            {
+                var kinds = baseType == typeof(Effect) ? EffectKinds.ByName : ConditionKinds.ByName;
+                var noun = baseType == typeof(Effect) ? "effect" : "condition";
+                if (!(token is JObject jo) || jo.Count != 1)
+                {
+                    errors.Add(new ValidationError(token.Path, ErrorCodes.InvalidValue,
+                        $"An {noun} is an object with exactly one key naming its kind.", $"Kinds: {string.Join(", ", kinds.Keys)}."));
+                    return;
+                }
+                var property = jo.Properties().First();
+                if (!kinds.TryGetValue(property.Name, out var concrete))
+                {
+                    errors.Add(new ValidationError(property.Path, baseType == typeof(Effect) ? ErrorCodes.UnknownEffect : ErrorCodes.UnknownCondition,
+                        $"Unknown {noun} '{property.Name}'.", Suggest.OneOf(property.Name, kinds.Keys)));
+                    return;
+                }
+                if (ConditionKinds.IsListForm(concrete))
+                {
+                    if (property.Value is JArray array)
+                        foreach (var item in array)
+                            Check(item, typeof(Condition), errors);
+                    else
+                        errors.Add(new ValidationError(property.Path, ErrorCodes.InvalidValue, $"'{property.Name}' takes an array of conditions."));
+                    return;
+                }
+                if (concrete == typeof(NotCondition))
+                {
+                    Check(property.Value, typeof(Condition), errors);
+                    return;
+                }
+                if (property.Value.Type != JTokenType.Object)
+                {
+                    errors.Add(new ValidationError(property.Path, ErrorCodes.InvalidValue, $"'{property.Name}' takes an object (use {{}} when it has no fields)."));
+                    return;
+                }
+                Check(property.Value, concrete, errors);
+            }
         }
     }
 }

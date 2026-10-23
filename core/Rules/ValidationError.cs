@@ -49,6 +49,32 @@ namespace Core.Rules
         public const string UnknownZone = "unknown_zone";
         public const string UnknownObject = "unknown_object";
 
+        // Rules (T4.1).
+        public const string UnknownEffect = "unknown_effect";
+        public const string UnknownCondition = "unknown_condition";
+        public const string UnknownPhase = "unknown_phase";
+        public const string UnknownAction = "unknown_action";
+        public const string UnknownVariable = "unknown_variable";
+        public const string UnknownResource = "unknown_resource";
+        public const string UnknownEvent = "unknown_event";
+        public const string InvalidReference = "invalid_reference";
+        public const string InvalidOperator = "invalid_operator";
+        public const string PlayerCount = "player_count";
+
+        // Game engine (T4.2).
+        public const string NoRules = "no_rules";
+        public const string GameAlreadyStarted = "game_already_started";
+        public const string GameNotStarted = "game_not_started";
+        public const string GameOver = "game_over";
+        public const string ActionNotAvailable = "action_not_available";
+        public const string NotYourTurn = "not_your_turn";
+        public const string LimitReached = "limit_reached";
+        public const string PreconditionFailed = "precondition_failed";
+        public const string MissingParam = "missing_param";
+        public const string InvalidParam = "invalid_param";
+        public const string RulesLoop = "rules_loop";
+        public const string RuleFailed = "rule_failed";
+
         // Engine (command) errors.
         public const string UnknownCommand = "unknown_command";
         public const string ObjectLocked = "object_locked";

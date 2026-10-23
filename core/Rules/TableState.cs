@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace Core.Rules
 {
@@ -46,5 +47,28 @@ namespace Core.Rules
         public List<TableObject> Objects { get; set; } = new List<TableObject>();
         public List<Zone> Zones { get; set; } = new List<Zone>();
         public Players Players { get; set; } = new Players();
+
+        // ---- rules (docs/rules-schema.md); all optional: a table without them is free play ----
+
+        public GameInfo? Game { get; set; }
+        public List<ResourceDef> Resources { get; set; } = new List<ResourceDef>();
+        /// <summary>Declared variables and their initial values.</summary>
+        public Dictionary<string, JToken> Variables { get; set; } = new Dictionary<string, JToken>();
+        public TurnDef? Turn { get; set; }
+        public List<PhaseDef> Phases { get; set; } = new List<PhaseDef>();
+        public List<ActionDef> Actions { get; set; } = new List<ActionDef>();
+        /// <summary>Event name (<see cref="GameEvents"/>) to effects.</summary>
+        public Dictionary<string, List<Effect>> Events { get; set; } = new Dictionary<string, List<Effect>>();
+        public List<WinCondition> WinConditions { get; set; } = new List<WinCondition>();
+        /// <summary>Declarative UI (T4.6); carried as-is for now.</summary>
+        public JObject? Ui { get; set; }
+        /// <summary>Lua sources by name (M5); carried as-is.</summary>
+        public Dictionary<string, string> Scripts { get; set; } = new Dictionary<string, string>();
+
+        /// <summary>Progress of a game in play. Written by the engine.</summary>
+        public Session? Session { get; set; }
+
+        [Newtonsoft.Json.JsonIgnore]
+        public bool HasRules => Turn != null && Phases.Count > 0;
     }
 }

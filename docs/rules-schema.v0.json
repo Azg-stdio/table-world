@@ -1,0 +1,2029 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://table-world/rules-schema.v0.json",
+  "title": "Table World game document v0.1",
+  "$ref": "#/$defs/TableState",
+  "$defs": {
+    "TableState": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "type": "string"
+        },
+        "assets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Asset"
+          }
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TableObject"
+          }
+        },
+        "zones": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Zone"
+          }
+        },
+        "players": {
+          "$ref": "#/$defs/Players"
+        },
+        "game": {
+          "$ref": "#/$defs/GameInfo"
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ResourceDef"
+          }
+        },
+        "variables": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "turn": {
+          "$ref": "#/$defs/TurnDef"
+        },
+        "phases": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PhaseDef"
+          }
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ActionDef"
+          }
+        },
+        "events": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/Effect"
+            }
+          }
+        },
+        "winConditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/WinCondition"
+          }
+        },
+        "ui": {
+          "type": "object"
+        },
+        "scripts": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "session": {
+          "$ref": "#/$defs/Session"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Asset": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "image",
+            "model",
+            "assetBundle",
+            "audio"
+          ]
+        },
+        "path": {
+          "type": "string"
+        },
+        "hash": {
+          "type": "string"
+        },
+        "columns": {
+          "type": "integer"
+        },
+        "rows": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "TableObject": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/Card"
+        },
+        {
+          "$ref": "#/$defs/Deck"
+        },
+        {
+          "$ref": "#/$defs/Token"
+        },
+        {
+          "$ref": "#/$defs/Tile"
+        },
+        {
+          "$ref": "#/$defs/Die"
+        },
+        {
+          "$ref": "#/$defs/Model"
+        },
+        {
+          "$ref": "#/$defs/Bag"
+        },
+        {
+          "$ref": "#/$defs/InfiniteBag"
+        },
+        {
+          "$ref": "#/$defs/Board"
+        },
+        {
+          "$ref": "#/$defs/Figure"
+        }
+      ]
+    },
+    "Card": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "Card"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "gmNotes": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "container": {
+          "type": "string"
+        },
+        "tint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "states": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/TableObject"
+          }
+        },
+        "script": {
+          "type": "string"
+        },
+        "ttsExtra": {
+          "type": "object"
+        },
+        "faceAsset": {
+          "type": "string"
+        },
+        "faceIndex": {
+          "type": "integer"
+        },
+        "backAsset": {
+          "type": "string"
+        },
+        "backIndex": {
+          "type": "integer"
+        },
+        "size": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "meta": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "TableTransform": {
+      "type": "object",
+      "properties": {
+        "position": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "rotation": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "scale": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        }
+      },
+      "additionalProperties": false
+    },
+    "Deck": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "Deck"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "gmNotes": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "container": {
+          "type": "string"
+        },
+        "tint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "states": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/TableObject"
+          }
+        },
+        "script": {
+          "type": "string"
+        },
+        "ttsExtra": {
+          "type": "object"
+        },
+        "faceAsset": {
+          "type": "string"
+        },
+        "backAsset": {
+          "type": "string"
+        },
+        "backIndex": {
+          "type": "integer"
+        },
+        "size": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "cards": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DeckCard"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "DeckCard": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "gmNotes": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "faceAsset": {
+          "type": "string"
+        },
+        "faceIndex": {
+          "type": "integer"
+        },
+        "backAsset": {
+          "type": "string"
+        },
+        "backIndex": {
+          "type": "integer"
+        },
+        "meta": {
+          "type": "object"
+        },
+        "script": {
+          "type": "string"
+        },
+        "ttsExtra": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Token": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "Token"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "gmNotes": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "container": {
+          "type": "string"
+        },
+        "tint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "states": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/TableObject"
+          }
+        },
+        "script": {
+          "type": "string"
+        },
+        "ttsExtra": {
+          "type": "object"
+        },
+        "asset": {
+          "type": "string"
+        },
+        "shape": {
+          "enum": [
+            "round",
+            "square",
+            "image"
+          ]
+        },
+        "thickness": {
+          "type": "number"
+        },
+        "stackable": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "Tile": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "Tile"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "gmNotes": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "container": {
+          "type": "string"
+        },
+        "tint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "states": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/TableObject"
+          }
+        },
+        "script": {
+          "type": "string"
+        },
+        "ttsExtra": {
+          "type": "object"
+        },
+        "asset": {
+          "type": "string"
+        },
+        "shape": {
+          "enum": [
+            "square",
+            "hex",
+            "circle",
+            "rounded"
+          ]
+        },
+        "thickness": {
+          "type": "number"
+        },
+        "stackable": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "Die": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "Die"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "gmNotes": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "container": {
+          "type": "string"
+        },
+        "tint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "states": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/TableObject"
+          }
+        },
+        "script": {
+          "type": "string"
+        },
+        "ttsExtra": {
+          "type": "object"
+        },
+        "faces": {
+          "type": "integer"
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "value": {
+          "type": "integer"
+        },
+        "asset": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "Model": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "Model"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "gmNotes": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "container": {
+          "type": "string"
+        },
+        "tint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "states": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/TableObject"
+          }
+        },
+        "script": {
+          "type": "string"
+        },
+        "ttsExtra": {
+          "type": "object"
+        },
+        "asset": {
+          "type": "string"
+        },
+        "diffuseAsset": {
+          "type": "string"
+        },
+        "collider": {
+          "enum": [
+            "convex",
+            "box",
+            "mesh"
+          ]
+        },
+        "kind": {
+          "enum": [
+            "generic",
+            "figurine",
+            "dice",
+            "coin",
+            "board",
+            "chip"
+          ]
+        },
+        "material": {
+          "enum": [
+            "plastic",
+            "wood",
+            "metal",
+            "cardboard",
+            "glass"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "Bag": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "Bag"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "gmNotes": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "container": {
+          "type": "string"
+        },
+        "tint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "states": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/TableObject"
+          }
+        },
+        "script": {
+          "type": "string"
+        },
+        "ttsExtra": {
+          "type": "object"
+        },
+        "asset": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "InfiniteBag": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "InfiniteBag"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "gmNotes": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "container": {
+          "type": "string"
+        },
+        "tint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "states": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/TableObject"
+          }
+        },
+        "script": {
+          "type": "string"
+        },
+        "ttsExtra": {
+          "type": "object"
+        },
+        "asset": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "Board": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "Board"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "gmNotes": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "container": {
+          "type": "string"
+        },
+        "tint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "states": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/TableObject"
+          }
+        },
+        "script": {
+          "type": "string"
+        },
+        "ttsExtra": {
+          "type": "object"
+        },
+        "asset": {
+          "type": "string"
+        },
+        "size": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "Figure": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "Figure"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "gmNotes": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "container": {
+          "type": "string"
+        },
+        "tint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "states": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/TableObject"
+          }
+        },
+        "script": {
+          "type": "string"
+        },
+        "ttsExtra": {
+          "type": "object"
+        },
+        "asset": {
+          "type": "string"
+        },
+        "height": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "Zone": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/HandZone"
+        },
+        {
+          "$ref": "#/$defs/HiddenZone"
+        },
+        {
+          "$ref": "#/$defs/ScriptingZone"
+        },
+        {
+          "$ref": "#/$defs/SnapPoint"
+        }
+      ]
+    },
+    "HandZone": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "HandZone"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "size": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "parent": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "HiddenZone": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "HiddenZone"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "size": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "parent": {
+          "type": "string"
+        },
+        "visibleTo": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "ScriptingZone": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "ScriptingZone"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "size": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "parent": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "SnapPoint": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "SnapPoint"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "size": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "parent": {
+          "type": "string"
+        },
+        "rotationSnap": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "Players": {
+      "type": "object",
+      "properties": {
+        "seats": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Seat"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "Seat": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "color": {
+          "type": "string"
+        },
+        "handZone": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "GameInfo": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "minPlayers": {
+          "type": "integer"
+        },
+        "maxPlayers": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ResourceDef": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "initial": {
+          "type": "number"
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "TurnDef": {
+      "type": "object",
+      "properties": {
+        "order": {
+          "enum": [
+            "clockwise",
+            "counterclockwise"
+          ]
+        },
+        "startingPlayer": {
+          "type": "string"
+        },
+        "phases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "PhaseDef": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "onEnter": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        },
+        "onExit": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        },
+        "advanceWhen": {
+          "$ref": "#/$defs/AdvanceRule"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Effect": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "move": {
+              "$ref": "#/$defs/MoveEffect"
+            }
+          },
+          "required": [
+            "move"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "deal": {
+              "$ref": "#/$defs/DealEffect"
+            }
+          },
+          "required": [
+            "deal"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "shuffle": {
+              "$ref": "#/$defs/ShuffleEffect"
+            }
+          },
+          "required": [
+            "shuffle"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "flip": {
+              "$ref": "#/$defs/FlipEffect"
+            }
+          },
+          "required": [
+            "flip"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "setVariable": {
+              "$ref": "#/$defs/SetVariableEffect"
+            }
+          },
+          "required": [
+            "setVariable"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "setResource": {
+              "$ref": "#/$defs/SetResourceEffect"
+            }
+          },
+          "required": [
+            "setResource"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "if": {
+              "$ref": "#/$defs/IfEffect"
+            }
+          },
+          "required": [
+            "if"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "forEach": {
+              "$ref": "#/$defs/ForEachEffect"
+            }
+          },
+          "required": [
+            "forEach"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "message": {
+              "$ref": "#/$defs/MessageEffect"
+            }
+          },
+          "required": [
+            "message"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "endTurn": {
+              "$ref": "#/$defs/EndTurnEffect"
+            }
+          },
+          "required": [
+            "endTurn"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "endPhase": {
+              "$ref": "#/$defs/EndPhaseEffect"
+            }
+          },
+          "required": [
+            "endPhase"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "gotoPhase": {
+              "$ref": "#/$defs/GotoPhaseEffect"
+            }
+          },
+          "required": [
+            "gotoPhase"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "win": {
+              "$ref": "#/$defs/WinEffect"
+            }
+          },
+          "required": [
+            "win"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "lock": {
+              "$ref": "#/$defs/LockEffect"
+            }
+          },
+          "required": [
+            "lock"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "roll": {
+              "$ref": "#/$defs/RollEffect"
+            }
+          },
+          "required": [
+            "roll"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "MoveEffect": {
+      "type": "object",
+      "properties": {
+        "object": {
+          "type": "string"
+        },
+        "from": {
+          "type": "string"
+        },
+        "take": {
+          "type": "string"
+        },
+        "count": {
+          "type": "integer"
+        },
+        "to": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string"
+        },
+        "faceUp": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DealEffect": {
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string"
+        },
+        "count": {
+          "type": "integer"
+        },
+        "seats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "toZone": {
+          "type": "string"
+        },
+        "toTag": {
+          "type": "string"
+        },
+        "faceDown": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ShuffleEffect": {
+      "type": "object",
+      "properties": {
+        "object": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "FlipEffect": {
+      "type": "object",
+      "properties": {
+        "object": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SetVariableEffect": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {},
+        "delta": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SetResourceEffect": {
+      "type": "object",
+      "properties": {
+        "player": {
+          "type": "string"
+        },
+        "resource": {
+          "type": "string"
+        },
+        "value": {},
+        "delta": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "IfEffect": {
+      "type": "object",
+      "properties": {
+        "condition": {
+          "$ref": "#/$defs/Condition"
+        },
+        "then": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        },
+        "else": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "Condition": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "zoneCount": {
+              "$ref": "#/$defs/ZoneCountCondition"
+            }
+          },
+          "required": [
+            "zoneCount"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "compare": {
+              "$ref": "#/$defs/CompareCondition"
+            }
+          },
+          "required": [
+            "compare"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "variable": {
+              "$ref": "#/$defs/VariableCondition"
+            }
+          },
+          "required": [
+            "variable"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "resource": {
+              "$ref": "#/$defs/ResourceCondition"
+            }
+          },
+          "required": [
+            "resource"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "isCurrentPlayer": {
+              "$ref": "#/$defs/IsCurrentPlayerCondition"
+            }
+          },
+          "required": [
+            "isCurrentPlayer"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "objectIn": {
+              "$ref": "#/$defs/ObjectInCondition"
+            }
+          },
+          "required": [
+            "objectIn"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "hasTag": {
+              "$ref": "#/$defs/HasTagCondition"
+            }
+          },
+          "required": [
+            "hasTag"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "and": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Condition"
+              }
+            }
+          },
+          "required": [
+            "and"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "or": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Condition"
+              }
+            }
+          },
+          "required": [
+            "or"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "not": {
+              "$ref": "#/$defs/Condition"
+            }
+          },
+          "required": [
+            "not"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "ZoneCountCondition": {
+      "type": "object",
+      "properties": {
+        "zone": {
+          "type": "string"
+        },
+        "op": {
+          "type": "string"
+        },
+        "value": {}
+      },
+      "additionalProperties": false
+    },
+    "CompareCondition": {
+      "type": "object",
+      "properties": {
+        "left": {},
+        "op": {
+          "type": "string"
+        },
+        "right": {}
+      },
+      "additionalProperties": false
+    },
+    "VariableCondition": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "op": {
+          "type": "string"
+        },
+        "value": {}
+      },
+      "additionalProperties": false
+    },
+    "ResourceCondition": {
+      "type": "object",
+      "properties": {
+        "player": {
+          "type": "string"
+        },
+        "resource": {
+          "type": "string"
+        },
+        "op": {
+          "type": "string"
+        },
+        "value": {}
+      },
+      "additionalProperties": false
+    },
+    "IsCurrentPlayerCondition": {
+      "type": "object",
+      "properties": {
+        "player": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ObjectInCondition": {
+      "type": "object",
+      "properties": {
+        "object": {
+          "type": "string"
+        },
+        "zone": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "HasTagCondition": {
+      "type": "object",
+      "properties": {
+        "object": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ForEachEffect": {
+      "type": "object",
+      "properties": {
+        "players": {
+          "type": "boolean"
+        },
+        "objectsIn": {
+          "type": "string"
+        },
+        "do": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "MessageEffect": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EndTurnEffect": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "EndPhaseEffect": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "GotoPhaseEffect": {
+      "type": "object",
+      "properties": {
+        "phase": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "WinEffect": {
+      "type": "object",
+      "properties": {
+        "player": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "LockEffect": {
+      "type": "object",
+      "properties": {
+        "object": {
+          "type": "string"
+        },
+        "locked": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "RollEffect": {
+      "type": "object",
+      "properties": {
+        "object": {
+          "type": "string"
+        },
+        "store": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "AdvanceRule": {
+      "type": "object",
+      "properties": {
+        "immediate": {
+          "type": "boolean"
+        },
+        "allPlayersActed": {
+          "type": "boolean"
+        },
+        "currentPlayerEnds": {
+          "type": "boolean"
+        },
+        "condition": {
+          "$ref": "#/$defs/Condition"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ActionDef": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "actor": {
+          "enum": [
+            "current",
+            "any"
+          ]
+        },
+        "params": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ParamDef"
+          }
+        },
+        "preconditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Condition"
+          }
+        },
+        "effects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        },
+        "limitPerPhase": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ParamDef": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "object",
+            "seat",
+            "number",
+            "choice"
+          ]
+        },
+        "filter": {
+          "$ref": "#/$defs/ParamFilter"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "ParamFilter": {
+      "type": "object",
+      "properties": {
+        "inZone": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "hasTag": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "WinCondition": {
+      "type": "object",
+      "properties": {
+        "when": {
+          "$ref": "#/$defs/Condition"
+        },
+        "winner": {
+          "type": "string"
+        },
+        "checkAfter": {
+          "enum": [
+            "anyCommand",
+            "turnEnd"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "Session": {
+      "type": "object",
+      "properties": {
+        "started": {
+          "type": "boolean"
+        },
+        "over": {
+          "type": "boolean"
+        },
+        "winner": {
+          "type": "string"
+        },
+        "turn": {
+          "type": "integer"
+        },
+        "currentSeat": {
+          "type": "string"
+        },
+        "phase": {
+          "type": "string"
+        },
+        "acted": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "actionCounts": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer"
+          }
+        },
+        "variables": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "resources": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          }
+        },
+        "log": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "randomState": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

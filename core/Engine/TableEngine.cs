@@ -28,18 +28,38 @@ namespace Core.Engine
         {
             State = state;
             Random = new DeterministicRandom(seed);
-            foreach (var obj in state.Objects)
+            Reindex();
+        }
+
+        /// <summary>Rebuilds the id and zone indexes after the state's lists were replaced (rollback of a failed rule action).</summary>
+        internal void Reindex()
+        {
+            _objects.Clear();
+            _usedIds.Clear();
+            _zonesOf.Clear();
+            foreach (var obj in State.Objects)
             {
                 _objects[obj.Id] = obj;
                 ClaimIds(obj);
             }
-            foreach (var zone in state.Zones)
+            foreach (var zone in State.Zones)
                 _usedIds.Add(zone.Id);
-            foreach (var obj in state.Objects)
+            foreach (var obj in State.Objects)
                 _zonesOf[obj.Id] = ComputeZones(obj);
         }
 
         public TableObject? Find(string id) => _objects.TryGetValue(id, out var obj) ? obj : null;
+
+        /// <summary>Where the next object placed into <paramref name="zone"/> goes: a hand slot, or stacked at the zone's centre.</summary>
+        internal Vec3 SlotFor(Zone zone)
+        {
+            var count = ObjectsIn(zone.Id).Count();
+            if (zone is HandZone hand)
+                return HandSlot(hand, count, Card.DefaultSize);
+            var p = zone.Transform.Position;
+            var floor = Math.Max(0f, p.Y - zone.Size.Y * zone.Transform.Scale.Y / 2f);
+            return new Vec3(p.X, floor + 0.001f * (count + 1), p.Z);
+        }
 
         /// <summary>Ids of the zones (not snap points) whose box holds the object's position. Empty inside a container.</summary>
         public IReadOnlyList<string> ZonesOf(string objectId) => _zonesOf.TryGetValue(objectId, out var zones) ? zones : NoZones;
@@ -82,7 +102,7 @@ namespace Core.Engine
             var all = new List<StateEvent>(events);
             var touched = new List<string>();
             foreach (var e in events)
-                if (!touched.Contains(e.ObjectId))
+                if (e.ObjectId.Length > 0 && !touched.Contains(e.ObjectId))
                     touched.Add(e.ObjectId);
             foreach (var id in touched)
             {
@@ -457,7 +477,7 @@ namespace Core.Engine
         }
 
         /// <summary>Slot k of a hand, overlapping left to right along the zone's local X, clamped inside the zone.</summary>
-        private static Vec3 HandSlot(HandZone zone, int slot, Vec2 cardSize)
+        internal static Vec3 HandSlot(HandZone zone, int slot, Vec2 cardSize)
         {
             var halfWidth = zone.Size.X * zone.Transform.Scale.X / 2;
             var first = -halfWidth + cardSize.X / 2;
