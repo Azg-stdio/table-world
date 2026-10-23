@@ -35,6 +35,47 @@ Note these in `docs/milestones/M3-multiplayer.md` (simulation record) or tell th
 - Confusing controls (the full list is in `docs/tts-interactions.md`; **Alt** looks at a card, right-click opens menus).
 - Logs, if something broke: `%USERPROFILE%\AppData\LocalLow\DefaultCompany\Table World\Player.log` on each machine.
 
+## 5. Checklist: what only a test with friends can confirm
+
+Everything below already passes automated tests on one machine (two processes, simulated input). What it cannot check is real networks, real hands on real mice, and how it feels. Tick each one and note anything odd. New items are added here whenever a feature lands that needs people to confirm it.
+
+**Joining and staying connected**
+- [ ] Join by code from different homes (different routers), first try, each friend.
+- [ ] A friend leaves and rejoins mid-game: they get the table back and a seat.
+- [ ] A friend's window in the background (alt-tab) keeps the game in sync.
+- [ ] Lag feels acceptable: picking up, dropping, flipping, playing a card (note rough seconds if it does not).
+- [ ] A game with your own large images: how long until everyone sees them.
+
+**Seeing each other (live presence)**
+- [ ] Each friend's pointer shows in their colour with their seat name, and moves smoothly.
+- [ ] When someone carries a card or die, everyone sees it move live and fall where it was dropped.
+- [ ] Trying to grab something a friend is holding is refused with their name.
+- [ ] Two people grabbing the same thing at the same moment: what happens (should end the same on all screens).
+
+**Hands and hidden information**
+- [ ] Your own hand: the bar at the bottom shows your cards; hover enlarges; drag out plays or places; drop back reorders.
+- [ ] Hide hand / Show hand works and is remembered next time.
+- [ ] Friends see only the backs of your hand cards, at your edge of the table, and cannot pick them up or read their names.
+- [ ] The camera starts behind each person's own seat.
+
+**Playing by the rules (War, UNO)**
+- [ ] Drag a playable card from your hand: it plays and the turn passes on everyone's screen.
+- [ ] An unplayable card or out-of-turn move comes back with a readable reason.
+- [ ] Dragging the draw pile draws; the discard pile refuses.
+- [ ] Nobody can play for someone else's seat.
+- [ ] A full game to the end: same winner on every screen.
+
+**Feel (only real hands can judge)**
+- [ ] Dropping cards anywhere (on decks, near hands, half on dice): nothing slides weirdly or ends propped up.
+- [ ] Decks and bags: drag at once takes the top card; press, hold still, then drag lifts the whole thing.
+- [ ] Rotation: tapping Q/E snaps to 15° steps, holding turns smoothly.
+- [ ] Throwing dice feels right and they settle flat.
+- [ ] The room and light: cards look white, text is readable, nothing too dark.
+- [ ] The controls list (F1) explains what people try to do.
+
+**After the session**
+- [ ] Each person sends their `Player.log` if anything broke (path below).
+
 ## Known limits
 
 - Relay throughput was measured at about 200–240 KB/s per joining player, so custom games with large images take a while to arrive. Objects show plain colours until their image lands. The sample games use generated cards and need no download.
