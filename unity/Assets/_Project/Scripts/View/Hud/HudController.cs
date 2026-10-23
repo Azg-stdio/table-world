@@ -93,6 +93,9 @@ namespace TableWorld.View.Hud
                     _session.StartClient(Host(address.value), Port(address.value));
             };
             _root.Q<Button>("loadButton").clicked += Load;
+            _gamesPanel = _root.Q("gamesPanel");
+            _root.Q<Button>("gamesButton").clicked += ToggleGames;
+            _root.Q<Button>("gamesClose").clicked += () => _gamesPanel.AddToClassList(Hidden);
 
             if (_table != null)
                 _table.CommandExecuted += OnCommand;
@@ -140,14 +143,16 @@ namespace TableWorld.View.Hud
             }
         }
 
-        /// <summary>Turn line, Start button and one button per legal action (hot seat: every seat that can act).</summary>
+        /// <summary>Turn line, Start button and one button per legal action: every seat that can act when playing alone
+        /// (hot seat), only the local seat online.</summary>
         private void RefreshGame()
         {
             var game = _table.Game;
             var state = game.State;
             var session = game.Session;
             var legal = session is { Started: true, Over: false }
-                ? state.Players.Seats.SelectMany(s => game.LegalActions(s.Id).Select(a => (Seat: s.Id, Action: a))).ToList()
+                ? state.Players.Seats.Where(s => !_table.Networked || s.Id == _table.LocalSeat)
+                    .SelectMany(s => game.LegalActions(s.Id).Select(a => (Seat: s.Id, Action: a))).ToList()
                 : new List<(string Seat, LegalAction Action)>();
             var key = $"{state.HasRules}|{session?.Turn}|{session?.Phase}|{session?.CurrentSeat}|{session?.Over}|{session?.Log.Count}|" +
                       string.Join(",", legal.Select(l => $"{l.Seat}/{l.Action.ActionId}/{l.Action.Choices.Count}"));
@@ -313,6 +318,51 @@ namespace TableWorld.View.Hud
 
         private static ushort Port(string address) =>
             address.Contains(":") && ushort.TryParse(address.Split(':')[1], out var port) ? port : TableWorld.View.Net.NetworkTableSession.DefaultPort;
+
+        private VisualElement _gamesPanel;
+
+        private void ToggleGames()
+        {
+            if (!_gamesPanel.ClassListContains(Hidden))
+            {
+                _gamesPanel.AddToClassList(Hidden);
+                return;
+            }
+            var list = _gamesPanel.Q<ScrollView>("gamesList");
+            list.Clear();
+            foreach (var entry in GameLibrary.List())
+            {
+                var button = new Button(() => OpenGame(entry)) { text = entry.Name };
+                button.AddToClassList("menu-item");
+                list.Add(button);
+            }
+            _gamesPanel.Q<Label>("gamesHint").text = $"Your own games: put a .json file, or a folder with table.json and its images, in {GameLibrary.UserFolder}";
+            _gamesPanel.RemoveFromClassList(Hidden);
+        }
+
+        private void OpenGame(GameLibrary.Entry entry)
+        {
+            // The host's table is the shared one; a client opening a file would leave the session's table.
+            if (_session != null && _session.IsClient)
+            {
+                ShowStatus("Only the host can open a game", error: true);
+                return;
+            }
+            string json;
+            try
+            {
+                json = System.IO.File.ReadAllText(entry.File);
+            }
+            catch (System.IO.IOException e)
+            {
+                ShowStatus($"Could not read {entry.File}: {e.Message}", error: true);
+                return;
+            }
+            var ok = _table.Load(json, entry.PackageRoot);
+            ShowStatus(ok ? $"Opened {entry.Name}" : $"{entry.Name} is not a valid game (details in the log)", error: !ok);
+            if (ok)
+                _gamesPanel.AddToClassList(Hidden);
+        }
 
         private void Save()
         {

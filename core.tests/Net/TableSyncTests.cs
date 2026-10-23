@@ -214,6 +214,38 @@ namespace Core.Tests.Net
         }
 
         [Fact]
+        public void SeatedClient_CannotActForAnotherSeat()
+        {
+            var host = GameFixtures.Load("war", 5);
+            var net = new Network(host, 5, "north");
+            net.Host.Seats["north"] = "seat_north";
+            net.HostDoes(new StartGameCommand());
+            net.Flush();
+            var refused = new List<ValidationError>();
+            net.Clients["north"].Refused += refused.Add;
+            var before = TableJson.Hash(host.State);
+
+            // As South, and with no actor (which would mean "the current seat"): both refused, nothing changes.
+            var play = host.LegalActions("seat_south").First();
+            net.ClientDoes("north", new PerformActionCommand { Actor = "seat_south", ActionId = play.ActionId });
+            net.Flush();
+            var unseated = net.ClientDoes("north", new PerformActionCommand { ActionId = play.ActionId });
+            net.Flush();
+            // The second is refused by the host, or already by the client's own prediction (then it is never sent).
+            Assert.Equal(unseated!.Ok ? 2 : 1, refused.Count);
+            Assert.All(refused, e => Assert.Equal(ErrorCodes.NotYourSeat, e.Code));
+            Assert.Equal(before, TableJson.Hash(host.State));
+            Assert.Equal(before, TableJson.Hash(net.Clients["north"].Predicted!.State));
+
+            // As itself: accepted.
+            var own = host.LegalActions("seat_north").First();
+            net.ClientDoes("north", new PerformActionCommand { Actor = "seat_north", ActionId = own.ActionId });
+            net.Flush();
+            Assert.NotEqual(before, TableJson.Hash(host.State));
+            Assert.Equal(TableJson.Hash(host.State), TableJson.Hash(net.Clients["north"].Predicted!.State));
+        }
+
+        [Fact]
         public void RulesGame_PlaysThroughTheProtocol()
         {
             var host = GameFixtures.Load("uno-lite", 4);

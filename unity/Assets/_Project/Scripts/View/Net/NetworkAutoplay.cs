@@ -106,7 +106,7 @@ namespace TableWorld.View.Net
             var random = new DeterministicRandom((ulong)seed);
             for (var i = 0; i < commands; i++)
             {
-                var command = RandomCommand(random);
+                var command = _table.Engine.State.HasRules ? RulesCommand(random, host) : RandomCommand(random);
                 if (command != null && _table.Execute(command).Ok)
                     Performed++;
                 yield return new WaitForSeconds(StepSeconds);
@@ -138,6 +138,7 @@ namespace TableWorld.View.Net
                     ["order"] = _session.Host?.Order ?? -1,
                     ["performed"] = Performed,
                     ["objects"] = state.Objects.Count,
+                    ["game"] = state.Session == null ? null : $"turn {state.Session.Turn}, phase {state.Session.Phase}, over {state.Session.Over}, winner {state.Session.Winner ?? "-"}",
                     ["images"] = images.Count,
                     ["imagesShown"] = images.Count(a => _table.Assets.Texture(a.Id) != null),
                     ["assetsFetched"] = _session.Assets?.Fetched ?? 0,
@@ -152,6 +153,25 @@ namespace TableWorld.View.Net
             Done = true;
             if (quit)
                 Application.Quit();
+        }
+
+        /// <summary>
+        /// A rules game played the way people play it online: the host starts it, then each peer performs a random legal
+        /// action for its own seat when it has one (null while it waits for the others).
+        /// </summary>
+        private Command RulesCommand(DeterministicRandom r, bool host)
+        {
+            var game = _table.Game;
+            if (game.Session == null)
+                return host ? new StartGameCommand() : null;
+            if (game.Session.Over)
+                return null;
+            var seat = _table.LocalSeat;
+            var options = game.LegalActions(seat).SelectMany(a => a.Choices.Select(c => (a.ActionId, Params: c))).ToList();
+            if (options.Count == 0)
+                return null;
+            var (action, parameters) = options[r.Next(options.Count)];
+            return new PerformActionCommand { Actor = seat, ActionId = action, Params = new System.Collections.Generic.Dictionary<string, string>(parameters) };
         }
 
         /// <summary>Table commands that do not depend on physics: flips, shuffles, rolls, deals, takes, moves, cuts.</summary>

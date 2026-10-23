@@ -15,11 +15,18 @@
                 <ui:ScrollView name="searchList" class="search-list" />
                 <ui:Button name="searchClose" class="hud-button" text="Close" />
             </ui:VisualElement>
+            <ui:VisualElement name="gamesPanel" class="search-panel hidden">
+                <ui:Label name="gamesTitle" class="selection-title" text="Open a game" />
+                <ui:ScrollView name="gamesList" class="search-list" />
+                <ui:Label name="gamesHint" class="selection-detail" />
+                <ui:Button name="gamesClose" class="hud-button" text="Close" />
+            </ui:VisualElement>
             <ui:VisualElement name="contextMenu" class="context-menu hidden" />
         </ui:VisualElement>
         <ui:VisualElement name="topBar" class="top-bar">
             <ui:Label name="turnLabel" class="turn-label" text="Free play" />
             <ui:VisualElement name="seatList" class="seat-list" picking-mode="Ignore" />
+            <ui:Button name="gamesButton" class="hud-button" text="Games" />
             <ui:Label name="netStatus" class="seat-name" />
             <ui:TextField name="netAddress" class="net-address" value="127.0.0.1:7777" />
             <ui:Button name="hostButton" class="hud-button" text="Host LAN" />

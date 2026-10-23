@@ -66,6 +66,12 @@ namespace Core.Net
         /// <summary>Raised for every command the host executed successfully, with who sent it (the host's view applies it).</summary>
         public event Action<string, Command, CommandResult>? Executed;
 
+        /// <summary>
+        /// Client id → the seat that client plays. A seated client may perform rules actions only as its own seat;
+        /// free-play table commands stay open to everyone, as on a real table (and in TTS).
+        /// </summary>
+        public Dictionary<string, string> Seats { get; } = new Dictionary<string, string>();
+
         /// <summary>When set, snapshots carry its manifest and <c>asset_request</c> messages are answered (T3.4).</summary>
         public AssetHost? Assets { get; set; }
 
@@ -116,6 +122,12 @@ namespace Core.Net
 
         private (CommandResult Result, Outgoing Broadcast) Run(string origin, long clientSeq, Command command)
         {
+            if (command is PerformActionCommand && origin != HostId && Seats.TryGetValue(origin, out var seat) && command.Actor != seat)
+            {
+                var refused = CommandResult.Fail("actor", ErrorCodes.NotYourSeat,
+                    $"You play {seat}; this action was sent as {command.Actor ?? "the current seat"}.", $"Send it with actor '{seat}'.");
+                return (refused, new Outgoing(origin, Rejection(origin, clientSeq, refused.Error!)));
+            }
             var result = Game.Execute(command);
             if (!result.Ok)
                 return (result, new Outgoing(origin == HostId ? null : origin, Rejection(origin, clientSeq, result.Error!)));

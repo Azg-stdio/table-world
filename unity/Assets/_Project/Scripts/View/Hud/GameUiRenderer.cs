@@ -131,12 +131,13 @@ namespace TableWorld.View.Hud
             _table.Execute(new PerformActionCommand { Actor = seat, ActionId = def.Action, Params = new Dictionary<string, string>(def.Params) });
         }
 
-        private static bool IsLegal(GameEngine game, UiElementDef def, string viewer)
+        private bool IsLegal(GameEngine game, UiElementDef def, string viewer)
         {
             if (!(game.Session is { Started: true, Over: false }) || def.Action == null)
                 return false;
             var seat = game.SeatFor(def.Seat ?? "$viewer", viewer);
-            if (seat == null)
+            // Online each player acts only for their own seat (the host refuses anything else).
+            if (seat == null || (_table.Networked && seat != viewer))
                 return false;
             var legal = game.LegalActions(seat).FirstOrDefault(a => a.ActionId == def.Action);
             return legal != null && legal.Choices.Any(c => def.Params.All(p => c.TryGetValue(p.Key, out var v) && v == p.Value));

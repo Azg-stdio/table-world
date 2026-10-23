@@ -274,6 +274,8 @@ namespace TableWorld.View.Net
             NewHost();
             foreach (var client in _seatOf.Keys.ToList())
             {
+                if (_seatOf[client] != null)
+                    _host.Seats[client.ToString()] = _seatOf[client];
                 var snapshot = _host.Snapshot(client.ToString());
                 snapshot.Message["seat"] = _seatOf[client];
                 Send(snapshot);
@@ -295,6 +297,8 @@ namespace TableWorld.View.Net
             var taken = new HashSet<string>(_seatOf.Values) { _table.SeatOverride };
             var seat = _table.Engine.State.Players.Seats.Select(s => s.Id).FirstOrDefault(id => !taken.Contains(id));
             _seatOf[clientId] = seat;
+            if (seat != null)
+                _host.Seats[clientId.ToString()] = seat;
             var snapshot = _host.Snapshot(clientId.ToString());
             snapshot.Message["seat"] = seat;
             Send(snapshot);
@@ -304,6 +308,7 @@ namespace TableWorld.View.Net
         private void OnHostClientDisconnected(ulong clientId)
         {
             _seatOf.Remove(clientId);
+            _host?.Seats.Remove(clientId.ToString());
             Status = HostStatus();
         }
 

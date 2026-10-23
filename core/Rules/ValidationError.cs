@@ -69,6 +69,7 @@ namespace Core.Rules
         public const string GameOver = "game_over";
         public const string ActionNotAvailable = "action_not_available";
         public const string NotYourTurn = "not_your_turn";
+        public const string NotYourSeat = "not_your_seat";
         public const string LimitReached = "limit_reached";
         public const string PreconditionFailed = "precondition_failed";
         public const string MissingParam = "missing_param";
