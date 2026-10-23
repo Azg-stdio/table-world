@@ -65,7 +65,8 @@ Un simulador de juegos de mesa 3D, posicionado como "un Tabletop Simulator más 
 
 ## 4. Reglas para trabajar con agentes en Unity
 
-- **No edites a mano archivos `.unity`, `.prefab`, `.asset` ni `.meta`.** Crea y modifica escenas y prefabs desde código (scripts de editor en `Assets/_Project/Editor/`) o a través del MCP de Unity. Si algo solo se puede hacer en el editor, dilo y pide que lo haga el humano.
+- **No edites a mano archivos `.unity`, `.prefab`, `.asset` ni `.meta`.** Crea y modifica escenas y prefabs desde código (scripts de editor en `Assets/_Project/Editor/`) o a través del **Unity CLI** (`unity command`, `unity eval`) con el Editor abierto. Si algo solo se puede hacer en el editor, dilo y pide que lo haga el humano.
+- **Herramientas de agente para Unity:** Unity CLI (`winget install Unity.CLI`) + paquete `com.unity.pipeline` en el proyecto + plugin oficial `unity@unity-agent-plugin` de Claude Code (habilitado en `.claude/settings.json`). Preferir comandos directos del CLI sobre `unity mcp` (más rápidos y con menos tokens). El CLI y el paquete están en beta/experimental: revisar las release notes antes de actualizar. Analytics del CLI desactivado (`unity analytics opt-out`).
 - Antes de proponer un paquete, verifica que sea compatible con Unity 6.6 y URP.
 - Unity usa **Fast Enter Play Mode** por defecto en 6.6: no uses estado estático que dependa de recargar el dominio. Inicializa con `[RuntimeInitializeOnLoadMethod]` o en `Awake`.
 - Pon la lógica de juego en `core/` y escribe su test antes de tocar Unity.
@@ -151,6 +152,12 @@ dotnet build core/
 dotnet test core.tests/
 
 # Unity: abrir unity/ con Unity Hub (6.6). Builds con Windows Build Support (Mono).
+
+# Unity CLI (con el Editor abierto)
+unity status                 # Editors conectados
+unity pipeline list          # debe mostrar "Pipeline: Installed"
+unity command                # lista comandos del Editor
+unity doctor                 # diagnóstico
 ```
 
 (Actualizar esta sección cuando existan los proyectos.)
