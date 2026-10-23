@@ -3,13 +3,13 @@
 **Goal:** authoritative host; clients send intents and receive state; players receive the host's assets on join.
 **Done when (M3-lite, MVP):** two friends on different networks join by Relay code and play War; a client without local images sees the full table.
 **Done when (full M3):** 3 players (2 virtual + 1 build) with 200 ms simulated latency and no desync; two machines connect through Steam.
-**In the MVP:** M3-lite only. **Status:** todo. **Depends on:** M2 (War playable).
+**In the MVP:** M3-lite only. **Status:** in progress (T3.1 done). **Depends on:** M2 (War playable).
 
 **M3-lite = T3.1, T3.2, T3.3, T3.4 (images only), T3.6. Full M3 adds T3.5, T3.7 and glTF streaming.**
 
 | Id | Task | Size | Depends on | Done check | Status |
 |---|---|---|---|---|---|
-| T3.1 ⚗ | Netcode spike, one week max: Netcode for GameObjects 2.13 vs FishNet vs Mirror on Unity 6.6. Criteria: compiles on 6.6, Unity Transport + Relay, Steam transport exists (Steamworks.NET / Facepunch, FishySteamworks, community NGO transports), ownership model fits "host rules". Default if inconclusive: NGO | M | M2 | `docs/adr/0002-netcode.md` with a criteria table | todo |
+| T3.1 ⚗ | Netcode spike, one week max: Netcode for GameObjects 2.13 vs FishNet vs Mirror on Unity 6.6. Criteria: compiles on 6.6, Unity Transport + Relay, Steam transport exists (Steamworks.NET / Facepunch, FishySteamworks, community NGO transports), ownership model fits "host rules". Default if inconclusive: NGO | M | M2 | `docs/adr/0002-netcode.md` with a criteria table | done 2026-10-23 (NGO as message pipe, ADR 0002) |
 | T3.2 | Network layer: client sends `Command`, host validates with `core`, broadcasts `StateDelta`; no game logic in network code | M | T3.1 | Multiplayer Play Mode, 2 virtual players, state hash equal after 100 commands | todo |
 | T3.3 **human** (dashboard) + agent | Lobby-lite: Unity Gaming Services project link + anonymous auth; host gets a Relay join code; join by code; seats, colors, roles | S | T3.2 | Two Editor instances on one machine join by code | todo |
 | T3.4 | Asset sync: manifest with hashes, chunked transfer, client cache. MVP: images only; glTF after M4 | M | T3.2 | Client with empty cache receives all images | todo |
@@ -21,5 +21,5 @@
 
 | Date | Simulation | Result |
 |---|---|---|
-| — | T3.1 spike | — |
+| 2026-10-23 | T3.1 spike | NGO 2.13.3 + Transport 6.6.0 + MPPM 3.0.0 install and compile on 6.6; host starts in Play mode; JSON command over a named message received (see ADR 0002) |
 | — | T3.5 latency run | — |
