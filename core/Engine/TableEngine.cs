@@ -18,6 +18,8 @@ namespace Core.Engine
 
         private readonly Dictionary<string, TableObject> _objects = new Dictionary<string, TableObject>();
         private readonly HashSet<string> _usedIds = new HashSet<string>();
+        private readonly Dictionary<string, List<string>> _zonesOf = new Dictionary<string, List<string>>();
+        private static readonly List<string> NoZones = new List<string>();
 
         public TableState State { get; }
         public DeterministicRandom Random { get; }
@@ -33,14 +35,85 @@ namespace Core.Engine
             }
             foreach (var zone in state.Zones)
                 _usedIds.Add(zone.Id);
+            foreach (var obj in state.Objects)
+                _zonesOf[obj.Id] = ComputeZones(obj);
         }
 
         public TableObject? Find(string id) => _objects.TryGetValue(id, out var obj) ? obj : null;
 
+        /// <summary>Ids of the zones (not snap points) whose box holds the object's position. Empty inside a container.</summary>
+        public IReadOnlyList<string> ZonesOf(string objectId) => _zonesOf.TryGetValue(objectId, out var zones) ? zones : NoZones;
+
+        /// <summary>Objects on the table inside the zone, in state order.</summary>
+        public IEnumerable<TableObject> ObjectsIn(string zoneId) =>
+            State.Objects.Where(o => _zonesOf.TryGetValue(o.Id, out var zones) && zones.Contains(zoneId));
+
+        /// <summary>
+        /// True when <paramref name="seat"/> may not see the object's face: it lies in another seat's hand zone, or in a
+        /// hidden zone that does not list the seat. Null seat means the host, who sees everything except other hands.
+        /// </summary>
+        public bool IsHiddenFrom(string objectId, string? seat)
+        {
+            foreach (var zoneId in ZonesOf(objectId))
+            {
+                switch (State.Zones.FirstOrDefault(z => z.Id == zoneId))
+                {
+                    case HandZone hand when hand.Owner != seat:
+                        return true;
+                    case HiddenZone hidden when !(seat == null ? hidden.VisibleTo.Contains("host") : hidden.VisibleTo.Contains(seat)):
+                        return true;
+                }
+            }
+            return false;
+        }
+
         /// <summary>Objects inside a bag, top first.</summary>
         public IEnumerable<TableObject> ContentsOf(string bagId) => State.Objects.Where(o => o.Container == bagId);
 
-        public CommandResult Execute(Command command) => command switch
+        /// <summary>Runs the command, then appends zone enter/leave events for every object it touched.</summary>
+        public CommandResult Execute(Command command)
+        {
+            var result = Dispatch(command);
+            return result.Ok ? result.WithEvents(WithZoneEvents(result.Events)) : result;
+        }
+
+        private List<StateEvent> WithZoneEvents(IReadOnlyList<StateEvent> events)
+        {
+            var all = new List<StateEvent>(events);
+            var touched = new List<string>();
+            foreach (var e in events)
+                if (!touched.Contains(e.ObjectId))
+                    touched.Add(e.ObjectId);
+            foreach (var id in touched)
+            {
+                var before = ZonesOf(id);
+                var after = _objects.TryGetValue(id, out var obj) ? ComputeZones(obj) : NoZones;
+                foreach (var zone in before)
+                    if (!after.Contains(zone))
+                        all.Add(new ZoneLeft(id, zone));
+                foreach (var zone in after)
+                    if (!before.Contains(zone))
+                        all.Add(new ZoneEntered(id, zone));
+                if (obj != null)
+                    _zonesOf[id] = after;
+                else
+                    _zonesOf.Remove(id);
+            }
+            return all;
+        }
+
+        private List<string> ComputeZones(TableObject obj)
+        {
+            if (obj.Container != null)
+                return NoZones;
+            var zones = new List<string>();
+            foreach (var zone in State.Zones)
+                if (Geometry.Contains(zone, obj.Transform.Position))
+                    zones.Add(zone.Id);
+            return zones;
+        }
+
+        private CommandResult Dispatch(Command command) => command switch
         {
             MoveCommand c => Move(c),
             TakeCommand c => Take(c),

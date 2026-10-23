@@ -61,6 +61,28 @@ namespace Core.Engine
         }
     }
 
+    /// <summary>An object's position entered a zone's box (after a move, take, deal, ...).</summary>
+    public sealed class ZoneEntered : StateEvent
+    {
+        public string ZoneId { get; }
+
+        public ZoneEntered(string objectId, string zoneId) : base(objectId)
+        {
+            ZoneId = zoneId;
+        }
+    }
+
+    /// <summary>An object left a zone: it moved out, went into a bag or deck, or was removed.</summary>
+    public sealed class ZoneLeft : StateEvent
+    {
+        public string ZoneId { get; }
+
+        public ZoneLeft(string objectId, string zoneId) : base(objectId)
+        {
+            ZoneId = zoneId;
+        }
+    }
+
     /// <summary>Someone looked through a container. Other players see that it happened, not what was seen.</summary>
     public sealed class Searched : StateEvent
     {
@@ -97,6 +119,18 @@ namespace Core.Engine
         }
 
         internal static CommandResult Success(List<StateEvent> events) => new CommandResult(null, events);
+
+        internal CommandResult WithEvents(List<StateEvent> events)
+        {
+            var copy = new CommandResult(Error, events)
+            {
+                CreatedId = CreatedId,
+                DeckContents = DeckContents,
+                BagContents = BagContents,
+                Dealt = Dealt,
+            };
+            return copy;
+        }
 
         internal static CommandResult Fail(string field, string code, string message, string? suggestion = null) =>
             new CommandResult(new ValidationError(field, code, message, suggestion), new StateEvent[0]);

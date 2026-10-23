@@ -108,7 +108,8 @@ Physical interaction goes through `Core.Engine.TableEngine.Execute(Command)`; th
 - **New ids:** a card leaving a deck without an id becomes `<deckId>-<n>`; infinite-bag clones become `<templateId>-<n>`; decks formed from loose cards become `deck-<n>`. Always the first free `n`, so ids are deterministic too.
 - **Locked objects** cannot be moved, flipped, rolled, grouped or inserted, but you can still take from, shuffle, search and deal from a locked deck or bag (TTS behaviour).
 - **Deal** goes round robin from the top into each seat's `HandZone`, face up, laid out along the zone's local X; it stops early if the deck runs out.
-- **Events:** `ObjectAdded`, `ObjectRemoved`, `ObjectUpdated`, `ContainerChanged`, `Shuffled`, `DieRolled`, `Searched`. The view re-reads the object from the state on each event.
+- **Events:** `ObjectAdded`, `ObjectRemoved`, `ObjectUpdated`, `ContainerChanged`, `Shuffled`, `DieRolled`, `Searched`, `ZoneEntered`, `ZoneLeft`. The view re-reads the object from the state on each event.
+- **Zones (T2.6):** an object is in a zone when its centre lies inside the zone's box (`size` × `scale`, rotated with the zone). Objects inside bags or decks are in no zone; snap points contain nothing. After every successful command the engine appends `ZoneEntered`/`ZoneLeft` for each object the command touched (the rule events `onEnterZone`/`onLeaveZone` build on them). `IsHiddenFrom(object, seat)`: true inside another seat's `HandZone`, or inside a `HiddenZone` whose `visibleTo` lacks the seat (`host` for the host); M3 uses it to filter what each client receives.
 
 ## Resources and variables
 

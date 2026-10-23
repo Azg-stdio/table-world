@@ -27,6 +27,7 @@ namespace TableWorld.View
         public const float RollSeconds = 0.55f;
 
         private readonly Dictionary<string, ObjectView> _views = new Dictionary<string, ObjectView>();
+        private readonly List<GameObject> _zoneViews = new List<GameObject>();
         private readonly Dictionary<string, float> _awakeSince = new Dictionary<string, float>();
         private readonly List<ObjectView> _scratch = new List<ObjectView>();
 
@@ -73,6 +74,7 @@ namespace TableWorld.View
             Assets = new AssetLibrary(parsed.State.Assets, packageRoot);
             foreach (var obj in Engine.State.Objects.Where(o => o.Container == null))
                 Spawn(obj);
+            SpawnZones();
             return true;
         }
 
@@ -227,8 +229,25 @@ namespace TableWorld.View
             }
         }
 
+        private void SpawnZones()
+        {
+            var seats = Engine.State.Players.Seats;
+            foreach (var zone in Engine.State.Zones)
+            {
+                var owner = zone is HandZone hand ? seats.FirstOrDefault(s => s.Id == hand.Owner) : null;
+                var parent = ViewOf(zone.Parent)?.transform ?? (_objectsRoot != null ? _objectsRoot : transform);
+                var view = ZoneViewFactory.Create(zone, ZoneViewFactory.SeatColor(owner?.Color), Assets, parent);
+                if (view != null)
+                    _zoneViews.Add(view);
+            }
+        }
+
         private void Clear()
         {
+            foreach (var zone in _zoneViews)
+                if (zone != null)
+                    Destroy(zone);
+            _zoneViews.Clear();
             foreach (var view in _views.Values)
                 if (view != null)
                     Destroy(view.gameObject);
