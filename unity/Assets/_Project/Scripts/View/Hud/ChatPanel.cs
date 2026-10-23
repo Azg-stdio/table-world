@@ -136,7 +136,8 @@ namespace TableWorld.View.Hud
             if (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter || e.character == '\n')
             {
                 e.StopPropagation();
-                if (e.keyCode == KeyCode.None)
+                // The Enter that opened the chat reaches the input too, once it has focus: it must not send and close.
+                if (e.keyCode == KeyCode.None || Time.frameCount - _toggledFrame <= 1)
                     return;
                 Send(_input.value);
                 _input.value = "";

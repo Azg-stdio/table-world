@@ -551,6 +551,19 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsTrue(chat.Open, "Enter opens the chat");
             Assert.IsTrue(hud.TypingInUi(), "the input has the keyboard");
 
+            // A real key press also reaches the focused input as a UI key event (the fixture's keyboard does not send
+            // one): the Enter that opened the chat must not send and close it at once.
+            var input = hud.GetComponent<UIDocument>().rootVisualElement.Q<TextField>("chatInput");
+            chat.Hide();
+            yield return null;
+            yield return null;
+            chat.Show();
+            using (var enter = KeyDownEvent.GetPooled('\0', KeyCode.Return, EventModifiers.None)) { enter.target = input; input.SendEvent(enter); }
+            yield return null;
+            Assert.IsTrue(chat.Open, "the opening Enter does not close the chat");
+            yield return null;
+            Assert.IsTrue(chat.Open, "nor a frame later");
+
             var faceUp = M("ace_spades").IsFaceUp;
             yield return Tap(_keyboard.fKey);
             yield return Tap(_keyboard.wKey);
