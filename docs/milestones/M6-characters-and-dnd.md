@@ -2,7 +2,7 @@
 
 **Goal:** player puppets with active ragdoll physics (Peak/REPO style) and a DnD assistant that suggests, never acts.
 **Done when:** to be defined after full M3 closes.
-**In the MVP:** no. **Status:** todo. **Depends on:** full M3.
+**Status:** todo. **Depends on:** M3.
 
 | Id | Task | Size | Depends on | Done check | Status |
 |---|---|---|---|---|---|

@@ -2,7 +2,7 @@
 
 **Goal:** import a local TTS mod into our format privately; layered catalog; mods.
 **Done when:** "The Chimera Table" and "Riftbound" import completely (objects, zones, snap points, Lua, translated UI); the Pokémon mods import with placeholders where a bundle is missing.
-**In the MVP:** no. **Status:** todo. **Depends on:** M4, M5.
+**Status:** todo. **Depends on:** M4, M5.
 
 Design reference: [../tts-mapping.md](../tts-mapping.md).
 

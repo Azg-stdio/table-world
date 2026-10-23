@@ -1,6 +1,6 @@
 # Playtest guide (T3.6)
 
-The M3-lite playtest: you host War and two friends join over the internet with a join code. It closes the playtest gate. This page covers what to send, what each person does, and what to write down.
+The friends playtest: you host a game and two friends join over the internet with a join code. It is the condition for paying the Steam fee (T0.6). This page covers what to send, what each person does, and what to write down.
 
 ## 1. Build and send
 

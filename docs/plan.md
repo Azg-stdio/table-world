@@ -7,14 +7,14 @@ Last updated: 2026-10-23 (working rule 9: polish). Planning closed 2026-10-22.
 ## For the implementing agent (read first)
 
 1. Read `CLAUDE.md`, then this file, then `milestones/README.md`, then the milestone you are working on. Design drafts: `rules-schema.md`, `tts-mapping.md` (you own them from T1.3 on).
-2. Work the **Playtest MVP** in order: M0 → M1 → M2 → M3-lite. Nothing past M3-lite before the playtest gate (T3.6).
+2. **The target is the full game at TTS quality** (Miguel, 2026-10-23): a real Tabletop Simulator game loads and plays in Table World, and it feels as polished as TTS. There is no reduced first version. Work in the dependency order of `milestones/README.md`. The friends playtest (T3.6) is a test whenever there is something worth playing, and the condition for paying the Steam fee; it does not block other work.
 3. A task is done only when its **done check** passes. Record the date in the milestone file's status column and in `milestones/README.md`. If a check was skipped, write that instead of `done`.
 4. Logic lives in `core/` with an xUnit test first. Unity is view, physics, network and UI. If something in `core/` needs Unity, stop and redesign.
 5. Scenes, prefabs and assets are created from editor scripts or the Unity CLI, never by hand-editing serialized files. If a step is only possible in the Editor UI, write exactly what the human must click and continue.
 6. One commit per task, message starting with the task id (`T1.1: ...`). Architecture changes get an ADR in `adr/` in the same commit.
 7. Ask the human only for: decisions that change the plan, anything that costs money, anything needing their accounts, and playtests. Otherwise decide, record the assumption in the milestone file, continue.
 8. Run each milestone's ⚗ simulation before building on its result. Record numbers in the milestone's simulation table, not adjectives.
-9. **MVP does not mean rushed.** The Playtest MVP is a small scope, not a low bar: what ships in it must feel and look polished. Going back to fix earlier tasks costs more than finishing them properly the first time (added 2026-10-23, after Miguel's own playtest found a wrong camera side, no hand view, no obvious way to play, console errors and a hard-to-read HUD). Before marking a task done:
+9. **Finished means polished.** What we build must feel and look as good as TTS. Going back to fix earlier tasks costs more than finishing them properly the first time (added 2026-10-23, after Miguel's own playtest found a wrong camera side, no hand view, no obvious way to play, console errors and a hard-to-read HUD). Before marking a task done:
    - **Play it like a player:** real gestures (mouse and keyboard, not only code calls), in the built exe as well as the Editor, and with two clients when networking is involved.
    - **Look at it:** take screenshots and read them. Text is legible, nothing overlaps, nothing is missing or misleading.
    - **Clean console:** zero errors and no new warnings in the Editor and in `Player.log`.
@@ -26,13 +26,13 @@ Last updated: 2026-10-23 (working rule 9: polish). Planning closed 2026-10-22.
 | # | Question | Decision |
 |---|---|---|
 | Q1 | Rules + MCP before multiplayer? | **Yes.** M1 is built as intents → engine → state so M3 is a transport layer. |
-| Q2 | Distribution | **Steam**, fee paid only after the playtest gate (T3.6). Friends test over **Unity Relay** join codes. Steam transport tested on **test app ID 480** before owning an app. |
+| Q2 | Distribution | **Steam**, fee paid only after two friends have played over Relay (T3.6). Friends test over **Unity Relay** join codes. Steam transport tested on **test app ID 480** before owning an app. |
 | Q3 | JSON in `core/` | **Newtonsoft.Json 13.0.3**; Unity provides it via `com.unity.nuget.newtonsoft-json` 3.2.2. |
 | Q4 | UI | **Own declarative JSON UI rendered with UI Toolkit**. TTS XmlUI gets a translator in M7. |
 | Q5 | Docs language | **English**, code identifiers too. |
 | Q6 | Name | **Table World** (working title). Repo `table-world`. |
 | Q7 | Hours per week | Unknown; estimates given per band in `milestones/README.md`. |
-| Q8 | First deliverable | **Playtest MVP**: M0 + M1 + M2 + M3-lite. Full scope stays as the long game. |
+| Q8 | First deliverable | ~~Playtest MVP (M0–M3-lite)~~ → **the full game** (2026-10-23): TTS-grade parity, then the TTS games themselves (assets, Lua, importer). |
 
 ## Verified (simulations run on 2026-10-22)
 
@@ -55,8 +55,8 @@ Last updated: 2026-10-23 (working rule 9: polish). Planning closed 2026-10-22.
 | Unity drops the pre-2019.1 bundle format | deprecation warning in 6.6 | T8.4; bundles are never the final asset format |
 | Unity CLI / `com.unity.pipeline` in beta | 1.0.0-beta.14 / 0.9.0-exp.1 | pinned; read release notes; everything must also be doable from editor scripts |
 | Wrong netcode choice | — | T3.1 spike with written criteria; Relay and Steam transport both required |
-| M3-lite is the MVP long pole | cross-machine bugs are wall-clock bound | T3.5 latency simulation before friends are involved |
+| Multiplayer is a long pole | cross-machine bugs are wall-clock bound | T3.5 latency simulation before friends are involved |
 | Market: TTS content moat, free tools (Screentop.gg) | — | gate on real playtests with designers; the agent workflow is the differentiator |
-| Big tables (Gloomhaven 6 433 objects) | — | T2.8 after MVP; instancing from M1 |
+| Big tables (Gloomhaven 6 433 objects) | — | T2.8 performance pass; instancing from M1 |
 | Anthropic/OpenAI third-party client policies | changed several times in 2026 | MCP only; user brings their own client |
 | Copyrighted test content (Pokémon, Gloomhaven) | in the local collection | local only; never in repo or builds |

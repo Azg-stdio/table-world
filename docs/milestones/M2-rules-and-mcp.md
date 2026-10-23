@@ -2,7 +2,7 @@
 
 **Goal:** Claude Code (or Codex) builds a simple card game end to end from a plain-text rulebook, asking about ambiguities.
 **Done when:** recorded demo: War rulebook as text → agent calls MCP tools → table set up in Unity → full game played with the engine enforcing the rules. Repeated with simplified UNO.
-**In the MVP:** yes. **Status:** in progress (T4.1–T4.6 done). **Depends on:** M1 (T2.1, T2.2 at minimum).
+**Status:** in progress (T4.1–T4.6 done). **Depends on:** M1 (T2.1, T2.2 at minimum).
 
 Design reference: [../rules-schema.md](../rules-schema.md).
 
@@ -32,7 +32,7 @@ Design reference: [../rules-schema.md](../rules-schema.md).
 | Task | Assumption |
 |---|---|
 | T4.1 | Effects and conditions are single-key objects. The rules live in the same document as the table (`TableState`), and game progress in its `session` block, so a save is a resumable game. `limitPerTurn` became `limitPerPhase` (War needs a second play in the same turn after a tie). `deal` uses `seats` + `toZone`/`toTag` instead of `to: allPlayers`. Not in v0: `spawn`, `destroy`, `prompt`, `reveal`/`hide`, `lua`, zone/physical events. `docs/rules-schema.v0.json` is generated from the model. |
-| T4.2 | `GameEngine` wraps `TableEngine`: free-play commands still work during a game. Rollback snapshots objects + zones + session as JSON before each rules command (≈0.35 ms per action with 52 cards; fine for the MVP, revisit for big tables). |
+| T4.2 | `GameEngine` wraps `TableEngine`: free-play commands still work during a game. Rollback snapshots objects + zones + session as JSON before each rules command (≈0.35 ms per action with 52 cards; fine for card games; revisit for big tables (T2.8)). |
 | T4.3 | CI runs 200 games per sample (≈1 min); the 1 000-game run is `TW_GAMES=1000 dotnet test --filter GamePlayTests`. |
 | T4.4 | 24 tools: `new_game`, `create_deck`, `place_object`, `define_zone`, `set_variables`, `add_resource`, `set_turn`, `add_phase`, `add_action`, `add_event`, `set_win_condition`, `remove`, `validate_rules`, `get_rules_document`, `set_rules_document`, `get_rules_reference`, `ask_host`, `start_game`, `perform_action`, `deal`, `reset_game`, `get_table_state`, `save_game`, `load_game`. Rule pieces are passed as JSON strings in the documented format (the agent reads `get_rules_reference`). Edits with shape errors are rejected; edits that leave the document incomplete are kept and the problems listed. `ask_host` returns `needs_clarification` and tells the agent to ask the human (MCP elicitation can replace it later). Until the Unity bridge (T4.5) the server plays games in-process. |
 | T4.5 | The MCP server listens (127.0.0.1, random port) and writes `{port, token, pid}` to `%LOCALAPPDATA%/TableWorld/bridge.json`; the game polls it every 2 s and connects with `ClientWebSocket` (newest server wins; reconnects when a new agent session starts). The game is the authoritative host: authoring edits are pushed as `load` (full document), play commands (`start`, `perform`, `deal`) execute in the game and the reply carries the new document; changes made in the window are reported as `state` (batched 0.5 s). Without a window the server plays headless; `--no-bridge` disables the link (tests). The HUD shows the turn line, a Start button and one button per legal action (hot seat: the current seat). Known gap: hand slots are not re-laid out after a card leaves a hand. |

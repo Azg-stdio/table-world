@@ -118,7 +118,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 
 ## 7. Gaps found in the 2026-10-23 re-audit
 
-Miguel's playtest showed that sections 1–6 cover single-player gestures but not what makes TTS *feel* like a shared table. Checked in the code, not assumed. Ordered by impact on the playtest; each becomes ✅ only after the polish checks in `plan.md` rule 9 (real input, built exe, two clients, screenshots, clean console).
+**Target: complete TTS parity** (Miguel, 2026-10-23), so a real TTS game can be played in Table World. Every mechanic below gets built, at TTS quality; the priority column only orders the work. Sections 1–6 covered single-player gestures; this list is what was still missing, checked in the code, not assumed. Rows marked *verify* come from memory of TTS and are checked in TTS before building. Each becomes ✅ only after the polish checks in `plan.md` rule 9 (real input, built exe, two clients, screenshots, clean console).
 
 | # | Gap | What TTS does | Today | Priority |
 |---|---|---|---|---|
@@ -138,6 +138,24 @@ Miguel's playtest showed that sections 1–6 cover single-player gestures but no
 | G14 | Token / chip stacks | same tokens stack into a counted stack, drag one off | tokens are separate | P2 |
 | G15 | Blindfold, peek alert | B blindfolds; others see "X peeked" | ⏭ (needs G2/G11) | P3 |
 | G16 | Toggles | Snap, Grid, Auto Raise, Sticky, Hands, Hide Face Down, Tooltip per object | Lock only | P3 |
+| G17 | Hidden zones that hide | contents invisible to everyone but the zone's owner | zones exist in the model; nothing is hidden | P1 |
+| G18 | Randomize, layout, fog-of-war zones | shuffle what is inside; auto-arrange contents; fog that players reveal | not implemented | P2 |
+| G19 | Physics modes | host sets full, semi-lock (nothing topples) or locked | full only | P1 |
+| G20 | Several dice at once | select dice, R rolls them all | one die per R | P1 |
+| G21 | Custom dice | faces and rotation values from images (TTS `Custom_Dice`) | model only | P2 |
+| G22 | Turns without rules | turn order, end turn button, skip empty hands | turns only with a rules file | P1 |
+| G23 | Player management | colours and teams, Game Master (Black) sees everything, promote, kick, mute, per-player permissions | host and seats only | P2 |
+| G24 | Chat commands and dice announcements | `/roll`, results in chat; per-team chat | none | P2 |
+| G25 | Shared notebook | tabs per colour | none | P3 |
+| G26 | Rewind time | host steps the table back (verify the window) | undo is local and off online | P2 |
+| G27 | Built-in components | counter, calculator, timer/clock, notecard, tablet, music player | none | P2 (counter, timer P1) |
+| G28 | Table tools | grid overlay and snapping, drawing, line/arrow, 3D text, decals, gizmo (precise move/rotate/scale), flick, joints | ping and measure only | P2 |
+| G29 | Tables and environment | table types, backgrounds, lighting tool | one table | P3 |
+| G30 | Saving | named saves, autosave, save objects to a chest | one quick save | P2 |
+| G31 | Settings | rebindable keys, mouse sensitivity, volume, graphics | none | P2 (with G13) |
+| G32 | Shaking a held bag or deck shuffles it | verify | no | P3 |
+| G33 | Protocol-level hidden information | hands and hidden zones are not sent to players who cannot see them | every client receives the whole table | P2 |
+| G34 | First person and physics characters | P toggles first person; characters (M6) | ⏭ M6 | — |
 
 ## Notes
 

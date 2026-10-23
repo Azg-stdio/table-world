@@ -2,7 +2,7 @@
 
 **Goal:** the host brings their own models and images; private sessions; local cache.
 **Done when:** a glTF and a PNG dropped on the table appear as `Model` and `Card`, are saved with the table, and clients receive them.
-**In the MVP:** no. **Status:** todo. **Depends on:** playtest gate (T3.6).
+**Status:** todo. **Depends on:** M3 (asset sync).
 
 | Id | Task | Size | Depends on | Done check | Status |
 |---|---|---|---|---|---|

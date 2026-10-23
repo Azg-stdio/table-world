@@ -2,7 +2,7 @@
 
 **Goal:** logic that does not fit the rules JSON runs in Lua with access only to our API.
 **Done when:** per-object and global scripts react to `onLoad`, `onDrop`, `onEnterZone`, `onTurnStart`; a hostile script (infinite loop, `os`, `io`, 1 GB of strings) cannot take the host down.
-**In the MVP:** no. **Status:** todo. **Depends on:** M2 (engine events), playtest gate.
+**Status:** todo. **Depends on:** M2 (engine events).
 
 | Id | Task | Size | Depends on | Done check | Status |
 |---|---|---|---|---|---|

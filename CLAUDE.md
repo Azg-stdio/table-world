@@ -23,7 +23,7 @@ A 3D board game simulator, positioned as "a more advanced Tabletop Simulator, wi
 | Name | **Table World** (working title, may change). Repo `table-world` |
 | Engine | **Unity 6.6** (Supported). Migrate to **6.7 LTS** when released. Do not use 6.0 or 6.3 (TTS itself runs on 6000.3.10f1 today; irrelevant for us) |
 | Platform | **Windows Build Support** (.exe for Steam). NOT UWP. Mac and Linux later |
-| Distribution | **Steam first**, but the Steam Direct fee is paid only after the Playtest MVP (M3-lite) has been played by two friends. Friends test over **Unity Relay** join codes; Steam transport is tested on **Steam test app ID 480** before owning an app |
+| Distribution | **Steam first**, but the Steam Direct fee is paid only after two friends have played the game over Relay (T3.6). Friends test over **Unity Relay** join codes; Steam transport is tested on **Steam test app ID 480** before owning an app |
 | Scripting backend | **Mono** for development. IL2CPP evaluated for release builds |
 | Render | **URP**. TTS AssetBundles are remapped to `URP/Lit` at load time (ADR 0001) |
 | Physics | **PhysX** (built in) |
@@ -127,9 +127,9 @@ Analysis of the local collection (6 Workshop mods, 14 676 objects counting those
 - **Context, decisions, risks, agent working rules:** `docs/plan.md`. Read its "For the implementing agent" section before the first task.
 - **Design drafts:** `docs/rules-schema.md`, `docs/tts-mapping.md`.
 
-Planning closed on 2026-10-22. Implementation starts at T1.1 and follows the **Playtest MVP** (M0 → M1 → M2 → M3-lite). This section is only a summary.
+Planning closed on 2026-10-22; implementation started at T1.1. This section is only a summary.
 
-**The MVP is small, not rushed:** what ships must feel and look polished, and each task is played like a player (built exe, real input, two clients for networking, screenshots, clean console) before it is marked done. Rework of earlier tasks hurts more than finishing them properly. Details: `docs/plan.md`, working rule 9.
+**We are building the full game, not a reduced first version** (Miguel, 2026-10-23). The bar: load a real Tabletop Simulator game in Table World and play it with friends, and have it feel and look as polished as TTS. Milestone order expresses dependencies, not scope cuts. Every task is played like a player (built exe, real input, two clients for networking, screenshots, clean console) before it is marked done; rework of earlier tasks hurts more than finishing them properly. Details: `docs/plan.md`, working rule 9.
 
 ### Task 0 — AssetBundle and pipeline test — **DONE (2026-10-22)**, see `docs/adr/0001-assetbundles.md`
 Result: URP stays; bundles load in 6.6 and are remapped to `URP/Lit` at runtime; AssetRipper remains an option for the importer (M7).
@@ -147,7 +147,7 @@ Cards, sprite-sheet decks, tokens and dice with PhysX. Grab, drop, flip, shuffle
 Rules engine in `core/`. MCP server with the tools from section 3. Goal: Claude Code builds a simple card game (e.g. "War" or "simplified UNO") end to end from a plain-text rulebook, asking about ambiguities.
 
 ### M3 / Task 3 — Multiplayer
-Authoritative host. Evaluate Netcode for GameObjects vs FishNet vs Mirror (6.6 compatibility, Relay and Steam transport). M3-lite for the MVP: Relay join codes, image assets only. Full M3: lobby, asset streaming, Steam transport (test app ID 480 first).
+Authoritative host. Evaluate Netcode for GameObjects vs FishNet vs Mirror (6.6 compatibility, Relay and Steam transport). Done so far: NGO as a message pipe, core sync protocol, Relay join codes, image asset sync. Remaining: live presence (pointers, held objects), latency and loss simulation, glTF and bundle streaming, Steam transport (test app ID 480 first).
 
 ### M4 / Task 5 — Host assets
 Runtime glTF (glTFast) and image loading, local cache, private sessions, AssetBundle loader with URP remap.
