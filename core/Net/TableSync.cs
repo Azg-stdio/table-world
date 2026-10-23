@@ -200,6 +200,12 @@ namespace Core.Net
         /// </summary>
         public event Action<Command, CommandResult>? Applied;
 
+        /// <summary>
+        /// Raised for every command the host ordered, ours included, once it is applied to <see cref="Confirmed"/>: the
+        /// origin participant, the command and its result on the confirmed table (the game log reads from this, G11).
+        /// </summary>
+        public event Action<string, Command, CommandResult>? Ordered;
+
         /// <summary>Raised with the host's refusal of one of this client's commands.</summary>
         public event Action<ValidationError>? Refused;
 
@@ -272,6 +278,7 @@ namespace Core.Net
             var result = Confirmed!.Execute(command);
             if (!result.Ok || TableJson.Hash(Confirmed.State) != (string)message["hash"]!)
                 return Resync();
+            Ordered?.Invoke((string?)message["origin"] ?? "", command, result);
 
             var wasNext = mine && _pending.Count > 0 && _pending[0].Seq == seq;
             if (mine)

@@ -80,6 +80,7 @@ namespace TableWorld.View.Net
                 return;
             _table.Touched += Touch;
             _table.Loaded += OnTableLoaded;
+            _table.CommandExecuted += OnLocalCommand;
         }
 
         private void OnDisable()
@@ -88,6 +89,7 @@ namespace TableWorld.View.Net
                 return;
             _table.Touched -= Touch;
             _table.Loaded -= OnTableLoaded;
+            _table.CommandExecuted -= OnLocalCommand;
         }
 
         /// <summary>Starts hosting the current table on <paramref name="port"/> (all interfaces).</summary>
@@ -176,6 +178,7 @@ namespace TableWorld.View.Net
 
         private bool LaunchHost(string status)
         {
+            ResetChat();
             NewHost();
             _table.Router = HostRoute;
             _seating.Join(SessionHost.HostId, SeatIds());
@@ -198,6 +201,7 @@ namespace TableWorld.View.Net
 
         private bool LaunchClient(string status)
         {
+            ResetChat();
             _network.OnClientConnectedCallback += OnClientConnected;
             _network.OnClientDisconnectCallback += OnClientDisconnected;
             if (!_network.StartClient())
@@ -290,6 +294,7 @@ namespace TableWorld.View.Net
                 if (origin != SessionHost.HostId)
                     _table.ApplyRemote(command, result);
             };
+            _host.Executed += OnHostExecuted;
         }
 
         /// <summary>The host loaded another table: start a new order and send everyone the new table and its assets.</summary>
@@ -339,6 +344,8 @@ namespace TableWorld.View.Net
             var snapshot = _host.Snapshot(clientId.ToString());
             snapshot.Message["seat"] = seat;
             Send(snapshot);
+            SendTo(clientId, Room.History());
+            Announce(seat != null ? $"{seat} joined" : "A spectator joined");
             BroadcastSeating();
             Status = HostStatus();
         }
@@ -362,6 +369,7 @@ namespace TableWorld.View.Net
         private void Sit(string participant, string seat)
         {
             var before = _seating.Seat(participant);
+            var who = before ?? (participant == SessionHost.HostId ? "The host" : "A spectator");
             if (!_seating.Sit(participant, seat, SeatIds(), out var error))
             {
                 if (participant == SessionHost.HostId)
@@ -391,6 +399,8 @@ namespace TableWorld.View.Net
                 SendTo(client, new JObject { ["kind"] = "seat", ["seat"] = seat });
             }
             Debug.Log($"[Net] {participant} sits at {seat ?? "no seat (watching)"}");
+            if (before != seat)
+                Announce(seat == null ? $"{who} is watching" : before == null ? $"{who} sat at {seat}" : $"{who} moved to {seat}");
             BroadcastSeating();
         }
 
@@ -398,6 +408,9 @@ namespace TableWorld.View.Net
         {
             if (_seatOf.TryGetValue(clientId, out var leaving) && leaving != null)
                 _presence.Remove(leaving);
+            if (_host != null && _seatOf.ContainsKey(clientId))
+                Announce(leaving != null ? $"{leaving} left" : "A spectator left");
+            _room?.Forget(clientId.ToString());
             _seatOf.Remove(clientId);
             _seating.Leave(clientId.ToString());
             _host?.Watching.Remove(clientId.ToString());
@@ -414,6 +427,11 @@ namespace TableWorld.View.Net
             if ((string)parsed["kind"] == "sit")
             {
                 Sit(sender.ToString(), (string)parsed["seat"]);
+                return;
+            }
+            if ((string)parsed["kind"] == "say")
+            {
+                OnHostSay(sender, parsed);
                 return;
             }
             foreach (var message in _host.Receive(sender.ToString(), parsed))
@@ -438,6 +456,7 @@ namespace TableWorld.View.Net
             _table.FetchAsset = asset => _assets?.Read(asset.Id);
             _client.PredictionReplaced += game => _table.Adopt(game);
             _client.Applied += (command, result) => _table.ApplyRemote(command, result);
+            _client.Ordered += OnClientOrdered;
             _client.Refused += error => Debug.LogWarning($"[Net] The host refused a command: {error}");
             _table.Router = ClientRoute;
             _table.HostsTable = false;
@@ -483,6 +502,8 @@ namespace TableWorld.View.Net
                     _table.Tell(error);
                 return;
             }
+            if (OnClientChat(kind, message))
+                return;
             if (kind == "seating")
             {
                 _occupants = Seating.Read(message);

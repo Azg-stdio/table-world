@@ -621,3 +621,134 @@
     font-size: 13px;
     -unity-font-style: bold;
 }
+
+/* Chat and selection stack at the bottom left. */
+.left-column {
+    align-items: flex-start;
+}
+
+/* Chat and game log (G11). Closed: only recent lines, each on its own dark strip; open: scrollback, tabs and input. */
+.chat-panel {
+    width: 400px;
+    margin-bottom: 8px;
+    padding: 4px;
+    border-radius: 6px;
+}
+
+.chat-panel--open {
+    background-color: rgba(16, 18, 22, 0.86);
+}
+
+.chat-tabs {
+    display: none;
+    flex-direction: row;
+    margin-bottom: 4px;
+}
+
+.chat-panel--open .chat-tabs {
+    display: flex;
+}
+
+.chat-tab {
+    margin: 0 4px 0 0;
+    padding: 2px 12px;
+    border-width: 0;
+    border-bottom-width: 2px;
+    border-color: rgba(0, 0, 0, 0);
+    border-radius: 0;
+    background-color: rgba(0, 0, 0, 0);
+    color: rgb(170, 168, 160);
+    font-size: 14px;
+}
+
+.chat-tab:hover {
+    color: rgb(240, 236, 226);
+}
+
+.chat-tab--active {
+    border-color: rgb(242, 196, 82);
+    color: rgb(240, 236, 226);
+    -unity-font-style: bold;
+}
+
+.chat-list {
+    max-height: 150px;
+}
+
+.chat-panel--open .chat-list {
+    height: 240px;
+    max-height: none;
+}
+
+.chat-row {
+    flex-shrink: 0;
+    flex-direction: row;
+    align-items: flex-start;
+    margin-bottom: 2px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background-color: rgba(16, 18, 22, 0.66);
+}
+
+.chat-panel--open .chat-row {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.chat-from {
+    flex-shrink: 0;
+    margin-right: 6px;
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: rgb(240, 236, 226);
+}
+
+.chat-text {
+    flex-shrink: 1;
+    flex-grow: 1;
+    font-size: 14px;
+    color: rgb(230, 226, 216);
+    white-space: normal;
+}
+
+.chat-text--roll {
+    color: rgb(250, 214, 140);
+}
+
+.chat-text--notice {
+    color: rgb(170, 200, 230);
+    -unity-font-style: italic;
+}
+
+.chat-text--action {
+    color: rgb(160, 158, 150);
+    font-size: 13px;
+}
+
+.chat-hint {
+    align-self: flex-start;
+    padding: 2px 8px;
+    border-radius: 3px;
+    background-color: rgba(16, 18, 22, 0.5);
+    font-size: 13px;
+    color: rgb(150, 148, 140);
+}
+
+.chat-input {
+    display: none;
+    margin: 4px 0 0 0;
+}
+
+.chat-panel--open .chat-input {
+    display: flex;
+}
+
+.chat-input .unity-base-text-field__input {
+    min-height: 24px;
+    padding: 2px 6px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    background-color: rgb(36, 40, 48);
+    color: rgb(240, 236, 226);
+    font-size: 15px;
+}

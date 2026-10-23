@@ -181,6 +181,40 @@ namespace Core.Tests.Net
         }
 
         [Fact]
+        public void Ordered_ReportsEveryCommandWithItsOrigin_InTheHostsOrder_EvenWhileOursAreInFlight()
+        {
+            var net = new Network(Game(7), 7, "a", "b");
+            net.Flush();
+            var hostOrder = new List<(string, string)>();
+            net.Host.Executed += (origin, command, _) => hostOrder.Add((origin, command.GetType().Name));
+            var seenByA = new List<(string, string)>();
+            net.Clients["a"].Ordered += (origin, command, result) =>
+            {
+                Assert.True(result.Ok);
+                seenByA.Add((origin, command.GetType().Name));
+            };
+
+            var r = new DeterministicRandom(9);
+            for (var i = 0; i < 60; i++)
+            {
+                switch (r.Next(3))
+                {
+                    case 0: net.ClientDoes("a", new RollCommand { ObjectId = "d6" }); break;
+                    case 1: net.ClientDoes("b", new FlipCommand { ObjectId = "loose" }); break;
+                    default: net.HostDoes(new ShuffleCommand { ObjectId = "deck" }); break;
+                }
+                for (var k = r.Next(3); k > 0; k--)
+                    net.Step();
+            }
+            net.Flush();
+
+            Assert.Equal(hostOrder, seenByA);
+            Assert.Contains(("a", "RollCommand"), seenByA);
+            Assert.Contains(("b", "FlipCommand"), seenByA);
+            Assert.Contains((SessionHost.HostId, "ShuffleCommand"), seenByA);
+        }
+
+        [Fact]
         public void RemoteCommands_ApplyInPlace_WhenNothingIsPending()
         {
             var net = new Network(Game(6), 6, "a");

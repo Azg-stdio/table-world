@@ -80,6 +80,12 @@ namespace TableWorld.View.Hud
                 ("Tab + drag", "Measure"),
                 ("F1 or ?", "This list"),
             }),
+            ("Chat", new[]
+            {
+                ("Enter, or click the chat", "Open the chat (Enter sends, Escape or a click on the table closes)"),
+                ("/roll 3d6+2 (or /r d20)", "Roll dice in the chat for everyone to see"),
+                ("Log tab", "Everything done at the table, in order"),
+            }),
         };
 
         private readonly VisualElement _panel;

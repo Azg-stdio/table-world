@@ -63,6 +63,9 @@ namespace TableWorld.View
         /// <summary>Set each frame by the interaction while the pointer is over the HUD: the wheel scrolls the panel instead.</summary>
         public bool SuppressWheel { get; set; }
 
+        /// <summary>Set each frame by the interaction while the player types in the HUD: keys do not move the camera.</summary>
+        public bool SuppressKeys { get; set; }
+
         public void Configure(Vector3 pivot, float yaw, float pitch, float distance, Vector2 pivotExtents)
         {
             _pivot = pivot;
@@ -169,7 +172,7 @@ namespace TableWorld.View
                     _distance = Mathf.Clamp(_distance * Mathf.Pow(1f - _zoomPerWheelStep, Mathf.Sign(scroll)), _minDistance, _maxDistance);
             }
 
-            if (keyboard != null && !keyboard.ctrlKey.isPressed)
+            if (keyboard != null && !keyboard.ctrlKey.isPressed && !SuppressKeys)
             {
                 var move = Vector2.zero;
                 if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed) move.y += 1;

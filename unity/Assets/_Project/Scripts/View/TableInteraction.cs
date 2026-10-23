@@ -106,6 +106,9 @@ namespace TableWorld.View
         /// <summary>Set by the HUD: true when a screen point is over UI, so clicks there never reach the table.</summary>
         public Func<Vector2, bool> PointerBlocked { get; set; }
 
+        /// <summary>Set by the HUD: true while the player types in a text field (chat, rename), so keys are text, not shortcuts.</summary>
+        public Func<bool> KeyboardBlocked { get; set; }
+
         /// <summary>
         /// Set by the HUD's hand bar: for a release at a screen point, where across the bar it lands (0..1), or null when
         /// the pointer is not over the bar.
@@ -189,10 +192,11 @@ namespace TableWorld.View
             Hovered = overUi ? null : RaycastObject(ray, Held, out _);
             var surface = RaycastSurface(ray, Held, out var point);
             PointerOnTable = surface && !overUi ? point : (Vector3?)null;
-            var alt = keyboard.altKey.isPressed;
-            var shift = keyboard.shiftKey.isPressed;
-            var ctrl = keyboard.ctrlKey.isPressed;
-            var tab = keyboard.tabKey.isPressed;
+            var typing = KeyboardBlocked != null && KeyboardBlocked();
+            var alt = !typing && keyboard.altKey.isPressed;
+            var shift = !typing && keyboard.shiftKey.isPressed;
+            var ctrl = !typing && keyboard.ctrlKey.isPressed;
+            var tab = !typing && keyboard.tabKey.isPressed;
 
             UpdateTooltip();
             UpdateLook(alt, shift);
@@ -327,10 +331,12 @@ namespace TableWorld.View
                     RaiseHeld(0.01f * Mathf.Sign(scroll));
             }
 
-            HandleKeys(keyboard, surface ? point : (Vector3?)null, alt, shift, ctrl);
+            if (!typing)
+                HandleKeys(keyboard, surface ? point : (Vector3?)null, alt, shift, ctrl);
 
             if (_tableCamera != null)
             {
+                _tableCamera.SuppressKeys = typing;
                 _tableCamera.SuppressTurnKeys = Held != null || Hovered != null || alt;
                 _tableCamera.SuppressMouse = Held != null;
                 // The wheel over a panel scrolls the panel (help, search), not the camera.

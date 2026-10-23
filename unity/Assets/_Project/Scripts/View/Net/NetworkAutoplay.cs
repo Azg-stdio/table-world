@@ -17,7 +17,8 @@ namespace TableWorld.View.Net
     /// <c>-tw-cache folder</c> (asset cache, e.g. an empty one to check T3.4), <c>-tw-wait-players N</c> (a host waits for
     /// N players to join before playing and reporting), <c>-tw-carry id [seconds]</c> (pick it up and sweep it around), <c>-tw-sit a,b,…</c> (after syncing, ask for each seat in turn,
     /// <c>watch</c> to spectate, 1.5 s apart), <c>-tw-turns</c> (the host switches free-play
-    /// turns on; every player ends its turn when it comes during autoplay). Online (T3.3): <c>-tw-host online
+    /// turns on; every player ends its turn when it comes during autoplay), <c>-tw-say "a|/roll 2d6"</c> (after seating, say
+    /// each line, 0.5 s apart; the report lists the chat and the game log). Online (T3.3): <c>-tw-host online
     /// -tw-code-file f</c>, <c>-tw-join CODE</c> or <c>-tw-join @f</c>, <c>-tw-profile name</c> (one per process on a machine). <see cref="Run"/> starts the same from code.
     /// </summary>
     public sealed class NetworkAutoplay : MonoBehaviour
@@ -61,7 +62,7 @@ namespace TableWorld.View.Net
             var carrySeconds = Array.IndexOf(args, "-tw-carry") is var c && c >= 0 && c + 2 < args.Length && float.TryParse(args[c + 2], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var s) ? s : 10f;
             yield return Run(host, host ? Arg("-tw-host") : join, autoplay, Arg("-tw-report"), Array.IndexOf(args, "-tw-quit") >= 0,
                 seed: host ? 1 : 2, codeFile: Arg("-tw-code-file"), carry: carry, carrySeconds: carrySeconds,
-                waitPlayers: int.TryParse(Arg("-tw-wait-players"), out var w) ? w : 0, turns: Array.IndexOf(args, "-tw-turns") >= 0, sit: Arg("-tw-sit"));
+                waitPlayers: int.TryParse(Arg("-tw-wait-players"), out var w) ? w : 0, turns: Array.IndexOf(args, "-tw-turns") >= 0, sit: Arg("-tw-sit"), say: Arg("-tw-say"));
         }
 
         /// <summary>
@@ -70,7 +71,7 @@ namespace TableWorld.View.Net
         /// address[:port], a join code, or <c>@file</c> (wait for a host to write its code there).
         /// </summary>
         public IEnumerator Run(bool host, string target, int commands, string report, bool quit, int seed, string codeFile = null,
-            string carry = null, float carrySeconds = 10f, int waitPlayers = 0, bool turns = false, string sit = null)
+            string carry = null, float carrySeconds = 10f, int waitPlayers = 0, bool turns = false, string sit = null, string say = null)
         {
             if (host && target == "online")
             {
@@ -130,6 +131,11 @@ namespace TableWorld.View.Net
                 yield return new WaitForSeconds(1.5f);
                 Debug.Log($"[Autoplay] Asked for {wanted}: now {(_table.Spectating ? "watching" : _table.LocalSeat)}");
             }
+            foreach (var line in (say ?? "").Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                _session.Say(line);
+                yield return new WaitForSeconds(0.5f);
+            }
             if (host && turns && !_table.Execute(new SetTurnOrderCommand()).Ok)
                 Debug.LogError("[Autoplay] Could not switch turns on.");
 
@@ -174,6 +180,9 @@ namespace TableWorld.View.Net
                     ["performed"] = Performed,
                     ["objects"] = state.Objects.Count,
                     ["turnsEnded"] = TurnsEnded,
+                    ["chat"] = new JArray(_session.Chat.Entries.Where(e => e.Kind != Core.Net.ChatKind.Action).Select(e => $"{e.Kind} {e.From}: {e.Text}")),
+                    ["logLines"] = _session.Chat.Entries.Count(e => e.Kind == Core.Net.ChatKind.Action),
+                    ["logTail"] = new JArray(_session.Chat.Entries.Where(e => e.Kind == Core.Net.ChatKind.Action).Reverse().Take(5).Reverse().Select(e => e.Text)),
                     ["turn"] = state.FreeTurns == null ? null : $"{state.FreeTurns.Current} after {state.FreeTurns.Count}",
                     ["zoneHidden"] = new JArray(_table.Views.Values.Where(v => v != null && v.ZoneHidden).Select(v => v.Id).OrderBy(id => id)),
                     ["game"] = state.Session == null ? null : $"turn {state.Session.Turn}, phase {state.Session.Phase}, over {state.Session.Over}, winner {state.Session.Winner ?? "-"}",

@@ -82,6 +82,7 @@ Everything below already passes automated tests on one machine (two processes, s
 - [ ] Flips, draws and deals look smooth on every screen, not only for the player who did them.
 - [ ] Seats: a friend clicks the other free colour and sits there; clicking yours is refused; Watch turns them into a spectator who can look but not touch, and they can sit again.
 - [ ] Sounds: picking up, dropping, shuffling, rolling, dealing feel right and are not too loud or repetitive; friends' actions are heard too.
+- [ ] Chat: Enter, type, Enter: everyone sees it with your seat colour; `/roll 2d6` shows the same dice for everyone; the Log tab reads the same on every screen and never names a card someone could not see; typing never flips or moves anything.
 
 **After the session**
 - [ ] Each person sends their `Player.log` if anything broke (path below).

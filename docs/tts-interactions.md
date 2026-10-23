@@ -132,7 +132,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G8 | Hand card close-up | hovering a card in your hand raises and enlarges it | ✅ hand bar (2026-10-23) | P1 |
 | G9 | Motion | flips, draws and deals animate | ✅ a flip lifts and turns over in a quarter second; a card or object taken from a deck or bag leaves its top and arcs to its place; dealt cards glide from the deck into the hand; picking a card up mid-flight takes over (2026-10-23) | P2 |
 | G10 | Seats | click a colour to sit there, spectator, change seat | ✅ seat chips show who sits where (you, host, taken); click a free one to sit, Watch to spectate; the host decides (a taken seat is refused) and refuses a spectator's commands; solo, a click picks which seat you play (2026-10-23). Player names come with G23 | P2 |
-| G11 | Chat and game log | chat box, messages and rule messages scroll back | only the last rules message | P2 |
+| G11 | Chat and game log | chat box, messages and rule messages scroll back | ✅ bottom-left chat: Enter opens it, Enter sends, Escape or a click away closes; closed, the last lines show for 12 s. Chat tab (messages, rolls, joins/leaves/seats, rules messages) and Log tab (plus every action: shuffled, dealt, flipped, took a card from…). The host stamps each sender (no speaking for another seat), cleans text, limits bursts and sends the last 100 lines to joiners; each machine words the log for its own seat, so a hidden or face-down card is only "a card". Keys type while chatting instead of acting (also in rename and address fields) (2026-10-23) | P2 |
 | G12 | Lighting | even light around the table | ✅ game night room: warm lamp over the table plus a fill light (2026-10-23) | P2 |
 | G13 | Escape menu | settings (mouse, volume, graphics), leave, quit | none | P2 |
 | G14 | Token / chip stacks | same tokens stack into a counted stack, drag one off | tokens are separate | P2 |
@@ -145,7 +145,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G21 | Custom dice | faces and rotation values from images (TTS `Custom_Dice`) | model only | P2 |
 | G22 | Turns without rules | turn order, end turn button, skip empty hands | ✅ host: table menu → Turns: Off / In order / Reversed, Skip empty hands; the current seat gets End turn, its chip is outlined, online players are told "Your turn"; a hot-seat table hands the controls to whoever plays (2026-10-23). Unoccupied seats are not skipped yet (needs seat occupancy, G10) | P1 |
 | G23 | Player management | colours and teams, Game Master (Black) sees everything, promote, kick, mute, per-player permissions | host and seats only | P2 |
-| G24 | Chat commands and dice announcements | `/roll`, results in chat; per-team chat | none | P2 |
+| G24 | Chat commands and dice announcements | `/roll`, results in chat; per-team chat | 🟡 `/roll NdM±K` (`/r`), rolled by the host and shown to all with each die; `/help`; dice rolled on the table appear in the log (2026-10-23). Per-team chat waits for teams (G23) | P2 |
 | G25 | Shared notebook | tabs per colour | none | P3 |
 | G26 | Rewind time | host steps the table back (verify the window) | undo is local and off online | P2 |
 | G27 | Built-in components | counter, calculator, timer/clock, notecard, tablet, music player | ✅ counter and clock (time of day, stopwatch, timer that rings at zero) with a glowing display; changed from the selection panel, the menu, or by typing digits over a counter (2026-10-23). Calculator, notecard, tablet, music player still to do | P2 (counter, timer P1) |

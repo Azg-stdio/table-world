@@ -49,6 +49,10 @@ namespace TableWorld.View.Hud
 
         /// <summary>The controls list (F1, ?, or the Controls button).</summary>
         public ControlsHelp Help => _help;
+        private ChatPanel _chat;
+
+        /// <summary>Chat and game log, bottom left (Enter).</summary>
+        public ChatPanel Chat => _chat;
         private LookCamera _look;
 
         public TableOverlay Overlay => _overlay;
@@ -90,6 +94,8 @@ namespace TableWorld.View.Hud
                 _help = new ControlsHelp(_root);
                 _interaction.Pinged += OnPing;
             }
+            if (_table != null)
+                _chat = new ChatPanel(_root, _table, _session);
 
             _root.Q<Button>("saveButton").clicked += Save;
             _netStatus = _root.Q<Label>("netStatus");
@@ -117,7 +123,19 @@ namespace TableWorld.View.Hud
                 _table.Notice += OnNotice;
             }
             if (_interaction != null)
+            {
                 _interaction.PointerBlocked = IsOverUi;
+                _interaction.KeyboardBlocked = TypingInUi;
+            }
+        }
+
+        /// <summary>True while a text field of the HUD (chat, name, address) has the keyboard: keys type, they are not shortcuts.</summary>
+        public bool TypingInUi()
+        {
+            if (_chat != null && _chat.Open)
+                return true;
+            var focused = _root?.panel?.focusController?.focusedElement as VisualElement;
+            return focused != null && (focused is TextField || focused.GetFirstAncestorOfType<TextField>() != null);
         }
 
         private void OnNotice(string text) => ShowStatus(text, error: true);
@@ -169,7 +187,7 @@ namespace TableWorld.View.Hud
         private void HelpKeys()
         {
             var keyboard = UnityEngine.InputSystem.Keyboard.current;
-            if (keyboard == null || _help == null || (_interaction != null && _interaction.IgnoreDevices))
+            if (keyboard == null || _help == null || (_interaction != null && _interaction.IgnoreDevices) || TypingInUi())
                 return;
             if (keyboard.f1Key.wasPressedThisFrame || (keyboard.slashKey.wasPressedThisFrame && keyboard.shiftKey.isPressed))
                 _help.Toggle();
@@ -204,6 +222,7 @@ namespace TableWorld.View.Hud
             if (_interaction != null)
             {
                 _interaction.PointerBlocked = null;
+                _interaction.KeyboardBlocked = null;
                 _interaction.Pinged -= OnPing;
             }
         }
@@ -236,6 +255,7 @@ namespace TableWorld.View.Hud
             _overlay?.Update();
             _handBar?.Update();
             HelpKeys();
+            _chat?.Update(TypingInUi() || (_interaction != null && _interaction.IgnoreDevices));
             UpdatePresenceLabels();
             if (_netStatus != null && _session != null)
                 _netStatus.text = _session.Status == "offline" ? "" : _session.Status;

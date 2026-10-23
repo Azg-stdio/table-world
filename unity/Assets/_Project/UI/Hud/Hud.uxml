@@ -49,10 +49,21 @@
         <ui:VisualElement name="handBar" class="hand-bar hidden" picking-mode="Ignore" />
         <ui:Button name="handToggle" class="hand-toggle hidden" text="Hide hand" />
         <ui:VisualElement name="bottomRow" class="bottom-row" picking-mode="Ignore">
-            <ui:VisualElement name="selectionPanel" class="selection-panel hidden">
-                <ui:Label name="selectionTitle" class="selection-title" />
-                <ui:Label name="selectionDetail" class="selection-detail" />
-                <ui:VisualElement name="actions" class="actions" />
+            <ui:VisualElement name="leftColumn" class="left-column" picking-mode="Ignore">
+                <ui:VisualElement name="chatPanel" class="chat-panel">
+                    <ui:VisualElement name="chatTabs" class="chat-tabs">
+                        <ui:Button name="chatTab" class="chat-tab chat-tab--active" text="Chat" />
+                        <ui:Button name="logTab" class="chat-tab" text="Log" />
+                    </ui:VisualElement>
+                    <ui:ScrollView name="chatList" class="chat-list" />
+                    <ui:Label name="chatHint" class="chat-hint" text="Enter to chat" />
+                    <ui:TextField name="chatInput" class="chat-input" />
+                </ui:VisualElement>
+                <ui:VisualElement name="selectionPanel" class="selection-panel hidden">
+                    <ui:Label name="selectionTitle" class="selection-title" />
+                    <ui:Label name="selectionDetail" class="selection-detail" />
+                    <ui:VisualElement name="actions" class="actions" />
+                </ui:VisualElement>
             </ui:VisualElement>
             <ui:Label name="statusLabel" class="status-label hidden" picking-mode="Ignore" />
         </ui:VisualElement>

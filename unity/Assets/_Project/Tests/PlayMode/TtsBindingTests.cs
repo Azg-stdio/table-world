@@ -537,5 +537,57 @@ namespace TableWorld.Tests.PlayMode
             yield return new WaitForSeconds(1f);
             Assert.Greater(_table.ViewOf("token_blue").transform.position.x, token.x + 0.01f, "N nudges");
         }
+
+        [UnityTest]
+        public IEnumerator Enter_OpensChat_KeysTypeInsteadOfActing_RollsAndActionsAreLogged()
+        {
+            var hud = Object.FindAnyObjectByType<HudController>();
+            var chat = hud.Chat;
+            var session = Object.FindAnyObjectByType<TableWorld.View.Net.NetworkTableSession>();
+            Assert.IsFalse(chat.Open);
+            yield return Point(ScreenOf("ace_spades"));
+            yield return Tap(_keyboard.enterKey);
+            yield return null;
+            Assert.IsTrue(chat.Open, "Enter opens the chat");
+            Assert.IsTrue(hud.TypingInUi(), "the input has the keyboard");
+
+            var faceUp = M("ace_spades").IsFaceUp;
+            yield return Tap(_keyboard.fKey);
+            yield return Tap(_keyboard.wKey);
+            Assert.AreEqual(faceUp, M("ace_spades").IsFaceUp, "F types a letter while chatting, it does not flip");
+
+            chat.Send("hello table");
+            chat.Send("/roll 3d6+1");
+            chat.Send("/nonsense");
+            var entries = session.Chat.Entries;
+            var said = entries.Single(e => e.Kind == Core.Net.ChatKind.Say);
+            Assert.AreEqual("hello table", said.Text);
+            Assert.AreEqual(_table.LocalSeat, said.Seat);
+            var roll = entries.Single(e => e.Kind == Core.Net.ChatKind.Roll);
+            Assert.AreEqual(3, roll.Dice.Count);
+            StringAssert.StartsWith("rolled 3d6+1: ", roll.Text);
+            Assert.IsTrue(entries.Any(e => e.Kind == Core.Net.ChatKind.Notice && e.Text.Contains("Unknown command")), "a bad command answers the sender");
+            yield return null;
+            Assert.IsTrue(chat.DrawnText.Contains("hello table"));
+
+            chat.Hide();
+            yield return null;
+            Assert.IsFalse(hud.TypingInUi());
+            yield return Point(ScreenOf("ace_spades"));
+            yield return Tap(_keyboard.fKey);
+            Assert.AreNotEqual(faceUp, M("ace_spades").IsFaceUp, "closed, F flips again");
+            Assert.IsTrue(entries.Any(e => e.Kind == Core.Net.ChatKind.Action && e.Text.Contains("flipped")), "the flip is in the game log");
+
+            // Closed, the chat still shows the recent messages, never the action log.
+            yield return null;
+            Assert.IsTrue(chat.DrawnText.Contains("hello table"));
+            Assert.IsFalse(chat.DrawnText.Any(t => t.Contains("flipped")));
+            yield return Tap(_keyboard.enterKey);
+            yield return null;
+            chat.ShowTab(log: true);
+            yield return null;
+            Assert.IsTrue(chat.DrawnText.Any(t => t.Contains("flipped")), "the Log tab lists actions");
+            chat.Hide();
+        }
     }
 }
