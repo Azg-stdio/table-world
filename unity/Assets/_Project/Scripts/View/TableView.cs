@@ -296,7 +296,7 @@ namespace TableWorld.View
                     if (view.InHand)
                     {
                         view.LeaveHand();
-                        view.Body.isKinematic = view.Model.Locked || view.Held;
+                        view.Body.isKinematic = view.Pinned || view.Held;
                         view.SnapToState();
                     }
                     continue;
@@ -615,7 +615,6 @@ namespace TableWorld.View
             return new Vector3(p.x, top + half.y + 0.002f, p.z);
         }
 
-        /// <summary>Where <paramref name="view"/>, laid flat, rests on the felt without overlapping anything: pushed out along the shorter way.</summary>
         /// <summary>How far, at most, a card is moved to find free felt; rings are this far apart, sixteen spots each.</summary>
         public const float ClearSearchRadius = 0.25f;
         public const float ClearSearchStep = 0.01f;
@@ -761,7 +760,7 @@ namespace TableWorld.View
                 yield break;
             view.transform.SetPositionAndRotation(start, end);
             view.Animating = false;
-            view.Body.isKinematic = view.Model.Locked;
+            view.Body.isKinematic = view.Pinned;
             ReportPose(view);
         }
 
@@ -774,6 +773,11 @@ namespace TableWorld.View
                     case ObjectAdded added:
                         if (Engine.Find(added.ObjectId) is { Container: null } obj)
                             Spawn(obj);
+                        break;
+                    case TableSettingsChanged _:
+                        foreach (var each in _views.Values)
+                            if (each != null)
+                                ApplyPhysicsMode(each);
                         break;
                     case DieRolled rolled:
                         if (ViewOf(rolled.ObjectId) is { } die && isActiveAndEnabled)
@@ -812,6 +816,7 @@ namespace TableWorld.View
                 return;
             var view = ObjectViewFactory.Create(obj, Assets, _objectsRoot != null ? _objectsRoot : transform);
             view.ImpactHandler = OnImpact;
+            ApplyPhysicsMode(view);
             _views[obj.Id] = view;
         }
 
@@ -826,6 +831,54 @@ namespace TableWorld.View
                     Destroy(view.gameObject);
                 }
             }
+        }
+
+        // ---- physics modes (G19) ---------------------------------------------------------------------------------------
+
+        public PhysicsMode PhysicsMode => Engine?.State.Physics ?? PhysicsMode.Full;
+
+        /// <summary>
+        /// Full: plain physics. Semi-lock: nothing tips over (rotation about the table's horizontal axes is frozen), but
+        /// dice keep tumbling so a throw still rolls. Locked: every body is kinematic; drops are set down in place.
+        /// </summary>
+        private void ApplyPhysicsMode(ObjectView view)
+        {
+            var mode = PhysicsMode;
+            view.TablePinned = mode == PhysicsMode.Locked;
+            view.Body.constraints = mode == PhysicsMode.SemiLock && !(view.Model is Die)
+                ? RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ
+                : RigidbodyConstraints.None;
+            if (view.Held || view.Animating || view.InHand || view.RemoteHolder != null || !view.Renderer.enabled)
+                return;
+            if (view.Body.isKinematic != view.Pinned)
+            {
+                view.Body.isKinematic = view.Pinned;
+                if (!view.Body.isKinematic)
+                    view.Body.WakeUp();
+            }
+        }
+
+        /// <summary>
+        /// Where <paramref name="view"/> comes to rest straight below where it is: on the felt, or on top of whatever lies
+        /// under it. Used to set objects down when the table's physics is locked.
+        /// </summary>
+        public Vector3 RestingSpot(ObjectView view)
+        {
+            Physics.SyncTransforms();
+            var bounds = view.Renderer.bounds;
+            var count = Physics.BoxCastNonAlloc(new Vector3(bounds.center.x, 2f, bounds.center.z),
+                new Vector3(bounds.extents.x * 0.9f, 0.0005f, bounds.extents.z * 0.9f), Vector3.down, _supportHits, Quaternion.identity, 3f,
+                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            var top = 0f;
+            for (var i = 0; i < count; i++)
+            {
+                var hit = _supportHits[i];
+                if (hit.distance <= 0f || hit.rigidbody == view.Body || hit.collider.GetComponentInParent<ObjectView>() is { Held: true })
+                    continue;
+                top = Mathf.Max(top, hit.point.y);
+            }
+            var p = view.transform.position;
+            return new Vector3(p.x, p.y - bounds.min.y + top + 0.001f, p.z);
         }
 
         private void SpawnZones()

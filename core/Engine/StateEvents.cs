@@ -17,6 +17,12 @@ namespace Core.Engine
         }
     }
 
+    /// <summary>A table-wide setting changed (the physics mode). It concerns no single object.</summary>
+    public sealed class TableSettingsChanged : StateEvent
+    {
+        public TableSettingsChanged() : base("") { }
+    }
+
     public sealed class ObjectAdded : StateEvent
     {
         public ObjectAdded(string objectId) : base(objectId) { }

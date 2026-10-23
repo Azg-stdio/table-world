@@ -111,7 +111,7 @@ namespace TableWorld.View.Net
             view.Body.interpolation = RigidbodyInterpolation.Interpolate;
             if (view.Held)
                 return;
-            view.Body.isKinematic = view.Model.Locked || view.InHand;
+            view.Body.isKinematic = view.Pinned || view.InHand;
             if (!view.Body.isKinematic)
                 view.Body.WakeUp();
         }

@@ -675,7 +675,23 @@ namespace TableWorld.View
                     velocity = Vector3.zero;
                 }
             }
-            view.Body.isKinematic = view.Model.Locked;
+            if (_table.PhysicsMode == PhysicsMode.Locked && !view.Model.Locked)
+            {
+                // Locked physics (G19): nothing falls; the object is set down right where it was let go.
+                var rest = _table.RestingSpot(view);
+                view.Body.isKinematic = true;
+                view.Body.position = rest;
+                view.transform.position = rest;
+                _table.Execute(new MoveCommand
+                {
+                    ObjectId = view.Id,
+                    Position = rest.ToCore(),
+                    Rotation = view.transform.rotation.eulerAngles.ToCore(),
+                    Actor = _table.LocalSeat,
+                });
+                return;
+            }
+            view.Body.isKinematic = view.Pinned;
             if (!view.Body.isKinematic)
             {
                 var isDie = view.Model is Die;
@@ -869,7 +885,7 @@ namespace TableWorld.View
             var rotation = Quaternion.AngleAxis(_rotTarget, _rotAxis) * _rotBase;
             view.transform.rotation = rotation;
             view.Body.rotation = rotation;
-            view.Body.isKinematic = view.Model.Locked || view.InHand;
+            view.Body.isKinematic = view.Pinned || view.InHand;
             var result = _table.Execute(new MoveCommand
             {
                 ObjectId = view.Id,
@@ -972,7 +988,7 @@ namespace TableWorld.View
                 _held.Clear();
                 _offsets.Clear();
                 held.Held = false;
-                held.Body.isKinematic = held.Model.Locked;
+                held.Body.isKinematic = held.Pinned;
                 var result = target.Model is Deck
                     ? _table.Execute(new InsertCommand { ObjectId = held.Id, IntoId = target.Id, AtBottom = true, Actor = _table.LocalSeat })
                     : _table.Execute(new InsertCommand { ObjectId = held.Id, IntoId = target.Id, AtBottom = true, Actor = _table.LocalSeat });
@@ -989,7 +1005,7 @@ namespace TableWorld.View
             // Teleport the body itself (not only the transform) and drop the speed it had while following the cursor,
             // or the object can shoot out from under its new top before the physics step catches up.
             var below = new Vector3(spot.x, held.Renderer.bounds.extents.y + 0.001f, spot.z);
-            held.Body.isKinematic = held.Model.Locked;
+            held.Body.isKinematic = held.Pinned;
             held.Body.position = below;
             held.transform.position = below;
             foreach (var body in new[] { held.Body, target.Body })

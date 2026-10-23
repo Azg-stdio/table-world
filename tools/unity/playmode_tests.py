@@ -83,16 +83,20 @@ def run(filter_text, timeout):
     args = ["command", "test", "run", "--mode", "PlayMode", "--async_tests", "true"]
     # Always pass a filter: without one the Test Runner may reuse the previous run's filter.
     args += ["--filter", filter_text or "TableWorld.Tests"]
+    # The status keeps the previous run's results until the new run starts: remember them so they are not taken as ours.
+    previous = json.dumps(result(cli("command", "test", "status")), sort_keys=True)
     started = time.time()
     print(f"[run] starting PlayMode tests{' matching ' + filter_text if filter_text else ''}")
     cli(*args)
     played = False
+    active = False
     while True:
         time.sleep(POLL_SECONDS)
         status = result(cli("command", "test", "status"))
         state = status.get("status")
         elapsed = time.time() - started
-        if state == "completed":
+        active = active or played or state not in ("completed", None)
+        if state == "completed" and (active or json.dumps(status, sort_keys=True) != previous):
             return status
         if not played:
             played = is_playing()

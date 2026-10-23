@@ -7,6 +7,23 @@ namespace Core.Tests.Engine
     public class CommandTests
     {
         [Fact]
+        public void SetPhysics_ChangesTheMode_IsSaved_AndRejectsUnknownModes()
+        {
+            var engine = EngineFixture.Create();
+            Assert.Equal(PhysicsMode.Full, engine.State.Physics);
+            Assert.DoesNotContain("physics", TableJson.Serialize(engine.State));
+
+            var result = engine.Execute(new SetPhysicsCommand { Mode = PhysicsMode.SemiLock });
+            Assert.True(result.Ok);
+            Assert.IsType<TableSettingsChanged>(Assert.Single(result.Events));
+            var json = TableJson.Serialize(engine.State);
+            Assert.Contains("\"physics\": \"semiLock\"", json);
+            Assert.Equal(PhysicsMode.SemiLock, TableJson.Parse(json).State!.Physics);
+
+            Assert.False(engine.Execute(new SetPhysicsCommand { Mode = (PhysicsMode)7 }).Ok);
+        }
+
+        [Fact]
         public void Move_SetsPose_AndRejectsLockedOrContainedObjects()
         {
             var engine = EngineFixture.Create();

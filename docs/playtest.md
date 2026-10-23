@@ -76,6 +76,7 @@ Everything below already passes automated tests on one machine (two processes, s
 - [ ] Hovering a deck or bag shows how many cards or items it holds.
 - [ ] Rolling several dice at once (select or pick them up together, R) reads clearly for everyone.
 - [ ] Hidden zone (the sample table's dark block on the left belongs to the north seat): the north player sees the Ace of hearts inside, the south player sees only the block; dropping a card in hides it from the other seat.
+- [ ] Physics modes (host: right-click the felt → Physics): with semi-lock nothing gets knocked over, with locked dropped pieces stay exactly where they are put; friends see the same; a friend has no Physics row.
 - [ ] Sounds: picking up, dropping, shuffling, rolling, dealing feel right and are not too loud or repetitive; friends' actions are heard too.
 
 **After the session**

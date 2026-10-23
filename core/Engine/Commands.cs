@@ -102,4 +102,15 @@ namespace Core.Engine
     {
         public string ObjectId { get; set; } = "";
     }
+
+    /// <summary>A table-wide setting only the host may change; the network host refuses it from clients.</summary>
+    public interface IHostCommand
+    {
+    }
+
+    /// <summary>Sets how the table simulates objects (TTS: Options > Physics). Host only.</summary>
+    public sealed class SetPhysicsCommand : Command, IHostCommand
+    {
+        public PhysicsMode Mode { get; set; }
+    }
 }

@@ -185,6 +185,7 @@ namespace Core.Engine
             LockCommand c => Lock(c),
             GroupCommand c => Group(c),
             RollCommand c => Roll(c),
+            SetPhysicsCommand c => SetPhysics(c),
             ScaleCommand c => Scale(c),
             DeleteCommand c => Delete(c),
             CloneCommand c => Clone(c),
@@ -425,6 +426,14 @@ namespace Core.Engine
             var result = CommandResult.Success(events);
             result.Dealt = dealt;
             return result;
+        }
+
+        private CommandResult SetPhysics(SetPhysicsCommand c)
+        {
+            if (!System.Enum.IsDefined(typeof(PhysicsMode), c.Mode))
+                return CommandResult.Fail("mode", ErrorCodes.InvalidValue, $"Unknown physics mode {(int)c.Mode}.", "Use full, semiLock or locked.");
+            State.Physics = c.Mode;
+            return CommandResult.Success(new List<StateEvent> { new TableSettingsChanged() });
         }
 
         private CommandResult Lock(LockCommand c)

@@ -122,6 +122,11 @@ namespace Core.Net
 
         private (CommandResult Result, Outgoing Broadcast) Run(string origin, long clientSeq, Command command)
         {
+            if (command is IHostCommand && origin != HostId)
+            {
+                var hostOnly = CommandResult.Fail("", ErrorCodes.HostOnly, "Only the host can change that.", "Ask the host.");
+                return (hostOnly, new Outgoing(origin, Rejection(origin, clientSeq, hostOnly.Error!)));
+            }
             if (command is PerformActionCommand && origin != HostId && Seats.TryGetValue(origin, out var seat) && command.Actor != seat)
             {
                 var refused = CommandResult.Fail("actor", ErrorCodes.NotYourSeat,
@@ -200,6 +205,8 @@ namespace Core.Net
         {
             if (Predicted == null)
                 throw new InvalidOperationException("Not synced yet: wait for the host's snapshot.");
+            if (command is IHostCommand)
+                return (CommandResult.Fail("", ErrorCodes.HostOnly, "Only the host can change that.", "Ask the host."), null);
             var result = Predicted.Execute(command);
             if (!result.Ok)
                 return (result, null);

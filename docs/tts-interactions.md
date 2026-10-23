@@ -140,7 +140,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G16 | Toggles | Snap, Grid, Auto Raise, Sticky, Hands, Hide Face Down, Tooltip per object | Lock only | P3 |
 | G17 | Hidden zones that hide | contents invisible to everyone but the zone's owner | ✅ seats the zone does not list see an opaque block tinted toward the seeing seat's colour; objects inside are not drawn and cannot be hovered or box selected; `host` in `visibleTo` means the hosting machine (2026-10-23). Clients still receive the hidden objects' data (as in TTS): honest play, not anti-cheat | P1 |
 | G18 | Randomize, layout, fog-of-war zones | shuffle what is inside; auto-arrange contents; fog that players reveal | not implemented | P2 |
-| G19 | Physics modes | host sets full, semi-lock (nothing topples) or locked | full only | P1 |
+| G19 | Physics modes | host sets full, semi-lock (nothing topples) or locked | ✅ table menu (right-click the felt) → Physics: Full / Semi-lock / Locked, host only, saved with the table. Semi-lock freezes tipping (dice still tumble); locked sets drops down right where they are released, on the felt or on top of what is below (2026-10-23) | P1 |
 | G20 | Several dice at once | select dice, R rolls them all | ✅ R (or the menu's "Roll N selected dice") rolls every selected or held die together, one throw sound, status line lists each value and the total (2026-10-23) | P1 |
 | G21 | Custom dice | faces and rotation values from images (TTS `Custom_Dice`) | model only | P2 |
 | G22 | Turns without rules | turn order, end turn button, skip empty hands | turns only with a rules file | P1 |

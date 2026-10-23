@@ -42,6 +42,12 @@ namespace TableWorld.View
         /// <summary>True while a card sits in a hand zone: it stands up facing its owner and physics leaves it alone.</summary>
         public bool InHand { get; internal set; }
 
+        /// <summary>Set by <see cref="TableView"/> while the table's physics mode is locked (G19).</summary>
+        internal bool TablePinned;
+
+        /// <summary>True when physics must leave the object where it is: it is locked, or the whole table is.</summary>
+        public bool Pinned => Model.Locked || TablePinned;
+
         /// <summary>True for a card in someone else's hand: its face shows the back, and its name is not shown.</summary>
         public bool HideFace { get; internal set; }
 

@@ -54,6 +54,17 @@ namespace Core.Rules
         public List<Seat> Seats { get; set; } = new List<Seat>();
     }
 
+    /// <summary>How the table simulates objects (TTS physics modes, chosen by the host).</summary>
+    public enum PhysicsMode
+    {
+        /// <summary>Everything falls, slides, tumbles and can be knocked over.</summary>
+        Full,
+        /// <summary>Objects fall and slide but cannot be knocked over; dice still tumble.</summary>
+        SemiLock,
+        /// <summary>Nothing moves on its own: a dropped object is set down where it was released.</summary>
+        Locked,
+    }
+
     /// <summary>
     /// The physical table: assets, objects, zones and seats. Its JSON is the subset of the game document
     /// (docs/rules-schema.md) that describes the table, and it is also the save-file format.
@@ -70,6 +81,8 @@ namespace Core.Rules
         public Players Players { get; set; } = new Players();
         /// <summary>The room around the table; null means the default room.</summary>
         public EnvironmentDef? Environment { get; set; }
+        /// <summary>How objects are simulated (G19). Saved with the table; only the host changes it.</summary>
+        public PhysicsMode Physics { get; set; }
 
         // ---- rules (docs/rules-schema.md); all optional: a table without them is free play ----
 

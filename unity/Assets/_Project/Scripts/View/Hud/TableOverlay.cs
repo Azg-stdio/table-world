@@ -136,6 +136,9 @@ namespace TableWorld.View.Hud
             Item("Paste (Ctrl+V)", () => _interaction.Paste(_menuWorldPoint));
             Item("Undo (Ctrl+Z)", () => _table.Undo());
             Item("Redo (Ctrl+Y)", () => _table.Redo());
+            if (_table.HostsTable)
+                Row("Physics", new[] { (PhysicsMode.Full, "Full"), (PhysicsMode.SemiLock, "Semi-lock"), (PhysicsMode.Locked, "Locked") }
+                    .Select(m => ((_table.PhysicsMode == m.Item1 ? "● " : "") + m.Item2, (Action)(() => Run(new SetPhysicsCommand { Mode = m.Item1 })))));
             Item("Save table (F5)", () => _table.Save(TableView.SavePath(TableView.QuickSaveName)));
             Item("Load table (F9)", () => _table.LoadFile(TableView.SavePath(TableView.QuickSaveName)));
         }

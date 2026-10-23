@@ -214,6 +214,33 @@ namespace Core.Tests.Net
         }
 
         [Fact]
+        public void PhysicsMode_OnlyTheHostChangesIt_AndEveryClientGetsIt()
+        {
+            var net = new Network(Game(4), 4, "a");
+            net.Flush();
+            var refused = new List<ValidationError>();
+            net.Clients["a"].Refused += refused.Add;
+
+            var local = net.ClientDoes("a", new SetPhysicsCommand { Mode = PhysicsMode.Locked });
+            Assert.False(local!.Ok);
+            Assert.Equal(ErrorCodes.HostOnly, local.Error!.Code);
+            // A crafted intent that skips the client's own check is refused by the host.
+            foreach (var outgoing in net.Host.Receive("a", new JObject
+            {
+                ["kind"] = "intent", ["seq"] = 99, ["command"] = CommandCodec.Encode(new SetPhysicsCommand { Mode = PhysicsMode.Locked }),
+            }))
+                net.Deliver(outgoing);
+            net.Flush();
+            Assert.Equal(PhysicsMode.Full, net.Host.Game.State.Physics);
+            Assert.Contains(refused, e => e.Code == ErrorCodes.HostOnly);
+
+            net.HostDoes(new SetPhysicsCommand { Mode = PhysicsMode.SemiLock });
+            net.Flush();
+            Assert.Equal(PhysicsMode.SemiLock, net.Clients["a"].Confirmed!.State.Physics);
+            Assert.Equal(TableJson.Hash(net.Host.Game.State), TableJson.Hash(net.Clients["a"].Confirmed!.State));
+        }
+
+        [Fact]
         public void SeatedClient_CannotActForAnotherSeat()
         {
             var host = GameFixtures.Load("war", 5);

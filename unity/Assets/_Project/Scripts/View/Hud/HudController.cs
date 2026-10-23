@@ -396,12 +396,19 @@ namespace TableWorld.View.Hud
             if (result.Ok && command is MoveCommand)
                 return;
             var name = command.GetType().Name.Replace("Command", "");
-            _status.text = result.Ok ? (command is RollCommand ? RollText(result) : $"{name}: done")
+            _status.text = result.Ok ? (command is RollCommand ? RollText(result) : command is SetPhysicsCommand physics ? $"Physics: {PhysicsName(physics.Mode)}" : $"{name}: done")
                 : $"{name} rejected: {result.Error.Message} {result.Error.Suggestion}";
             _status.EnableInClassList("status-label--error", !result.Ok);
             _status.RemoveFromClassList(Hidden);
             _shownSelectionHash = null;
         }
+
+        public static string PhysicsName(PhysicsMode mode) => mode switch
+        {
+            PhysicsMode.SemiLock => "semi-lock (nothing tips over)",
+            PhysicsMode.Locked => "locked (objects stay where they are put)",
+            _ => "full",
+        };
 
         private readonly List<(int Faces, int Value)> _rolls = new List<(int, int)>();
         private int _rollsFrame = -1;
