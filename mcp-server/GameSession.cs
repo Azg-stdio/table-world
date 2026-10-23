@@ -246,6 +246,42 @@ namespace TableWorld.Mcp
             return PlayResult.From(result);
         }
 
+        /// <summary>
+        /// A physical table command (flip, cut, move...): on the game window when connected, on the running game, or on
+        /// the authored setup (saved like any edit).
+        /// </summary>
+        public TableResult ExecuteTable(Command command)
+        {
+            if (Remote)
+            {
+                var payload = new JObject { ["kind"] = "table", ["type"] = command.GetType().Name, ["command"] = JObject.FromObject(command) };
+                var reply = Bridge!.Request(new JObject { ["type"] = "command", ["command"] = payload }).GetAwaiter().GetResult();
+                if (reply == null)
+                    return TableResult.Failed(new ValidationError("", "game_unreachable", "The game window did not answer within 10 s."));
+                if (reply["document"] is JObject document)
+                    Mirror(document);
+                var errors = (reply["errors"] as JArray ?? new JArray()).Select(e => new ValidationError(
+                    (string?)e["path"] ?? "", (string?)e["code"] ?? "rule_failed", (string?)e["message"] ?? "", (string?)e["suggestion"])).ToArray();
+                var created = (reply["created"] as JArray ?? new JArray()).Select(c => (string)c!).ToList();
+                return errors.Length > 0 ? TableResult.Failed(errors) : TableResult.Done(created);
+            }
+            CommandResult result;
+            if (Game != null)
+            {
+                result = Game.Execute(command);
+            }
+            else
+            {
+                result = new TableEngine(Document, Seed).Execute(command);
+                if (result.Ok)
+                    Commit(Array.Empty<ValidationError>());
+            }
+            if (!result.Ok)
+                return TableResult.Failed(result.Error!);
+            Changed?.Invoke(Current);
+            return TableResult.Done(result.CreatedIds?.ToList() ?? (result.CreatedId != null ? new List<string> { result.CreatedId } : new List<string>()));
+        }
+
         /// <summary>Drops the running game and returns to the authored setup.</summary>
         public void Reset()
         {
@@ -298,6 +334,22 @@ namespace TableWorld.Mcp
             return EditResult.Applied(problems);
         }
 
+    }
+
+    public sealed class TableResult
+    {
+        public bool Ok => Errors.Count == 0;
+        public IReadOnlyList<ValidationError> Errors { get; }
+        public IReadOnlyList<string> CreatedIds { get; }
+
+        private TableResult(IReadOnlyList<ValidationError> errors, IReadOnlyList<string> created)
+        {
+            Errors = errors;
+            CreatedIds = created;
+        }
+
+        public static TableResult Done(IReadOnlyList<string> created) => new TableResult(Array.Empty<ValidationError>(), created);
+        public static TableResult Failed(params ValidationError[] errors) => new TableResult(errors, Array.Empty<string>());
     }
 
     /// <summary>Outcome of a play command: the engine's result, or a refusal before the engine ran.</summary>

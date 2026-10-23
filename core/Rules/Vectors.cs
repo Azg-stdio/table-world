@@ -50,37 +50,65 @@ namespace Core.Rules
         public override string ToString() => $"[{X}, {Y}]";
     }
 
-    internal sealed class Vec3Converter : JsonConverter<Vec3>
+    /// <summary>Also used for <c>Vec3?</c>: JSON null reads as no value.</summary>
+    internal sealed class Vec3Converter : JsonConverter
     {
-        public override Vec3 ReadJson(JsonReader reader, Type objectType, Vec3 existingValue, bool hasExistingValue, JsonSerializer serializer)
+        public override bool CanConvert(Type objectType) => objectType == typeof(Vec3) || objectType == typeof(Vec3?);
+
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
+            if (reader.TokenType == JsonToken.Null)
+            {
+                if (objectType == typeof(Vec3?))
+                    return null;
+                throw new JsonSerializationException("Expected an array of 3 numbers.");
+            }
             var values = FloatArray.Read(reader, 3);
             return new Vec3(values[0], values[1], values[2]);
         }
 
-        public override void WriteJson(JsonWriter writer, Vec3 value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
+            if (!(value is Vec3 v))
+            {
+                writer.WriteNull();
+                return;
+            }
             writer.WriteStartArray();
-            writer.WriteValue(value.X);
-            writer.WriteValue(value.Y);
-            writer.WriteValue(value.Z);
+            writer.WriteValue(v.X);
+            writer.WriteValue(v.Y);
+            writer.WriteValue(v.Z);
             writer.WriteEndArray();
         }
     }
 
-    internal sealed class Vec2Converter : JsonConverter<Vec2>
+    /// <summary>Also used for <c>Vec2?</c>: JSON null reads as no value.</summary>
+    internal sealed class Vec2Converter : JsonConverter
     {
-        public override Vec2 ReadJson(JsonReader reader, Type objectType, Vec2 existingValue, bool hasExistingValue, JsonSerializer serializer)
+        public override bool CanConvert(Type objectType) => objectType == typeof(Vec2) || objectType == typeof(Vec2?);
+
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
+            if (reader.TokenType == JsonToken.Null)
+            {
+                if (objectType == typeof(Vec2?))
+                    return null;
+                throw new JsonSerializationException("Expected an array of 2 numbers.");
+            }
             var values = FloatArray.Read(reader, 2);
             return new Vec2(values[0], values[1]);
         }
 
-        public override void WriteJson(JsonWriter writer, Vec2 value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
+            if (!(value is Vec2 v))
+            {
+                writer.WriteNull();
+                return;
+            }
             writer.WriteStartArray();
-            writer.WriteValue(value.X);
-            writer.WriteValue(value.Y);
+            writer.WriteValue(v.X);
+            writer.WriteValue(v.Y);
             writer.WriteEndArray();
         }
     }

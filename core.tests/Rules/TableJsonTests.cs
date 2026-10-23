@@ -66,6 +66,19 @@ namespace Core.Tests.Rules
         }
 
         [Fact]
+        public void NullableVectors_ReadNullAsNoValue()
+        {
+            var json = SampleTables.WithObjects(@"{ ""id"": ""c"", ""type"": ""Card"", ""faceAsset"": ""sheet"", ""backAsset"": ""back"", ""size"": null }");
+
+            var result = TableJson.Parse(json);
+
+            Assert.True(result.Ok, string.Join("\n", result.Errors));
+            Assert.Null(((Card)result.State!.Objects[0]).Size);
+            var take = Newtonsoft.Json.Linq.JObject.FromObject(new Core.Engine.TakeCommand { ContainerId = "d" }).ToObject<Core.Engine.TakeCommand>()!;
+            Assert.Null(take.Position);
+        }
+
+        [Fact]
         public void Hash_ChangesWhenStateChanges()
         {
             var state = TableJson.Parse(SampleTables.AllTypes).State!;

@@ -65,7 +65,10 @@ namespace TableWorld.Mcp.Tests
                     : await Call("perform_action", ("seat", seat), ("action", "draw_card"));
                 Assert.True((bool)state["ok"]!, state.ToString());
             }
-            File.WriteAllText(Path.Combine(Path.GetTempPath(), "tw-bridge-e2e.json"), state.ToString());
+            var cut = await Call("table_action", ("action", "cut"), ("target", "draw"), ("value", 4.0));
+            Assert.True((bool)cut["ok"]!, cut.ToString());
+            Assert.Single(cut["created"]!);
+            File.WriteAllText(Path.Combine(Path.GetTempPath(), "tw-bridge-e2e.json"), cut.ToString());
         }
     }
 }

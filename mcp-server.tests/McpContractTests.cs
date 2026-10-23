@@ -62,7 +62,7 @@ namespace TableWorld.Mcp.Tests
                 "add_action", "add_event", "add_phase", "add_resource", "ask_host", "create_deck", "deal", "define_zone",
                 "get_rules_document", "get_rules_reference", "get_table_state", "load_game", "new_game", "perform_action",
                 "place_object", "remove", "reset_game", "save_game", "set_rules_document", "set_turn", "set_variables",
-                "set_win_condition", "start_game", "validate_rules",
+                "set_win_condition", "start_game", "table_action", "validate_rules",
             };
             Assert.Equal(expected, tools);
         }
@@ -100,6 +100,44 @@ namespace TableWorld.Mcp.Tests
             var doc = await Call("get_rules_document");
             Assert.DoesNotContain(doc["objects"]!, o => (string?)o["id"] == "d6");
             Ok(await Call("set_rules_document", ("documentJson", doc.ToString())));
+        }
+
+        [Fact]
+        public async Task TableAction_DoesEveryPhysicalAction()
+        {
+            Ok(await Call("new_game", ("id", "hands"), ("name", "Hands"), ("players", 2)));
+            Ok(await Call("create_deck", ("id", "deck"), ("cards", "standard52")));
+            Ok(await Call("place_object", ("objectJson", "{\"id\":\"d6\",\"type\":\"Die\",\"transform\":{\"position\":[0.3,0,0]}}")));
+
+            async Task<JObject> Act(string action, string target, double? value = null, string? other = null, float? x = null, float? z = null)
+            {
+                var reply = await Call("table_action", ("action", action), ("target", target), ("value", value), ("other", other), ("x", x), ("z", z));
+                Ok(reply);
+                return reply;
+            }
+            int Cards(JObject reply, string id) => (int)reply["state"]!["objects"]!.First(o => (string?)o["id"] == id)["cards"]!;
+
+            Assert.Equal(26, Cards(await Act("cut", "deck"), "deck"));
+            var split = await Act("split", "deck", value: 2);
+            Assert.Equal(13, Cards(split, "deck"));
+            await Act("shuffle", "deck");
+            await Act("flip", "deck");
+            await Act("rotate", "deck", value: 90);
+            await Act("move", "deck", x: -0.4f, z: 0.1f);
+            var taken = await Act("take", "deck", x: 0.1f, z: 0.1f);
+            var card = (string)taken["created"]![0]!;
+            await Act("insert", card, value: 1, other: "deck");
+            await Act("spread", "deck-1");
+            await Act("roll", "d6");
+            await Act("set_die_value", "d6", value: 4);
+            await Act("lock", "d6");
+            await Act("unlock", "d6");
+            await Act("scale", "d6", value: 1.5);
+            await Act("rename", "d6", other: "Big die");
+            var clone = await Act("clone", "d6", x: 0.5f, z: 0.2f);
+            await Act("delete", (string)clone["created"]![0]!);
+            var bad = await Call("table_action", ("action", "juggle"), ("target", "d6"));
+            Assert.Equal("unknown_command", (string?)bad["errors"]![0]!["code"]);
         }
 
         [Fact]

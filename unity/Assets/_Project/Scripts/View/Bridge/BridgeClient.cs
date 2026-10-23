@@ -182,7 +182,18 @@ namespace TableWorld.View.Bridge
                     }
                     break;
                 case "command" when message["command"] is JObject command:
-                    Send(Execute(command, (string)message["id"]));
+                    JObject reply;
+                    try
+                    {
+                        reply = Execute(command, (string)message["id"]);
+                    }
+                    catch (Exception e)
+                    {
+                        // Never leave the agent waiting for a timeout: report the failure.
+                        Debug.LogException(e);
+                        reply = Reply((string)message["id"], false, new[] { new ValidationError("command", ErrorCodes.RuleFailed, e.Message) }, new List<string>());
+                    }
+                    Send(reply);
                     break;
             }
         }
@@ -208,6 +219,13 @@ namespace TableWorld.View.Bridge
                         deal.Seats.AddRange(seats.Select(s => (string)s));
                     engineCommand = deal;
                     break;
+                case "table":
+                    // A physical command, by its core type name (e.g. "CutCommand").
+                    var type = typeof(Command).Assembly.GetType("Core.Engine." + (string)command["type"]);
+                    if (type == null || !typeof(Command).IsAssignableFrom(type) || !(command["command"] is JObject fields))
+                        return Reply(id, false, new[] { new ValidationError("type", ErrorCodes.UnknownCommand, $"Unknown table command '{command["type"]}'.") }, new List<string>());
+                    engineCommand = (Command)fields.ToObject(type);
+                    break;
                 default:
                     return Reply(id, false, new[] { new ValidationError("kind", ErrorCodes.UnknownCommand, $"Unknown command '{command["kind"]}'.") }, new List<string>());
             }
@@ -223,7 +241,10 @@ namespace TableWorld.View.Bridge
                 _executingRemote = false;
             }
             var messages = result.Events.OfType<GameMessage>().Select(m => m.Text).ToList();
-            return Reply(id, result.Ok, result.Ok ? new ValidationError[0] : new[] { result.Error }, messages);
+            var reply = Reply(id, result.Ok, result.Ok ? new ValidationError[0] : new[] { result.Error }, messages);
+            var created = result.CreatedIds ?? (result.CreatedId != null ? new[] { result.CreatedId } : new string[0]);
+            reply["created"] = new JArray(created);
+            return reply;
         }
 
         private JObject Reply(string id, bool ok, IEnumerable<ValidationError> errors, List<string> messages) => new JObject
