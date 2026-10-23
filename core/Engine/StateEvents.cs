@@ -120,6 +120,9 @@ namespace Core.Engine
         /// <summary>Id of the object a take, group or card-on-card insert created; null otherwise.</summary>
         public string? CreatedId { get; internal set; }
 
+        /// <summary>Every object a split or spread created, in order.</summary>
+        public IReadOnlyList<string>? CreatedIds { get; internal set; }
+
         /// <summary>Deck contents (top first) returned by a search of a deck.</summary>
         public IReadOnlyList<DeckCard>? DeckContents { get; internal set; }
 
@@ -142,6 +145,7 @@ namespace Core.Engine
             var copy = new CommandResult(Error, events)
             {
                 CreatedId = CreatedId,
+                CreatedIds = CreatedIds,
                 DeckContents = DeckContents,
                 BagContents = BagContents,
                 Dealt = Dealt,

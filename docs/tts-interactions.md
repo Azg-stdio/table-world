@@ -4,6 +4,8 @@ The list of player interactions Table World must reproduce, taken from Tabletop 
 
 **Sources.** `KB:basic` = kb.tabletopsimulator.com/player-guides/basic-controls, `KB:adv` = …/advanced-controls, `KB:menu` = …/context-menu, `KB:states` = …/host-guides/creating-states, `KB:zones` / `KB:line` / `KB:flick` / `KB:joint` / `KB:decal` = …/game-tools/… (fetched 2026-10-22). The KB's full key list is only an image in its Help Menu, and per-object menus (deck, dice, bag) are not documented as text: rows marked **unverified** come from playing TTS and must be checked against the game (open TTS, press `?` for the Help Menu, right-click each object type) before they are considered final.
 
+**Core commands (T2.11a, done):** `Scale`, `Delete`, `Clone`, `SetState`, `Cut`, `Split`, `Spread`, `SetDieValue`, `SetProperties` exist in `core` with xUnit tests; the rows below track the in-game gestures.
+
 **Status:** ✅ done and tested · 🟡 partial · ❌ missing · ⏭ later milestone (with reason).
 **Test:** `core` = xUnit command test; `play` = PlayMode test through `TableInteraction`'s public gestures; `input` = PlayMode test with simulated keyboard/mouse (Input System test fixture), which checks the binding itself.
 

@@ -68,8 +68,17 @@ namespace Core.Tests.Engine
             {
                 var ids = engine.State.Objects.Select(o => o.Id).ToList();
                 string Pick() => ids[chooser.Next(ids.Count)];
-                Command command = chooser.Next(10) switch
+                Command command = chooser.Next(19) switch
                 {
+                    10 => new ScaleCommand { ObjectId = Pick(), Factor = chooser.Next(2) == 0 ? 1.1f : 0.9f },
+                    11 => new DeleteCommand { ObjectId = Pick() },
+                    12 => new CloneCommand { ObjectId = Pick() },
+                    13 => new SetStateCommand { ObjectId = Pick(), State = "2" },
+                    14 => new CutCommand { DeckId = Pick() },
+                    15 => new SplitCommand { DeckId = Pick(), Piles = 2 + chooser.Next(2) },
+                    16 => new SpreadCommand { DeckId = Pick() },
+                    17 => new SetDieValueCommand { ObjectId = Pick(), Value = 1 + chooser.Next(6) },
+                    18 => new SetPropertiesCommand { ObjectId = Pick(), Name = "n" + chooser.Next(9) },
                     0 => new MoveCommand { ObjectId = Pick(), Position = new Vec3(chooser.Next(100) / 100f - 0.5f, 0, chooser.Next(100) / 100f - 0.5f) },
                     1 => new TakeCommand { ContainerId = Pick(), Index = chooser.Next(3), FromBottom = chooser.Next(2) == 0 },
                     2 => new InsertCommand { ObjectId = Pick(), IntoId = Pick(), AtBottom = chooser.Next(2) == 0 },

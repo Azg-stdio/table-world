@@ -25,7 +25,7 @@ Spec and status per interaction: [../tts-interactions.md](../tts-interactions.md
 
 | Id | Task | Size | Depends on | Done check | Status |
 |---|---|---|---|---|---|
-| T2.11a | Core commands: scale, delete, clone (copy/paste), set state, cut, split, spread, set die value, set name/description/tint; `CreatedIds` on results | M | T2.2 | One xUnit test per command, including failures; random-command property test covers them | todo |
+| T2.11a | Core commands: scale, delete, clone (copy/paste), set state, cut, split, spread, set die value, set name/description/tint; `CreatedIds` on results | M | T2.2 | One xUnit test per command, including failures; random-command property test covers them | done 2026-10-22 |
 | T2.11b | Rotate held or hovered (Q/E, Alt axis), flip by F / MMB click / Alt+MMB, scale (+/−), place under (U), nudge (N), tap down (RMB while holding), Alt+RMB drop bottom card | M | T2.11a | PlayMode tests per gesture | todo |
 | T2.11c | Looking: Alt zoom, Alt+Shift peek, hover tooltip | S | T2.10 | PlayMode tests | todo |
 | T2.11d | Number-row draw with 1 s buffer (multi-digit), digits switch states, G group, box select + pick up selection + RMB add to held group | M | T2.11a | PlayMode tests | todo |

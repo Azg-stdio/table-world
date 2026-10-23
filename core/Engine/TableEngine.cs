@@ -11,7 +11,7 @@ namespace Core.Engine
     /// <see cref="DeterministicRandom"/>: same state + same seed + same commands → same result, on every machine.
     /// The state passed in is assumed valid (<see cref="TableJson.Parse"/>); the engine keeps it valid.
     /// </summary>
-    public sealed class TableEngine
+    public sealed partial class TableEngine
     {
         /// <summary>How far beside a container a taken object lands when the command gives no position.</summary>
         public const float BesideOffset = 0.1f;
@@ -145,6 +145,15 @@ namespace Core.Engine
             LockCommand c => Lock(c),
             GroupCommand c => Group(c),
             RollCommand c => Roll(c),
+            ScaleCommand c => Scale(c),
+            DeleteCommand c => Delete(c),
+            CloneCommand c => Clone(c),
+            SetStateCommand c => SetState(c),
+            CutCommand c => Cut(c),
+            SplitCommand c => Split(c),
+            SpreadCommand c => Spread(c),
+            SetDieValueCommand c => SetDieValue(c),
+            SetPropertiesCommand c => SetProperties(c),
             _ => CommandResult.Fail("", ErrorCodes.UnknownCommand, $"Unknown command '{command.GetType().Name}'."),
         };
 
