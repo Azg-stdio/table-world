@@ -19,6 +19,12 @@ namespace Core.Engine
         public string ObjectId { get; set; } = "";
         public Vec3 Position { get; set; }
         public Vec3 Rotation { get; set; }
+
+        /// <summary>
+        /// For a die thrown or dropped by hand: the face physics left on top. Physics decides physical throws (as in TTS);
+        /// <see cref="RollCommand"/> is the engine's own roll. Null leaves the value unchanged.
+        /// </summary>
+        public int? DieValue { get; set; }
     }
 
     /// <summary>

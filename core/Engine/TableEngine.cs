@@ -132,6 +132,14 @@ namespace Core.Engine
         {
             if (RequireOnTable(c.ObjectId, "objectId", out var obj) is { } fail)
                 return fail;
+            if (c.DieValue.HasValue)
+            {
+                if (!(obj is Die die))
+                    return CommandResult.Fail("dieValue", ErrorCodes.WrongObjectType, $"'{obj.Id}' is a {obj.Type}; only dice have a value.");
+                if (c.DieValue < 1 || c.DieValue > die.Faces)
+                    return CommandResult.Fail("dieValue", ErrorCodes.InvalidValue, $"Value {c.DieValue} is outside 1..{die.Faces}.");
+                die.Value = c.DieValue;
+            }
 
             obj.Transform.Position = c.Position;
             obj.Transform.Rotation = c.Rotation;

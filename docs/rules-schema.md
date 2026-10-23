@@ -103,7 +103,7 @@ Physical interaction goes through `Core.Engine.TableEngine.Execute(Command)`; th
 
 - **Transactional:** a command is fully checked before anything changes; a failed command returns one `ValidationError` (field, code, message, suggestion) and leaves the state byte-identical.
 - **Deterministic:** all randomness (shuffle, roll) comes from a seeded PCG32 (`DeterministicRandom`, verified against the reference implementation). Same state + seed + commands → same hash. This is what lets the host be authoritative in M3 and lets tests replay sessions.
-- **Dice:** the engine picks the value; the view animates the roll and shows that face. Physics never decides a result.
+- **Dice:** two ways to roll. `Roll` (R key, rule effects) is the engine's seeded roll; the view animates it and shows that face. A die thrown or dropped by hand is decided by physics, as in TTS: when it settles, the view sends `Move` with `dieValue` = the face on top, and the engine records it. Replays stay deterministic because the value travels inside the command.
 - **Decks:** a deck stays a deck at 0 or 1 cards (unlike TTS, which turns the last card into a loose card), so rules can keep referring to `deck_p1`. Flipping a deck reverses its order like a real deck. Cards joining a deck take the deck's orientation.
 - **New ids:** a card leaving a deck without an id becomes `<deckId>-<n>`; infinite-bag clones become `<templateId>-<n>`; decks formed from loose cards become `deck-<n>`. Always the first free `n`, so ids are deterministic too.
 - **Locked objects** cannot be moved, flipped, rolled, grouped or inserted, but you can still take from, shuffle, search and deal from a locked deck or bag (TTS behaviour).

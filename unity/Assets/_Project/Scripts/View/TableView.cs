@@ -32,6 +32,9 @@ namespace TableWorld.View
         private readonly Dictionary<string, float> _awakeSince = new Dictionary<string, float>();
         private readonly List<ObjectView> _scratch = new List<ObjectView>();
 
+        /// <summary>Id whose pose is being reported from its own physics: the view already shows it, so it must not be snapped.</summary>
+        private string _reportingId;
+
         public const string QuickSaveName = "quicksave";
 
         private string _packageRoot;
@@ -164,6 +167,54 @@ namespace TableWorld.View
             }
         }
 
+        public const float DieSettleSpeed = 0.15f;
+        /// <summary>Tumble (spin about a horizontal axis) above which a die is still rolling. Spin about the vertical is always damped.</summary>
+        public const float DieSettleTumble = 4f;
+        public const float DieSettleRate = 12f;
+
+        /// <summary>
+        /// Dice settle assist. PhysX barely resists a die spinning about the vertical axis while flat on a face, so a thrown
+        /// die would slide in circles for seconds. Once a die rests on a face and is no longer tumbling, its slide and spin are damped
+        /// quickly; tumbling and bouncing are untouched.
+        /// </summary>
+        private void FixedUpdate()
+        {
+            if (Engine == null)
+                return;
+            var damping = Mathf.Exp(-DieSettleRate * Time.fixedDeltaTime);
+            foreach (var view in _views.Values)
+            {
+                if (view == null || !(view.Model is Die die) || view.Held || view.Animating)
+                    continue;
+                var body = view.Body;
+                if (body.isKinematic || body.IsSleeping())
+                    continue;
+                var velocity = body.linearVelocity;
+                var spin = body.angularVelocity;
+                var tumble = spin - Vector3.up * Vector3.Dot(spin, Vector3.up);
+                if (velocity.sqrMagnitude > DieSettleSpeed * DieSettleSpeed || tumble.sqrMagnitude > DieSettleTumble * DieSettleTumble)
+                    continue;
+                if (!RestsOnFace(Meshes.DiceGeometry.Get(die.Faces), body.rotation))
+                    continue;
+                // Writing velocities keeps a body awake; once it is still, let PhysX put it to sleep.
+                if (velocity.sqrMagnitude < 1e-6f && body.angularVelocity.sqrMagnitude < 1e-4f)
+                {
+                    body.Sleep();
+                    continue;
+                }
+                body.linearVelocity = new Vector3(velocity.x * damping, velocity.y, velocity.z * damping);
+                body.angularVelocity *= damping;
+            }
+        }
+
+        private static bool RestsOnFace(Meshes.DiceGeometry geometry, Quaternion rotation)
+        {
+            foreach (var normal in geometry.ValueNormals)
+                if (Vector3.Dot(rotation * normal, Vector3.down) > 0.995f)
+                    return true;
+            return false;
+        }
+
         /// <summary>Sends a Move when the view's pose differs from the state's. Returns true if one was sent.</summary>
         public bool ReportPose(ObjectView view)
         {
@@ -173,13 +224,25 @@ namespace TableWorld.View
             if (Vector3.Distance(position, t.Position.ToUnity()) < PositionTolerance &&
                 Quaternion.Angle(rotation, t.Rotation.ToRotation()) < RotationToleranceDegrees)
                 return false;
-            return Execute(new MoveCommand
+            int? dieValue = null;
+            if (view.Model is Die die)
+                dieValue = Meshes.DiceGeometry.Get(die.Faces).ValueFor(rotation);
+            _reportingId = view.Id;
+            try
             {
-                ObjectId = view.Id,
-                Position = position.ToCore(),
-                Rotation = rotation.eulerAngles.ToCore(),
-                Actor = LocalSeat,
-            }).Ok;
+                return Execute(new MoveCommand
+                {
+                    ObjectId = view.Id,
+                    Position = position.ToCore(),
+                    Rotation = rotation.eulerAngles.ToCore(),
+                    DieValue = dieValue,
+                    Actor = LocalSeat,
+                }).Ok;
+            }
+            finally
+            {
+                _reportingId = null;
+            }
         }
 
         /// <summary>A short kinematic tumble that lands on the value the engine already chose.</summary>
@@ -241,7 +304,10 @@ namespace TableWorld.View
                         {
                             view.Rebind(model);
                             ObjectViewFactory.Refresh(view, Assets);
-                            view.SnapToState();
+                            // A pose reported from this view's own physics is already on screen; snapping would stop
+                            // the body (velocity reset) and fight the simulation.
+                            if (updated.ObjectId != _reportingId)
+                                view.SnapToState();
                         }
                         break;
                 }

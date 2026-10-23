@@ -31,6 +31,16 @@ namespace TableWorld.View
         private static readonly Color InfiniteBagCloth = new Color(0.33f, 0.2f, 0.45f);
         private static readonly Color Placeholder = new Color(0.55f, 0.55f, 0.6f);
         private static readonly int BaseMapSt = Shader.PropertyToID("_BaseMap_ST");
+        private static PhysicsMaterial _diceMaterial;
+
+        /// <summary>Hard plastic on felt: a little bounce, moderate friction, so dice tumble and then settle on a face.</summary>
+        private static PhysicsMaterial DiceMaterial => _diceMaterial != null ? _diceMaterial : _diceMaterial = new PhysicsMaterial("Dice")
+        {
+            bounciness = 0.25f,
+            dynamicFriction = 0.35f,
+            staticFriction = 0.5f,
+            bounceCombine = PhysicsMaterialCombine.Maximum,
+        };
 
         public static ObjectView Create(TableObject model, AssetLibrary assets, Transform parent)
         {
@@ -187,7 +197,13 @@ namespace TableWorld.View
             }
             collider.convex = true;
             collider.sharedMesh = geometry.Mesh;
+            collider.sharedMaterial = DiceMaterial;
             view.Body.mass = 0.004f;
+            // Thrown dice spin fast and are small: continuous collision so they never tunnel, and the default
+            // 7 rad/s spin cap lifted so a shake carries into the throw.
+            view.Body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            view.Body.maxAngularVelocity = 50f;
+            view.Body.angularDamping = 0.2f;
         }
 
         /// <summary>Dice use <c>builtin:dice_numbers</c> even when the table does not list it.</summary>

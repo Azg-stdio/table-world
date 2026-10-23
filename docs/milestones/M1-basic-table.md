@@ -39,6 +39,7 @@
 | T2.7 | Saves are the core table JSON in `<persistentDataPath>/Saves/<name>.json` (F5 quick save, F9 quick load). `Save` first records every live physics pose. Asset paths in a save resolve against the package the table was first loaded from. The RNG state is not saved: a reloaded table shuffles differently. |
 | T2.9 | Player setting **Run In Background = on** (kept on purpose after the CLI override wrote it): the authoritative host in M3 must keep simulating while its window is unfocused, and it lets the CLI drive Play mode. |
 | T2.10 | HUD: `UI/Hud/Hud.uxml` + `Hud.uss`, one `UI/PanelSettings.asset` (made by `HudBuilder`), own theme `UI/TableWorld.tss` (only stretches the document root; no Unity default theme). The controller lives in `Scripts/View/Hud/` instead of next to the UXML so it stays in the `TableWorld.Runtime` asmdef. Seat colours are USS modifier classes. Clicks over opaque HUD elements never reach the table. Turn line says "Free play" until the rules engine (M2) provides turns. |
+| T2.5 (fix) | Dice physics after Miguel's playtest: shaking a held die spins it (rolls in the drag direction, ≤ 40 rad/s) and releasing throws it with that spin (≤ 1.2 m/s); physics decides the face (`MoveCommand.dieValue`). Dice use continuous collision, a plastic material (bounce 0.25, friction 0.35/0.5), max spin 50 rad/s, and a settle assist that damps slide and vertical-axis spin once a die rests flat on a face (PhysX barely resists that spin, so dice slid in circles for 6+ s). Pose reports from an object's own physics no longer snap it (that zeroed its velocity every 2 s). Measured: 8 shaken throws of d4–d20 all land on a face and sleep 0.6–2.1 s after release. |
 
 ## Manual checklist (T2.5, needs a human with a mouse)
 
@@ -50,6 +51,7 @@ Open `Assets/_Project/Scenes/Table.unity`, press Play, and check:
 - [ ] Dropping a card on another card makes a two-card deck; dropping it on a deck adds it on top.
 - [ ] F over a card flips it; F over the face-up clubs deck flips it and shows the other end.
 - [ ] R over a die tumbles it and it lands showing a number; R over the deck shuffles it.
+- [ ] Grab a die and shake the mouse: it spins; release while moving: it is thrown, tumbles, lands flat and stops within ~2 s; the HUD shows that number.
 - [ ] Hold a card and press Q/E: it rotates in 15° steps; the camera does not turn.
 - [ ] Press 5 over the deck: five cards appear face up in the south hand area.
 - [ ] L over the d20 locks it; dragging it does nothing; L again unlocks.

@@ -22,6 +22,18 @@ namespace Core.Tests.Engine
         }
 
         [Fact]
+        public void Move_WithDieValue_RecordsThePhysicalThrow()
+        {
+            var engine = EngineFixture.Create();
+
+            engine.Ok(new MoveCommand { ObjectId = "d6", DieValue = 4 });
+
+            Assert.Equal(4, ((Die)engine.Find("d6")!).Value);
+            engine.Fails(new MoveCommand { ObjectId = "d6", DieValue = 7 }, ErrorCodes.InvalidValue);
+            engine.Fails(new MoveCommand { ObjectId = "loose", DieValue = 1 }, ErrorCodes.WrongObjectType);
+        }
+
+        [Fact]
         public void Take_FromDeck_TopBottomIndexAndEntryId()
         {
             var engine = EngineFixture.Create();

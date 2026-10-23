@@ -23,6 +23,9 @@ namespace TableWorld.View
         public const float SnapRadius = 0.04f;
         public const float RotateStep = 15f;
         public const float MaxThrowSpeed = 0.6f;
+        public const float MaxDieThrowSpeed = 1.2f;
+        /// <summary>Spin of a shaken die, rad/s, capped like a real throw.</summary>
+        public const float MaxDieSpin = 40f;
         public const float FollowRate = 25f;
 
         [SerializeField] private TableView _table;
@@ -32,6 +35,7 @@ namespace TableWorld.View
         private readonly RaycastHit[] _hits = new RaycastHit[32];
         private Vector3 _target;
         private Vector3 _velocity;
+        private Vector3 _spin;
 
         public ObjectView Held { get; private set; }
         public ObjectView Hovered { get; private set; }
@@ -97,6 +101,19 @@ namespace TableWorld.View
             var next = Vector3.Lerp(body.position, _target, 1f - Mathf.Exp(-FollowRate * Time.fixedDeltaTime));
             _velocity = (next - body.position) / Time.fixedDeltaTime;
             body.MovePosition(next);
+
+            // Shaking a held die (TTS): it rolls in the direction it is moved, and keeps that spin when thrown.
+            if (Held.Model is Die)
+            {
+                var planar = new Vector3(_velocity.x, 0f, _velocity.z);
+                var radius = Mathf.Max(0.005f, Held.Renderer.bounds.extents.y);
+                var target = planar.sqrMagnitude > 1e-4f
+                    ? Vector3.Cross(Vector3.up, planar).normalized * Mathf.Min(planar.magnitude / radius, MaxDieSpin)
+                    : Vector3.zero;
+                _spin = Vector3.Lerp(_spin, target, 1f - Mathf.Exp(-8f * Time.fixedDeltaTime));
+                if (_spin.sqrMagnitude > 1e-4f)
+                    body.MoveRotation(Quaternion.AngleAxis(_spin.magnitude * Mathf.Rad2Deg * Time.fixedDeltaTime, _spin.normalized) * body.rotation);
+            }
         }
 
         private void HandleKeys(Keyboard keyboard)
@@ -156,6 +173,7 @@ namespace TableWorld.View
             view.Body.isKinematic = true;
             _target = view.transform.position + Vector3.up * HoldHeight;
             _velocity = Vector3.zero;
+            _spin = Vector3.zero;
             return true;
         }
 
@@ -200,8 +218,9 @@ namespace TableWorld.View
             view.Body.isKinematic = view.Model.Locked;
             if (!view.Body.isKinematic)
             {
-                view.Body.linearVelocity = Vector3.ClampMagnitude(_velocity, MaxThrowSpeed);
-                view.Body.angularVelocity = Vector3.zero;
+                var isDie = view.Model is Die;
+                view.Body.linearVelocity = Vector3.ClampMagnitude(_velocity, isDie ? MaxDieThrowSpeed : MaxThrowSpeed);
+                view.Body.angularVelocity = isDie ? _spin : Vector3.zero;
                 view.Body.WakeUp();
             }
         }
