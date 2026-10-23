@@ -2,7 +2,7 @@
 
 **Goal:** a solo-playable table with physical cards, decks, tokens and dice, saved and loaded from the `core/` model as JSON.
 **Done when:** deal a hand from a sprite-sheet deck, flip, shuffle, roll dice, save, close, load and see it unchanged. 500 objects at 60 fps (MVP); 2 000 later (T2.8).
-**In the MVP:** yes. **Status:** done 2026-10-22 except the manual mouse checklist below (needs a human); T2.8 deferred. **Depends on:** M0.
+**In the MVP:** yes. **Status:** reopened 2026-10-22 for T2.11 (TTS interaction parity); T2.1–T2.10 done (manual checklist pending), T2.8 deferred. **Depends on:** M0.
 
 **Binding design rule:** the Unity view never mutates state on its own. Every interaction becomes a `Command` that `core` executes; the view reacts to `StateEvent`s. Physics only moves free objects and reports the final pose as a `Command`. This is what makes M3 a transport layer instead of a rewrite.
 
@@ -18,6 +18,20 @@
 | T2.8 ⚗ | Performance: generated scene with 2 000 cards + 200 tokens; measure fps and memory; instancing/atlas if needed | S | T2.4 | Numbers recorded below | deferred past MVP (500 objects is the MVP bar) |
 | T2.9 ⚗ | PlayMode smoke test: load sample table, run 50 random commands | S | T2.5 | `unity command test run --mode PlayMode` green | done 2026-10-22 |
 | T2.10 | HUD v0 with UI Toolkit under `_Project/UI/` (UXML/USS, one `PanelSettings`): turn indicator, seat list, context actions for the selected object. Load the `unity:ui-uitk` skill first | S | T2.5 | HUD visible; buttons issue `Command`s | done 2026-10-22 |
+
+### T2.11 — TTS interaction parity (added 2026-10-22 after Miguel's playtest)
+
+Spec and status per interaction: [../tts-interactions.md](../tts-interactions.md). Every row gets a test; rows marked unverified there are checked against TTS by Miguel.
+
+| Id | Task | Size | Depends on | Done check | Status |
+|---|---|---|---|---|---|
+| T2.11a | Core commands: scale, delete, clone (copy/paste), set state, cut, split, spread, set die value, set name/description/tint; `CreatedIds` on results | M | T2.2 | One xUnit test per command, including failures; random-command property test covers them | todo |
+| T2.11b | Rotate held or hovered (Q/E, Alt axis), flip by F / MMB click / Alt+MMB, scale (+/−), place under (U), nudge (N), tap down (RMB while holding), Alt+RMB drop bottom card | M | T2.11a | PlayMode tests per gesture | todo |
+| T2.11c | Looking: Alt zoom, Alt+Shift peek, hover tooltip | S | T2.10 | PlayMode tests | todo |
+| T2.11d | Number-row draw with 1 s buffer (multi-digit), digits switch states, G group, box select + pick up selection + RMB add to held group | M | T2.11a | PlayMode tests | todo |
+| T2.11e | Context menus (object and global) with the per-type actions: flip, rotate, lock, copy, delete, name, tint, deck draw/deal/search/cut/split/spread/shuffle, die roll/set, bag search/shuffle, states | M | T2.11a | PlayMode tests click every entry | todo |
+| T2.11f | Copy/paste (Ctrl+C/V), delete (Del), undo/redo (Ctrl+Z/Y), camera: Space reset, Z/MMB quick zoom, P top-down, Ctrl/Shift+digit save/load; Tab ping and measure | M | T2.11a | PlayMode tests | todo |
+| T2.11g | Input binding tests: simulated keyboard and mouse (Input System test fixture) for every binding in the spec | M | T2.11b–f | `test run --mode PlayMode` green with one test per binding | todo |
 
 ## Simulation record
 
