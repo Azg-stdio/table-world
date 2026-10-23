@@ -69,6 +69,36 @@ namespace Core.Tests.Engine
         }
 
         [Fact]
+        public void Hands_AreLaidOutAgain_WhenACardLeaves_KeepingTheOrder()
+        {
+            var engine = EngineFixture.Create();
+            var dealt = engine.Ok(new DealCommand { DeckId = "deck", Count = 3, Seats = { "seat_1" } }).Dealt!["seat_1"];
+            var xs = dealt.Select(id => engine.Find(id)!.Transform.Position.X).ToList();
+
+            var left = engine.Ok(new MoveCommand { ObjectId = dealt[1], Position = Elsewhere });
+
+            Assert.Equal(xs[0], engine.Find(dealt[0])!.Transform.Position.X, 4);
+            Assert.Equal(xs[1], engine.Find(dealt[2])!.Transform.Position.X, 4);   // closed the gap
+            Assert.Contains(left.Events, e => e is ObjectUpdated && e.ObjectId == dealt[2]);
+            engine.AssertValid();
+        }
+
+        [Fact]
+        public void Hands_SqueezeToFit_AndADroppedCardTakesItsPlaceInOrder()
+        {
+            var engine = EngineFixture.Create();
+            var dealt = engine.Ok(new DealCommand { DeckId = "deck", Count = 8, Seats = { "seat_1" } }).Dealt!["seat_1"];
+            var hand = engine.State.Zones.Single(z => z.Id == "hand_1");
+            Assert.All(dealt, id => Assert.True(Geometry.Contains(hand, engine.Find(id)!.Transform.Position)));
+
+            // Drop the loose card between the first and second card: it becomes second.
+            var between = (engine.Find(dealt[0])!.Transform.Position.X + engine.Find(dealt[1])!.Transform.Position.X) / 2f;
+            engine.Ok(new MoveCommand { ObjectId = "loose", Position = new Vec3(between, 0.01f, -0.5f) });
+            var order = engine.ObjectsIn("hand_1").OrderBy(o => o.Transform.Position.X).Select(o => o.Id).ToList();
+            Assert.Equal(new[] { dealt[0], "loose", dealt[1] }, order.Take(3));
+        }
+
+        [Fact]
         public void MembershipIsComputedOnLoad()
         {
             var state = TableJson.Parse(EngineFixture.Json).State!;

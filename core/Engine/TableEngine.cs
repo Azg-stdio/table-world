@@ -119,7 +119,35 @@ namespace Core.Engine
                 else
                     _zonesOf.Remove(id);
             }
+
+            // TTS arranges hands by itself: whenever a hand gains or loses a card, lay it out again, keeping the
+            // player's left-to-right order.
+            var hands = all.OfType<ZoneEntered>().Select(e => e.ZoneId).Concat(all.OfType<ZoneLeft>().Select(e => e.ZoneId))
+                .Distinct().Select(id => State.Zones.FirstOrDefault(z => z.Id == id)).OfType<HandZone>().ToList();
+            foreach (var hand in hands)
+                LayoutHand(hand, all);
             return all;
+        }
+
+        /// <summary>Spreads the objects in a hand evenly from its left edge, in their current left-to-right order.</summary>
+        private void LayoutHand(HandZone hand, List<StateEvent> events)
+        {
+            var members = ObjectsIn(hand.Id)
+                .OrderBy(o => Geometry.InverseRotate(hand.Transform.Rotation, Geometry.Subtract(o.Transform.Position, hand.Transform.Position)).X)
+                .ThenBy(o => o.Id, StringComparer.Ordinal)
+                .ToList();
+            for (var i = 0; i < members.Count; i++)
+            {
+                var obj = members[i];
+                var size = (obj as Card)?.Size ?? Card.DefaultSize;
+                var slot = HandSlot(hand, i, size, members.Count);
+                var p = obj.Transform.Position;
+                if (Math.Abs(p.X - slot.X) < 0.001f && Math.Abs(p.Z - slot.Z) < 0.001f)
+                    continue;
+                obj.Transform.Position = new Vec3(slot.X, p.Y, slot.Z);
+                if (!events.Any(e => e is ObjectUpdated && e.ObjectId == obj.Id))
+                    events.Add(new ObjectUpdated(obj.Id));
+            }
         }
 
         private List<string> ComputeZones(TableObject obj)
@@ -486,12 +514,16 @@ namespace Core.Engine
         }
 
         /// <summary>Slot k of a hand, overlapping left to right along the zone's local X, clamped inside the zone.</summary>
-        internal static Vec3 HandSlot(HandZone zone, int slot, Vec2 cardSize)
+        /// <summary>Slot <paramref name="slot"/> of <paramref name="count"/> along the hand's local X: 60 % overlap, squeezed to fit the zone.</summary>
+        internal static Vec3 HandSlot(HandZone zone, int slot, Vec2 cardSize, int count = 0)
         {
             var halfWidth = zone.Size.X * zone.Transform.Scale.X / 2;
             var first = -halfWidth + cardSize.X / 2;
             var last = Math.Max(first, halfWidth - cardSize.X / 2);
-            var x = Math.Min(first + slot * cardSize.X * 0.6f, last);
+            var step = cardSize.X * 0.6f;
+            if (count > 1)
+                step = Math.Min(step, (last - first) / (count - 1));
+            var x = Math.Min(first + slot * step, last);
             return Geometry.Add(zone.Transform.Position, Geometry.Rotate(zone.Transform.Rotation, new Vec3(x, 0f, 0f)));
         }
 
