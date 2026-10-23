@@ -107,6 +107,24 @@ namespace TableWorld.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator R_OverASelectedDie_RollsEverySelectedDie()
+        {
+            var rolled = new System.Collections.Generic.List<string>();
+            void Count(Command command, CommandResult result) { if (command is RollCommand roll && result.Ok) rolled.Add(roll.ObjectId); }
+            _table.CommandExecuted += Count;
+            _interaction.SetSelection(new[] { _table.ViewOf("d6"), _table.ViewOf("d20") });
+            yield return Point(ScreenOf("d6"));
+            yield return Tap(_keyboard.rKey);
+            _table.CommandExecuted -= Count;
+            CollectionAssert.AreEquivalent(new[] { "d6", "d20" }, rolled);
+            var status = Object.FindAnyObjectByType<HudController>().GetComponent<UIDocument>().rootVisualElement.Q<Label>("statusLabel").text;
+            var total = ((Die)M("d6")).Value + ((Die)M("d20")).Value;
+            StringAssert.Contains("(d6)", status);
+            StringAssert.Contains("(d20)", status);
+            StringAssert.EndsWith($"total {total}", status, "the status line lists both dice and their total");
+        }
+
+        [UnityTest]
         public IEnumerator Keys_CopyPaste_Scale_Group()
         {
             yield return Point(ScreenOf("token_blue"));

@@ -74,6 +74,7 @@ Everything below already passes automated tests on one machine (two processes, s
 - [ ] The controls list (F1) explains what people try to do.
 - [ ] Search a deck (right click → Search): the card grid is readable, and pressing a card and dragging it to the table feels natural.
 - [ ] Hovering a deck or bag shows how many cards or items it holds.
+- [ ] Rolling several dice at once (select or pick them up together, R) reads clearly for everyone.
 - [ ] Sounds: picking up, dropping, shuffling, rolling, dealing feel right and are not too loud or repetitive; friends' actions are heard too.
 
 **After the session**

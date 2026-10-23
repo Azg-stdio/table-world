@@ -164,6 +164,34 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsEmpty(TableValidator.Validate(_table.Engine.State));
         }
 
+        [UnityTest]
+        public IEnumerator SeveralDice_SelectedOrHeld_RollTogether()
+        {
+            var rolls = 0;
+            void Count(Command command, CommandResult result) { if (command is RollCommand && result.Ok) rolls++; }
+            _table.CommandExecuted += Count;
+            try
+            {
+                _interaction.SetSelection(new[] { V("d6"), V("d20"), V("ace_spades") });
+                Assert.AreEqual(2, _interaction.RollDice(_interaction.Selection.ToList()), "only the dice in a selection roll");
+                Assert.AreEqual(2, rolls);
+                yield return new WaitForSeconds(1.2f);
+
+                _interaction.SetSelection(new[] { V("d6"), V("d20") });
+                Assert.IsTrue(_interaction.GrabSelection(V("d6")));
+                Assert.AreEqual(2, _interaction.RollDice(_interaction.HeldGroup.ToList()), "dice carried together roll together");
+                Assert.IsNull(_interaction.Held, "rolling lets go of the held dice");
+                Assert.AreEqual(4, rolls);
+                yield return new WaitForSeconds(2f);
+                Assert.IsTrue(_table.Engine.Find("d6") is Die { Value: { } } && _table.Engine.Find("d20") is Die { Value: { } });
+                Assert.IsEmpty(TableValidator.Validate(_table.Engine.State));
+            }
+            finally
+            {
+                _table.CommandExecuted -= Count;
+            }
+        }
+
         // ---- 3. looking ----
 
         [UnityTest]

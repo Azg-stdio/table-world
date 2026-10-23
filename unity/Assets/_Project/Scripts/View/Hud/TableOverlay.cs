@@ -160,7 +160,11 @@ namespace TableWorld.View.Hud
                     break;
                 case Die die:
                     Section($"d{die.Faces}{(die.Value.HasValue ? $" · shows {die.Value}" : "")}");
-                    Item("Roll (R)", () => _interaction.RollOrShuffle(view));
+                    var selectedDice = _interaction.Selection.Contains(view) ? _interaction.Selection.Where(v => v.Model is Die).ToList() : null;
+                    if (selectedDice != null && selectedDice.Count > 1)
+                        Item($"Roll {selectedDice.Count} selected dice (R)", () => _interaction.RollDice(selectedDice));
+                    else
+                        Item("Roll (R)", () => _interaction.RollOrShuffle(view));
                     Row("Set value", Enumerable.Range(1, die.Faces).Select(v => ($"{v}", (Action)(() => Run(new SetDieValueCommand { ObjectId = die.Id, Value = v })))));
                     break;
                 case Bag bag:

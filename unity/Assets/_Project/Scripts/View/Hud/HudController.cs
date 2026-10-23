@@ -396,10 +396,32 @@ namespace TableWorld.View.Hud
             if (result.Ok && command is MoveCommand)
                 return;
             var name = command.GetType().Name.Replace("Command", "");
-            _status.text = result.Ok ? $"{name}: done" : $"{name} rejected: {result.Error.Message} {result.Error.Suggestion}";
+            _status.text = result.Ok ? (command is RollCommand ? RollText(result) : $"{name}: done")
+                : $"{name} rejected: {result.Error.Message} {result.Error.Suggestion}";
             _status.EnableInClassList("status-label--error", !result.Ok);
             _status.RemoveFromClassList(Hidden);
             _shownSelectionHash = null;
+        }
+
+        private readonly List<(int Faces, int Value)> _rolls = new List<(int, int)>();
+        private int _rollsFrame = -1;
+
+        /// <summary>What was rolled; dice rolled together (G20) are listed together with their total.</summary>
+        private string RollText(CommandResult result)
+        {
+            if (Time.frameCount != _rollsFrame)
+            {
+                _rolls.Clear();
+                _rollsFrame = Time.frameCount;
+            }
+            foreach (var rolled in result.Events.OfType<DieRolled>())
+                if (_table.Engine.Find(rolled.ObjectId) is Die die)
+                    _rolls.Add((die.Faces, rolled.Value));
+            if (_rolls.Count == 0)
+                return "Rolled";
+            if (_rolls.Count == 1)
+                return $"Rolled {_rolls[0].Value} (d{_rolls[0].Faces})";
+            return $"Rolled {string.Join(", ", _rolls.Select(r => $"{r.Value} (d{r.Faces})"))} · total {_rolls.Sum(r => r.Value)}";
         }
 
         private async void HostOnline(TextField address)

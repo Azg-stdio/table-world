@@ -141,7 +141,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G17 | Hidden zones that hide | contents invisible to everyone but the zone's owner | zones exist in the model; nothing is hidden | P1 |
 | G18 | Randomize, layout, fog-of-war zones | shuffle what is inside; auto-arrange contents; fog that players reveal | not implemented | P2 |
 | G19 | Physics modes | host sets full, semi-lock (nothing topples) or locked | full only | P1 |
-| G20 | Several dice at once | select dice, R rolls them all | one die per R | P1 |
+| G20 | Several dice at once | select dice, R rolls them all | ✅ R (or the menu's "Roll N selected dice") rolls every selected or held die together, one throw sound, status line lists each value and the total (2026-10-23) | P1 |
 | G21 | Custom dice | faces and rotation values from images (TTS `Custom_Dice`) | model only | P2 |
 | G22 | Turns without rules | turn order, end turn button, skip empty hands | turns only with a rules file | P1 |
 | G23 | Player management | colours and teams, Game Master (Black) sees everything, promote, kick, mute, per-player permissions | host and seats only | P2 |

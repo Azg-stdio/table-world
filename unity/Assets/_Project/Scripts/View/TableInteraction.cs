@@ -386,7 +386,7 @@ namespace TableWorld.View
             if (target == null)
                 return;
             if (keyboard.fKey.wasPressedThisFrame) Flip(target, otherAxis: false);
-            if (keyboard.rKey.wasPressedThisFrame) RollOrShuffle(target);
+            if (keyboard.rKey.wasPressedThisFrame && RollDice(Held != null ? _held.ToList() : targets) == 0) RollOrShuffle(target);
             if (keyboard.lKey.wasPressedThisFrame) ToggleLock(target);
             if (keyboard.gKey.wasPressedThisFrame) Group(targets.Count > 1 ? targets : HeldPlusHovered());
             if (keyboard.uKey.wasPressedThisFrame && Held != null && Hovered != null) PlaceUnder(Hovered);
@@ -925,6 +925,20 @@ namespace TableWorld.View
                 default:
                     return false;
             }
+        }
+
+        /// <summary>
+        /// R on several dice (selected or held together): every unlocked die rolls at once (TTS). Held dice are let go first,
+        /// so they tumble where they were carried. Returns how many dice rolled.
+        /// </summary>
+        public int RollDice(IReadOnlyCollection<ObjectView> views)
+        {
+            var dice = views.Where(v => v != null && v.Model is Die && !v.Model.Locked).ToList();
+            if (dice.Count == 0)
+                return 0;
+            if (dice.Any(d => _held.Contains(d)))
+                Release();
+            return dice.Count(d => _table.Execute(new RollCommand { ObjectId = d.Id, Actor = _table.LocalSeat }).Ok);
         }
 
         public bool ToggleLock(ObjectView view)

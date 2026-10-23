@@ -43,6 +43,7 @@ namespace TableWorld.View
 
         private readonly List<AudioSource> _voices = new List<AudioSource>();
         private int _next;
+        private int _rollFrame = -1;
         private readonly System.Random _random = new System.Random();
 
         /// <summary>Sounds played so far, by bank name (tests read it).</summary>
@@ -140,7 +141,8 @@ namespace TableWorld.View
                 case ShuffleCommand c:
                     Play(nameof(Clips.CardShuffle), _table.ViewOf(c.ObjectId)?.Model is Bag ? _clips.ChipsHandle : _clips.CardShuffle, At(c.ObjectId), 0.7f);
                     break;
-                case RollCommand c:
+                case RollCommand c when Time.frameCount != _rollFrame:
+                    _rollFrame = Time.frameCount;
                     Play(nameof(Clips.DiceThrow), _clips.DiceThrow, At(c.ObjectId), 0.7f);
                     break;
                 case DealCommand c:
