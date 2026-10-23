@@ -115,6 +115,29 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | Number pad scripting hotkeys | numpad | KB:adv | ⏭ M5 (Lua) | — |
 | First-person camera, physics characters | P, WASD | KB:basic | ⏭ M6 | — |
 
+## 7. Gaps found in the 2026-10-23 re-audit
+
+Miguel's playtest showed that sections 1–6 cover single-player gestures but not what makes TTS *feel* like a shared table. Checked in the code, not assumed. Ordered by impact on the playtest; each becomes ✅ only after the polish checks in `plan.md` rule 9 (real input, built exe, two clients, screenshots, clean console).
+
+| # | Gap | What TTS does | Today | Priority |
+|---|---|---|---|---|
+| G1 | Seeing others move things | a held object moves live on every screen | others see it only after it is dropped and settles | P1 |
+| G2 | Other players' pointers | each player's hand cursor, in their colour, with their name | not shown | P1 |
+| G3 | Who holds / selected what | outline in the holder's colour | none | P1 |
+| G4 | Controls help | `?` / Help menu lists every binding | none in game | P1 |
+| G5 | Sound | pick up, drop, card slide, shuffle, dice, chips | silent | P1 |
+| G6 | Deck count | hovering a deck or bag shows how many items | tooltip shows only the name | P1 |
+| G7 | Search shows cards | a grid of card faces, drag one out | a text list with Take buttons | P1 |
+| G8 | Hand card close-up | hovering a card in your hand raises and enlarges it | hand cards are small at the table edge | P1 |
+| G9 | Motion | flips, draws and deals animate | they snap | P2 |
+| G10 | Seats | click a colour to sit there, spectator, change seat | assigned in join order | P2 |
+| G11 | Chat and game log | chat box, messages and rule messages scroll back | only the last rules message | P2 |
+| G12 | Lighting | even light around the table | the far side of the table is dark | P2 |
+| G13 | Escape menu | settings (mouse, volume, graphics), leave, quit | none | P2 |
+| G14 | Token / chip stacks | same tokens stack into a counted stack, drag one off | tokens are separate | P2 |
+| G15 | Blindfold, peek alert | B blindfolds; others see "X peeked" | ⏭ (needs G2/G11) | P3 |
+| G16 | Toggles | Snap, Grid, Auto Raise, Sticky, Hands, Hide Face Down, Tooltip per object | Lock only | P3 |
+
 ## Notes
 
 - **Conflicts we resolve on purpose:** TTS uses MMB *hold* to pan and MMB *click* to flip; we do the same (a click is a press-and-release without moving). Number keys draw over decks and switch states over objects with states (TTS does both). Shift+1…9 loads cameras; over a deck, plain digits draw.

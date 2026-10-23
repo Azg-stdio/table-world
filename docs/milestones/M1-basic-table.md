@@ -32,6 +32,7 @@ Spec and status per interaction: [../tts-interactions.md](../tts-interactions.md
 | T2.11e | Context menus (object and global) with the per-type actions: flip, rotate, lock, copy, delete, name, tint, deck draw/deal/search/cut/split/spread/shuffle, die roll/set, bag search/shuffle, states | M | T2.11a | PlayMode tests click every entry | done 2026-10-22 |
 | T2.11f | Copy/paste (Ctrl+C/V), delete (Del), undo/redo (Ctrl+Z/Y), camera: Space reset, Z/MMB quick zoom, P top-down, Ctrl/Shift+digit save/load; Tab ping and measure | M | T2.11a | PlayMode tests | done 2026-10-22 |
 | T2.11g | Input binding tests: simulated keyboard and mouse (Input System test fixture) for every binding in the spec | M | T2.11b–f | `test run --mode PlayMode` green with one test per binding | done 2026-10-23 |
+| T2.12 | Parity re-audit (Miguel's playtest, 2026-10-23): the shared-table feel TTS has and we lacked, gaps G1–G16 in `docs/tts-interactions.md` §7. P1 first: live movement of held objects for everyone (G1), remote pointers (G2), holder outlines (G3), controls help (G4), sound (G5), deck counts (G6), card grid in Search (G7), hand card close-up (G8) | L | T2.11, T3.2 | Each gap passes `plan.md` rule 9 (real input, built exe, two clients where networked, screenshots, clean console); rows in §7 marked with their test | in progress |
 
 ## Simulation record
 
