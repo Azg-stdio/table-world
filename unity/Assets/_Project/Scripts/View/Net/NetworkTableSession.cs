@@ -395,6 +395,9 @@ namespace TableWorld.View.Net
 
         private UnityTransport EnsureNetwork()
         {
+            // A session must keep exchanging messages while its window is in the background. Set here as well as in
+            // the player settings, which tooling has reset more than once.
+            Application.runInBackground = true;
             if (_network == null)
             {
                 // NGO requires the NetworkManager on a root GameObject.
