@@ -21,7 +21,7 @@ namespace TableWorld.Mcp.Tests
             {
                 Name = "table-world",
                 Command = "dotnet",
-                Arguments = new[] { server },
+                Arguments = new[] { server, "--no-bridge" },
             });
             Client = await McpClient.CreateAsync(transport);
         }

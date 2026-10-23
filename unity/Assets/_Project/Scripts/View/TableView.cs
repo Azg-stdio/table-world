@@ -10,7 +10,7 @@ using UnityEngine;
 namespace TableWorld.View
 {
     /// <summary>
-    /// Owns the core <see cref="TableEngine"/> for this table and one <see cref="ObjectView"/> per object on the table.
+    /// Owns the core <see cref="GameEngine"/> for this table and one <see cref="ObjectView"/> per object on the table.
     /// Everything that changes the table goes through <see cref="Execute"/>; views only follow the resulting events.
     /// </summary>
     public sealed class TableView : MonoBehaviour
@@ -39,7 +39,11 @@ namespace TableWorld.View
 
         private string _packageRoot;
 
-        public TableEngine Engine { get; private set; }
+        /// <summary>Rules interpreter for this table; free play goes through it too.</summary>
+        public GameEngine Game { get; private set; }
+
+        /// <summary>The table engine under <see cref="Game"/>: objects, zones, containment.</summary>
+        public TableEngine Engine => Game?.Table;
 
         /// <summary>Where saves live: &lt;persistentDataPath&gt;/Saves/&lt;name&gt;.json.</summary>
         public static string SavesFolder => Path.Combine(Application.persistentDataPath, "Saves");
@@ -84,12 +88,21 @@ namespace TableWorld.View
             Clear();
             _packageRoot = packageRoot;
             var seed = _seed != 0 ? (ulong)_seed : (ulong)DateTime.UtcNow.Ticks;
-            Engine = new TableEngine(parsed.State, seed);
+            Game = new GameEngine(parsed.State, seed);
             Assets = new AssetLibrary(parsed.State.Assets, packageRoot);
+            SpawnAll();
+            Loaded?.Invoke();
+            return true;
+        }
+
+        /// <summary>Raised after a table is loaded (the HUD rebuilds its seats).</summary>
+        public event Action Loaded;
+
+        private void SpawnAll()
+        {
             foreach (var obj in Engine.State.Objects.Where(o => o.Container == null))
                 Spawn(obj);
             SpawnZones();
-            return true;
         }
 
         /// <summary>
@@ -119,19 +132,30 @@ namespace TableWorld.View
 
         public CommandResult Execute(Command command)
         {
-            var result = Engine.Execute(command);
+            var result = Game.Execute(command);
             if (result.Ok)
                 Apply(result.Events);
             else
                 Debug.LogWarning($"[TableView] {command.GetType().Name} rejected: {result.Error}");
+            if (result.StateRestored)
+            {
+                // A rules command failed midway and the engine rolled the table back: rebuild every view.
+                Clear();
+                SpawnAll();
+            }
             CommandExecuted?.Invoke(command, result);
             return result;
         }
 
         public ObjectView ViewOf(string id) => id != null && _views.TryGetValue(id, out var view) ? view : null;
 
-        /// <summary>Seat that commands from this machine act as. Solo play: the first seat.</summary>
-        public string LocalSeat => Engine?.State.Players.Seats.FirstOrDefault()?.Id;
+        /// <summary>
+        /// Seat that commands from this machine act as. Solo (hot seat): the seat whose turn it is during a game,
+        /// otherwise the first seat. Multiplayer (M3) will pin it per client.
+        /// </summary>
+        public string LocalSeat => Game?.Session is { Started: true, Over: false } session
+            ? session.CurrentSeat
+            : Engine?.State.Players.Seats.FirstOrDefault()?.Id;
 
         /// <summary>
         /// Physics moves free objects; the state learns their final pose here. When a body falls asleep (or has been

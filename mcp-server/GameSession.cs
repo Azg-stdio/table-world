@@ -37,10 +37,62 @@ namespace TableWorld.Mcp
                 Load(filePath);
         }
 
+        /// <summary>Set when the game window is connected: play then runs in the game (the authoritative host).</summary>
+        public UnityBridge? Bridge { get; set; }
+
+        public bool Remote => Bridge?.Connected == true;
+
+        /// <summary>
+        /// Latest state the game reported on its own (a human played in the window). Parked here by the bridge's
+        /// receive thread, applied at the next tool call: that thread must never wait for the session lock, because a
+        /// tool holding it may be waiting for a reply on the same thread.
+        /// </summary>
+        private volatile JObject? _reported;
+
+        public void Report(JObject document) => _reported = document;
+
         public T Locked<T>(Func<T> body)
         {
             lock (_lock)
+            {
+                if (_reported is { } reported)
+                {
+                    _reported = null;
+                    Mirror(reported);
+                }
                 return body();
+            }
+        }
+
+        /// <summary>Sends the table to the game window, which loads it (resuming the session if there is one).</summary>
+        public void PushToGame()
+        {
+            if (Remote)
+                Bridge!.Send(new JObject { ["type"] = "load", ["document"] = JObject.Parse(TableJson.Serialize(Current)) }).GetAwaiter().GetResult();
+        }
+
+        private void Mirror(JObject document)
+        {
+            var parsed = TableJson.Parse(document.ToString());
+            if (parsed.State == null || parsed.Structural)
+                return;
+            Game = parsed.State.Session is { Started: true } ? new GameEngine(parsed.State, Seed) : null;
+            if (Game == null)
+                Document = parsed.State;
+        }
+
+        private PlayResult RemoteCommand(JObject command)
+        {
+            var reply = Bridge!.Request(new JObject { ["type"] = "command", ["command"] = command }).GetAwaiter().GetResult();
+            if (reply == null)
+                return PlayResult.Refused(new ValidationError("", "game_unreachable", "The game window did not answer within 10 s.",
+                    "Check that the game is running, or close it to play headless."));
+            if (reply["document"] is JObject document)
+                Mirror(document);
+            var errors = (reply["errors"] as JArray ?? new JArray()).Select(e => new ValidationError(
+                (string?)e["path"] ?? "", (string?)e["code"] ?? "rule_failed", (string?)e["message"] ?? "", (string?)e["suggestion"])).ToArray();
+            var messages = (reply["messages"] as JArray ?? new JArray()).Select(m => (string)m!).ToList();
+            return errors.Length > 0 ? PlayResult.Refused(errors) : PlayResult.Remote(messages);
         }
 
         // ---- authoring ----------------------------------------------------------------------------------------------
@@ -156,6 +208,11 @@ namespace TableWorld.Mcp
             var problems = Validate();
             if (problems.Count > 0)
                 return PlayResult.Refused(problems.ToArray());
+            if (Remote)
+            {
+                PushToGame();
+                return RemoteCommand(new JObject { ["kind"] = "start", ["seed"] = (long)Seed });
+            }
             var copy = TableJson.Parse(TableJson.Serialize(Document)).State!;
             Game = new GameEngine(copy, Seed);
             var result = Game.Execute(new StartGameCommand());
@@ -167,6 +224,20 @@ namespace TableWorld.Mcp
 
         public PlayResult Execute(Command command)
         {
+            if (Remote)
+            {
+                switch (command)
+                {
+                    case PerformActionCommand perform:
+                        return RemoteCommand(new JObject
+                        {
+                            ["kind"] = "perform", ["seat"] = perform.Actor, ["action"] = perform.ActionId,
+                            ["params"] = JObject.FromObject(perform.Params),
+                        });
+                    case DealCommand deal:
+                        return RemoteCommand(new JObject { ["kind"] = "deal", ["deck"] = deal.DeckId, ["count"] = deal.Count, ["seats"] = new JArray(deal.Seats) });
+                }
+            }
             if (Game == null)
                 return PlayResult.Refused(new ValidationError("", ErrorCodes.GameNotStarted, "No game is running.", "Call start_game first."));
             var result = Game.Execute(command);
@@ -180,6 +251,7 @@ namespace TableWorld.Mcp
         {
             Game = null;
             Changed?.Invoke(Current);
+            PushToGame();
         }
 
         /// <summary>The table as it is now: the running game's state, or the document being authored.</summary>
@@ -213,6 +285,7 @@ namespace TableWorld.Mcp
                 Document.Session = null;
             }
             Changed?.Invoke(Current);
+            PushToGame();
             return parsed;
         }
 
@@ -221,6 +294,7 @@ namespace TableWorld.Mcp
             if (FilePath != null)
                 File.WriteAllText(FilePath, TableJson.Serialize(Document));
             Changed?.Invoke(Current);
+            PushToGame();
             return EditResult.Applied(problems);
         }
 
@@ -232,17 +306,23 @@ namespace TableWorld.Mcp
         public bool Ok => Errors.Count == 0;
         public IReadOnlyList<ValidationError> Errors { get; }
         public CommandResult? Result { get; }
+        public IReadOnlyList<string> Messages { get; }
 
-        private PlayResult(CommandResult? result, IReadOnlyList<ValidationError> errors)
+        private PlayResult(CommandResult? result, IReadOnlyList<ValidationError> errors, IReadOnlyList<string> messages)
         {
             Result = result;
             Errors = errors;
+            Messages = messages;
         }
 
-        public static PlayResult From(CommandResult result) =>
-            new PlayResult(result, result.Ok ? Array.Empty<ValidationError>() : new[] { result.Error! });
+        public static PlayResult From(CommandResult result) => new PlayResult(result,
+            result.Ok ? Array.Empty<ValidationError>() : new[] { result.Error! },
+            result.Events.OfType<GameMessage>().Select(m => m.Text).ToList());
 
-        public static PlayResult Refused(params ValidationError[] errors) => new PlayResult(null, errors);
+        /// <summary>A command the game window executed.</summary>
+        public static PlayResult Remote(IReadOnlyList<string> messages) => new PlayResult(null, Array.Empty<ValidationError>(), messages);
+
+        public static PlayResult Refused(params ValidationError[] errors) => new PlayResult(null, errors, Array.Empty<string>());
     }
 
     public sealed class EditResult

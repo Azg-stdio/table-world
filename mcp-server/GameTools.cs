@@ -239,7 +239,7 @@ namespace TableWorld.Mcp
                 var command = new DealCommand { DeckId = deck, Count = count };
                 if (!string.IsNullOrWhiteSpace(seats))
                     command.Seats.AddRange(seats!.Split(',').Select(s => s.Trim()));
-                if (session.Game == null)
+                if (session.Game == null && !session.Remote)
                 {
                     // Setup time: deal on the document itself.
                     var engine = new TableEngine(session.Document, session.Seed);
@@ -293,8 +293,7 @@ namespace TableWorld.Mcp
         {
             if (!result.Ok)
                 return Json(new { ok = false, errors = Errors(result.Errors), stateRestored = result.Result?.StateRestored ?? false });
-            var messages = result.Result!.Events.OfType<GameMessage>().Select(m => m.Text).ToList();
-            return Json(new { ok = true, messages, state = Summary(session) });
+            return Json(new { ok = true, messages = result.Messages, state = Summary(session) });
         }
 
         internal static object Summary(GameSession session)
@@ -306,6 +305,7 @@ namespace TableWorld.Mcp
             return new
             {
                 game = state.Game == null ? null : new { state.Game.Id, state.Game.Name },
+                gameWindow = session.Remote ? "connected: play runs in the game window" : "not connected: playing headless",
                 seats = state.Players.Seats.Select(s => new
                 {
                     s.Id,

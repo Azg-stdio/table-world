@@ -43,6 +43,7 @@ namespace TableWorld.Editor
             var tableGo = new GameObject("TableView");
             var table = tableGo.AddComponent<TableView>();
             table.Configure("Tables/sample", objects.transform, seed: 0);
+            tableGo.AddComponent<TableWorld.View.Bridge.BridgeClient>().Configure(table);
             var interaction = tableGo.AddComponent<TableInteraction>();
             interaction.Configure(table, camera, camera.GetComponent<TableCamera>());
 

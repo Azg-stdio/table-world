@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Core.Engine;
 using Core.Rules;
@@ -28,6 +29,14 @@ namespace TableWorld.View.Hud
         private Label _selectionDetail;
         private VisualElement _actions;
         private Label _status;
+        private VisualElement _gamePanel;
+        private Label _gameLog;
+        private VisualElement _gameActions;
+        private string _shownGameKey;
+        private float _nextGameRefresh;
+
+        /// <summary>At most this many action buttons; a game offering more should use parameters with fewer choices.</summary>
+        public const int MaxActionButtons = 24;
         private ObjectView _shownSelection;
         private string _shownSelectionHash;
         private TableEngine _shownEngine;
@@ -48,6 +57,9 @@ namespace TableWorld.View.Hud
             _selectionDetail = _root.Q<Label>("selectionDetail");
             _actions = _root.Q("actions");
             _status = _root.Q<Label>("statusLabel");
+            _gamePanel = _root.Q("gamePanel");
+            _gameLog = _root.Q<Label>("gameLog");
+            _gameActions = _root.Q("gameActions");
 
             _root.Q<Button>("saveButton").clicked += Save;
             _root.Q<Button>("loadButton").clicked += Load;
@@ -77,6 +89,67 @@ namespace TableWorld.View.Hud
                 _shownSelection = null;
             }
             RefreshSelection();
+            if (Time.unscaledTime >= _nextGameRefresh)
+            {
+                _nextGameRefresh = Time.unscaledTime + 0.25f;
+                RefreshGame();
+            }
+        }
+
+        /// <summary>Turn line, Start button and one button per legal action (hot seat: every seat that can act).</summary>
+        private void RefreshGame()
+        {
+            var game = _table.Game;
+            var state = game.State;
+            var session = game.Session;
+            var legal = session is { Started: true, Over: false }
+                ? state.Players.Seats.SelectMany(s => game.LegalActions(s.Id).Select(a => (Seat: s.Id, Action: a))).ToList()
+                : new List<(string Seat, LegalAction Action)>();
+            var key = $"{state.HasRules}|{session?.Turn}|{session?.Phase}|{session?.CurrentSeat}|{session?.Over}|{session?.Log.Count}|" +
+                      string.Join(",", legal.Select(l => $"{l.Seat}/{l.Action.ActionId}/{l.Action.Choices.Count}"));
+            if (key == _shownGameKey)
+                return;
+            _shownGameKey = key;
+
+            _turnLabel.text = !state.HasRules ? "Free play"
+                : session == null ? $"{state.Game?.Name ?? "Game"}: not started"
+                : session.Over ? $"Game over: {session.Winner ?? "nobody"} wins"
+                : $"Turn {session.Turn} · {PhaseName(state, session.Phase)} · {session.CurrentSeat}";
+
+            _gameActions.Clear();
+            _gamePanel.EnableInClassList(Hidden, !state.HasRules);
+            if (!state.HasRules)
+                return;
+            _gameLog.text = session?.Log.LastOrDefault() ?? "";
+            _gameLog.EnableInClassList(Hidden, string.IsNullOrEmpty(_gameLog.text));
+            if (session == null)
+            {
+                AddGameButton("Start game", () => _table.Execute(new StartGameCommand()));
+                return;
+            }
+            var count = 0;
+            foreach (var (seat, action) in legal)
+            {
+                foreach (var choice in action.Choices)
+                {
+                    if (count++ >= MaxActionButtons)
+                        return;
+                    var label = $"{seat}: {action.Name ?? action.ActionId}";
+                    if (choice.Count > 0)
+                        label += " · " + string.Join(", ", choice.Values.Select(v => _table.Engine.Find(v)?.Name ?? v));
+                    var parameters = choice;
+                    AddGameButton(label, () => _table.Execute(new PerformActionCommand { Actor = seat, ActionId = action.ActionId, Params = new Dictionary<string, string>(parameters) }));
+                }
+            }
+        }
+
+        private static string PhaseName(TableState state, string phase) => state.Phases.FirstOrDefault(p => p.Id == phase)?.Name ?? phase;
+
+        private void AddGameButton(string text, Action action)
+        {
+            var button = new Button(action) { text = text };
+            button.AddToClassList("hud-button");
+            _gameActions.Add(button);
         }
 
         /// <summary>True when the screen point is over an opaque HUD element, so the table must ignore the click.</summary>
@@ -108,7 +181,6 @@ namespace TableWorld.View.Hud
                 chip.Add(name);
                 _seatList.Add(chip);
             }
-            _turnLabel.text = "Free play";
         }
 
         private void RefreshSelection()

@@ -1,6 +1,5 @@
 .hud {
     flex-grow: 1;
-    justify-content: space-between;
     padding: 12px;
 }
 
@@ -80,7 +79,24 @@
     background-color: rgb(34, 38, 46);
 }
 
+.game-panel {
+    align-self: center;
+    max-width: 70%;
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background-color: rgba(16, 18, 22, 0.82);
+}
+
+.game-log {
+    font-size: 13px;
+    color: rgb(220, 216, 206);
+    margin-bottom: 6px;
+    white-space: normal;
+}
+
 .bottom-row {
+    margin-top: auto;
     flex-direction: row;
     align-items: flex-end;
     justify-content: space-between;
