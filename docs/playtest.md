@@ -17,7 +17,7 @@ The M3-lite playtest: you host War and two friends join over the internet with a
 5. **Start game**, in the panel at the bottom left.
 6. Play with your hands. In War, drag your own deck to play its top card. In UNO, drag a card from your hand onto the table to play it, or drag the draw pile to draw. If a move is not allowed (not your turn, card does not match), the card goes back and the bottom-left line says why. The buttons (top right, and at the top centre) still work.
 
-War has two seats, so the third person gets no seat and can only watch and move objects. For three players, also try **Simplified UNO** (load it before **Host online**, or load it while hosting: everyone receives the new table).
+Both sample games (War and **Simplified UNO**) have two seats, so a third person gets no seat and can only watch and move free objects. To switch games, open the other one from **Games** while hosting: everyone receives the new table.
 
 ## 3. Friends
 
