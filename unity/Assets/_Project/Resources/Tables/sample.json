@@ -1,0 +1,945 @@
+{
+ "schemaVersion": "0.1",
+ "assets": [
+  {
+   "id": "std_deck",
+   "type": "image",
+   "path": "builtin:standard_deck",
+   "columns": 10,
+   "rows": 7
+  },
+  {
+   "id": "std_back",
+   "type": "image",
+   "path": "builtin:standard_back"
+  },
+  {
+   "id": "placeholder_model",
+   "type": "model",
+   "path": "builtin:placeholder"
+  }
+ ],
+ "objects": [
+  {
+   "id": "deck_main",
+   "type": "Deck",
+   "name": "Standard deck",
+   "faceAsset": "std_deck",
+   "backAsset": "std_back",
+   "transform": {
+    "position": [
+     -0.35,
+     0,
+     0.1
+    ],
+    "rotation": [
+     0,
+     0,
+     180
+    ]
+   },
+   "cards": [
+    {
+     "faceIndex": 0,
+     "name": "Ace of clubs",
+     "meta": {
+      "rank": 14,
+      "suit": "clubs"
+     }
+    },
+    {
+     "faceIndex": 1,
+     "name": "2 of clubs",
+     "meta": {
+      "rank": 2,
+      "suit": "clubs"
+     }
+    },
+    {
+     "faceIndex": 2,
+     "name": "3 of clubs",
+     "meta": {
+      "rank": 3,
+      "suit": "clubs"
+     }
+    },
+    {
+     "faceIndex": 3,
+     "name": "4 of clubs",
+     "meta": {
+      "rank": 4,
+      "suit": "clubs"
+     }
+    },
+    {
+     "faceIndex": 4,
+     "name": "5 of clubs",
+     "meta": {
+      "rank": 5,
+      "suit": "clubs"
+     }
+    },
+    {
+     "faceIndex": 5,
+     "name": "6 of clubs",
+     "meta": {
+      "rank": 6,
+      "suit": "clubs"
+     }
+    },
+    {
+     "faceIndex": 6,
+     "name": "7 of clubs",
+     "meta": {
+      "rank": 7,
+      "suit": "clubs"
+     }
+    },
+    {
+     "faceIndex": 7,
+     "name": "8 of clubs",
+     "meta": {
+      "rank": 8,
+      "suit": "clubs"
+     }
+    },
+    {
+     "faceIndex": 8,
+     "name": "9 of clubs",
+     "meta": {
+      "rank": 9,
+      "suit": "clubs"
+     }
+    },
+    {
+     "faceIndex": 9,
+     "name": "10 of clubs",
+     "meta": {
+      "rank": 10,
+      "suit": "clubs"
+     }
+    },
+    {
+     "faceIndex": 10,
+     "name": "Jack of clubs",
+     "meta": {
+      "rank": 11,
+      "suit": "clubs"
+     }
+    },
+    {
+     "faceIndex": 11,
+     "name": "Queen of clubs",
+     "meta": {
+      "rank": 12,
+      "suit": "clubs"
+     }
+    },
+    {
+     "faceIndex": 12,
+     "name": "King of clubs",
+     "meta": {
+      "rank": 13,
+      "suit": "clubs"
+     }
+    },
+    {
+     "faceIndex": 13,
+     "name": "Ace of diamonds",
+     "meta": {
+      "rank": 14,
+      "suit": "diamonds"
+     }
+    },
+    {
+     "faceIndex": 14,
+     "name": "2 of diamonds",
+     "meta": {
+      "rank": 2,
+      "suit": "diamonds"
+     }
+    },
+    {
+     "faceIndex": 15,
+     "name": "3 of diamonds",
+     "meta": {
+      "rank": 3,
+      "suit": "diamonds"
+     }
+    },
+    {
+     "faceIndex": 16,
+     "name": "4 of diamonds",
+     "meta": {
+      "rank": 4,
+      "suit": "diamonds"
+     }
+    },
+    {
+     "faceIndex": 17,
+     "name": "5 of diamonds",
+     "meta": {
+      "rank": 5,
+      "suit": "diamonds"
+     }
+    },
+    {
+     "faceIndex": 18,
+     "name": "6 of diamonds",
+     "meta": {
+      "rank": 6,
+      "suit": "diamonds"
+     }
+    },
+    {
+     "faceIndex": 19,
+     "name": "7 of diamonds",
+     "meta": {
+      "rank": 7,
+      "suit": "diamonds"
+     }
+    },
+    {
+     "faceIndex": 20,
+     "name": "8 of diamonds",
+     "meta": {
+      "rank": 8,
+      "suit": "diamonds"
+     }
+    },
+    {
+     "faceIndex": 21,
+     "name": "9 of diamonds",
+     "meta": {
+      "rank": 9,
+      "suit": "diamonds"
+     }
+    },
+    {
+     "faceIndex": 22,
+     "name": "10 of diamonds",
+     "meta": {
+      "rank": 10,
+      "suit": "diamonds"
+     }
+    },
+    {
+     "faceIndex": 23,
+     "name": "Jack of diamonds",
+     "meta": {
+      "rank": 11,
+      "suit": "diamonds"
+     }
+    },
+    {
+     "faceIndex": 24,
+     "name": "Queen of diamonds",
+     "meta": {
+      "rank": 12,
+      "suit": "diamonds"
+     }
+    },
+    {
+     "faceIndex": 25,
+     "name": "King of diamonds",
+     "meta": {
+      "rank": 13,
+      "suit": "diamonds"
+     }
+    },
+    {
+     "faceIndex": 26,
+     "name": "Ace of hearts",
+     "meta": {
+      "rank": 14,
+      "suit": "hearts"
+     }
+    },
+    {
+     "faceIndex": 27,
+     "name": "2 of hearts",
+     "meta": {
+      "rank": 2,
+      "suit": "hearts"
+     }
+    },
+    {
+     "faceIndex": 28,
+     "name": "3 of hearts",
+     "meta": {
+      "rank": 3,
+      "suit": "hearts"
+     }
+    },
+    {
+     "faceIndex": 29,
+     "name": "4 of hearts",
+     "meta": {
+      "rank": 4,
+      "suit": "hearts"
+     }
+    },
+    {
+     "faceIndex": 30,
+     "name": "5 of hearts",
+     "meta": {
+      "rank": 5,
+      "suit": "hearts"
+     }
+    },
+    {
+     "faceIndex": 31,
+     "name": "6 of hearts",
+     "meta": {
+      "rank": 6,
+      "suit": "hearts"
+     }
+    },
+    {
+     "faceIndex": 32,
+     "name": "7 of hearts",
+     "meta": {
+      "rank": 7,
+      "suit": "hearts"
+     }
+    },
+    {
+     "faceIndex": 33,
+     "name": "8 of hearts",
+     "meta": {
+      "rank": 8,
+      "suit": "hearts"
+     }
+    },
+    {
+     "faceIndex": 34,
+     "name": "9 of hearts",
+     "meta": {
+      "rank": 9,
+      "suit": "hearts"
+     }
+    },
+    {
+     "faceIndex": 35,
+     "name": "10 of hearts",
+     "meta": {
+      "rank": 10,
+      "suit": "hearts"
+     }
+    },
+    {
+     "faceIndex": 36,
+     "name": "Jack of hearts",
+     "meta": {
+      "rank": 11,
+      "suit": "hearts"
+     }
+    },
+    {
+     "faceIndex": 37,
+     "name": "Queen of hearts",
+     "meta": {
+      "rank": 12,
+      "suit": "hearts"
+     }
+    },
+    {
+     "faceIndex": 38,
+     "name": "King of hearts",
+     "meta": {
+      "rank": 13,
+      "suit": "hearts"
+     }
+    },
+    {
+     "faceIndex": 39,
+     "name": "Ace of spades",
+     "meta": {
+      "rank": 14,
+      "suit": "spades"
+     }
+    },
+    {
+     "faceIndex": 40,
+     "name": "2 of spades",
+     "meta": {
+      "rank": 2,
+      "suit": "spades"
+     }
+    },
+    {
+     "faceIndex": 41,
+     "name": "3 of spades",
+     "meta": {
+      "rank": 3,
+      "suit": "spades"
+     }
+    },
+    {
+     "faceIndex": 42,
+     "name": "4 of spades",
+     "meta": {
+      "rank": 4,
+      "suit": "spades"
+     }
+    },
+    {
+     "faceIndex": 43,
+     "name": "5 of spades",
+     "meta": {
+      "rank": 5,
+      "suit": "spades"
+     }
+    },
+    {
+     "faceIndex": 44,
+     "name": "6 of spades",
+     "meta": {
+      "rank": 6,
+      "suit": "spades"
+     }
+    },
+    {
+     "faceIndex": 45,
+     "name": "7 of spades",
+     "meta": {
+      "rank": 7,
+      "suit": "spades"
+     }
+    },
+    {
+     "faceIndex": 46,
+     "name": "8 of spades",
+     "meta": {
+      "rank": 8,
+      "suit": "spades"
+     }
+    },
+    {
+     "faceIndex": 47,
+     "name": "9 of spades",
+     "meta": {
+      "rank": 9,
+      "suit": "spades"
+     }
+    },
+    {
+     "faceIndex": 48,
+     "name": "10 of spades",
+     "meta": {
+      "rank": 10,
+      "suit": "spades"
+     }
+    },
+    {
+     "faceIndex": 49,
+     "name": "Jack of spades",
+     "meta": {
+      "rank": 11,
+      "suit": "spades"
+     }
+    },
+    {
+     "faceIndex": 50,
+     "name": "Queen of spades",
+     "meta": {
+      "rank": 12,
+      "suit": "spades"
+     }
+    },
+    {
+     "faceIndex": 51,
+     "name": "King of spades",
+     "meta": {
+      "rank": 13,
+      "suit": "spades"
+     }
+    },
+    {
+     "faceIndex": 52,
+     "name": "Red joker",
+     "tags": [
+      "joker"
+     ]
+    },
+    {
+     "faceIndex": 53,
+     "name": "Black joker",
+     "tags": [
+      "joker"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "deck_up",
+   "type": "Deck",
+   "name": "Face-up clubs",
+   "faceAsset": "std_deck",
+   "backAsset": "std_back",
+   "transform": {
+    "position": [
+     -0.2,
+     0,
+     0.1
+    ]
+   },
+   "cards": [
+    {
+     "faceIndex": 1,
+     "name": "2 of clubs",
+     "meta": {
+      "rank": 2,
+      "suit": "clubs"
+     }
+    },
+    {
+     "faceIndex": 2,
+     "name": "3 of clubs",
+     "meta": {
+      "rank": 3,
+      "suit": "clubs"
+     }
+    },
+    {
+     "faceIndex": 3,
+     "name": "4 of clubs",
+     "meta": {
+      "rank": 4,
+      "suit": "clubs"
+     }
+    }
+   ]
+  },
+  {
+   "id": "ace_spades",
+   "type": "Card",
+   "name": "Ace of spades",
+   "faceAsset": "std_deck",
+   "faceIndex": 39,
+   "backAsset": "std_back",
+   "transform": {
+    "position": [
+     -0.3,
+     0,
+     -0.12
+    ]
+   },
+   "meta": {
+    "rank": 14,
+    "suit": "spades"
+   }
+  },
+  {
+   "id": "king_hearts",
+   "type": "Card",
+   "name": "King of hearts",
+   "faceAsset": "std_deck",
+   "faceIndex": 38,
+   "backAsset": "std_back",
+   "transform": {
+    "position": [
+     -0.2,
+     0,
+     -0.12
+    ]
+   },
+   "meta": {
+    "rank": 13,
+    "suit": "hearts"
+   }
+  },
+  {
+   "id": "ten_diamonds",
+   "type": "Card",
+   "name": "10 of diamonds",
+   "faceAsset": "std_deck",
+   "faceIndex": 22,
+   "backAsset": "std_back",
+   "transform": {
+    "position": [
+     -0.1,
+     0,
+     -0.12
+    ]
+   },
+   "meta": {
+    "rank": 10,
+    "suit": "diamonds"
+   }
+  },
+  {
+   "id": "queen_clubs",
+   "type": "Card",
+   "name": "Queen of clubs",
+   "faceAsset": "std_deck",
+   "faceIndex": 11,
+   "backAsset": "std_back",
+   "transform": {
+    "position": [
+     0.0,
+     0,
+     -0.12
+    ]
+   },
+   "meta": {
+    "rank": 12,
+    "suit": "clubs"
+   }
+  },
+  {
+   "id": "red_joker",
+   "type": "Card",
+   "name": "Red joker",
+   "faceAsset": "std_deck",
+   "faceIndex": 52,
+   "backAsset": "std_back",
+   "transform": {
+    "position": [
+     0.1,
+     0,
+     -0.12
+    ]
+   }
+  },
+  {
+   "id": "token_red",
+   "type": "Token",
+   "shape": "round",
+   "tint": [
+    0.8,
+    0.15,
+    0.15
+   ],
+   "transform": {
+    "position": [
+     0.05,
+     0,
+     0.22
+    ]
+   }
+  },
+  {
+   "id": "token_blue",
+   "type": "Token",
+   "shape": "round",
+   "tint": [
+    0.15,
+    0.3,
+    0.8
+   ],
+   "transform": {
+    "position": [
+     0.09,
+     0,
+     0.22
+    ]
+   }
+  },
+  {
+   "id": "token_square",
+   "type": "Token",
+   "shape": "square",
+   "tint": [
+    0.9,
+    0.75,
+    0.1
+   ],
+   "transform": {
+    "position": [
+     0.13,
+     0,
+     0.22
+    ]
+   }
+  },
+  {
+   "id": "tile_square",
+   "type": "Tile",
+   "shape": "square",
+   "transform": {
+    "position": [
+     0.05,
+     0,
+     0.3
+    ]
+   }
+  },
+  {
+   "id": "tile_hex",
+   "type": "Tile",
+   "shape": "hex",
+   "transform": {
+    "position": [
+     0.12,
+     0,
+     0.3
+    ]
+   }
+  },
+  {
+   "id": "tile_circle",
+   "type": "Tile",
+   "shape": "circle",
+   "transform": {
+    "position": [
+     0.19,
+     0,
+     0.3
+    ]
+   }
+  },
+  {
+   "id": "d4",
+   "type": "Die",
+   "faces": 4,
+   "value": 4,
+   "transform": {
+    "position": [
+     -0.3,
+     0,
+     -0.28
+    ]
+   }
+  },
+  {
+   "id": "d6",
+   "type": "Die",
+   "faces": 6,
+   "value": 6,
+   "transform": {
+    "position": [
+     -0.25,
+     0,
+     -0.28
+    ]
+   }
+  },
+  {
+   "id": "d8",
+   "type": "Die",
+   "faces": 8,
+   "value": 8,
+   "transform": {
+    "position": [
+     -0.19999999999999998,
+     0,
+     -0.28
+    ]
+   }
+  },
+  {
+   "id": "d10",
+   "type": "Die",
+   "faces": 10,
+   "value": 10,
+   "transform": {
+    "position": [
+     -0.14999999999999997,
+     0,
+     -0.28
+    ]
+   }
+  },
+  {
+   "id": "d12",
+   "type": "Die",
+   "faces": 12,
+   "value": 12,
+   "transform": {
+    "position": [
+     -0.09999999999999998,
+     0,
+     -0.28
+    ]
+   }
+  },
+  {
+   "id": "d20",
+   "type": "Die",
+   "faces": 20,
+   "value": 20,
+   "transform": {
+    "position": [
+     -0.04999999999999999,
+     0,
+     -0.28
+    ]
+   }
+  },
+  {
+   "id": "bag",
+   "type": "Bag",
+   "name": "Bag of tokens",
+   "transform": {
+    "position": [
+     0.35,
+     0,
+     0.3
+    ]
+   }
+  },
+  {
+   "id": "bag_token_1",
+   "type": "Token",
+   "container": "bag",
+   "tint": [
+    0.2,
+    0.7,
+    0.3
+   ]
+  },
+  {
+   "id": "bag_token_2",
+   "type": "Token",
+   "container": "bag",
+   "tint": [
+    0.2,
+    0.7,
+    0.3
+   ]
+  },
+  {
+   "id": "bag_token_3",
+   "type": "Token",
+   "container": "bag",
+   "tint": [
+    0.2,
+    0.7,
+    0.3
+   ]
+  },
+  {
+   "id": "coin_supply",
+   "type": "InfiniteBag",
+   "name": "Coins",
+   "transform": {
+    "position": [
+     0.5,
+     0,
+     0.3
+    ]
+   }
+  },
+  {
+   "id": "coin",
+   "type": "Token",
+   "container": "coin_supply",
+   "tint": [
+    0.95,
+    0.8,
+    0.2
+   ]
+  },
+  {
+   "id": "board",
+   "type": "Board",
+   "size": [
+    0.3,
+    0.2
+   ],
+   "transform": {
+    "position": [
+     0.45,
+     0,
+     -0.05
+    ]
+   }
+  },
+  {
+   "id": "hero",
+   "type": "Figure",
+   "name": "Hero",
+   "tint": [
+    0.6,
+    0.75,
+    0.95
+   ],
+   "transform": {
+    "position": [
+     0.3,
+     0,
+     -0.25
+    ]
+   }
+  },
+  {
+   "id": "statue",
+   "type": "Model",
+   "asset": "placeholder_model",
+   "transform": {
+    "position": [
+     0.4,
+     0,
+     -0.25
+    ]
+   }
+  }
+ ],
+ "zones": [
+  {
+   "id": "hand_south",
+   "type": "HandZone",
+   "owner": "seat_south",
+   "transform": {
+    "position": [
+     0,
+     0.05,
+     -0.42
+    ]
+   },
+   "size": [
+    0.6,
+    0.1,
+    0.12
+   ]
+  },
+  {
+   "id": "hand_north",
+   "type": "HandZone",
+   "owner": "seat_north",
+   "transform": {
+    "position": [
+     0,
+     0.05,
+     0.42
+    ],
+    "rotation": [
+     0,
+     180,
+     0
+    ]
+   },
+   "size": [
+    0.6,
+    0.1,
+    0.12
+   ]
+  },
+  {
+   "id": "discard",
+   "type": "SnapPoint",
+   "transform": {
+    "position": [
+     -0.05,
+     0,
+     0.1
+    ]
+   }
+  }
+ ],
+ "players": {
+  "seats": [
+   {
+    "id": "seat_south",
+    "color": "red",
+    "handZone": "hand_south"
+   },
+   {
+    "id": "seat_north",
+    "color": "blue",
+    "handZone": "hand_north"
+   }
+  ]
+ }
+}

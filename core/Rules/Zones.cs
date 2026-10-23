@@ -15,7 +15,7 @@ namespace Core.Rules
 
         public string? Name { get; set; }
         public List<string> Tags { get; set; } = new List<string>();
-        public Transform Transform { get; set; } = new Transform();
+        public TableTransform Transform { get; set; } = new TableTransform();
         public bool ShouldSerializeTransform() => !Transform.IsDefault;
 
         /// <summary>Box size in meters (width, height, depth).</summary>

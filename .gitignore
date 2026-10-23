@@ -16,6 +16,9 @@
 /unity/[Rr]ecordings/
 /unity/ServerData
 /unity/UIElementsSchema/
+# Screenshots from `unity command capture` (it always writes under Assets/)
+/unity/[Aa]ssets/Temp/
+/unity/[Aa]ssets/Temp.meta
 
 # Blender backups
 *.blend1

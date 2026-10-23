@@ -283,7 +283,7 @@ namespace Core.Rules
                 return true;
             }
 
-            private void CheckTransform(Transform transform, string path)
+            private void CheckTransform(TableTransform transform, string path)
             {
                 var s = transform.Scale;
                 if (s.X <= 0 || s.Y <= 0 || s.Z <= 0)

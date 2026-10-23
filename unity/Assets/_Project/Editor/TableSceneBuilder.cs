@@ -37,7 +37,8 @@ namespace TableWorld.Editor
             BuildLighting();
             BuildTable(felt, wood);
             BuildCamera();
-            new GameObject("Objects"); // parent for table objects spawned by the view (T2.4)
+            var objects = new GameObject("Objects");
+            new GameObject("TableView").AddComponent<TableView>().Configure("Tables/sample", objects.transform, seed: 0);
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             AddToBuildSettingsFirst(ScenePath);

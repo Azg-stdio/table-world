@@ -6,7 +6,7 @@ using Newtonsoft.Json.Linq;
 namespace Core.Rules
 {
     /// <summary>Position in meters (table surface is Y = 0), rotation in Euler degrees (Unity order), scale as a multiplier.</summary>
-    public sealed class Transform
+    public sealed class TableTransform
     {
         public Vec3 Position { get; set; }
         public Vec3 Rotation { get; set; }
@@ -35,7 +35,7 @@ namespace Core.Rules
         public string? GmNotes { get; set; }
         public List<string> Tags { get; set; } = new List<string>();
         public bool Locked { get; set; }
-        public Transform Transform { get; set; } = new Transform();
+        public TableTransform Transform { get; set; } = new TableTransform();
         public bool ShouldSerializeTransform() => !Transform.IsDefault;
 
         /// <summary>Id of the Bag/InfiniteBag holding this object, or null when it is on the table.</summary>
