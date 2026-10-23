@@ -133,7 +133,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G9 | Motion | flips, draws and deals animate | they snap | P2 |
 | G10 | Seats | click a colour to sit there, spectator, change seat | assigned in join order | P2 |
 | G11 | Chat and game log | chat box, messages and rule messages scroll back | only the last rules message | P2 |
-| G12 | Lighting | even light around the table | the far side of the table is dark | P2 |
+| G12 | Lighting | even light around the table | ✅ game night room: warm lamp over the table plus a fill light (2026-10-23) | P2 |
 | G13 | Escape menu | settings (mouse, volume, graphics), leave, quit | none | P2 |
 | G14 | Token / chip stacks | same tokens stack into a counted stack, drag one off | tokens are separate | P2 |
 | G15 | Blindfold, peek alert | B blindfolds; others see "X peeked" | ⏭ (needs G2/G11) | P3 |
@@ -172,7 +172,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G41 | Sinnoh | Per-player visibility (`setInvisibleTo` 24×), highlights (`highlightOn/Off`), smooth moves (`setPositionSmooth`, `setRotationSmooth`, `isSmoothMoving`) | none (M5) |
 | G42 | Master Trainer | `Physics.cast` (16×), collision events (`registerCollisions`, `onObjectCollisionEnter`) | none (M5) |
 | G43 | Sinnoh | Scripts that rewrite scripts (`getLuaScript` 816×, `setLuaScript` 300×), `getVar`/`setVar`, coroutines (`startLuaCoroutine` 107×) | none (M5) |
-| G44 | both | Environment from the save: custom table image (`Table_Custom` + `TableURL`), sky (`Sky_Museum`), lighting values, gravity (0.5), music playlist | none; the room (below) is built to take these |
+| G44 | both | Environment from the save: custom table image (`Table_Custom` + `TableURL`), sky (`Sky_Museum`), lighting values, gravity (0.5), music playlist | 🟡 the `environment` block takes room, colours, lamp/ambient and a felt image (`docs/rules-schema.md` → Environment); the importer mapping, TTS sky presets, gravity and music are still to do |
 | G45 | Sinnoh | Fog of war zones (6), layout zones (2), tags on everything (3 468), component tag labels (73) | tags exist; zones not (G18) |
 
 

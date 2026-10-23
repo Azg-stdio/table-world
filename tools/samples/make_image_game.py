@@ -50,6 +50,8 @@ def main():
     png(os.path.join(out, "img", "back.png"), cw, ch, lambda x, y: (40, 50, 110) if (x // 16 + y // 16) % 2 else (70, 80, 150))
     png(os.path.join(out, "img", "token.png"), 128, 128, lambda x, y: (230, 190, 60) if (x - 64) ** 2 + (y - 64) ** 2 < 50 ** 2 else (160, 110, 30))
     png(os.path.join(out, "img", "tile.png"), 256, 256, lambda x, y: (90 + x // 4, 140, 90 + y // 4))
+    # Felt for the table: dark red cloth with a faint weave, to check the environment's felt image.
+    png(os.path.join(out, "img", "felt.png"), 256, 160, lambda x, y: (70 + (x * 7 + y * 3) % 9, 18, 22))
     size = 2048 if big else 512
     def board(x, y):
         n = noise.randrange(40) if big else 0
@@ -66,7 +68,12 @@ def main():
             {"id": "token", "type": "image", "path": "img/token.png"},
             {"id": "tile", "type": "image", "path": "img/tile.png"},
             {"id": "board", "type": "image", "path": "img/board.png"},
+            {"id": "felt", "type": "image", "path": "img/felt.png"},
         ],
+        "environment": {
+            "lighting": {"lampColor": [1.0, 0.78, 0.55], "lampIntensity": 3.0},
+            "table": {"feltAsset": "felt", "woodColor": [0.25, 0.15, 0.08]},
+        },
         "objects": [
             {"id": "board_1", "type": "Board", "asset": "board", "size": [0.6, 0.6], "locked": True,
              "transform": {"position": [0, 0, 0.05]}},

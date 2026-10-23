@@ -36,8 +36,8 @@ namespace TableWorld.Editor
 
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
-            BuildLighting();
-            BuildTable(felt, wood);
+            var sun = BuildLighting();
+            var tableRoot = BuildTable(felt, wood);
             var camera = BuildCamera();
             var objects = new GameObject("Objects");
             var tableGo = new GameObject("TableView");
@@ -47,6 +47,8 @@ namespace TableWorld.Editor
             var session = tableGo.AddComponent<TableWorld.View.Net.NetworkTableSession>();
             session.Configure(table);
             tableGo.AddComponent<TableWorld.View.Net.NetworkAutoplay>().Configure(table, session);
+            // The room around the table, rebuilt from each loaded table's environment.
+            tableGo.AddComponent<EnvironmentView>().Configure(table, tableRoot.transform, sun, camera);
             var interaction = tableGo.AddComponent<TableInteraction>();
             interaction.Configure(table, camera, camera.GetComponent<TableCamera>());
 
@@ -60,7 +62,8 @@ namespace TableWorld.Editor
             AddToBuildSettingsFirst(ScenePath);
         }
 
-        private static void BuildLighting()
+        /// <summary>A directional light for tables without a room (environment room "none"); the game night room switches it off.</summary>
+        private static Light BuildLighting()
         {
             var sun = new GameObject("Sun").AddComponent<Light>();
             sun.type = LightType.Directional;
@@ -75,9 +78,10 @@ namespace TableWorld.Editor
             RenderSettings.ambientSkyColor = new Color(0.55f, 0.58f, 0.65f);
             RenderSettings.ambientEquatorColor = new Color(0.35f, 0.33f, 0.3f);
             RenderSettings.ambientGroundColor = new Color(0.12f, 0.1f, 0.08f);
+            return sun;
         }
 
-        private static void BuildTable(Material felt, Material wood)
+        private static GameObject BuildTable(Material felt, Material wood)
         {
             var table = new GameObject("Table");
 
@@ -98,6 +102,7 @@ namespace TableWorld.Editor
             CreateRim(table, "RimSouth", new Vector3(0f, rimY, -halfZ), new Vector3(TableSize.x + 2 * RimWidth, rimHeight, RimWidth), wood);
             CreateRim(table, "RimEast", new Vector3(halfX, rimY, 0f), new Vector3(RimWidth, rimHeight, TableSize.y), wood);
             CreateRim(table, "RimWest", new Vector3(-halfX, rimY, 0f), new Vector3(RimWidth, rimHeight, TableSize.y), wood);
+            return table;
         }
 
         private static void CreateRim(GameObject parent, string name, Vector3 position, Vector3 scale, Material material)

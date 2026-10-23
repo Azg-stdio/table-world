@@ -51,6 +51,8 @@ namespace Core.Rules
                     CheckZone(_state.Zones[i], $"zones[{i}]");
                 for (var i = 0; i < _state.Players.Seats.Count; i++)
                     CheckSeat(_state.Players.Seats[i], $"players.seats[{i}]");
+                if (_state.Environment != null)
+                    CheckEnvironment(_state.Environment, "environment");
                 RulesValidator.Validate(_state, Errors);
             }
 
@@ -302,6 +304,36 @@ namespace Core.Rules
                     Add(path, ErrorCodes.InvalidValue, $"Tint has {tint.Length} values.", "Use [r, g, b] or [r, g, b, a] with values 0–1.");
                 else if (tint.Any(c => c < 0 || c > 1))
                     Add(path, ErrorCodes.InvalidValue, "Tint values must be between 0 and 1.");
+            }
+
+            private void CheckEnvironment(EnvironmentDef env, string path)
+            {
+                CheckOptionalAsset(env.RoomAsset, $"{path}.roomAsset", AssetType.Model, AssetType.AssetBundle);
+                CheckColor(env.WallColor, $"{path}.wallColor");
+                CheckColor(env.FloorColor, $"{path}.floorColor");
+                CheckColor(env.Lighting.AmbientColor, $"{path}.lighting.ambientColor");
+                CheckColor(env.Lighting.LampColor, $"{path}.lighting.lampColor");
+                CheckIntensity(env.Lighting.AmbientIntensity, $"{path}.lighting.ambientIntensity");
+                CheckIntensity(env.Lighting.LampIntensity, $"{path}.lighting.lampIntensity");
+                CheckColor(env.Table.FeltColor, $"{path}.table.feltColor");
+                CheckColor(env.Table.WoodColor, $"{path}.table.woodColor");
+                CheckOptionalAsset(env.Table.FeltAsset, $"{path}.table.feltAsset", AssetType.Image);
+            }
+
+            private void CheckColor(float[]? color, string path)
+            {
+                if (color == null)
+                    return;
+                if (color.Length != 3)
+                    Add(path, ErrorCodes.InvalidValue, $"Colour has {color.Length} values.", "Use [r, g, b] with values 0–1.");
+                else if (color.Any(c => c < 0 || c > 1))
+                    Add(path, ErrorCodes.InvalidValue, "Colour values must be between 0 and 1.");
+            }
+
+            private void CheckIntensity(float? value, string path)
+            {
+                if (value.HasValue && (value.Value < 0 || value.Value > 8))
+                    Add(path, ErrorCodes.InvalidValue, $"Intensity {value.Value} must be between 0 and 8.");
             }
 
             private void CheckSize(Vec2? size, string path)

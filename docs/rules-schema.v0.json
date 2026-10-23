@@ -31,6 +31,9 @@
         "players": {
           "$ref": "#/$defs/Players"
         },
+        "environment": {
+          "$ref": "#/$defs/EnvironmentDef"
+        },
         "game": {
           "$ref": "#/$defs/GameInfo"
         },
@@ -1149,6 +1152,84 @@
         },
         "handZone": {
           "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EnvironmentDef": {
+      "type": "object",
+      "properties": {
+        "room": {
+          "enum": [
+            "gameNight",
+            "none"
+          ]
+        },
+        "roomAsset": {
+          "type": "string"
+        },
+        "wallColor": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "floorColor": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "lighting": {
+          "$ref": "#/$defs/LightingDef"
+        },
+        "table": {
+          "$ref": "#/$defs/TableLookDef"
+        }
+      },
+      "additionalProperties": false
+    },
+    "LightingDef": {
+      "type": "object",
+      "properties": {
+        "ambientIntensity": {
+          "type": "number"
+        },
+        "ambientColor": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "lampIntensity": {
+          "type": "number"
+        },
+        "lampColor": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "TableLookDef": {
+      "type": "object",
+      "properties": {
+        "feltColor": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "feltAsset": {
+          "type": "string"
+        },
+        "woodColor": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
         }
       },
       "additionalProperties": false

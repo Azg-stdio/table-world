@@ -192,6 +192,9 @@ namespace TableWorld.View
 
         private string _assetsJson;
 
+        /// <summary>Raised after an asset's bytes arrive and the objects were repainted (the room re-dresses the table).</summary>
+        public event Action<string> AssetRefreshed;
+
         /// <summary>An asset's bytes arrived: reload its texture and repaint every object.</summary>
         public void RefreshAsset(string assetId)
         {
@@ -201,6 +204,7 @@ namespace TableWorld.View
             foreach (var view in _views.Values)
                 if (view != null)
                     ObjectViewFactory.Refresh(view, Assets);
+            AssetRefreshed?.Invoke(assetId);
         }
 
         /// <summary>Applies the events of a command another peer performed (already executed on <see cref="Game"/>).</summary>

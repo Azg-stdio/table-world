@@ -68,6 +68,8 @@ namespace Core.Rules
         public List<TableObject> Objects { get; set; } = new List<TableObject>();
         public List<Zone> Zones { get; set; } = new List<Zone>();
         public Players Players { get; set; } = new Players();
+        /// <summary>The room around the table; null means the default room.</summary>
+        public EnvironmentDef? Environment { get; set; }
 
         // ---- rules (docs/rules-schema.md); all optional: a table without them is free play ----
 
