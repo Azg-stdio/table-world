@@ -13,7 +13,7 @@
 
 .turn-label {
     -unity-font-style: bold;
-    font-size: 16px;
+    font-size: 18px;
     color: rgb(240, 236, 226);
     margin-right: 16px;
 }
@@ -33,7 +33,14 @@
 }
 
 .seat-chip--local {
-    background-color: rgba(255, 255, 255, 0.18);
+    background-color: rgba(255, 255, 255, 0.06);
+    border-width: 1px;
+    border-color: rgba(240, 236, 226, 0.7);
+}
+
+.seat-chip--local .seat-name {
+    color: rgb(255, 252, 244);
+    -unity-font-style: bold;
 }
 
 .seat-swatch {
@@ -55,7 +62,7 @@
 .seat-swatch--brown { background-color: rgb(128, 82, 46); }
 
 .seat-name {
-    font-size: 13px;
+    font-size: 15px;
     color: rgb(220, 216, 206);
 }
 
@@ -67,7 +74,7 @@
     border-radius: 4px;
     background-color: rgb(46, 52, 62);
     color: rgb(240, 236, 226);
-    font-size: 13px;
+    font-size: 15px;
     transition-duration: 0.1s;
 }
 
@@ -89,7 +96,7 @@
 }
 
 .game-log {
-    font-size: 13px;
+    font-size: 15px;
     color: rgb(220, 216, 206);
     margin-bottom: 6px;
     white-space: normal;
@@ -111,12 +118,12 @@
 
 .selection-title {
     -unity-font-style: bold;
-    font-size: 15px;
+    font-size: 17px;
     color: rgb(240, 236, 226);
 }
 
 .selection-detail {
-    font-size: 12px;
+    font-size: 14px;
     color: rgb(170, 168, 160);
     margin-bottom: 8px;
     white-space: normal;
@@ -136,7 +143,7 @@
     padding: 6px 10px;
     border-radius: 4px;
     background-color: rgba(16, 18, 22, 0.7);
-    font-size: 12px;
+    font-size: 14px;
     color: rgb(220, 216, 206);
     white-space: normal;
 }
@@ -181,13 +188,13 @@
 
 .game-ui-title {
     -unity-font-style: bold;
-    font-size: 15px;
+    font-size: 17px;
     color: rgb(240, 236, 226);
     margin-bottom: 6px;
 }
 
 .game-ui-label {
-    font-size: 13px;
+    font-size: 15px;
     color: rgb(220, 216, 206);
     margin-bottom: 4px;
     white-space: normal;
@@ -201,7 +208,7 @@
 
 .game-ui-counter-value {
     -unity-font-style: bold;
-    font-size: 13px;
+    font-size: 15px;
     color: rgb(240, 236, 226);
     margin-left: 12px;
 }
@@ -237,7 +244,7 @@
     padding: 4px 8px;
     border-radius: 4px;
     background-color: rgba(16, 18, 22, 0.9);
-    font-size: 13px;
+    font-size: 15px;
     color: rgb(240, 236, 226);
     white-space: normal;
 }
@@ -259,7 +266,7 @@
 }
 
 .look-caption {
-    font-size: 13px;
+    font-size: 15px;
     color: rgb(220, 216, 206);
     margin-top: 6px;
     -unity-text-align: middle-center;
@@ -277,13 +284,13 @@
 
 .menu-title {
     -unity-font-style: bold;
-    font-size: 13px;
+    font-size: 15px;
     color: rgb(240, 236, 226);
     margin: 2px 4px 6px 4px;
 }
 
 .menu-section {
-    font-size: 11px;
+    font-size: 13px;
     color: rgb(150, 148, 140);
     margin: 6px 4px 2px 4px;
 }
@@ -295,7 +302,7 @@
     border-radius: 3px;
     background-color: rgba(0, 0, 0, 0);
     color: rgb(230, 226, 216);
-    font-size: 13px;
+    font-size: 15px;
     -unity-text-align: middle-left;
 }
 
@@ -365,7 +372,7 @@
     border-radius: 3px;
     background-color: rgb(36, 40, 48);
     color: rgb(240, 236, 226);
-    font-size: 13px;
+    font-size: 15px;
 }
 
 .net-address {
@@ -381,5 +388,5 @@
     border-radius: 3px;
     background-color: rgb(36, 40, 48);
     color: rgb(240, 236, 226);
-    font-size: 13px;
+    font-size: 15px;
 }

@@ -129,6 +129,8 @@ Analysis of the local collection (6 Workshop mods, 14 676 objects counting those
 
 Planning closed on 2026-10-22. Implementation starts at T1.1 and follows the **Playtest MVP** (M0 → M1 → M2 → M3-lite). This section is only a summary.
 
+**The MVP is small, not rushed:** what ships must feel and look polished, and each task is played like a player (built exe, real input, two clients for networking, screenshots, clean console) before it is marked done. Rework of earlier tasks hurts more than finishing them properly. Details: `docs/plan.md`, working rule 9.
+
 ### Task 0 — AssetBundle and pipeline test — **DONE (2026-10-22)**, see `docs/adr/0001-assetbundles.md`
 Result: URP stays; bundles load in 6.6 and are remapped to `URP/Lit` at runtime; AssetRipper remains an option for the importer (M7).
 

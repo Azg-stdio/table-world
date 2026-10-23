@@ -2,7 +2,7 @@
 
 The work itself (milestones and tasks) lives in **[milestones/README.md](milestones/README.md)**, one file per milestone. This file holds what does not change per task: how to work, decisions, what is verified, risks.
 
-Last updated: 2026-10-22. Planning closed; implementation starts at T1.1.
+Last updated: 2026-10-23 (working rule 9: polish). Planning closed 2026-10-22.
 
 ## For the implementing agent (read first)
 
@@ -14,6 +14,12 @@ Last updated: 2026-10-22. Planning closed; implementation starts at T1.1.
 6. One commit per task, message starting with the task id (`T1.1: ...`). Architecture changes get an ADR in `adr/` in the same commit.
 7. Ask the human only for: decisions that change the plan, anything that costs money, anything needing their accounts, and playtests. Otherwise decide, record the assumption in the milestone file, continue.
 8. Run each milestone's ⚗ simulation before building on its result. Record numbers in the milestone's simulation table, not adjectives.
+9. **MVP does not mean rushed.** The Playtest MVP is a small scope, not a low bar: what ships in it must feel and look polished. Going back to fix earlier tasks costs more than finishing them properly the first time (added 2026-10-23, after Miguel's own playtest found a wrong camera side, no hand view, no obvious way to play, console errors and a hard-to-read HUD). Before marking a task done:
+   - **Play it like a player:** real gestures (mouse and keyboard, not only code calls), in the built exe as well as the Editor, and with two clients when networking is involved.
+   - **Look at it:** take screenshots and read them. Text is legible, nothing overlaps, nothing is missing or misleading.
+   - **Clean console:** zero errors and no new warnings in the Editor and in `Player.log`.
+   - **Think like a TTS player:** compare against what Tabletop Simulator does for the same situation, not only the task's literal text. Missing pieces become rows in the task's file, not silent gaps.
+   - **Honest status:** ✅ only for what was exercised. "Partial" with the reason otherwise.
 
 ## Decisions (2026-10-22)
 

@@ -1,3 +1,4 @@
 .unity-ui-document__root {
     flex-grow: 1;
+    -unity-font-definition: url("project://database/Assets/_Project/Art/ThirdParty/Inter/InterRegularSDF.asset");
 }
