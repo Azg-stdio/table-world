@@ -61,6 +61,18 @@ namespace Core.Tests.Engine
         }
 
         [Fact]
+        public void DrawsAndDeals_SayWhichContainerTheCardCameFrom()
+        {
+            var engine = EngineFixture.Create();
+            var take = engine.Execute(new TakeCommand { ContainerId = "deck" });
+            Assert.Equal("deck", take.Events.OfType<ObjectAdded>().Single().From);
+            var deal = engine.Execute(new DealCommand { DeckId = "deck", Count = 1, Seats = { "seat_1", "seat_2" } });
+            Assert.All(deal.Events.OfType<ObjectAdded>(), e => Assert.Equal("deck", e.From));
+            var coin = engine.Execute(new TakeCommand { ContainerId = "coins" });
+            Assert.Equal("coins", coin.Events.OfType<ObjectAdded>().Single().From);
+        }
+
+        [Fact]
         public void SetPhysics_ChangesTheMode_IsSaved_AndRejectsUnknownModes()
         {
             var engine = EngineFixture.Create();

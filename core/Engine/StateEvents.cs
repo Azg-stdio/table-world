@@ -25,7 +25,13 @@ namespace Core.Engine
 
     public sealed class ObjectAdded : StateEvent
     {
-        public ObjectAdded(string objectId) : base(objectId) { }
+        /// <summary>The deck or bag it came out of (a draw, a deal), so the view can show it travel from there; else null.</summary>
+        public string? From { get; }
+
+        public ObjectAdded(string objectId, string? from = null) : base(objectId)
+        {
+            From = from;
+        }
     }
 
     public sealed class ObjectRemoved : StateEvent

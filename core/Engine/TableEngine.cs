@@ -238,7 +238,7 @@ namespace Core.Engine
                     card.Transform.Position = c.Position ?? Beside(deck);
                     card.Transform.Rotation = c.Rotation ?? deck.Transform.Rotation;
                     AddObject(card);
-                    var result = CommandResult.Success(new List<StateEvent> { new ObjectUpdated(deck.Id), new ObjectAdded(card.Id) });
+                    var result = CommandResult.Success(new List<StateEvent> { new ObjectUpdated(deck.Id), new ObjectAdded(card.Id, deck.Id) });
                     result.CreatedId = card.Id;
                     return result;
                 }
@@ -258,7 +258,7 @@ namespace Core.Engine
                             state.Id = Mint(state.Id);
                         picked.Container = null;
                         AddObject(picked);
-                        events.Add(new ObjectAdded(picked.Id));
+                        events.Add(new ObjectAdded(picked.Id, bag.Id));
                     }
                     else
                     {
@@ -421,7 +421,7 @@ namespace Core.Engine
                     card.Transform.Position = HandSlot(zone, slot, card.Size ?? Card.DefaultSize);
                     card.Transform.Rotation = new Vec3(0f, zone.Transform.Rotation.Y, 0f);
                     AddObject(card);
-                    events.Add(new ObjectAdded(card.Id));
+                    events.Add(new ObjectAdded(card.Id, deck.Id));
                     dealt[seatId].Add(card.Id);
                     hands[h] = (seatId, zone, slot + 1);
                 }

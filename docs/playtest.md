@@ -79,6 +79,7 @@ Everything below already passes automated tests on one machine (two processes, s
 - [ ] Physics modes (host: right-click the felt → Physics): with semi-lock nothing gets knocked over, with locked dropped pieces stay exactly where they are put; friends see the same; a friend has no Physics row.
 - [ ] Free-play turns (host: right-click the felt → Turns: In order): everyone sees whose turn it is, only that player has End turn, and "Your turn" shows up when it comes round.
 - [ ] Counter and timer (sample table: Score on the right, Turn timer on the left): everyone sees the same score; a running timer shows about the same time on every screen and rings for everyone at zero.
+- [ ] Flips, draws and deals look smooth on every screen, not only for the player who did them.
 - [ ] Sounds: picking up, dropping, shuffling, rolling, dealing feel right and are not too loud or repetitive; friends' actions are heard too.
 
 **After the session**

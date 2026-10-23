@@ -736,6 +736,77 @@ namespace TableWorld.View
             }
         }
 
+        // ---- motion (G9) --------------------------------------------------------------------------------------------
+
+        /// <summary>How long a flip or a draw takes to travel.</summary>
+        public const float MotionSeconds = 0.25f;
+        /// <summary>A flipping object rises this high while it turns over.</summary>
+        public const float FlipLift = 0.05f;
+        private readonly Dictionary<ObjectView, Coroutine> _glides = new Dictionary<ObjectView, Coroutine>();
+
+        /// <summary>
+        /// A card or object that just came out of a deck or bag starts on top of it and travels to its place, in a small
+        /// arc. Into a hand, the hand presentation glides it there.
+        /// </summary>
+        private void ComeOutOf(ObjectView view, string containerId)
+        {
+            if (view == null || containerId == null || !(ViewOf(containerId) is { } container))
+                return;
+            var top = new Vector3(container.transform.position.x, container.Renderer.bounds.max.y + 0.002f, container.transform.position.z);
+            if (HandZoneOf(view.Id) != null)
+            {
+                view.transform.position = top;
+                return;
+            }
+            Glide(view, top, view.transform.rotation, Mathf.Clamp(Vector3.Distance(top, view.transform.position) * 0.3f, 0.02f, 0.12f));
+        }
+
+        /// <summary>Moves the view from a pose to its state pose over <see cref="MotionSeconds"/>, lifted in an arc. Picking it up ends the glide.</summary>
+        private void Glide(ObjectView view, Vector3 fromPosition, Quaternion fromRotation, float lift)
+        {
+            if (!isActiveAndEnabled)
+            {
+                view.SnapToState();
+                return;
+            }
+            if (_glides.TryGetValue(view, out var running) && running != null)
+                StopCoroutine(running);
+            _glides[view] = StartCoroutine(GlideRoutine(view, fromPosition, fromRotation, lift));
+        }
+
+        private IEnumerator GlideRoutine(ObjectView view, Vector3 fromPosition, Quaternion fromRotation, float lift)
+        {
+            // Where it ends: the state pose, as snapping would place it.
+            view.Animating = false;
+            view.SnapToState();
+            var toPosition = view.transform.position;
+            var toRotation = view.transform.rotation;
+            view.Animating = true;
+            view.Body.isKinematic = true;
+            for (var t = 0f; t < MotionSeconds; t += Time.deltaTime)
+            {
+                if (view == null)
+                    yield break;
+                if (view.Held)
+                    break;
+                var k = Mathf.SmoothStep(0f, 1f, t / MotionSeconds);
+                view.transform.SetPositionAndRotation(
+                    Vector3.Lerp(fromPosition, toPosition, k) + Vector3.up * (4f * k * (1f - k) * lift),
+                    Quaternion.Slerp(fromRotation, toRotation, k));
+                yield return null;
+            }
+            if (view == null)
+                yield break;
+            _glides.Remove(view);
+            view.Animating = false;
+            if (view.Held)
+                yield break;
+            view.transform.SetPositionAndRotation(toPosition, toRotation);
+            view.Body.position = toPosition;
+            view.Body.rotation = toRotation;
+            view.Body.isKinematic = view.Pinned || view.InHand;
+        }
+
         /// <summary>A short kinematic tumble that lands on the value the engine already chose.</summary>
         private IEnumerator AnimateRoll(ObjectView view, int value)
         {
@@ -774,7 +845,10 @@ namespace TableWorld.View
                 {
                     case ObjectAdded added:
                         if (Engine.Find(added.ObjectId) is { Container: null } obj)
+                        {
                             Spawn(obj);
+                            ComeOutOf(ViewOf(obj.Id), added.From);
+                        }
                         break;
                     case TableSettingsChanged _:
                         foreach (var each in _views.Values)
@@ -793,7 +867,10 @@ namespace TableWorld.View
                         break;
                     case ContainerChanged changed:
                         if (Engine.Find(changed.ObjectId) is { } taken)
+                        {
                             Spawn(taken);
+                            ComeOutOf(ViewOf(taken.Id), changed.From);
+                        }
                         break;
                     case ObjectUpdated updated:
                         if (ViewOf(updated.ObjectId) is { } view && Engine.Find(updated.ObjectId) is { } model)
@@ -804,7 +881,14 @@ namespace TableWorld.View
                             // the body (velocity reset) and fight the simulation.
                             // Hand cards are placed by the hand presentation (they glide), not snapped to the state's flat slot.
                             if (updated.ObjectId != _reportingId && HandZoneOf(updated.ObjectId) == null)
-                                view.SnapToState();
+                            {
+                                // A flip turns over in the air (G9); every other change snaps.
+                                var from = (view.transform.position, view.transform.rotation);
+                                if (!view.Held && !view.Animating && Quaternion.Angle(from.rotation, model.Transform.Rotation.ToRotation()) > 120f)
+                                    Glide(view, from.position, from.rotation, FlipLift);
+                                else
+                                    view.SnapToState();
+                            }
                         }
                         break;
                 }
@@ -927,6 +1011,7 @@ namespace TableWorld.View
                     Destroy(zone);
                 }
             _zoneViews.Clear();
+            _glides.Clear();
             _fogs.Clear();
             foreach (var view in _views.Values)
                 if (view != null)

@@ -226,6 +226,40 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsTrue(secret.ZoneHidden);
         }
 
+        [UnityTest]
+        public IEnumerator Motion_FlipsTurnOverInTheAir_DrawsTravelFromTheDeck()
+        {
+            // Flip: half way through, the card is up in the air and on its edge; then it lies face down where it was.
+            var card = V("king_hearts");
+            var start = card.transform.position;
+            Assert.IsTrue(_interaction.Flip(card));
+            yield return new WaitForSeconds(TableView.MotionSeconds / 2f);
+            Assert.Greater(card.transform.position.y, start.y + TableView.FlipLift * 0.5f, "lifted while turning");
+            Assert.Less(Vector3.Dot(card.transform.up, Vector3.up), 0.7f, "on its edge half way");
+            yield return new WaitForSeconds(TableView.MotionSeconds);
+            Assert.Less(Vector3.Dot(card.transform.up, Vector3.up), -0.99f, "face down at the end");
+            Assert.AreEqual(start.x, card.transform.position.x, 0.002f);
+            Assert.IsFalse(card.Animating);
+
+            // Draw to the table: the card leaves the deck's top and lands beside it.
+            var deck = V("deck_up");
+            var result = _table.Execute(new TakeCommand { ContainerId = "deck_up", Position = new Vec3(0.3f, 0.01f, 0.15f) });
+            Assert.IsTrue(result.Ok);
+            var drawn = V(result.CreatedId);
+            Assert.AreEqual(deck.transform.position.x, drawn.transform.position.x, 0.01f, "starts on the deck");
+            yield return new WaitForSeconds(TableView.MotionSeconds + 0.2f);
+            Assert.AreEqual(0.3f, drawn.transform.position.x, 0.005f, "ends where it was put");
+            Assert.AreEqual(0.15f, drawn.transform.position.z, 0.005f);
+            Assert.IsFalse(drawn.Animating);
+
+            // Deal: a dealt card starts at the deck and glides into the hand.
+            Assert.IsTrue(_table.Execute(new DealCommand { DeckId = "deck_main", Count = 1, Seats = { "seat_south" } }).Ok);
+            var dealt = _table.Views.Values.Single(v => v != null && v.InHand);
+            Assert.Less(Vector3.Distance(dealt.transform.position, V("deck_main").transform.position), 0.15f, "starts by the deck");
+            yield return new WaitForSeconds(0.6f);
+            Assert.Less(dealt.transform.position.z, -0.3f, "then stands in the south hand");
+        }
+
         // ---- 3. looking ----
 
         [UnityTest]
