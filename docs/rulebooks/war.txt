@@ -1,0 +1,14 @@
+WAR - a card game for two players
+
+Equipment: one standard 52-card deck. Aces are high (A K Q J 10 ... 2).
+
+Setup: shuffle the deck and deal it out face down, so each player has a pile of 26 cards.
+
+Play: both players turn over the top card of their pile at the same time. The player whose card is higher
+takes both cards and puts them face down at the bottom of their pile.
+
+War: if the two cards are equal, there is a war. Each player puts one card face down, then turns over another
+card. The higher of the new face-up cards takes all the cards on the table. If they are equal again, the war
+continues the same way.
+
+End: the player who collects all 52 cards wins.

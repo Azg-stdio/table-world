@@ -14,7 +14,7 @@ Design reference: [../rules-schema.md](../rules-schema.md).
 | T4.4 | `mcp-server/` (net9, `ModelContextProtocol` 2.3.0, stdio): `create_deck`, `define_zone`, `add_phase`, `add_action`, `set_win_condition`, `place_object`, `deal`, `get_table_state`, `validate_rules`, `ask_host` → `needs_clarification` | M | T4.1 | Contract test per tool over stdio | done 2026-10-22 |
 | T4.5 | WebSocket bridge Unity ↔ MCP (`ws://127.0.0.1:<port>`): commands, events, reconnection, session token; Unity renders the engine's state | M | T4.4, T2.7 | Place objects from the MCP server and see them in the Editor | done 2026-10-22 |
 | T4.6 | Declarative UI v0 from the rules JSON rendered with UI Toolkit (generated `VisualElement` tree, shared USS theme): label, counter, button, image | M | T2.10, T4.2 | War score panel renders and the End Turn button works | done 2026-10-22 (War has no End Turn: its panel's "play top card" buttons were pressed instead) |
-| T4.7 | `docs/agent-guide.md`: configuring the MCP server in Claude Code/Codex, what to ask, sample rulebooks | S | T4.4 | A fresh Claude Code session follows it and reaches a playable table | todo |
+| T4.7 | `docs/agent-guide.md`: configuring the MCP server in Claude Code/Codex, what to ask, sample rulebooks | S | T4.4 | A fresh Claude Code session follows it and reaches a playable table | in progress (guide, `.mcp.json` and sample rulebooks written; the fresh-session check is part of T4.8) |
 | T4.8 **human** + agent | End-to-end demo with Claude Code; log frictions and the questions the agent asked | S | T4.5, T4.7 | Demo recorded; friction list filed as tasks | todo |
 
 ## Simulation record

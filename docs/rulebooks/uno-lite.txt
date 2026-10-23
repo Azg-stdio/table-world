@@ -1,0 +1,14 @@
+MATCH THE PILE (a simplified UNO with a standard deck), 2 to 4 players
+
+Equipment: one standard 52-card deck, no jokers.
+
+Setup: shuffle the deck and deal 7 cards to each player. Put the rest face down as the draw pile and turn
+its top card face up to start the discard pile.
+
+Your turn: play one card from your hand onto the discard pile. It must match the top card of the discard
+pile in suit or in rank. If you cannot or do not want to play, draw one card instead. Either way your turn
+ends and play passes to the left.
+
+The draw pile: when it runs out, shuffle the discard pile except its top card to make a new draw pile.
+
+End: the first player with no cards in hand wins.

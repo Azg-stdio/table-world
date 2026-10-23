@@ -179,9 +179,10 @@ unity doctor                 # diagnostics
 unity command script eval_file --file tools/unity-probes/ProbeBundles.cs --timeout 120   # read-only experiment
 ```
 
-# MCP server (stdio). An agent adds it with e.g.:
-#   claude mcp add table-world -- dotnet run --project <repo>/mcp-server -- --file <repo>/games/my-game.json
-dotnet run --project mcp-server -- --file games/my-game.json
+# MCP server (stdio). Build it, then run the DLL (never `dotnet run`: build output on stdout breaks MCP).
+# .mcp.json registers it for Claude Code in this repo; docs/agent-guide.md covers other agents.
+dotnet build mcp-server -c Release
+dotnet mcp-server/bin/Release/net9.0/TableWorld.Mcp.dll --file games/my-game.json   # --no-bridge: headless only
 dotnet test mcp-server.tests          # contract tests: starts the server over stdio
 
 # Long simulations and generated files

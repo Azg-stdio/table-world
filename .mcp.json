@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "table-world": {
+      "command": "dotnet",
+      "args": ["mcp-server/bin/Release/net9.0/TableWorld.Mcp.dll", "--file", "games/my-game.json"]
+    }
+  }
+}
