@@ -20,7 +20,7 @@
 | Id | Task | Size | Depends on | Done check | Status |
 |---|---|---|---|---|---|
 | T1.1 | `core/Core.csproj` (netstandard2.1, LangVersion 9, nullable, `Newtonsoft.Json` 13.0.3), `core.tests/Core.Tests.csproj` (xunit, net9.0), `Directory.Build.props`, `TableWorld.sln`, `Core.Version` class, post-build copy of `Core.dll` to `unity/Assets/Plugins/Core/` | M | — | `dotnet test` green; `unity command script eval --code "return Core.Version.Get();"` returns the version | done 2026-10-22 |
-| T1.2 | Unity: `_Project/{Scripts,Prefabs,Scenes,Settings,Editor,UI,Tests}` via CLI; add `com.unity.nuget.newtonsoft-json@3.2.2`, `com.unity.test-framework@1.8.0`; asmdefs `TableWorld.Runtime` (refs `Core.dll`), `TableWorld.Editor`, `TableWorld.Tests`; `.editorconfig`; move `InputSystem_Actions` and `SampleScene` under `_Project/` | S | T1.1 | `unity command test run --mode EditMode` runs a test calling `Core.Version.Get()` | todo |
+| T1.2 | Unity: `_Project/{Scripts,Prefabs,Scenes,Settings,Editor,UI,Tests}` via CLI; add `com.unity.nuget.newtonsoft-json@3.2.2`, `com.unity.test-framework@1.8.0`; asmdefs `TableWorld.Runtime` (refs `Core.dll`), `TableWorld.Editor`, `TableWorld.Tests`; `.editorconfig`; move `InputSystem_Actions` and `SampleScene` under `_Project/` | S | T1.1 | `unity command test run --mode EditMode` runs a test calling `Core.Version.Get()` | done 2026-10-22 |
 | T1.3 | Promote `docs/rules-schema.md` and `docs/tts-mapping.md` from v0 drafts to what `core/` will implement; verify the TTS unit constant and the deck top/bottom order against a local save | S | T1.1 | Both docs no longer say "draft"; "verify" notes resolved | todo |
 | T1.4 | CI: GitHub Actions on `windows-latest` + `ubuntu-latest`, `dotnet build` + `dotnet test` on push | S | T1.1 | Green run on `main` | todo |
 | T1.5 | `analyze_mods.py --json docs/data/mods-<date>.json`; commit the 6-mod result | S | — | File in `docs/data/` | todo |
@@ -50,3 +50,10 @@ Rule: nothing from the TTS install or Workshop is ever copied into the repo.
 | 2026-10-22 | netstandard2.1 + xunit net9 scaffold | 1 test green |
 | 2026-10-22 | MoonSharp sandbox | 7 tests green (os/io/load blocked, step limit aborts loop) |
 | 2026-10-22 | MCP C# SDK stdio server | initialize, tools/list, tools/call OK |
+
+## Assumptions recorded during implementation
+
+| Task | Assumption |
+|---|---|
+| T1.1 | `Core.dll` (Debug, deterministic) is committed under `unity/Assets/Plugins/Core/` so a fresh clone opens in Unity without a build. Rebuild and commit it whenever `core/` changes. Newtonsoft is not copied: Unity's package provides it. |
+| T1.2 | URP assets from `Assets/Settings/` were also moved to `_Project/Settings/` (GUID-preserving `asset move`). EditMode tests live in `_Project/Tests/EditMode/` (`TableWorld.Tests`, Editor only); PlayMode tests (T2.9) get their own asmdef. |
