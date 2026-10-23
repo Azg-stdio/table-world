@@ -115,6 +115,20 @@ namespace Core.Tests.Rules
             Assert.Equal("phases[1].advanceWhen", Single(json, ErrorCodes.InvalidValue).Path);
         }
 
+        [Fact]
+        public void Ui_ButtonsReferencesAndCounters_AreChecked()
+        {
+            static string WithUi(string elements) => MiniGame.Json(MiniGame.Action("")).Replace(@"""winConditions"": []",
+                @"""winConditions"": [], ""ui"": { ""panels"": [ { ""id"": ""p"", ""anchor"": ""topRight"", ""elements"": [" + elements + "] } ] }");
+
+            Assert.Equal("Did you mean 'a'?", Single(WithUi(@"{ ""type"": ""button"", ""action"": ""aa"" }"), ErrorCodes.UnknownAction).Suggestion);
+            Single(WithUi(@"{ ""type"": ""label"", ""text"": ""Round {$var.round}"" }"), ErrorCodes.UnknownVariable);
+            Single(WithUi(@"{ ""type"": ""counter"", ""text"": ""Score"" }"), ErrorCodes.MissingField);
+            Single(WithUi(@"{ ""type"": ""image"", ""asset"": ""shet"" }"), ErrorCodes.UnknownAsset);
+            Single(WithUi(@"{ ""type"": ""slider"" }"), ErrorCodes.InvalidValue);
+            Assert.Empty(TableJson.Parse(WithUi(@"{ ""type"": ""counter"", ""text"": ""Mine"", ""value"": ""$viewer.mine.count"" }, { ""type"": ""button"", ""action"": ""b"", ""seat"": ""s2"" }")).Errors);
+        }
+
         [Theory]
         [InlineData("war")]
         [InlineData("uno-lite")]

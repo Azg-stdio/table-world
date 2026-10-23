@@ -33,6 +33,7 @@ namespace TableWorld.View.Hud
         private Label _gameLog;
         private VisualElement _gameActions;
         private string _shownGameKey;
+        private GameUiRenderer _gameUi;
         private float _nextGameRefresh;
 
         /// <summary>At most this many action buttons; a game offering more should use parameters with fewer choices.</summary>
@@ -60,6 +61,7 @@ namespace TableWorld.View.Hud
             _gamePanel = _root.Q("gamePanel");
             _gameLog = _root.Q<Label>("gameLog");
             _gameActions = _root.Q("gameActions");
+            _gameUi = new GameUiRenderer(_root.Q("gameUi"), _table);
 
             _root.Q<Button>("saveButton").clicked += Save;
             _root.Q<Button>("loadButton").clicked += Load;
@@ -86,6 +88,7 @@ namespace TableWorld.View.Hud
             {
                 _shownEngine = _table.Engine;
                 RebuildSeats();
+                _gameUi.Build();
                 _shownSelection = null;
             }
             RefreshSelection();
@@ -93,6 +96,7 @@ namespace TableWorld.View.Hud
             {
                 _nextGameRefresh = Time.unscaledTime + 0.25f;
                 RefreshGame();
+                _gameUi.Refresh();
             }
         }
 

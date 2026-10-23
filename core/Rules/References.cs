@@ -18,9 +18,24 @@ namespace Core.Rules
     /// </summary>
     public static class References
     {
-        public static readonly IReadOnlyList<string> Roots = new[] { "actor", "current", "player", "other", "it", "param", "var", "seat", "obj" };
+        /// <summary><c>$viewer</c> is the seat looking at a UI panel (only meaningful in <c>ui</c> texts and values).</summary>
+        public static readonly IReadOnlyList<string> Roots = new[] { "actor", "current", "player", "other", "it", "param", "var", "seat", "obj", "viewer" };
 
         public static bool IsReference(string? text) => text != null && text.StartsWith("$");
+
+        /// <summary>The <c>{$ref}</c> parts of a template text.</summary>
+        public static IEnumerable<string> InTemplate(string text)
+        {
+            var start = text.IndexOf("{$", System.StringComparison.Ordinal);
+            while (start >= 0)
+            {
+                var end = text.IndexOf('}', start);
+                if (end < 0)
+                    yield break;
+                yield return text.Substring(start + 1, end - start - 1);
+                start = text.IndexOf("{$", end, System.StringComparison.Ordinal);
+            }
+        }
 
         /// <summary>Splits <c>$a.b.c</c> into <c>[a, b, c]</c>.</summary>
         public static string[] Parse(string reference) => reference.Substring(1).Split('.');

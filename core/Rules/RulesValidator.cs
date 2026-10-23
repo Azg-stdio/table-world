@@ -33,7 +33,10 @@ namespace Core.Rules
 
             var hasRules = _state.Turn != null || _state.Phases.Count > 0 || _state.Actions.Count > 0;
             if (!hasRules)
+            {
+                CheckUi(new HashSet<string>());
                 return;
+            }
             if (_state.Turn == null)
                 Add("turn", ErrorCodes.MissingField, "Phases and actions need a 'turn' block.", "Add { \"phases\": [ ... ] } under 'turn'.");
 
@@ -118,9 +121,60 @@ namespace Core.Rules
                 Seat(win.Winner, $"winConditions[{i}].winner");
             }
 
+            CheckUi(actionIds);
+
             for (var i = 0; i < _state.Resources.Count; i++)
                 if (_state.Resources.Take(i).Any(r => r.Id == _state.Resources[i].Id))
                     Add($"resources[{i}].id", ErrorCodes.DuplicateId, $"Resource '{_state.Resources[i].Id}' is defined twice.");
+        }
+
+        private void CheckUi(HashSet<string> actionIds)
+        {
+            if (_state.Ui == null)
+                return;
+            _params = null;
+            for (var i = 0; i < _state.Ui.Panels.Count; i++)
+            {
+                var panel = _state.Ui.Panels[i];
+                var path = $"ui.panels[{i}]";
+                if (string.IsNullOrEmpty(panel.Id))
+                    Add($"{path}.id", ErrorCodes.MissingField, "A panel needs an id.");
+                for (var j = 0; j < panel.VisibleTo.Count; j++)
+                    Seat(panel.VisibleTo[j], $"{path}.visibleTo[{j}]");
+                for (var j = 0; j < panel.Elements.Count; j++)
+                {
+                    var e = panel.Elements[j];
+                    var ep = $"{path}.elements[{j}]";
+                    if (e.Text != null)
+                        foreach (var reference in References.InTemplate(e.Text))
+                            if (References.Check(reference, $"{ep}.text", _state, null) is { } error)
+                                _errors.Add(error);
+                    switch (e.Type)
+                    {
+                        case UiElementType.Counter:
+                            if (e.Value == null)
+                                Add($"{ep}.value", ErrorCodes.MissingField, "A counter needs a value reference, e.g. $viewer.res.score.");
+                            else if (!References.IsReference(e.Value))
+                                Add($"{ep}.value", ErrorCodes.InvalidReference, "A counter value must be a $ reference.");
+                            else if (References.Check(e.Value, $"{ep}.value", _state, null) is { } error)
+                                _errors.Add(error);
+                            break;
+                        case UiElementType.Button:
+                            if (e.Action == null)
+                                Add($"{ep}.action", ErrorCodes.MissingField, "A button needs an action.");
+                            else if (!actionIds.Contains(e.Action))
+                                Add($"{ep}.action", ErrorCodes.UnknownAction, $"Action '{e.Action}' does not exist.", Suggest.OneOf(e.Action, actionIds, "an action id"));
+                            if (e.Seat != null)
+                                Seat(e.Seat, $"{ep}.seat");
+                            break;
+                        case UiElementType.Image:
+                            if (e.Asset == null || _state.Assets.All(a => a.Id != e.Asset))
+                                Add($"{ep}.asset", ErrorCodes.UnknownAsset, $"Asset '{e.Asset}' does not exist.",
+                                    Suggest.OneOf(e.Asset ?? "", _state.Assets.Select(a => a.Id), "an asset id"));
+                            break;
+                    }
+                }
+            }
         }
 
         private void Effects(List<Effect> effects, string path, HashSet<string> phaseIds)

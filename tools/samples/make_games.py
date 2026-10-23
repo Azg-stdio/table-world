@@ -96,6 +96,13 @@ war = {
         "onTurnEnd": [{"setVariable": {"name": "battles", "delta": 1}}],
     },
     "variables": {"battles": 0},
+    "ui": {"panels": [{"id": "score", "title": "War", "anchor": "topRight", "elements": [
+        {"type": "label", "text": "Battle {$var.battles}"},
+        {"type": "counter", "text": "South's deck", "value": "$seat.seat_south.deck.count"},
+        {"type": "counter", "text": "North's deck", "value": "$seat.seat_north.deck.count"},
+        {"type": "button", "text": "South: play top card", "action": "play_top_card", "seat": "seat_south"},
+        {"type": "button", "text": "North: play top card", "action": "play_top_card", "seat": "seat_north"},
+    ]}]},
     "winConditions": [
         {"when": {"and": [{"zoneCount": {"zone": "$player.deck", "op": "==", "value": 0}},
                           {"zoneCount": {"zone": "$player.battle", "op": "==", "value": 0}}]},
@@ -151,6 +158,12 @@ uno = {
         {"move": {"from": "draw", "to": "discard", "faceUp": True}},
     ]},
     "winConditions": [{"when": {"zoneCount": {"zone": "$player.hand", "op": "==", "value": 0}}, "winner": "$player", "checkAfter": "anyCommand"}],
+    "ui": {"panels": [{"id": "table", "title": "UNO (standard deck)", "anchor": "topRight", "elements": [
+        {"type": "label", "text": "Discard: {$obj.discard.top.name}"},
+        {"type": "counter", "text": "Draw pile", "value": "$obj.draw.count"},
+        {"type": "counter", "text": "Cards in your hand", "value": "$viewer.hand.count"},
+        {"type": "button", "text": "Draw a card", "action": "draw_card"},
+    ]}]},
 }
 
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

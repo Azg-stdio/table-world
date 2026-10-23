@@ -750,5 +750,35 @@
    "winner": "$player",
    "checkAfter": "anyCommand"
   }
- ]
+ ],
+ "ui": {
+  "panels": [
+   {
+    "id": "table",
+    "title": "UNO (standard deck)",
+    "anchor": "topRight",
+    "elements": [
+     {
+      "type": "label",
+      "text": "Discard: {$obj.discard.top.name}"
+     },
+     {
+      "type": "counter",
+      "text": "Draw pile",
+      "value": "$obj.draw.count"
+     },
+     {
+      "type": "counter",
+      "text": "Cards in your hand",
+      "value": "$viewer.hand.count"
+     },
+     {
+      "type": "button",
+      "text": "Draw a card",
+      "action": "draw_card"
+     }
+    ]
+   }
+  ]
+ }
 }

@@ -840,6 +840,43 @@
  "variables": {
   "battles": 0
  },
+ "ui": {
+  "panels": [
+   {
+    "id": "score",
+    "title": "War",
+    "anchor": "topRight",
+    "elements": [
+     {
+      "type": "label",
+      "text": "Battle {$var.battles}"
+     },
+     {
+      "type": "counter",
+      "text": "South's deck",
+      "value": "$seat.seat_south.deck.count"
+     },
+     {
+      "type": "counter",
+      "text": "North's deck",
+      "value": "$seat.seat_north.deck.count"
+     },
+     {
+      "type": "button",
+      "text": "South: play top card",
+      "action": "play_top_card",
+      "seat": "seat_south"
+     },
+     {
+      "type": "button",
+      "text": "North: play top card",
+      "action": "play_top_card",
+      "seat": "seat_north"
+     }
+    ]
+   }
+  ]
+ },
  "winConditions": [
   {
    "when": {

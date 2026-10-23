@@ -60,8 +60,8 @@ namespace Core.Rules
         /// <summary>Event name (<see cref="GameEvents"/>) to effects.</summary>
         public Dictionary<string, List<Effect>> Events { get; set; } = new Dictionary<string, List<Effect>>();
         public List<WinCondition> WinConditions { get; set; } = new List<WinCondition>();
-        /// <summary>Declarative UI (T4.6); carried as-is for now.</summary>
-        public JObject? Ui { get; set; }
+        /// <summary>Declarative UI panels (T4.6).</summary>
+        public UiDef? Ui { get; set; }
         /// <summary>Lua sources by name (M5); carried as-is.</summary>
         public Dictionary<string, string> Scripts { get; set; } = new Dictionary<string, string>();
 

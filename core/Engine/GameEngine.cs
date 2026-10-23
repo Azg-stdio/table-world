@@ -641,6 +641,23 @@ namespace Core.Engine
             _ => new JValue(x.ToString()),
         };
 
+        /// <summary>A UI text with its <c>{$ref}</c> parts filled in, as <paramref name="viewer"/> sees it.</summary>
+        public string Format(string text, string? viewer) =>
+            WithContext(new Context { Actor = viewer ?? Session?.CurrentSeat }, () => Template(text));
+
+        /// <summary>The value of a reference as <paramref name="viewer"/> sees it (a counter), or null.</summary>
+        public JToken? Evaluate(string reference, string? viewer) =>
+            WithContext(new Context { Actor = viewer ?? Session?.CurrentSeat }, () => ToValue(TryResolve(reference)));
+
+        /// <summary>The seat id a seat reference names for <paramref name="viewer"/>, or null.</summary>
+        public string? SeatFor(string reference, string? viewer) =>
+            WithContext(new Context { Actor = viewer ?? Session?.CurrentSeat }, () =>
+            {
+                if (!References.IsReference(reference))
+                    return State.Players.Seats.Any(s => s.Id == reference) ? reference : null;
+                return TryResolve(reference) is Seat seat ? seat.Id : null;
+            });
+
         private string Template(string text)
         {
             var result = text;
@@ -694,7 +711,8 @@ namespace Core.Engine
             var i = 1;
             switch (parts[0])
             {
-                case "actor": current = SeatById(_ctx.Actor); break;
+                case "actor":
+                case "viewer": current = SeatById(_ctx.Actor); break;
                 case "current": current = SeatById(Session?.CurrentSeat); break;
                 case "player": current = SeatById(_ctx.Player); break;
                 case "it": current = _ctx.It; break;

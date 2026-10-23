@@ -240,16 +240,17 @@ v0 events: `onGameStart`, `onTurnStart`, `onTurnEnd`. Zone and physical events (
 
 ```jsonc
 "ui": { "panels": [
-  { "id": "score", "anchor": "top-right", "visibleTo": "all",
+  { "id": "score", "title": "War", "anchor": "topRight", "visibleTo": [],
     "elements": [
       { "type": "label",   "text": "Battle {$var.battles}" },
-      { "type": "counter", "bind": "resource:score", "player": "$viewer" },
-      { "type": "button",  "text": "Play", "action": "play_top_card" }
+      { "type": "counter", "text": "South's deck", "value": "$seat.seat_south.deck.count" },
+      { "type": "button",  "text": "South: play top card", "action": "play_top_card", "seat": "seat_south", "params": {} },
+      { "type": "image",   "asset": "logo" }
     ] }
 ] }
 ```
 
-Carried as-is in v0; rendered with UI Toolkit in T4.6.
+Panels are rendered with UI Toolkit (T4.6) on top of the table. `anchor`: `topLeft`, `top`, `topRight`, `left`, `center`, `right`, `bottomLeft`, `bottom`, `bottomRight`. `visibleTo`: seat ids (empty: everyone). Texts are templates: `{$reference}` is replaced by its value as the viewing seat sees it; `$viewer` is that seat. A `counter` shows `text` and the value of its `value` reference. A `button` performs `action` as `seat` (default `$viewer`) with `params`, and is disabled when that action is not legal right now. The validator checks button actions, references in texts and values, and image assets.
 
 ## Validation errors (format for an LLM reader)
 

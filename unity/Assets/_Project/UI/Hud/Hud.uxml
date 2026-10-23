@@ -1,6 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <ui:Style src="Hud.uss" />
     <ui:VisualElement name="root" class="hud" picking-mode="Ignore">
+        <ui:VisualElement name="gameUi" class="game-ui" picking-mode="Ignore" />
         <ui:VisualElement name="topBar" class="top-bar">
             <ui:Label name="turnLabel" class="turn-label" text="Free play" />
             <ui:VisualElement name="seatList" class="seat-list" picking-mode="Ignore" />

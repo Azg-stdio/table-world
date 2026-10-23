@@ -75,7 +75,7 @@
           }
         },
         "ui": {
-          "type": "object"
+          "$ref": "#/$defs/UiDef"
         },
         "scripts": {
           "type": "object",
@@ -1962,6 +1962,90 @@
             "anyCommand",
             "turnEnd"
           ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "UiDef": {
+      "type": "object",
+      "properties": {
+        "panels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PanelDef"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "PanelDef": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "anchor": {
+          "enum": [
+            "topLeft",
+            "top",
+            "topRight",
+            "left",
+            "center",
+            "right",
+            "bottomLeft",
+            "bottom",
+            "bottomRight"
+          ]
+        },
+        "visibleTo": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "elements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiElementDef"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "UiElementDef": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "label",
+            "counter",
+            "button",
+            "image"
+          ]
+        },
+        "text": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "seat": {
+          "type": "string"
+        },
+        "params": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "asset": {
+          "type": "string"
         }
       },
       "additionalProperties": false

@@ -2,7 +2,7 @@
 
 **Goal:** Claude Code (or Codex) builds a simple card game end to end from a plain-text rulebook, asking about ambiguities.
 **Done when:** recorded demo: War rulebook as text → agent calls MCP tools → table set up in Unity → full game played with the engine enforcing the rules. Repeated with simplified UNO.
-**In the MVP:** yes. **Status:** in progress (T4.1–T4.5 done). **Depends on:** M1 (T2.1, T2.2 at minimum).
+**In the MVP:** yes. **Status:** in progress (T4.1–T4.6 done). **Depends on:** M1 (T2.1, T2.2 at minimum).
 
 Design reference: [../rules-schema.md](../rules-schema.md).
 
@@ -13,7 +13,7 @@ Design reference: [../rules-schema.md](../rules-schema.md).
 | T4.3 ⚗ | War and simplified UNO as rules files; 1 000 headless games with random players | S | T4.2 | All games terminate; card count conserved; per-phase invariants hold | done 2026-10-22 |
 | T4.4 | `mcp-server/` (net9, `ModelContextProtocol` 2.3.0, stdio): `create_deck`, `define_zone`, `add_phase`, `add_action`, `set_win_condition`, `place_object`, `deal`, `get_table_state`, `validate_rules`, `ask_host` → `needs_clarification` | M | T4.1 | Contract test per tool over stdio | done 2026-10-22 |
 | T4.5 | WebSocket bridge Unity ↔ MCP (`ws://127.0.0.1:<port>`): commands, events, reconnection, session token; Unity renders the engine's state | M | T4.4, T2.7 | Place objects from the MCP server and see them in the Editor | done 2026-10-22 |
-| T4.6 | Declarative UI v0 from the rules JSON rendered with UI Toolkit (generated `VisualElement` tree, shared USS theme): label, counter, button, image | M | T2.10, T4.2 | War score panel renders and the End Turn button works | todo |
+| T4.6 | Declarative UI v0 from the rules JSON rendered with UI Toolkit (generated `VisualElement` tree, shared USS theme): label, counter, button, image | M | T2.10, T4.2 | War score panel renders and the End Turn button works | done 2026-10-22 (War has no End Turn: its panel's "play top card" buttons were pressed instead) |
 | T4.7 | `docs/agent-guide.md`: configuring the MCP server in Claude Code/Codex, what to ask, sample rulebooks | S | T4.4 | A fresh Claude Code session follows it and reaches a playable table | todo |
 | T4.8 **human** + agent | End-to-end demo with Claude Code; log frictions and the questions the agent asked | S | T4.5, T4.7 | Demo recorded; friction list filed as tasks | todo |
 
@@ -36,3 +36,4 @@ Design reference: [../rules-schema.md](../rules-schema.md).
 | T4.3 | CI runs 200 games per sample (≈1 min); the 1 000-game run is `TW_GAMES=1000 dotnet test --filter GamePlayTests`. |
 | T4.4 | 24 tools: `new_game`, `create_deck`, `place_object`, `define_zone`, `set_variables`, `add_resource`, `set_turn`, `add_phase`, `add_action`, `add_event`, `set_win_condition`, `remove`, `validate_rules`, `get_rules_document`, `set_rules_document`, `get_rules_reference`, `ask_host`, `start_game`, `perform_action`, `deal`, `reset_game`, `get_table_state`, `save_game`, `load_game`. Rule pieces are passed as JSON strings in the documented format (the agent reads `get_rules_reference`). Edits with shape errors are rejected; edits that leave the document incomplete are kept and the problems listed. `ask_host` returns `needs_clarification` and tells the agent to ask the human (MCP elicitation can replace it later). Until the Unity bridge (T4.5) the server plays games in-process. |
 | T4.5 | The MCP server listens (127.0.0.1, random port) and writes `{port, token, pid}` to `%LOCALAPPDATA%/TableWorld/bridge.json`; the game polls it every 2 s and connects with `ClientWebSocket` (newest server wins; reconnects when a new agent session starts). The game is the authoritative host: authoring edits are pushed as `load` (full document), play commands (`start`, `perform`, `deal`) execute in the game and the reply carries the new document; changes made in the window are reported as `state` (batched 0.5 s). Without a window the server plays headless; `--no-bridge` disables the link (tests). The HUD shows the turn line, a Start button and one button per legal action (hot seat: the current seat). Known gap: hand slots are not re-laid out after a card leaves a hand. |
+| T4.6 | `ui` is a typed model (`UiDef`): panels with label, counter, button, image. Rendered by `GameUiRenderer` into the HUD; styling only through Hud.uss classes, except images (runtime textures) which need `style.backgroundImage`. Buttons are enabled from `LegalActions`. Check (Play mode): War panel showed Battle/South's deck/North's deck live; pressing both buttons resolved a battle (South 27, North 25). |

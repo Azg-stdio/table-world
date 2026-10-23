@@ -132,6 +132,18 @@ namespace Core.Tests.Engine
             Assert.Equal(expected, MiniGame.Holds(condition));
         }
 
+        [Fact]
+        public void Ui_FormatAndEvaluate_AsTheViewerSeesIt()
+        {
+            var game = MiniGame.Run(@"{ ""deal"": { ""from"": ""d"", ""count"": 1, ""toTag"": ""mine"" } }");
+
+            Assert.Equal("s1 has 1, deck 3", game.Format("{$viewer.id} has {$viewer.mine.count}, deck {$obj.d.count}", "s1"));
+            Assert.Equal(1, (int)game.Evaluate("$viewer.mine.count", "s2")!);
+            Assert.Equal("s2", game.SeatFor("$viewer", "s2"));
+            Assert.Equal("s1", game.SeatFor("s1", "s2"));
+            Assert.Null(game.Evaluate("$obj.pile.top.name", "s1"));
+        }
+
         // ---- parameters and legal actions ----
 
         [Fact]
