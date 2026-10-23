@@ -1,7 +1,7 @@
 # M7 — Catalog, mods and TTS importer
 
 **Goal:** import a local TTS mod into our format privately; layered catalog; mods.
-**Done when:** "The Chimera Table" and "Riftbound" import completely (objects, zones, snap points, Lua, translated UI); the Pokémon mods import with placeholders where a bundle is missing.
+**Done when:** both local Pokémon mods (Master Trainer 3D, Legends of Sinnoh) import from the files already on the machine and play fully with friends; then the other four local mods. Requirements per mod: `docs/data/mod-requirements-2026-10-23.md`. "The Chimera Table" and "Riftbound" import completely (objects, zones, snap points, Lua, translated UI); the Pokémon mods import with placeholders where a bundle is missing.
 **Status:** todo. **Depends on:** M4, M5.
 
 Design reference: [../tts-mapping.md](../tts-mapping.md).

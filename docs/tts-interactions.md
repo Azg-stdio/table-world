@@ -157,6 +157,25 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G33 | Protocol-level hidden information | hands and hidden zones are not sent to players who cannot see them | every client receives the whole table | P2 |
 | G34 | First person and physics characters | P toggles first person; characters (M6) | ⏭ M6 | — |
 
+### Required by the local mods (Pokémon first)
+
+**Acceptance: the two Pokémon mods (Master Trainer 3D, Legends of Sinnoh) play fully with friends in Table World**, then the other four local mods. The complete list of what each mod uses comes from `tools/tts-analysis/mod_requirements.py` → `docs/data/mod-requirements-2026-10-23.md` (types, per-object features, Lua events, every API call, XmlUI tags). Items not already in G1–G34:
+
+| # | Needed by | What | Today |
+|---|---|---|---|
+| G35 | both Pokémon | AssetBundle models **with their animations and effects** (`playLoopingEffect` 920×, `playTriggerEffect` 604×) | bundles load (ADR 0001); effects not played |
+| G36 | Sinnoh | PDF rulebooks on the table (`Custom_PDF`, page turning) | none |
+| G37 | Master Trainer | Counter object (10), Notecard (1) | none (G27) |
+| G38 | both | Primitive blocks (`BlockRectangle`, `BlockSquare`), custom models from OBJ (`Custom_Model` 1 937) | OBJ not loaded (M4 has glTF) |
+| G39 | both | Snap points attached to objects (689 in Sinnoh), sideways cards (70), per-object `Hands=false` (3 655), `HideWhenFaceDown` (891), `Grid=false`, `GridProjection` | partial (model fields exist; behaviour per object not wired) |
+| G40 | both | Joints (`jointTo`) | none |
+| G41 | Sinnoh | Per-player visibility (`setInvisibleTo` 24×), highlights (`highlightOn/Off`), smooth moves (`setPositionSmooth`, `setRotationSmooth`, `isSmoothMoving`) | none (M5) |
+| G42 | Master Trainer | `Physics.cast` (16×), collision events (`registerCollisions`, `onObjectCollisionEnter`) | none (M5) |
+| G43 | Sinnoh | Scripts that rewrite scripts (`getLuaScript` 816×, `setLuaScript` 300×), `getVar`/`setVar`, coroutines (`startLuaCoroutine` 107×) | none (M5) |
+| G44 | both | Environment from the save: custom table image (`Table_Custom` + `TableURL`), sky (`Sky_Museum`), lighting values, gravity (0.5), music playlist | none; the room (below) is built to take these |
+| G45 | Sinnoh | Fog of war zones (6), layout zones (2), tags on everything (3 468), component tag labels (73) | tags exist; zones not (G18) |
+
+
 ## Notes
 
 - **Conflicts we resolve on purpose:** TTS uses MMB *hold* to pan and MMB *click* to flip; we do the same (a click is a press-and-release without moving). Number keys draw over decks and switch states over objects with states (TTS does both). Shift+1…9 loads cameras; over a deck, plain digits draw.

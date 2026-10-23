@@ -172,6 +172,7 @@ dotnet test TableWorld.sln
 # Tools
 python -I tools/tts-analysis/analyze_mods.py ["<Tabletop Simulator folder>"] --json docs/data/mods-<date>.json   # local mod analysis
 python -I tools/tts-analysis/bundle_headers.py "<folder>/Mods/Assetbundles"                # Unity version of each bundle
+python -I tools/tts-analysis/mod_requirements.py ["<TTS folder>"] --json docs/data/mod-requirements-<date>.json --md docs/data/mod-requirements-<date>.md   # everything each local mod uses (parity checklist)
 
 # Unity CLI (with the Editor open)
 unity status                 # connected Editors
