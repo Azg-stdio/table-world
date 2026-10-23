@@ -154,6 +154,13 @@ namespace TableWorld.View
                 case GroupCommand c when c.ObjectIds.Count > 0:
                     Play(nameof(Clips.CardPlace), _clips.CardPlace, At(c.ObjectIds[0]), 0.5f);
                     break;
+                case SetCounterCommand c:
+                    Play(nameof(Clips.ChipLay), _clips.ChipLay, At(c.ObjectId), 0.25f);
+                    break;
+                case SetClockCommand c when _table.ViewOf(c.ObjectId)?.Model is Clock { Mode: ClockMode.Timer, Running: false, Seconds: <= 0f } && c.Seconds == 0f:
+                    // Time's up.
+                    Play(nameof(Clips.Ping), _clips.Ping, At(c.ObjectId), 1f);
+                    break;
                 case PerformActionCommand _:
                     Play(nameof(Clips.CardSlide), _clips.CardSlide, Camera.main != null ? Camera.main.transform.position : Vector3.zero, 0.4f);
                     break;

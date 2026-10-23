@@ -197,6 +197,12 @@ namespace Core.Rules
                             Add($"{path}.value", ErrorCodes.InvalidValue, $"Value {die.Value} is outside 1..{die.Faces}.");
                         CheckOptionalAsset(die.Asset, $"{path}.asset", AssetType.Image);
                         break;
+                    case Counter counter when counter.Value < Counter.MinValue || counter.Value > Counter.MaxValue:
+                        Add($"{path}.value", ErrorCodes.InvalidValue, $"A counter shows {Counter.MinValue}..{Counter.MaxValue}, not {counter.Value}.");
+                        break;
+                    case Clock clock when !(clock.Seconds >= 0 && clock.Seconds <= Clock.MaxSeconds && clock.Duration >= 0 && clock.Duration <= Clock.MaxSeconds):
+                        Add($"{path}.seconds", ErrorCodes.InvalidValue, $"Seconds and duration must be 0..{Clock.MaxSeconds}.");
+                        break;
                     case Model model:
                         if (model.Asset.Length == 0)
                             Add($"{path}.asset", ErrorCodes.MissingField, $"Model '{model.Id}' has no asset.", "Reference a model or assetBundle asset.");

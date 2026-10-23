@@ -32,6 +32,8 @@ namespace TableWorld.View.Builtin
             ['E'] = new[] { "#####", "#    ", "#    ", "#### ", "#    ", "#    ", "#####" },
             ['R'] = new[] { "#### ", "#   #", "#   #", "#### ", "# #  ", "#  # ", "#   #" },
             ['_'] = new[] { "     ", "     ", "     ", "     ", "     ", "     ", "#####" },
+            [':'] = new[] { "     ", "  #  ", "  #  ", "     ", "  #  ", "  #  ", "     " },
+            ['-'] = new[] { "     ", "     ", "     ", "#####", "     ", "     ", "     " },
         };
 
         public enum Suit { Clubs, Diamonds, Hearts, Spades }
@@ -112,6 +114,13 @@ namespace TableWorld.View.Builtin
             FillRect(x, y + h - thickness, w, thickness, color);
             FillRect(x, y, thickness, h, color);
             FillRect(x + w - thickness, y, thickness, h, color);
+        }
+
+        /// <summary>Writes the pixels into an existing texture of the same size (a display redrawn often).</summary>
+        public void CopyTo(Texture2D texture)
+        {
+            texture.SetPixels32(_pixels);
+            texture.Apply(updateMipmaps: false);
         }
 
         public Texture2D ToTexture(string name)

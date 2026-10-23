@@ -61,6 +61,8 @@ table = {
         {"id": "hero", "type": "Figure", "name": "Hero", "tint": [0.6, 0.75, 0.95], **at(0.3, -0.25)},
         {"id": "statue", "type": "Model", "asset": "placeholder_model", **at(0.4, -0.25)},
         loose_card("secret_card", 26, -0.6, 0.15),
+        {"id": "score", "type": "Counter", "name": "Score", **at(0.62, 0.15)},
+        {"id": "timer", "type": "Clock", "name": "Turn timer", "mode": "timer", "seconds": 60, "duration": 60, **at(-0.6, -0.12)},
     ],
     "zones": [
         {"id": "hand_south", "type": "HandZone", "owner": "seat_south", "transform": {"position": [0, 0.05, -0.42]}, "size": [0.6, 0.1, 0.12]},

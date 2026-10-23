@@ -957,6 +957,32 @@ namespace TableWorld.View
             return dice.Count(d => _table.Execute(new RollCommand { ObjectId = d.Id, Actor = _table.LocalSeat }).Ok);
         }
 
+        /// <summary>Starts a stopped clock, or pauses a running one on the reading this machine shows (G27).</summary>
+        public bool StartOrPause(ObjectView view)
+        {
+            if (!(view.Model is Clock clock) || clock.Mode == ClockMode.Clock)
+                return false;
+            var shown = view.GetComponent<Readout>()?.CurrentSeconds ?? clock.Seconds;
+            return _table.Execute(new SetClockCommand { ObjectId = view.Id, Seconds = shown, Running = !clock.Running, Actor = _table.LocalSeat }).Ok;
+        }
+
+        /// <summary>A stopwatch back to zero, a timer back to what it was set to; both stopped.</summary>
+        public bool ResetClock(ObjectView view) =>
+            view.Model is Clock clock && _table.Execute(new SetClockCommand
+            {
+                ObjectId = view.Id, Seconds = clock.Mode == ClockMode.Timer ? clock.Duration : 0f, Running = false, Actor = _table.LocalSeat,
+            }).Ok;
+
+        /// <summary>Sets a timer to <paramref name="seconds"/>, stopped, ready to start.</summary>
+        public bool SetTimer(ObjectView view, float seconds) =>
+            _table.Execute(new SetClockCommand
+            {
+                ObjectId = view.Id, Mode = ClockMode.Timer, Seconds = seconds, Duration = seconds, Running = false, Actor = _table.LocalSeat,
+            }).Ok;
+
+        public bool AddToCounter(ObjectView view, int amount) =>
+            _table.Execute(new SetCounterCommand { ObjectId = view.Id, Add = amount, Actor = _table.LocalSeat }).Ok;
+
         public bool ToggleLock(ObjectView view)
         {
             if (view == Held)
@@ -1118,9 +1144,12 @@ namespace TableWorld.View
             var text = _digits;
             _digits = "";
             _digitTarget = null;
-            if (target == null || !int.TryParse(text, out var n) || n <= 0)
+            if (target == null || !int.TryParse(text, out var n))
                 return false;
-            return DrawOrSwitch(target, n);
+            // Over a counter the typed number is its new value (G27).
+            if (target.Model is Counter)
+                return _table.Execute(new SetCounterCommand { ObjectId = target.Id, Value = n, Actor = _table.LocalSeat }).Ok;
+            return n > 0 && DrawOrSwitch(target, n);
         }
 
         public bool DrawOrSwitch(ObjectView target, int n)

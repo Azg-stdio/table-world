@@ -243,6 +243,9 @@ namespace TableWorld.View.Net
             // Free-play turns: when it is ours, end it now and then (the others wait for it).
             if (_table.Engine.State.FreeTurns is { Enabled: true } turns && turns.Current == seat && r.Next(3) == 0)
                 return new EndTurnCommand { Actor = seat };
+            // Counters (G27) count on every machine alike.
+            if (_table.Engine.State.Objects.OfType<Counter>().FirstOrDefault() is { } counter && r.Next(6) == 0)
+                return new SetCounterCommand { ObjectId = counter.Id, Add = r.Next(5) - 2 };
             return r.Next(8) switch
             {
                 0 => new FlipCommand { ObjectId = Pick() },

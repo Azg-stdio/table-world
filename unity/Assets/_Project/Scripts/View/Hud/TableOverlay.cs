@@ -185,6 +185,22 @@ namespace TableWorld.View.Hud
                         Item("Roll (R)", () => _interaction.RollOrShuffle(view));
                     Row("Set value", Enumerable.Range(1, die.Faces).Select(v => ($"{v}", (Action)(() => Run(new SetDieValueCommand { ObjectId = die.Id, Value = v })))));
                     break;
+                case Counter counter:
+                    Section($"Counter · {counter.Value}");
+                    Row("Add", new[] { -10, -1, 1, 10 }.Select(n => (n > 0 ? $"+{n}" : $"−{-n}", (Action)(() => _interaction.AddToCounter(view, n)))));
+                    Item("Reset to 0", () => Run(new SetCounterCommand { ObjectId = counter.Id, Value = 0 }));
+                    break;
+                case Clock clock:
+                    Section(clock.Mode == ClockMode.Clock ? "Clock" : $"{clock.Mode} · {view.GetComponent<Readout>()?.Text}");
+                    if (clock.Mode != ClockMode.Clock)
+                    {
+                        Item(clock.Running ? "Pause" : "Start", () => _interaction.StartOrPause(view));
+                        Item("Reset", () => _interaction.ResetClock(view));
+                    }
+                    Row("Timer", new[] { (60f, "1 min"), (300f, "5 min"), (600f, "10 min") }.Select(t => (t.Item2, (Action)(() => _interaction.SetTimer(view, t.Item1)))));
+                    Row("Mode", new[] { ClockMode.Clock, ClockMode.Stopwatch, ClockMode.Timer }.Select(m => ((clock.Mode == m ? "● " : "") + m,
+                        (Action)(() => Run(new SetClockCommand { ObjectId = clock.Id, Mode = m, Seconds = m == ClockMode.Timer ? clock.Duration : 0f, Running = false })))));
+                    break;
                 case Bag bag:
                     Section($"{bag.Type} · {_table.Engine.ContentsOf(bag.Id).Count()} inside");
                     Item("Take 1 to hand", () => _interaction.DrawOrSwitch(view, 1));

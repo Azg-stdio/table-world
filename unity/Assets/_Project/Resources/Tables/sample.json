@@ -893,6 +893,33 @@
     "rank": 14,
     "suit": "hearts"
    }
+  },
+  {
+   "id": "score",
+   "type": "Counter",
+   "name": "Score",
+   "transform": {
+    "position": [
+     0.62,
+     0,
+     0.15
+    ]
+   }
+  },
+  {
+   "id": "timer",
+   "type": "Clock",
+   "name": "Turn timer",
+   "mode": "timer",
+   "seconds": 60,
+   "duration": 60,
+   "transform": {
+    "position": [
+     -0.6,
+     0,
+     -0.12
+    ]
+   }
   }
  ],
  "zones": [

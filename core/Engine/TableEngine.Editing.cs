@@ -207,6 +207,41 @@ namespace Core.Engine
             return CommandResult.Success(new List<StateEvent> { new ObjectUpdated(die.Id) });
         }
 
+        private CommandResult SetCounter(SetCounterCommand c)
+        {
+            if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: true) is { } fail)
+                return fail;
+            if (!(obj is Counter counter))
+                return CommandResult.Fail("objectId", ErrorCodes.WrongObjectType, $"'{obj.Id}' is a {obj.Type}, not a counter.");
+            if (c.Value == null && c.Add == null)
+                return CommandResult.Fail("value", ErrorCodes.MissingField, "Give a value or an amount to add.");
+            var value = (long)(c.Value ?? counter.Value) + (c.Add ?? 0);
+            counter.Value = (int)Math.Max(Counter.MinValue, Math.Min(Counter.MaxValue, value));
+            return CommandResult.Success(new List<StateEvent> { new ObjectUpdated(counter.Id) });
+        }
+
+        private CommandResult SetClock(SetClockCommand c)
+        {
+            if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: true) is { } fail)
+                return fail;
+            if (!(obj is Clock clock))
+                return CommandResult.Fail("objectId", ErrorCodes.WrongObjectType, $"'{obj.Id}' is a {obj.Type}, not a clock.");
+            if (c.Mode is { } mode && !Enum.IsDefined(typeof(ClockMode), mode))
+                return CommandResult.Fail("mode", ErrorCodes.InvalidValue, $"Unknown clock mode {(int)mode}.");
+            if (c.Seconds is { } seconds && (seconds < 0 || seconds > Clock.MaxSeconds || float.IsNaN(seconds)))
+                return CommandResult.Fail("seconds", ErrorCodes.InvalidValue, $"Seconds must be 0..{Clock.MaxSeconds}.");
+            if (c.Duration is { } duration && (duration < 0 || duration > Clock.MaxSeconds || float.IsNaN(duration)))
+                return CommandResult.Fail("duration", ErrorCodes.InvalidValue, $"Duration must be 0..{Clock.MaxSeconds}.");
+            clock.Mode = c.Mode ?? clock.Mode;
+            clock.Duration = c.Duration ?? clock.Duration;
+            clock.Seconds = c.Seconds ?? clock.Seconds;
+            clock.Running = c.Running ?? clock.Running;
+            // A timer at zero has nothing left to count.
+            if (clock.Mode == ClockMode.Timer && clock.Seconds <= 0f)
+                clock.Running = false;
+            return CommandResult.Success(new List<StateEvent> { new ObjectUpdated(clock.Id) });
+        }
+
         private CommandResult SetProperties(SetPropertiesCommand c)
         {
             if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: true) is { } fail)

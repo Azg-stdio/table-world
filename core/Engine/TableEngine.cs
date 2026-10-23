@@ -196,6 +196,8 @@ namespace Core.Engine
             SplitCommand c => Split(c),
             SpreadCommand c => Spread(c),
             SetDieValueCommand c => SetDieValue(c),
+            SetCounterCommand c => SetCounter(c),
+            SetClockCommand c => SetClock(c),
             SetPropertiesCommand c => SetProperties(c),
             _ => CommandResult.Fail("", ErrorCodes.UnknownCommand, $"Unknown command '{command.GetType().Name}'."),
         };

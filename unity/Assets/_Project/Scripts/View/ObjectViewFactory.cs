@@ -62,6 +62,11 @@ namespace TableWorld.View
             frictionCombine = PhysicsMaterialCombine.Maximum,
         };
 
+        /// <summary>Counter and clock blocks (G27), display on top.</summary>
+        public static readonly Vector3 CounterSize = new Vector3(0.07f, 0.02f, 0.035f);
+        public static readonly Vector3 ClockSize = new Vector3(0.09f, 0.022f, 0.04f);
+        private static readonly Color DisplayCase = new Color(0.12f, 0.13f, 0.15f);
+
         public static ObjectView Create(TableObject model, AssetLibrary assets, Transform parent)
         {
             var root = new GameObject($"{model.Type} {model.Id}");
@@ -142,6 +147,17 @@ namespace TableWorld.View
                     var face = assets.ImageMaterial(board.Asset, model.Tint.ToColor(new Color(0.85f, 0.8f, 0.7f)));
                     SetPrism(view, MeshFactory.Box(new Vector3(size.x, BoardThickness, size.y)), face, assets.Plain(new Color(0.3f, 0.25f, 0.2f)),
                         assets.Plain(new Color(0.3f, 0.25f, 0.2f)), 0.2f);
+                    break;
+                }
+                case Counter _:
+                case Clock _:
+                {
+                    // A block with a glowing display on top (G27).
+                    var size = model is Counter ? CounterSize : ClockSize;
+                    var readout = view.GetComponent<Readout>() ?? view.gameObject.AddComponent<Readout>();
+                    readout.Init(view);
+                    var case_ = assets.Plain(model.Tint.ToColor(DisplayCase), 0.5f);
+                    SetPrism(view, MeshFactory.Box(size), readout.Material, case_, case_, 0.06f);
                     break;
                 }
                 case Figure figure:

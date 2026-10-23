@@ -188,12 +188,46 @@ namespace Core.Rules
         public float? Height { get; set; }
     }
 
+    /// <summary>A number on the table that players count up and down (TTS <c>Counter</c>, G27).</summary>
+    public sealed class Counter : TableObject
+    {
+        public const int MinValue = -99999;
+        public const int MaxValue = 999999;
+
+        public int Value { get; set; }
+    }
+
+    public enum ClockMode
+    {
+        /// <summary>The time of day, on each player's own clock.</summary>
+        Clock,
+        /// <summary>Counts up from <see cref="Clock.Seconds"/>.</summary>
+        Stopwatch,
+        /// <summary>Counts down from <see cref="Clock.Seconds"/> to zero, then stops and rings.</summary>
+        Timer,
+    }
+
+    /// <summary>
+    /// A digital clock (TTS <c>Digital_Clock</c>, G27). <see cref="Seconds"/> is the reading when it last started or
+    /// stopped; while <see cref="Running"/>, each machine adds the time since it saw the start.
+    /// </summary>
+    public sealed class Clock : TableObject
+    {
+        public const float MaxSeconds = 100 * 3600;
+
+        public ClockMode Mode { get; set; }
+        public float Seconds { get; set; }
+        /// <summary>What a timer was set to: Reset goes back to it.</summary>
+        public float Duration { get; set; }
+        public bool Running { get; set; }
+    }
+
     /// <summary>Registry of the JSON <c>type</c> values for objects.</summary>
     public static class TableObjectTypes
     {
         public static readonly IReadOnlyDictionary<string, Type> ByName = Build(
             typeof(Card), typeof(Deck), typeof(Token), typeof(Tile), typeof(Die),
-            typeof(Model), typeof(Bag), typeof(InfiniteBag), typeof(Board), typeof(Figure));
+            typeof(Model), typeof(Bag), typeof(InfiniteBag), typeof(Board), typeof(Figure), typeof(Counter), typeof(Clock));
 
         internal static IReadOnlyDictionary<string, Type> Build(params Type[] types)
         {

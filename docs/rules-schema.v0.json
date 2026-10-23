@@ -162,6 +162,12 @@
         },
         {
           "$ref": "#/$defs/Figure"
+        },
+        {
+          "$ref": "#/$defs/Counter"
+        },
+        {
+          "$ref": "#/$defs/Clock"
         }
       ]
     },
@@ -952,6 +958,139 @@
         },
         "height": {
           "type": "number"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "Counter": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "Counter"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "gmNotes": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "container": {
+          "type": "string"
+        },
+        "tint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "states": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/TableObject"
+          }
+        },
+        "script": {
+          "type": "string"
+        },
+        "ttsExtra": {
+          "type": "object"
+        },
+        "value": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "Clock": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "Clock"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "gmNotes": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "container": {
+          "type": "string"
+        },
+        "tint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "states": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/TableObject"
+          }
+        },
+        "script": {
+          "type": "string"
+        },
+        "ttsExtra": {
+          "type": "object"
+        },
+        "mode": {
+          "enum": [
+            "clock",
+            "stopwatch",
+            "timer"
+          ]
+        },
+        "seconds": {
+          "type": "number"
+        },
+        "duration": {
+          "type": "number"
+        },
+        "running": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,

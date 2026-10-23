@@ -61,6 +61,27 @@ namespace Core.Engine
         public int Value { get; set; }
     }
 
+    /// <summary>Sets a counter to <see cref="Value"/>, or adds <see cref="Add"/> to it (G27). Works on locked counters too.</summary>
+    public sealed class SetCounterCommand : Command
+    {
+        public string ObjectId { get; set; } = "";
+        public int? Value { get; set; }
+        public int? Add { get; set; }
+    }
+
+    /// <summary>
+    /// Changes a clock (G27): its mode, its reading in seconds, and whether it runs. Null fields stay as they are. When
+    /// pausing, the sender passes the reading it shows, so everyone stops on the same number.
+    /// </summary>
+    public sealed class SetClockCommand : Command
+    {
+        public string ObjectId { get; set; } = "";
+        public ClockMode? Mode { get; set; }
+        public float? Seconds { get; set; }
+        public float? Duration { get; set; }
+        public bool? Running { get; set; }
+    }
+
     /// <summary>Renames, describes or tints an object (context menu). Null fields stay as they are.</summary>
     public sealed class SetPropertiesCommand : Command
     {

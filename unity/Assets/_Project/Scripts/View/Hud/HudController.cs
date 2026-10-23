@@ -309,8 +309,13 @@ namespace TableWorld.View.Hud
         private string TurnText(Command command)
         {
             var turns = _table.Engine.State.FreeTurns;
+            string NameOf(string id) => _table.Engine.Find(id) is { } o ? o.Name ?? o.Type : id;
             return command switch
             {
+                SetCounterCommand c => $"{NameOf(c.ObjectId)}: {(_table.Engine.Find(c.ObjectId) as Counter)?.Value}",
+                SetClockCommand c => _table.Engine.Find(c.ObjectId) is Clock clock
+                    ? $"{NameOf(c.ObjectId)}: {(clock.Mode == ClockMode.Clock ? "clock" : clock.Running ? "running" : clock.Mode == ClockMode.Timer && clock.Seconds <= 0f ? "time's up" : "stopped")}"
+                    : null,
                 SetTurnOrderCommand { Enabled: false } => "Turns: off",
                 SetTurnOrderCommand c => $"Turns: on{(c.Reverse ? ", reversed" : "")}{(c.SkipEmptyHands ? ", skipping empty hands" : "")} · {turns?.Current}'s turn",
                 EndTurnCommand _ => $"{turns?.Current}'s turn",
@@ -407,7 +412,10 @@ namespace TableWorld.View.Hud
 
             AddAction(model.Locked ? "Unlock (L)" : "Lock (L)", () => _interaction.ToggleLock(selected));
             if (model.Locked)
+            {
+                AddReadoutActions(selected);
                 return;
+            }
             AddAction("Flip (F)", () => _interaction.Flip(selected));
             switch (model)
             {
@@ -424,12 +432,32 @@ namespace TableWorld.View.Hud
                     AddAction("Shuffle (R)", () => _interaction.RollOrShuffle(selected));
                     break;
             }
+            AddReadoutActions(selected);
+        }
+
+        /// <summary>Counter and clock buttons (G27); they work on locked ones too.</summary>
+        private void AddReadoutActions(ObjectView selected)
+        {
+            switch (selected.Model)
+            {
+                case Counter _:
+                    AddAction("−1", () => _interaction.AddToCounter(selected, -1));
+                    AddAction("+1", () => _interaction.AddToCounter(selected, 1));
+                    AddAction("Reset", () => _table.Execute(new SetCounterCommand { ObjectId = selected.Id, Value = 0, Actor = _table.LocalSeat }));
+                    break;
+                case Clock { Mode: not ClockMode.Clock } clock:
+                    AddAction(clock.Running ? "Pause" : "Start", () => _interaction.StartOrPause(selected));
+                    AddAction("Reset", () => _interaction.ResetClock(selected));
+                    break;
+            }
         }
 
         private static string SelectionKey(TableObject model) => model switch
         {
             Deck deck => $"{model.Locked}:{deck.Cards.Count}",
             Die die => $"{model.Locked}:{die.Value}",
+            Counter counter => $"{model.Locked}:{counter.Value}",
+            Clock clock => $"{model.Locked}:{clock.Mode}:{clock.Running}:{clock.Seconds}",
             _ => $"{model.Locked}",
         };
 

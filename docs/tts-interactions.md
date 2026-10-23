@@ -148,7 +148,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G24 | Chat commands and dice announcements | `/roll`, results in chat; per-team chat | none | P2 |
 | G25 | Shared notebook | tabs per colour | none | P3 |
 | G26 | Rewind time | host steps the table back (verify the window) | undo is local and off online | P2 |
-| G27 | Built-in components | counter, calculator, timer/clock, notecard, tablet, music player | none | P2 (counter, timer P1) |
+| G27 | Built-in components | counter, calculator, timer/clock, notecard, tablet, music player | ✅ counter and clock (time of day, stopwatch, timer that rings at zero) with a glowing display; changed from the selection panel, the menu, or by typing digits over a counter (2026-10-23). Calculator, notecard, tablet, music player still to do | P2 (counter, timer P1) |
 | G28 | Table tools | grid overlay and snapping, drawing, line/arrow, 3D text, decals, gizmo (precise move/rotate/scale), flick, joints | ping and measure only | P2 |
 | G29 | Tables and environment | table types, backgrounds, lighting tool | one table | P3 |
 | G30 | Saving | named saves, autosave, save objects to a chest | one quick save | P2 |

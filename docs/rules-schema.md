@@ -105,6 +105,8 @@ Containment: only `Bag` and `InfiniteBag` hold objects (via the child's `contain
 | `Bag` / `InfiniteBag` | `asset` (optional model look); contents are the objects whose `container` is this id; `InfiniteBag` clones its template on take |
 | `Board` | `asset`, `size` |
 | `Figure` | `asset`, `height` (m) |
+| `Counter` | `value` (−99 999..999 999). `SetCounterCommand` sets or adds, locked or not; typing digits over it sets it |
+| `Clock` | `mode` (`clock` time of day, `stopwatch`, `timer`), `seconds` (reading when last started or stopped), `duration` (what a timer was set to; Reset returns to it), `running`. Each machine counts from when it saw the start; the host stops a timer at zero for everyone. `SetClockCommand` changes any of them; a pause carries the sender's shown reading |
 
 ## Zones
 

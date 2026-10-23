@@ -7,6 +7,53 @@ namespace Core.Tests.Engine
     /// <summary>T2.11a: the TTS editing and deck-handling commands.</summary>
     public class EditCommandTests
     {
+        private static TableEngine WithCounterAndClock()
+        {
+            var state = TableJson.Parse(EngineFixture.Json).State!;
+            state.Objects.Add(new Counter { Id = "score", Value = 3, Locked = true });
+            state.Objects.Add(new Clock { Id = "clock", Mode = ClockMode.Timer, Seconds = 60 });
+            Assert.Empty(TableValidator.Validate(state));
+            return new TableEngine(state, 1);
+        }
+
+        [Fact]
+        public void Counter_SetAndAdd_EvenWhenLocked_ClampedToTheDisplay()
+        {
+            var engine = WithCounterAndClock();
+            Assert.True(engine.Execute(new SetCounterCommand { ObjectId = "score", Add = 1 }).Ok);
+            Assert.True(engine.Execute(new SetCounterCommand { ObjectId = "score", Add = -10 }).Ok);
+            Assert.Equal(-6, ((Counter)engine.Find("score")!).Value);
+            Assert.True(engine.Execute(new SetCounterCommand { ObjectId = "score", Value = 42 }).Ok);
+            Assert.True(engine.Execute(new SetCounterCommand { ObjectId = "score", Value = int.MaxValue, Add = int.MaxValue }).Ok);
+            Assert.Equal(Counter.MaxValue, ((Counter)engine.Find("score")!).Value);
+            Assert.Equal(ErrorCodes.MissingField, engine.Execute(new SetCounterCommand { ObjectId = "score" }).Error!.Code);
+            Assert.Equal(ErrorCodes.WrongObjectType, engine.Execute(new SetCounterCommand { ObjectId = "d6", Add = 1 }).Error!.Code);
+
+            var json = TableJson.Serialize(engine.State);
+            Assert.Contains("\"type\": \"Counter\"", json);
+            Assert.Equal(Counter.MaxValue, ((Counter)TableJson.Parse(json).State!.Objects.Single(o => o.Id == "score")).Value);
+        }
+
+        [Fact]
+        public void Clock_StartPauseModes_AndATimerAtZeroStops()
+        {
+            var engine = WithCounterAndClock();
+            var clock = (Clock)engine.Find("clock")!;
+            Assert.True(engine.Execute(new SetClockCommand { ObjectId = "clock", Running = true }).Ok);
+            Assert.True(clock.Running);
+            Assert.True(engine.Execute(new SetClockCommand { ObjectId = "clock", Running = false, Seconds = 41.5f }).Ok);
+            Assert.False(clock.Running);
+            Assert.Equal(41.5f, clock.Seconds);
+            Assert.True(engine.Execute(new SetClockCommand { ObjectId = "clock", Seconds = 0, Running = true }).Ok);
+            Assert.False(clock.Running);   // a timer at zero does not run
+            Assert.True(engine.Execute(new SetClockCommand { ObjectId = "clock", Mode = ClockMode.Stopwatch, Running = true }).Ok);
+            Assert.True(clock.Running);
+            Assert.Equal(ClockMode.Stopwatch, clock.Mode);
+            Assert.False(engine.Execute(new SetClockCommand { ObjectId = "clock", Seconds = -1 }).Ok);
+            Assert.False(engine.Execute(new SetClockCommand { ObjectId = "clock", Mode = (ClockMode)9 }).Ok);
+            Assert.Equal(TableJson.Serialize(engine.State), TableJson.Serialize(TableJson.Parse(TableJson.Serialize(engine.State)).State!));
+        }
+
         [Fact]
         public void Scale_MultipliesAndClamps_AndRefusesBadInput()
         {

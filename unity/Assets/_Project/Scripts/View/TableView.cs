@@ -819,6 +819,8 @@ namespace TableWorld.View
             var view = ObjectViewFactory.Create(obj, Assets, _objectsRoot != null ? _objectsRoot : transform);
             view.ImpactHandler = OnImpact;
             ApplyPhysicsMode(view);
+            if (view.GetComponent<Readout>() is { } readout)
+                readout.TimerDone = OnTimerDone;
             _views[obj.Id] = view;
         }
 
@@ -833,6 +835,13 @@ namespace TableWorld.View
                     Destroy(view.gameObject);
                 }
             }
+        }
+
+        /// <summary>A timer ran out: the host stops it at zero for everyone (each machine counts down on its own).</summary>
+        private void OnTimerDone(ObjectView view)
+        {
+            if (HostsTable)
+                Execute(new SetClockCommand { ObjectId = view.Id, Seconds = 0f, Running = false });
         }
 
         // ---- physics modes (G19) ---------------------------------------------------------------------------------------
