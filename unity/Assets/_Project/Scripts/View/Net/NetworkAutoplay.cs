@@ -15,7 +15,8 @@ namespace TableWorld.View.Net
     /// 0.1 s, once synced), <c>-tw-report path</c> (after autoplay, once the table has not changed for 5 s, writes the state hash, seat and order
     /// as JSON), <c>-tw-quit</c> (quit after reporting), <c>-tw-game file</c> (the host loads a game package first),
     /// <c>-tw-cache folder</c> (asset cache, e.g. an empty one to check T3.4), <c>-tw-wait-players N</c> (a host waits for
-    /// N players to join before playing and reporting), <c>-tw-carry id [seconds]</c> (pick it up and sweep it around), <c>-tw-turns</c> (the host switches free-play
+    /// N players to join before playing and reporting), <c>-tw-carry id [seconds]</c> (pick it up and sweep it around), <c>-tw-sit a,b,…</c> (after syncing, ask for each seat in turn,
+    /// <c>watch</c> to spectate, 1.5 s apart), <c>-tw-turns</c> (the host switches free-play
     /// turns on; every player ends its turn when it comes during autoplay). Online (T3.3): <c>-tw-host online
     /// -tw-code-file f</c>, <c>-tw-join CODE</c> or <c>-tw-join @f</c>, <c>-tw-profile name</c> (one per process on a machine). <see cref="Run"/> starts the same from code.
     /// </summary>
@@ -60,7 +61,7 @@ namespace TableWorld.View.Net
             var carrySeconds = Array.IndexOf(args, "-tw-carry") is var c && c >= 0 && c + 2 < args.Length && float.TryParse(args[c + 2], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var s) ? s : 10f;
             yield return Run(host, host ? Arg("-tw-host") : join, autoplay, Arg("-tw-report"), Array.IndexOf(args, "-tw-quit") >= 0,
                 seed: host ? 1 : 2, codeFile: Arg("-tw-code-file"), carry: carry, carrySeconds: carrySeconds,
-                waitPlayers: int.TryParse(Arg("-tw-wait-players"), out var w) ? w : 0, turns: Array.IndexOf(args, "-tw-turns") >= 0);
+                waitPlayers: int.TryParse(Arg("-tw-wait-players"), out var w) ? w : 0, turns: Array.IndexOf(args, "-tw-turns") >= 0, sit: Arg("-tw-sit"));
         }
 
         /// <summary>
@@ -69,7 +70,7 @@ namespace TableWorld.View.Net
         /// address[:port], a join code, or <c>@file</c> (wait for a host to write its code there).
         /// </summary>
         public IEnumerator Run(bool host, string target, int commands, string report, bool quit, int seed, string codeFile = null,
-            string carry = null, float carrySeconds = 10f, int waitPlayers = 0, bool turns = false)
+            string carry = null, float carrySeconds = 10f, int waitPlayers = 0, bool turns = false, string sit = null)
         {
             if (host && target == "online")
             {
@@ -123,6 +124,12 @@ namespace TableWorld.View.Net
 
             if (carry != null)
                 yield return Carry(carry, carrySeconds);
+            foreach (var wanted in (sit ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                _session.RequestSeat(wanted == "watch" ? null : wanted);
+                yield return new WaitForSeconds(1.5f);
+                Debug.Log($"[Autoplay] Asked for {wanted}: now {(_table.Spectating ? "watching" : _table.LocalSeat)}");
+            }
             if (host && turns && !_table.Execute(new SetTurnOrderCommand()).Ok)
                 Debug.LogError("[Autoplay] Could not switch turns on.");
 
@@ -162,6 +169,7 @@ namespace TableWorld.View.Net
                     ["hash"] = TableJson.Hash(_session.Client?.Confirmed?.State ?? state),
                     ["liveHash"] = TableJson.Hash(state),
                     ["seat"] = _table.LocalSeat,
+                    ["occupants"] = new JObject(_session.Occupants.Select(o => new JProperty(o.Key, o.Value))),
                     ["order"] = _session.Host?.Order ?? -1,
                     ["performed"] = Performed,
                     ["objects"] = state.Objects.Count,

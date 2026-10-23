@@ -80,6 +80,7 @@ Everything below already passes automated tests on one machine (two processes, s
 - [ ] Free-play turns (host: right-click the felt → Turns: In order): everyone sees whose turn it is, only that player has End turn, and "Your turn" shows up when it comes round.
 - [ ] Counter and timer (sample table: Score on the right, Turn timer on the left): everyone sees the same score; a running timer shows about the same time on every screen and rings for everyone at zero.
 - [ ] Flips, draws and deals look smooth on every screen, not only for the player who did them.
+- [ ] Seats: a friend clicks the other free colour and sits there; clicking yours is refused; Watch turns them into a spectator who can look but not touch, and they can sit again.
 - [ ] Sounds: picking up, dropping, shuffling, rolling, dealing feel right and are not too loud or repetitive; friends' actions are heard too.
 
 **After the session**

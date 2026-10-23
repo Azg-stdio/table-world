@@ -106,6 +106,9 @@ namespace TableWorld.View.Hud
         /// <summary>Opens the menu for <paramref name="target"/> (null: the global table menu) at a screen point.</summary>
         public void OpenMenu(ObjectView target, Vector2 screen)
         {
+            // A spectator only gets the camera and table entries.
+            if (_table.Spectating)
+                target = null;
             _menuTarget = target;
             _menuWorldPoint = WorldPointUnder(screen);
             _menu.Clear();

@@ -383,7 +383,7 @@ namespace TableWorld.View
             if (_digits.Length > 0 && Time.unscaledTime - _digitTime >= DigitBufferSeconds)
                 FlushDigits();
 
-            if (target == null)
+            if (target == null || _table.Spectating)
                 return;
             if (keyboard.fKey.wasPressedThisFrame) Flip(target, otherAxis: false);
             if (keyboard.rKey.wasPressedThisFrame && RollDice(Held != null ? _held.ToList() : targets) == 0) RollOrShuffle(target);
@@ -484,7 +484,7 @@ namespace TableWorld.View
         /// <summary>Starts holding <paramref name="view"/>, or one item taken out of it when it is a deck or bag.</summary>
         public bool Grab(ObjectView view, bool moveContainer)
         {
-            if (Held != null || view == null)
+            if (Held != null || view == null || _table.Spectating)
                 return false;
 
             var model = view.Model;

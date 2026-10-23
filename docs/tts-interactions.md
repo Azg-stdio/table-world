@@ -131,7 +131,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G7 | Search shows cards | a grid of card faces, drag one out | ✅ grid of faces with names, top first; pressing a card picks it up so it follows the pointer (bag items as name tiles) | P1 |
 | G8 | Hand card close-up | hovering a card in your hand raises and enlarges it | ✅ hand bar (2026-10-23) | P1 |
 | G9 | Motion | flips, draws and deals animate | ✅ a flip lifts and turns over in a quarter second; a card or object taken from a deck or bag leaves its top and arcs to its place; dealt cards glide from the deck into the hand; picking a card up mid-flight takes over (2026-10-23) | P2 |
-| G10 | Seats | click a colour to sit there, spectator, change seat | assigned in join order | P2 |
+| G10 | Seats | click a colour to sit there, spectator, change seat | ✅ seat chips show who sits where (you, host, taken); click a free one to sit, Watch to spectate; the host decides (a taken seat is refused) and refuses a spectator's commands; solo, a click picks which seat you play (2026-10-23). Player names come with G23 | P2 |
 | G11 | Chat and game log | chat box, messages and rule messages scroll back | only the last rules message | P2 |
 | G12 | Lighting | even light around the table | ✅ game night room: warm lamp over the table plus a fill light (2026-10-23) | P2 |
 | G13 | Escape menu | settings (mouse, volume, graphics), leave, quit | none | P2 |

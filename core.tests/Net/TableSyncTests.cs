@@ -241,6 +241,22 @@ namespace Core.Tests.Net
         }
 
         [Fact]
+        public void WatchingClient_CannotChangeTheTable()
+        {
+            var net = new Network(Game(6), 6, "a");
+            net.Flush();
+            net.Host.Watching.Add("a");
+            var refused = new List<ValidationError>();
+            net.Clients["a"].Refused += refused.Add;
+            var before = TableJson.Hash(net.Host.Game.State);
+            net.ClientDoes("a", new FlipCommand { ObjectId = "loose" });
+            net.Flush();
+            Assert.Equal(before, TableJson.Hash(net.Host.Game.State));
+            Assert.Equal(before, TableJson.Hash(net.Clients["a"].Predicted!.State));
+            Assert.Contains(refused, e => e.Code == ErrorCodes.NotYourSeat);
+        }
+
+        [Fact]
         public void SeatedClient_CannotActForAnotherSeat()
         {
             var host = GameFixtures.Load("war", 5);

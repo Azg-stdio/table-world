@@ -218,7 +218,8 @@ namespace TableWorld.View.Hud
         {
             if (_table == null || _table.Engine == null)
                 return;
-            var seatsKey = $"{_table.LocalSeat}|{CurrentTurnSeat()}";
+            var seatsKey = $"{_table.LocalSeat}|{_table.Spectating}|{CurrentTurnSeat()}|{_table.Networked}|" +
+                           (_session != null ? string.Join(",", _session.Occupants.Select(o => o.Key + "=" + o.Value)) : "");
             if (_shownEngine != _table.Engine || seatsKey != _shownSeatsKey)
             {
                 _shownSeatsKey = seatsKey;
@@ -368,27 +369,62 @@ namespace TableWorld.View.Hud
             return picked != null && picked != _root;
         }
 
+        /// <summary>
+        /// One chip per seat: colour, name and who sits there. Clicking a free seat sits you there (G10); online, the host
+        /// decides. Online there is also a Watch chip to give up your seat.
+        /// </summary>
         private void RebuildSeats()
         {
             _seatList.Clear();
             var local = _table.LocalSeat;
+            var online = _table.Networked && _session != null;
+            var occupants = online ? _session.Occupants : null;
             foreach (var seat in _table.Engine.State.Players.Seats)
             {
-                var chip = new VisualElement { pickingMode = PickingMode.Ignore };
+                var chip = new VisualElement();
                 chip.AddToClassList("seat-chip");
                 if (seat.Id == local)
                     chip.AddToClassList("seat-chip--local");
                 if (seat.Id == CurrentTurnSeat())
                     chip.AddToClassList("seat-chip--turn");
+                var sitter = occupants != null && occupants.TryGetValue(seat.Id, out var who) ? who : null;
+                var takenByOther = sitter != null && seat.Id != local;
+                chip.AddToClassList(takenByOther ? "seat-chip--taken" : "seat-chip--free");
                 var swatch = new VisualElement { pickingMode = PickingMode.Ignore };
                 swatch.AddToClassList("seat-swatch");
                 swatch.AddToClassList("seat-swatch--" + seat.Color.ToLowerInvariant());
-                var name = new Label(seat.Id == local ? $"{seat.Id} (you)" : seat.Id) { pickingMode = PickingMode.Ignore };
+                var suffix = seat.Id == local ? " (you)" : sitter == TableWorld.View.Net.NetworkTableSession.HostIdForUi ? " (host)" : takenByOther ? " (taken)" : "";
+                var name = new Label(seat.Id + suffix) { pickingMode = PickingMode.Ignore };
                 name.AddToClassList("seat-name");
                 chip.Add(swatch);
                 chip.Add(name);
+                chip.tooltip = takenByOther ? "Someone sits here" : seat.Id == local ? "Your seat" : "Click to sit here";
+                var id = seat.Id;
+                if (!takenByOther && seat.Id != local)
+                    chip.RegisterCallback<ClickEvent>(_ => SitAt(id));
                 _seatList.Add(chip);
             }
+            if (online)
+            {
+                var watch = new VisualElement { tooltip = "Leave your seat and watch" };
+                watch.AddToClassList("seat-chip");
+                watch.AddToClassList(_table.Spectating ? "seat-chip--local" : "seat-chip--free");
+                var label = new Label(_table.Spectating ? "Watching (you)" : "Watch") { pickingMode = PickingMode.Ignore };
+                label.AddToClassList("seat-name");
+                watch.Add(label);
+                if (!_table.Spectating)
+                    watch.RegisterCallback<ClickEvent>(_ => SitAt(null));
+                _seatList.Add(watch);
+            }
+        }
+
+        /// <summary>Sit at a seat (null: watch). Online the host decides; solo it picks which seat this machine plays.</summary>
+        public void SitAt(string seat)
+        {
+            if (_table.Networked && _session != null)
+                _session.RequestSeat(seat);
+            else if (seat != null)
+                _table.SeatOverride = seat;
         }
 
         private void RefreshSelection()

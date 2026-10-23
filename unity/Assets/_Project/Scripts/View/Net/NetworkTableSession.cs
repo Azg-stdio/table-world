@@ -26,6 +26,8 @@ namespace TableWorld.View.Net
     {
         public const string MessageName = "tw";
         public const ushort DefaultPort = 7777;
+        /// <summary>The host's participant id, as the HUD sees it in <see cref="Occupants"/>.</summary>
+        public const string HostIdForUi = SessionHost.HostId;
         public const float TouchSeconds = 4f;
 
         [SerializeField] private TableView _table;
@@ -35,6 +37,15 @@ namespace TableWorld.View.Net
         private SessionClient _client;
         private AssetClient _assets;
         private readonly Dictionary<ulong, string> _seatOf = new Dictionary<ulong, string>();
+        /// <summary>Host only: who sits where, the host included (G10).</summary>
+        private readonly Seating _seating = new Seating();
+        private Dictionary<string, string> _occupants = new Dictionary<string, string>();
+
+        /// <summary>Seat id → who sits there (<see cref="SessionHost.HostId"/> or a client id), as last known on this machine.</summary>
+        public IReadOnlyDictionary<string, string> Occupants => IsHost ? Seating.Read(_seating.Message()) : _occupants;
+
+        /// <summary>This machine's participant id in <see cref="Occupants"/>.</summary>
+        public string LocalParticipant => IsHost ? SessionHost.HostId : _network != null ? _network.LocalClientId.ToString() : null;
         private readonly Dictionary<string, float> _touched = new Dictionary<string, float>();
 
         public bool IsHost => _host != null;
@@ -167,7 +178,9 @@ namespace TableWorld.View.Net
         {
             NewHost();
             _table.Router = HostRoute;
-            _table.SeatOverride = _table.Engine.State.Players.Seats.FirstOrDefault()?.Id;
+            _seating.Join(SessionHost.HostId, SeatIds());
+            _table.SeatOverride = _seating.Seat(SessionHost.HostId);
+            _table.Spectating = _table.SeatOverride == null;
             // The host simulates every object, except those a client is (or just was) carrying: that client reports them.
             _table.ReportsPoseOf = view => !RemoteHeldRecently(view.Id);
             _network.OnClientConnectedCallback += OnHostClientConnected;
@@ -244,8 +257,12 @@ namespace TableWorld.View.Net
             if (_table != null)
                 _table.FetchAsset = null;
             _seatOf.Clear();
+            foreach (var participant in _seating.SeatOf.Keys.ToList())
+                _seating.Leave(participant);
+            _occupants = new Dictionary<string, string>();
             if (_table != null)
             {
+                _table.Spectating = false;
                 _table.Router = null;
                 _table.SeatOverride = null;
                 _table.ReportsPoseOf = null;
@@ -281,14 +298,24 @@ namespace TableWorld.View.Net
             if (_host == null || _host.Game == _table.Game)
                 return;
             NewHost();
+            // Seats that the new table lacks are left; their players watch until they pick another.
+            _seating.Keep(SeatIds());
+            if (_table.SeatOverride != null && _seating.Seat(SessionHost.HostId) == null)
+                _seating.Join(SessionHost.HostId, SeatIds());
+            _table.SeatOverride = _seating.Seat(SessionHost.HostId);
+            _table.Spectating = _table.SeatOverride == null;
             foreach (var client in _seatOf.Keys.ToList())
             {
+                _seatOf[client] = _seating.Seat(client.ToString());
                 if (_seatOf[client] != null)
                     _host.Seats[client.ToString()] = _seatOf[client];
+                else
+                    _host.Watching.Add(client.ToString());
                 var snapshot = _host.Snapshot(client.ToString());
                 snapshot.Message["seat"] = _seatOf[client];
                 Send(snapshot);
             }
+            BroadcastSeating();
         }
 
         private CommandResult HostRoute(Command command)
@@ -303,15 +330,68 @@ namespace TableWorld.View.Net
         {
             if (clientId == NetworkManager.ServerClientId)
                 return;
-            var taken = new HashSet<string>(_seatOf.Values) { _table.SeatOverride };
-            var seat = _table.Engine.State.Players.Seats.Select(s => s.Id).FirstOrDefault(id => !taken.Contains(id));
+            var seat = _seating.Join(clientId.ToString(), SeatIds());
             _seatOf[clientId] = seat;
             if (seat != null)
                 _host.Seats[clientId.ToString()] = seat;
+            else
+                _host.Watching.Add(clientId.ToString());
             var snapshot = _host.Snapshot(clientId.ToString());
             snapshot.Message["seat"] = seat;
             Send(snapshot);
+            BroadcastSeating();
             Status = HostStatus();
+        }
+
+        private IEnumerable<string> SeatIds() => _table.Engine.State.Players.Seats.Select(s => s.Id);
+
+        private void BroadcastSeating() => Send(new Outgoing(null, _seating.Message()));
+
+        /// <summary>
+        /// Sit at <paramref name="seat"/>, or watch (null) (G10). The host decides: a seat someone else holds is refused.
+        /// Solo, it just picks which seat this machine plays.
+        /// </summary>
+        public void RequestSeat(string seat)
+        {
+            if (IsHost)
+                Sit(SessionHost.HostId, seat);
+            else if (IsClient)
+                SendTo(NetworkManager.ServerClientId, new JObject { ["kind"] = "sit", ["seat"] = seat });
+        }
+
+        private void Sit(string participant, string seat)
+        {
+            var before = _seating.Seat(participant);
+            if (!_seating.Sit(participant, seat, SeatIds(), out var error))
+            {
+                if (participant == SessionHost.HostId)
+                    _table.Tell(error);
+                else if (ulong.TryParse(participant, out var refused))
+                    SendTo(refused, new JObject { ["kind"] = "seat", ["seat"] = before, ["error"] = error });
+                return;
+            }
+            if (before != null && before != seat)
+                _presence.Remove(before);
+            if (participant == SessionHost.HostId)
+            {
+                _table.SeatOverride = seat;
+                _table.Spectating = seat == null;
+            }
+            else if (ulong.TryParse(participant, out var client))
+            {
+                _seatOf[client] = seat;
+                if (seat != null)
+                    _host.Seats[participant] = seat;
+                else
+                    _host.Seats.Remove(participant);
+                if (seat == null)
+                    _host.Watching.Add(participant);
+                else
+                    _host.Watching.Remove(participant);
+                SendTo(client, new JObject { ["kind"] = "seat", ["seat"] = seat });
+            }
+            Debug.Log($"[Net] {participant} sits at {seat ?? "no seat (watching)"}");
+            BroadcastSeating();
         }
 
         private void OnHostClientDisconnected(ulong clientId)
@@ -319,14 +399,24 @@ namespace TableWorld.View.Net
             if (_seatOf.TryGetValue(clientId, out var leaving) && leaving != null)
                 _presence.Remove(leaving);
             _seatOf.Remove(clientId);
+            _seating.Leave(clientId.ToString());
+            _host?.Watching.Remove(clientId.ToString());
             _host?.Seats.Remove(clientId.ToString());
+            if (_host != null)
+                BroadcastSeating();
             Status = HostStatus();
         }
 
         private void OnHostMessage(ulong sender, FastBufferReader reader)
         {
             reader.ReadValueSafe(out string text);
-            foreach (var message in _host.Receive(sender.ToString(), JObject.Parse(text)))
+            var parsed = JObject.Parse(text);
+            if ((string)parsed["kind"] == "sit")
+            {
+                Sit(sender.ToString(), (string)parsed["seat"]);
+                return;
+            }
+            foreach (var message in _host.Receive(sender.ToString(), parsed))
                 Send(message);
         }
 
@@ -385,10 +475,23 @@ namespace TableWorld.View.Net
             var kind = (string)message["kind"];
             if (_sentAt.Count > 0 && kind == "order" && (string)message["origin"] == _network.LocalClientId.ToString())
                 RoundTrips.Add((Time.realtimeSinceStartup - _sentAt.Dequeue(), !_assets.Complete));
+            if (kind == "seat")
+            {
+                _table.SeatOverride = (string)message["seat"];
+                _table.Spectating = _table.SeatOverride == null;
+                if ((string)message["error"] is { } error)
+                    _table.Tell(error);
+                return;
+            }
+            if (kind == "seating")
+            {
+                _occupants = Seating.Read(message);
+                return;
+            }
             if (kind == "snapshot")
             {
-                if (message["seat"] != null)
-                    _table.SeatOverride = (string)message["seat"];
+                _table.SeatOverride = (string)message["seat"];
+                _table.Spectating = _table.SeatOverride == null;
                 _snapshotAt = Time.realtimeSinceStartup;
                 AssetSeconds = -1f;
             }
@@ -400,7 +503,7 @@ namespace TableWorld.View.Net
             if (reply != null)
                 SendTo(NetworkManager.ServerClientId, reply);
             if (_client.Synced)
-                Status = _assets.Complete ? $"playing as {_table.SeatOverride}" : $"playing as {_table.SeatOverride}, receiving {_assets.Pending} image(s)";
+                Status = _assets.Complete ? (_table.Spectating ? "watching" : $"playing as {_table.SeatOverride}") : (_table.Spectating ? "watching" : $"playing as {_table.SeatOverride}") + $", receiving {_assets.Pending} image(s)";
         }
 
         // ---- transport --------------------------------------------------------------------------------------------

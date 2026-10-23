@@ -180,6 +180,12 @@ namespace TableWorld.View
         public bool Networked => Router != null;
 
         /// <summary>
+        /// True while this machine's player watches without a seat (G10): no local seat, nothing can be picked up or
+        /// changed, the camera still moves.
+        /// </summary>
+        public bool Spectating { get; set; }
+
+        /// <summary>
         /// True on the machine that hosts the table (solo play too); false on a network client. Hidden zones that list
         /// <c>host</c> reveal their contents only here.
         /// </summary>
@@ -449,7 +455,7 @@ namespace TableWorld.View
         /// Seat that commands from this machine act as. Solo (hot seat): the seat whose turn it is during a game or with
         /// free-play turns on (G22), otherwise the first seat. Online it is pinned per machine.
         /// </summary>
-        public string LocalSeat => SeatOverride ?? (Game?.Session is { Started: true, Over: false } session
+        public string LocalSeat => Spectating ? null : SeatOverride ?? (Game?.Session is { Started: true, Over: false } session
             ? session.CurrentSeat
             : Engine?.State.FreeTurns is { Enabled: true, Current: { } turn }
                 ? turn

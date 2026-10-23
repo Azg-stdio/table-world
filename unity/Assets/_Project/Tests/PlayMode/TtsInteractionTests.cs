@@ -260,6 +260,30 @@ namespace TableWorld.Tests.PlayMode
             Assert.Less(dealt.transform.position.z, -0.3f, "then stands in the south hand");
         }
 
+        [UnityTest]
+        public IEnumerator Seats_ClickAChipToPlayThatSeat_SpectatorsOnlyLook()
+        {
+            var hud = Object.FindAnyObjectByType<HudController>();
+            var root = hud.GetComponent<UIDocument>().rootVisualElement;
+            Assert.AreEqual("seat_south", _table.LocalSeat);
+            hud.SitAt("seat_north");
+            yield return null;
+            Assert.AreEqual("seat_north", _table.LocalSeat);
+            var you = root.Query(className: "seat-chip--local").ToList();
+            Assert.AreEqual(1, you.Count);
+            StringAssert.Contains("seat_north (you)", you[0].Q<Label>().text);
+
+            _table.Spectating = true;
+            Assert.IsNull(_table.LocalSeat);
+            Assert.IsFalse(_interaction.Grab(V("ace_spades"), false), "a spectator cannot pick things up");
+            _overlay.OpenMenu(V("ace_spades"), Vector2.zero);
+            CollectionAssert.DoesNotContain(_overlay.MenuEntries.ToList(), "Flip (F)", "and gets only the table menu");
+            _overlay.CloseMenu();
+            _table.Spectating = false;
+            Assert.IsTrue(_interaction.Grab(V("ace_spades"), false));
+            _interaction.Release();
+        }
+
         // ---- 3. looking ----
 
         [UnityTest]

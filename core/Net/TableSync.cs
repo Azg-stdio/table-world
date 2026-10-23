@@ -72,6 +72,9 @@ namespace Core.Net
         /// </summary>
         public Dictionary<string, string> Seats { get; } = new Dictionary<string, string>();
 
+        /// <summary>Clients watching without a seat (G10): the host refuses their commands.</summary>
+        public HashSet<string> Watching { get; } = new HashSet<string>();
+
         /// <summary>When set, snapshots carry its manifest and <c>asset_request</c> messages are answered (T3.4).</summary>
         public AssetHost? Assets { get; set; }
 
@@ -122,6 +125,11 @@ namespace Core.Net
 
         private (CommandResult Result, Outgoing Broadcast) Run(string origin, long clientSeq, Command command)
         {
+            if (Watching.Contains(origin))
+            {
+                var watching = CommandResult.Fail("", ErrorCodes.NotYourSeat, "You are watching; pick a seat to play.", "Click a seat.");
+                return (watching, new Outgoing(origin, Rejection(origin, clientSeq, watching.Error!)));
+            }
             if (command is IHostCommand && origin != HostId)
             {
                 var hostOnly = CommandResult.Fail("", ErrorCodes.HostOnly, "Only the host can change that.", "Ask the host.");

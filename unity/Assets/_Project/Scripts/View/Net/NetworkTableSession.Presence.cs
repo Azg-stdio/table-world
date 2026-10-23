@@ -65,8 +65,11 @@ namespace TableWorld.View.Net
             var now = Time.unscaledTime;
             if (now - _presenceSentAt < 1f / PresenceRate)
                 return;
+            // A spectator has no seat colour to show (G10).
+            if (_table.LocalSeat == null)
+                return;
             _interaction ??= FindAnyObjectByType<TableInteraction>();
-            var frame = new PresenceFrame { Seat = _table.LocalSeat ?? "" };
+            var frame = new PresenceFrame { Seat = _table.LocalSeat };
             if (_interaction != null)
             {
                 if (_interaction.PointerOnTable is { } pointer)
