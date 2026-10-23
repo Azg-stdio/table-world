@@ -88,17 +88,53 @@ namespace TableWorld.Editor
             AssetDatabase.AddObjectToAsset(asset.atlasTextures[0], asset);
             asset.material.name = asset.name + " Material";
             AssetDatabase.AddObjectToAsset(asset.material, asset);
-            // Every printable ASCII and Latin-1 character up front, so the first frames never stall on glyph rendering.
+            Populate(asset);
+            return asset;
+        }
+
+        /// <summary>
+        /// Every printable ASCII and Latin-1 character, plus the symbols the UI writes (menus, counters, status lines).
+        /// A text that needs a character not listed here shows a blank: add it and run Rebuild UI Font Atlases.
+        /// </summary>
+        public static string Characters()
+        {
             var characters = new System.Text.StringBuilder();
             for (var c = 32; c < 127; c++)
                 characters.Append((char)c);
             for (var c = 160; c < 256; c++)
                 characters.Append((char)c);
-            characters.Append("…–—·×→←↑↓•");
-            asset.TryAddCharacters(characters.ToString(), out _);
+            characters.Append("…–—‘’“”·×÷−±≈≠≤≥→←↑↓↔•●○✓✗°′″€");
+            return characters.ToString();
+        }
+
+        /// <summary>
+        /// Renders <see cref="Characters"/> into a fresh atlas. Text that needed a glyph missing from it made the dynamic
+        /// atlas grow during play, so the asset changed on disk; reverting that file under a running Editor scrambled
+        /// the glyphs (letters cut or swapped). With every character the UI writes already in, nothing is added at runtime.
+        /// (Static atlases are deprecated in Unity 6.6.)
+        /// </summary>
+        private static void Populate(FontAsset asset)
+        {
+            asset.atlasPopulationMode = AtlasPopulationMode.Dynamic;
+            asset.ClearFontAssetData(setAtlasSizeToZero: false);
+            if (!asset.TryAddCharacters(Characters(), out var missing) && !string.IsNullOrEmpty(missing))
+                Debug.LogWarning($"[HudBuilder] {asset.name} has no glyph for: {missing}");
             EditorUtility.SetDirty(asset);
             AssetDatabase.SaveAssets();
-            return asset;
+        }
+
+        [MenuItem("Table World/Rebuild UI Font Atlases")]
+        public static string RebuildFontAtlases()
+        {
+            var report = "";
+            foreach (var path in new[] { RegularFontAssetPath, SemiBoldFontAssetPath })
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<FontAsset>(path);
+                Populate(asset);
+                report += $"{asset.name}: {asset.atlasTextures.Length} atlas(es), {asset.atlasPopulationMode}; ";
+            }
+            GetOrCreateFonts();
+            return report;
         }
 
         public static VisualTreeAsset Hud => AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(HudPath);

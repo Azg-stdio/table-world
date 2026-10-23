@@ -49,6 +49,7 @@ namespace TableWorld.View.Hud
             _camera = camera;
             _look = look;
             _menu = root.Q("contextMenu");
+            _menu.RegisterCallback<GeometryChangedEvent>(_ => KeepMenuOnScreen());
             _box = root.Q("boxRect");
             _tooltip = root.Q<Label>("tooltip");
             _measure = root.Q<Label>("measure");
@@ -121,6 +122,20 @@ namespace TableWorld.View.Hud
             _menu.style.left = panelPoint.x;
             _menu.style.top = panelPoint.y;
             _menu.RemoveFromClassList(Hidden);
+        }
+
+        /// <summary>A menu opened near the bottom or right edge moves up or left so all of it shows.</summary>
+        private void KeepMenuOnScreen()
+        {
+            var screen = _root.layout;
+            var menu = _menu.layout;
+            if (float.IsNaN(menu.height) || float.IsNaN(screen.height))
+                return;
+            const float margin = 4f;
+            if (menu.yMax > screen.height - margin)
+                _menu.style.top = Mathf.Max(margin, screen.height - menu.height - margin);
+            if (menu.xMax > screen.width - margin)
+                _menu.style.left = Mathf.Max(margin, screen.width - menu.width - margin);
         }
 
         public void CloseMenu()

@@ -316,6 +316,11 @@
     background-color: rgb(22, 24, 30);
 }
 
+/* Entries keep their height; the menu moves to stay on screen instead of squeezing them. */
+.context-menu > * {
+    flex-shrink: 0;
+}
+
 .menu-title {
     -unity-font-style: bold;
     font-size: 15px;
