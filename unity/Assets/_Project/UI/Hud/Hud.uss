@@ -393,12 +393,13 @@
 
 .hand-bar {
     position: absolute;
-    bottom: 10px;
+    bottom: 0;
     left: 50%;
     translate: -50% 0;
     height: 140px;
 }
 
+/* Resting cards show only their top (corner index and pip); the rest is below the screen edge. */
 .hand-card {
     position: absolute;
     bottom: 0;
@@ -410,11 +411,43 @@
     background-color: rgb(250, 248, 240);
     -unity-background-scale-mode: stretch-to-fill;
     transform-origin: center bottom;
+    translate: 0 84px;
     transition-duration: 0.12s;
 }
 
 .hand-card:hover {
     scale: 1.6 1.6;
-    translate: 0 -8px;
+    translate: 0 -6px;
     border-color: rgba(255, 255, 255, 0.9);
+}
+
+/* Hidden hand: a thin strip of each card stays visible; hovering still shows a card. */
+.hand-bar--collapsed .hand-card {
+    translate: 0 128px;
+}
+
+.hand-bar--collapsed .hand-card:hover {
+    translate: 0 -6px;
+}
+
+.hand-toggle {
+    position: absolute;
+    bottom: 62px;
+    left: 50%;
+    translate: -50% 0;
+    padding: 2px 10px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    background-color: rgba(16, 18, 22, 0.82);
+    color: rgb(240, 236, 226);
+    font-size: 13px;
+}
+
+.hand-toggle:hover {
+    background-color: rgb(66, 76, 92);
+}
+
+.hand-toggle--collapsed {
+    bottom: 18px;
 }

@@ -36,7 +36,7 @@ The list of player interactions Table World must reproduce, taken from Tabletop 
 | Add to held group | while holding, RMB over another object | KB:basic | ✅ | play |
 | Tap down | RMB while holding | KB:basic | ✅ (lowers the held object while RMB is down) | play |
 | Drop last grabbed / bottom card of held deck | Alt+RMB | KB:adv | ✅ | play |
-| Rotate held or hovered | Q / E (15°) | unverified (KB: Q/E in Alt zoom) | ✅ | play, input |
+| Rotate held or hovered | Q / E: tap = next 15° step, snapped (from 67°, E → 75°, Q → 60°); hold = turns smoothly (120°/s) and stops wherever released | Miguel (TTS), 2026-10-23 | ✅ animated; one command per gesture | play, input |
 | Rotate on another axis | Alt+Q / Alt+E / Alt+wheel | KB:adv | ✅ (Alt+wheel turns about the vertical) | play |
 | Flip | F; MMB click on object; menu "Flip" | KB:basic | ✅ | play, input |
 | Flip on another axis | Alt+MMB | KB:adv | ✅ | play |
@@ -75,7 +75,7 @@ The list of player interactions Table World must reproduce, taken from Tabletop 
 | Lock | menu toggle "Lock" (L: unverified) | KB:menu | ✅ (L) | play |
 | Hands toggle (can go to hand) | menu toggle | KB:menu | ⏭ polish (every card can go to a hand today) | — |
 | Hand view: your cards stand at your table edge facing you, others see backs; others' hand cards cannot be picked up, and their name never shows | automatic in a hand zone | KB:basic | ✅ leaning 40° (faces the default camera), shown 3 cm toward your table edge, gliding into place (≈0.15 s); hiding is view only (every client still receives the whole table) | play |
-| Hand bar: your hand at the bottom of the screen, whatever the camera does | automatic | KB:basic | ✅ hover raises and enlarges a card (×1.6); press a card to pick it up; release over the bar (or over your hand zone) to put a card straight into your hand at that spot, without a physics fall | input |
+| Hand bar: your hand at the bottom of the screen, whatever the camera does | automatic | KB:basic | ✅ resting cards show only their top (corner index and pip); hover raises and enlarges a card (×1.6); press a card to pick it up; release over the bar (or over your hand zone) to put a card straight into your hand at that spot, without a physics fall; **Hide hand / Show hand** sinks it to a thin strip (remembered on this machine) | input |
 | Reorder your hand | drag a card within your hand | KB:basic | ✅ | play |
 
 ## 4b. Playing a rules game by hand (Table World; TTS has no rules engine)

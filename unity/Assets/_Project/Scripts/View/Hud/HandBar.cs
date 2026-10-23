@@ -23,6 +23,10 @@ namespace TableWorld.View.Hud
         public const float DropMargin = 60f;
 
         private readonly VisualElement _bar;
+        private readonly Button _toggle;
+
+        /// <summary>Remembered per player on this machine.</summary>
+        public const string CollapsedPref = "tw.hand.collapsed";
         private readonly TableView _table;
         private readonly TableInteraction _interaction;
         private readonly Dictionary<(string Asset, int Index), Sprite> _sprites = new Dictionary<(string, int), Sprite>();
@@ -32,12 +36,50 @@ namespace TableWorld.View.Hud
         public HandBar(VisualElement root, TableView table, TableInteraction interaction)
         {
             _bar = root.Q("handBar");
+            _toggle = root.Q<Button>("handToggle");
+            if (_toggle != null)
+                _toggle.clicked += () => SetCollapsed(!Collapsed);
+            SetCollapsed(LoadCollapsed());
             _table = table;
             _interaction = interaction;
             if (_interaction != null)
             {
                 _interaction.HandDrop = DropSlot;
                 _interaction.HandCardAt = CardAt;
+            }
+        }
+
+        public bool Collapsed { get; private set; }
+
+        /// <summary>Hide or show the hand: hidden leaves a thin strip of each card, and hovering still shows one.</summary>
+        public void SetCollapsed(bool collapsed)
+        {
+            Collapsed = collapsed;
+            _bar?.EnableInClassList("hand-bar--collapsed", collapsed);
+            if (_toggle != null)
+            {
+                _toggle.EnableInClassList("hand-toggle--collapsed", collapsed);
+                _toggle.text = collapsed ? "Show hand" : "Hide hand";
+            }
+            try
+            {
+                PlayerPrefs.SetInt(CollapsedPref, collapsed ? 1 : 0);
+            }
+            catch (System.Exception)
+            {
+                // A preference that cannot be saved only costs the player one click next time.
+            }
+        }
+
+        private static bool LoadCollapsed()
+        {
+            try
+            {
+                return PlayerPrefs.GetInt(CollapsedPref, 0) == 1;
+            }
+            catch (System.Exception)
+            {
+                return false;
             }
         }
 
@@ -80,6 +122,7 @@ namespace TableWorld.View.Hud
             _bar.Clear();
             var shown = cards.Where(c => c.Id != held).ToList();
             _bar.EnableInClassList("hidden", shown.Count == 0 && held == null);
+            _toggle?.EnableInClassList("hidden", shown.Count == 0);
             var step = shown.Count < 2 ? 0f : Mathf.Min(CardStep, (MaxWidth - CardWidth) / (shown.Count - 1));
             var width = shown.Count == 0 ? CardWidth : CardWidth + step * (shown.Count - 1);
             _bar.style.width = width;

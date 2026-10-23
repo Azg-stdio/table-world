@@ -87,6 +87,7 @@ namespace TableWorld.Tests.PlayMode
             yield return Tap(_keyboard.fKey);
             Assert.IsFalse(M("ace_spades").IsFaceUp, "F flips");
             yield return Tap(_keyboard.eKey);
+            yield return new WaitForSeconds(0.3f);
             Assert.AreEqual(15f, M("ace_spades").Transform.Rotation.Y, 0.5f, "E rotates the hovered object");
             yield return Tap(_keyboard.lKey);
             Assert.IsTrue(M("ace_spades").Locked, "L locks");
@@ -223,6 +224,15 @@ namespace TableWorld.Tests.PlayMode
             return new Vector2(c.x * scale, Screen.height - c.y * scale);
         }
 
+        /// <summary>A point on the visible top strip of a hand card (resting cards are mostly below the screen edge).</summary>
+        private static Vector2 TopOf(VisualElement element)
+        {
+            var root = element.panel.visualTree;
+            var scale = Screen.width / root.worldBound.width;
+            var r = element.worldBound;
+            return new Vector2(r.center.x * scale, Screen.height - (r.yMin + 10f) * scale);
+        }
+
         [UnityTest]
         public IEnumerator HandBar_DragACardOutOntoTheTable_ThenDropItBackOnTheBar()
         {
@@ -233,11 +243,11 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsNotNull(card, "the hand bar shows the card");
 
             // Out of the bar onto the table.
-            yield return Point(ScreenOf(card));
+            yield return Point(TopOf(card));
             Press(_mouse.leftButton);
             for (var i = 0; i < 5 && _interaction.Held == null; i++)
                 yield return null;
-            Assert.AreEqual("king_hearts", _interaction.Held?.Id, $"pressing a card in the bar picks it up (pressed at {ScreenOf(card)}, screen {Screen.width}x{Screen.height}, card {card.worldBound})");
+            Assert.AreEqual("king_hearts", _interaction.Held?.Id, "pressing a card in the bar picks it up");
             yield return Point(ScreenOf(new Vector3(0.2f, 0f, 0.05f)));
             yield return new WaitForSeconds(0.4f);
             Release(_mouse.leftButton);
@@ -260,6 +270,57 @@ namespace TableWorld.Tests.PlayMode
             yield return new WaitForSeconds(0.4f);
             Assert.IsTrue(_table.ViewOf("king_hearts").InHand);
             Assert.IsNotNull(root.Q("hand-king_hearts"));
+
+            // Hide hand: the cards sink to a thin strip, the button says so, and Show brings them back.
+            var toggle = root.Q<Button>("handToggle");
+            var shown = root.Q("hand-king_hearts").worldBound.yMin;
+            using (var click = NavigationSubmitEvent.GetPooled()) { click.target = toggle; toggle.SendEvent(click); }
+            yield return new WaitForSeconds(0.3f);
+            Assert.AreEqual("Show hand", toggle.text);
+            Assert.Greater(root.Q("hand-king_hearts").worldBound.yMin, shown + 30f, "hidden: the card sinks");
+            Assert.Less(root.Q("hand-king_hearts").worldBound.yMin, root.panel.visualTree.worldBound.height, "a strip stays visible");
+            using (var click = NavigationSubmitEvent.GetPooled()) { click.target = toggle; toggle.SendEvent(click); }
+            yield return new WaitForSeconds(0.3f);
+            Assert.AreEqual("Hide hand", toggle.text);
+            Assert.AreEqual(shown, root.Q("hand-king_hearts").worldBound.yMin, 1f);
+        }
+
+        /// <summary>Heading of an object about the vertical, 0..360 (independent of flips).</summary>
+        private float Heading(string id)
+        {
+            var f = _table.ViewOf(id).transform.forward;
+            return Mathf.Repeat(Mathf.Atan2(f.x, f.z) * Mathf.Rad2Deg, 360f);
+        }
+
+        [UnityTest]
+        public IEnumerator HoldingQE_TurnsContinuously_TapsSnapToTheNextStep()
+        {
+            yield return Point(ScreenOf("king_hearts"));
+            Assert.AreEqual("king_hearts", _interaction.Hovered?.Id);
+
+            // Hold E: it turns smoothly while held and stops where it is released, off the 15° grid.
+            Press(_keyboard.eKey);
+            yield return new WaitForSeconds(0.25f);
+            var during = Heading("king_hearts");
+            yield return new WaitForSeconds(0.25f);
+            Assert.Greater(Heading("king_hearts"), during + 5f, "keeps turning while held");
+            Release(_keyboard.eKey);
+            yield return new WaitForSeconds(0.4f);
+            var stopped = Heading("king_hearts");
+            Assert.Greater(stopped, 10f);
+            Assert.Greater(Mathf.Abs(stopped / 15f - Mathf.Round(stopped / 15f)), 0.02f, $"stops anywhere ({stopped:F1}°), not on a step");
+            Assert.AreEqual(stopped, M("king_hearts").Transform.Rotation.Y, 0.5f, "the state records where it stopped");
+
+            // Tap E: on to the next multiple of 15. Tap Q twice: back two steps on the grid.
+            yield return Tap(_keyboard.eKey);
+            yield return new WaitForSeconds(0.3f);
+            var next = Mathf.Ceil(stopped / 15f) * 15f;
+            Assert.AreEqual(next, Heading("king_hearts"), 0.5f, $"E from {stopped:F1}° snaps to {next}°");
+            Assert.AreEqual(next, M("king_hearts").Transform.Rotation.Y, 0.5f);
+            yield return Tap(_keyboard.qKey);
+            yield return Tap(_keyboard.qKey);
+            yield return new WaitForSeconds(0.4f);
+            Assert.AreEqual(next - 30f, Heading("king_hearts"), 0.5f, "two quick Q taps: two steps back");
         }
 
         [UnityTest]

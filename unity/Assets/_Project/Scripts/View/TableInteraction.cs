@@ -378,8 +378,12 @@ namespace TableWorld.View
             if (keyboard.lKey.wasPressedThisFrame) ToggleLock(target);
             if (keyboard.gKey.wasPressedThisFrame) Group(targets.Count > 1 ? targets : HeldPlusHovered());
             if (keyboard.uKey.wasPressedThisFrame && Held != null && Hovered != null) PlaceUnder(Hovered);
-            if (keyboard.qKey.wasPressedThisFrame && _looking == null) Rotate(target, -RotateStep, otherAxis: alt);
-            if (keyboard.eKey.wasPressedThisFrame && _looking == null) Rotate(target, RotateStep, otherAxis: alt);
+            if (_looking == null)
+            {
+                if (keyboard.qKey.wasPressedThisFrame) BeginRotation(target, -1, alt);
+                if (keyboard.eKey.wasPressedThisFrame) BeginRotation(target, +1, alt);
+            }
+            UpdateRotation(_rotSign < 0 ? keyboard.qKey.isPressed : keyboard.eKey.isPressed);
             if (keyboard.nKey.isPressed && point is { } nudgeAt) Nudge(nudgeAt);
 
             var grow = keyboard.equalsKey.isPressed || keyboard.numpadPlusKey.isPressed;
@@ -748,6 +752,115 @@ namespace TableWorld.View
             if (!otherAxis)
                 return _table.Execute(new FlipCommand { ObjectId = view.Id, Actor = _table.LocalSeat }).Ok;
             return Turn(view, Quaternion.AngleAxis(180f, view.transform.right));
+        }
+
+        // ---- Q/E rotation (TTS): tap = next 15° step, snapped; hold = continuous, stops anywhere ---------------------
+
+        /// <summary>A press shorter than this is a tap (one snapped step); longer turns continuously while held.</summary>
+        public const float RotateTapSeconds = 0.18f;
+        /// <summary>Continuous turning speed while Q/E is held.</summary>
+        public const float RotateDegreesPerSecond = 120f;
+        /// <summary>How fast the shown rotation catches up with the target (a tap glides in ≈0.1 s).</summary>
+        public const float RotateFollowRate = 30f;
+
+        private ObjectView _rotView;
+        private int _rotSign;
+        private bool _rotAltAxis;
+        private Vector3 _rotAxis;
+        private Quaternion _rotBase;
+        private float _rotTarget;
+        private float _rotShown;
+        private float _rotPressedAt;
+        private bool _rotKeyDown;
+
+        /// <summary>The object being turned by Q/E, if a rotation is in progress.</summary>
+        public ObjectView Rotating => _rotView;
+
+        /// <summary>Q/E pressed over (or while holding) <paramref name="view"/>.</summary>
+        public void BeginRotation(ObjectView view, int sign, bool altAxis)
+        {
+            if (view == null || view.Model.Locked)
+                return;
+            // A new press on the object still gliding from the last one continues from where that one was heading.
+            if (_rotView != view || _rotAltAxis != altAxis)
+            {
+                FinishRotation();
+                _rotView = view;
+                _rotAltAxis = altAxis;
+                _rotAxis = altAxis ? (_camera != null ? _camera.transform.right : Vector3.right) : Vector3.up;
+                _rotBase = view.transform.rotation;
+                _rotTarget = 0f;
+                _rotShown = 0f;
+                if (!view.Held)
+                    view.Body.isKinematic = true;
+            }
+            _rotSign = sign;
+            _rotPressedAt = Time.unscaledTime;
+            _rotKeyDown = true;
+        }
+
+        /// <summary>Called every frame with whether the rotation key is still down.</summary>
+        public void UpdateRotation(bool keyDown)
+        {
+            if (_rotView == null)
+                return;
+            var held = Time.unscaledTime - _rotPressedAt;
+            if (_rotKeyDown && keyDown && held > RotateTapSeconds)
+                _rotTarget += _rotSign * RotateDegreesPerSecond * Time.unscaledDeltaTime;
+            if (_rotKeyDown && !keyDown)
+            {
+                _rotKeyDown = false;
+                if (held <= RotateTapSeconds)
+                    _rotTarget += SnapStep(_rotSign);
+            }
+            _rotShown = Mathf.Lerp(_rotShown, _rotTarget, 1f - Mathf.Exp(-RotateFollowRate * Time.unscaledDeltaTime));
+            if (!_rotKeyDown && Mathf.Abs(_rotTarget - _rotShown) < 0.05f)
+                _rotShown = _rotTarget;
+            var rotation = Quaternion.AngleAxis(_rotShown, _rotAxis) * _rotBase;
+            _rotView.Body.MoveRotation(rotation);
+            _rotView.transform.rotation = rotation;
+            if (!_rotKeyDown && _rotShown == _rotTarget)
+                FinishRotation();
+        }
+
+        /// <summary>
+        /// A tap's turn: to the next multiple of <see cref="RotateStep"/> in that direction (from 67° E goes to 75°, Q to
+        /// 60°); a full step when already on one. About the camera's right axis (Alt) it is a plain step.
+        /// </summary>
+        private float SnapStep(int sign)
+        {
+            if (_rotAltAxis)
+                return sign * RotateStep;
+            var forward = Quaternion.AngleAxis(_rotTarget, _rotAxis) * _rotBase * Vector3.forward;
+            var heading = Mathf.Atan2(forward.x, forward.z) * Mathf.Rad2Deg;
+            const float onStep = 0.5f;
+            var next = sign > 0
+                ? Mathf.Floor((heading + onStep) / RotateStep) * RotateStep + RotateStep
+                : Mathf.Ceil((heading - onStep) / RotateStep) * RotateStep - RotateStep;
+            return next - heading;
+        }
+
+        /// <summary>Records the final rotation as one command (a held object reports its pose when dropped).</summary>
+        private void FinishRotation()
+        {
+            var view = _rotView;
+            _rotView = null;
+            _rotKeyDown = false;
+            if (view == null || view.Held)
+                return;
+            var rotation = Quaternion.AngleAxis(_rotTarget, _rotAxis) * _rotBase;
+            view.transform.rotation = rotation;
+            view.Body.rotation = rotation;
+            view.Body.isKinematic = view.Model.Locked || view.InHand;
+            var result = _table.Execute(new MoveCommand
+            {
+                ObjectId = view.Id,
+                Position = view.transform.position.ToCore(),
+                Rotation = rotation.eulerAngles.ToCore(),
+                Actor = _table.LocalSeat,
+            });
+            if (result.Ok && !view.Body.isKinematic)
+                view.Body.WakeUp();
         }
 
         /// <summary>Q/E: turn about the vertical by <paramref name="degrees"/>; Alt: tilt about the camera's right axis.</summary>
