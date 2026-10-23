@@ -19,6 +19,27 @@ namespace Core.Rules
         /// <summary>Sprite-sheet grid for images: cells are row-major, index 0 top-left (TTS <c>NumWidth</c> × <c>NumHeight</c>).</summary>
         public int Columns { get; set; } = 1;
         public int Rows { get; set; } = 1;
+
+        public const string BuiltinPrefix = "builtin:";
+
+        [Newtonsoft.Json.JsonIgnore]
+        public bool IsBuiltin => Path.StartsWith(BuiltinPrefix, System.StringComparison.Ordinal);
+
+        /// <summary>
+        /// True for <c>builtin:</c> names and relative paths that stay inside the package: the host reads these files
+        /// and sends them to every player, so a path must never reach outside the package folder.
+        /// </summary>
+        public static bool IsSafePath(string path)
+        {
+            if (path.StartsWith(BuiltinPrefix, System.StringComparison.Ordinal))
+                return true;
+            if (path.Length == 0 || path.IndexOf(':') >= 0 || path.IndexOf('\0') >= 0 || path[0] == '/' || path[0] == '\\')
+                return false;
+            foreach (var part in path.Split('/', '\\'))
+                if (part == ".." || part.Length == 0)
+                    return false;
+            return true;
+        }
     }
 
     public sealed class Seat

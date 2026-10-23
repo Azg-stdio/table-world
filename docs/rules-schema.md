@@ -44,7 +44,7 @@ The table part of this document (`schemaVersion`, `assets`, `objects`, `zones`, 
 { "id": "std_deck",   "type": "image", "path": "builtin:standard_deck", "columns": 10, "rows": 7 }
 ```
 
-`type`: `image` | `model` (glTF) | `assetBundle` | `audio`. Paths are relative to the game package; `builtin:<name>` is an asset the client generates (the MVP's procedural deck and dice). Hashes are filled by the tooling, not the agent. **The sprite-sheet grid belongs to the image** (`columns` × `rows`, default 1 × 1, row-major, index 0 top-left, same as TTS `NumWidth` × `NumHeight`), so one deck can mix cards from several sheets like a TTS `CustomDeck` with several keys.
+`type`: `image` | `model` (glTF) | `assetBundle` | `audio`. Paths are relative to the game package and must stay inside it (no `..`, drive letters or leading slash; error `invalid_path`), because the host sends these files to every player; `builtin:<name>` is an asset the client generates (the MVP's procedural deck and dice). Hashes are filled by the tooling, not the agent. **The sprite-sheet grid belongs to the image** (`columns` × `rows`, default 1 × 1, row-major, index 0 top-left, same as TTS `NumWidth` × `NumHeight`), so one deck can mix cards from several sheets like a TTS `CustomDeck` with several keys.
 
 ## Table objects
 

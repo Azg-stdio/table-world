@@ -68,7 +68,13 @@ namespace TableWorld.Mcp
         public void PushToGame()
         {
             if (Remote)
-                Bridge!.Send(new JObject { ["type"] = "load", ["document"] = JObject.Parse(TableJson.Serialize(Current)) }).GetAwaiter().GetResult();
+                Bridge!.Send(new JObject
+                {
+                    ["type"] = "load",
+                    ["document"] = JObject.Parse(TableJson.Serialize(Current)),
+                    // Image paths are relative to the game file's folder.
+                    ["root"] = FilePath != null ? Path.GetDirectoryName(FilePath) : null,
+                }).GetAwaiter().GetResult();
         }
 
         private void Mirror(JObject document)

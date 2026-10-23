@@ -8,8 +8,9 @@ namespace TableWorld.View
 {
     /// <summary>
     /// Resolves the table's asset ids to textures and shared materials. <c>builtin:</c> paths are generated
-    /// (<see cref="BuiltinTextures"/>); other paths are image files relative to the game package folder (M4 adds caching,
-    /// URLs and models). Materials are shared per asset; per-object cells are set with property blocks.
+    /// (<see cref="BuiltinTextures"/>); other paths are image files relative to the game package folder, or bytes from
+    /// <c>fetch</c> (a network client's asset cache, T3.4). M4 adds URLs and models. Materials are shared per asset;
+    /// per-object cells are set with property blocks.
     /// </summary>
     public sealed class AssetLibrary
     {
@@ -22,13 +23,31 @@ namespace TableWorld.View
         private readonly Dictionary<string, Texture2D> _texturesByPath = new Dictionary<string, Texture2D>();
         private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
         private readonly string _packageRoot;
+        private readonly System.Func<Asset, byte[]> _fetch;
         private Shader _lit;
 
-        public AssetLibrary(IEnumerable<Asset> assets, string packageRoot)
+        public AssetLibrary(IEnumerable<Asset> assets, string packageRoot, System.Func<Asset, byte[]> fetch = null)
         {
             foreach (var asset in assets)
                 _assets[asset.Id] = asset;
             _packageRoot = packageRoot;
+            _fetch = fetch;
+        }
+
+        /// <summary>Forgets the asset's texture so the next lookup loads it again (its bytes just arrived).</summary>
+        public void Forget(string assetId)
+        {
+            var asset = Find(assetId);
+            if (asset == null)
+                return;
+            if (_texturesByPath.TryGetValue(asset.Path, out var texture) && texture != null)
+                Object.Destroy(texture);
+            _texturesByPath.Remove(asset.Path);
+            if (_materials.TryGetValue("img:" + assetId, out var material))
+            {
+                Object.Destroy(material);
+                _materials.Remove("img:" + assetId);
+            }
         }
 
         /// <summary>Adds an asset the table does not list (e.g. the builtin dice atlas).</summary>
@@ -84,27 +103,39 @@ namespace TableWorld.View
                 return cached;
 
             Texture2D texture = null;
-            if (asset.Path.StartsWith(BuiltinPrefix))
+            if (asset.IsBuiltin)
             {
                 texture = BuiltinTextures.Create(asset.Path.Substring(BuiltinPrefix.Length));
                 if (texture == null)
                     Debug.LogWarning($"[AssetLibrary] Unknown builtin asset '{asset.Path}'.");
             }
-            else if (_packageRoot != null)
+            else
             {
-                var file = Path.Combine(_packageRoot, asset.Path);
-                if (File.Exists(file))
+                var bytes = ReadPackageFile(asset) ?? _fetch?.Invoke(asset);
+                if (bytes != null)
                 {
                     texture = new Texture2D(2, 2, TextureFormat.RGBA32, mipChain: true) { name = asset.Path, anisoLevel = 4 };
-                    texture.LoadImage(File.ReadAllBytes(file), markNonReadable: true);
+                    if (!texture.LoadImage(bytes, markNonReadable: true))
+                        Debug.LogWarning($"[AssetLibrary] '{asset.Path}' is not a PNG or JPEG image.");
                 }
-                else
+                else if (_fetch == null)
                 {
-                    Debug.LogWarning($"[AssetLibrary] Missing image '{file}'.");
+                    Debug.LogWarning($"[AssetLibrary] Missing image '{asset.Path}' (package: {_packageRoot ?? "none"}).");
                 }
             }
-            _texturesByPath[asset.Path] = texture;
+            // A network client does not cache a miss: the bytes may still be on their way.
+            if (texture != null || _fetch == null)
+                _texturesByPath[asset.Path] = texture;
             return texture;
+        }
+
+        /// <summary>The asset's file in the game package, or null. Paths were validated to stay inside the package.</summary>
+        public byte[] ReadPackageFile(Asset asset)
+        {
+            if (_packageRoot == null || asset.IsBuiltin || !Asset.IsSafePath(asset.Path))
+                return null;
+            var file = Path.Combine(_packageRoot, asset.Path);
+            return File.Exists(file) ? File.ReadAllBytes(file) : null;
         }
 
         private Material NewMaterial(string name, Color color, float smoothness)

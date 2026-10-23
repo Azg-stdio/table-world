@@ -174,7 +174,7 @@ namespace TableWorld.View.Bridge
                     _executingRemote = true;
                     try
                     {
-                        _table.Load(document.ToString(), packageRoot: null);
+                        _table.Load(document.ToString(), packageRoot: (string)message["root"]);
                     }
                     finally
                     {

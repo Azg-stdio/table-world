@@ -39,6 +39,12 @@ namespace TableWorld.View
 
         private string _packageRoot;
 
+        /// <summary>Folder the table's asset paths are relative to; null for tables without files (builtin assets only).</summary>
+        public string PackageRoot => _packageRoot;
+
+        /// <summary>Second source of asset bytes after the package folder: a network client's asset cache (T3.4).</summary>
+        public Func<Asset, byte[]> FetchAsset { get; set; }
+
         /// <summary>Rules interpreter for this table; free play goes through it too.</summary>
         public GameEngine Game { get; private set; }
 
@@ -86,7 +92,7 @@ namespace TableWorld.View
             }
 
             _packageRoot = packageRoot;
-            Assets = new AssetLibrary(parsed.State.Assets, packageRoot);
+            Assets = new AssetLibrary(parsed.State.Assets, packageRoot, FetchAsset);
             Replace(parsed.State);
             _undo.Clear();
             _redo.Clear();
@@ -167,12 +173,29 @@ namespace TableWorld.View
         public void Adopt(GameEngine game)
         {
             Clear();
+            // Keep loaded textures when the asset list did not change (a rebuilt prediction, a resync).
+            var assets = TableJson.Serialize(new TableState { Assets = game.State.Assets }, indented: false);
+            if (Assets == null || assets != _assetsJson)
+                Assets = new AssetLibrary(game.State.Assets, _packageRoot, FetchAsset);
+            _assetsJson = assets;
             Game = game;
-            Assets = new AssetLibrary(game.State.Assets, _packageRoot);
             SpawnAll();
             _undo.Clear();
             _redo.Clear();
             Loaded?.Invoke();
+        }
+
+        private string _assetsJson;
+
+        /// <summary>An asset's bytes arrived: reload its texture and repaint every object.</summary>
+        public void RefreshAsset(string assetId)
+        {
+            if (Assets == null)
+                return;
+            Assets.Forget(assetId);
+            foreach (var view in _views.Values)
+                if (view != null)
+                    ObjectViewFactory.Refresh(view, Assets);
         }
 
         /// <summary>Applies the events of a command another peer performed (already executed on <see cref="Game"/>).</summary>

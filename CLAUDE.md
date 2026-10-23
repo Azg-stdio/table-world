@@ -185,9 +185,11 @@ dotnet build mcp-server -c Release
 dotnet mcp-server/bin/Release/net9.0/TableWorld.Mcp.dll --file games/my-game.json   # --no-bridge: headless only
 dotnet test mcp-server.tests          # contract tests: starts the server over stdio
 
-# Multiplayer (T3.2): build the player, then host in the Editor (HUD "Host") and join from the build, or script both:
-unity command build run --target StandaloneWindows64 --outputPath Builds/Win64/TableWorld.exe --scenes Assets/_Project/Scenes/Table.unity --confirm true
-unity/Builds/Win64/TableWorld.exe -tw-join 127.0.0.1:7777 -tw-autoplay 100 -tw-report out.json -tw-quit   # also: -tw-host [port]
+# Multiplayer (T3.2, T3.4): build the player, then host in the Editor (HUD "Host") and join from the build, or script both:
+unity command build run --target StandaloneWindows64 --outputPath Builds/Win64/TableWorld.exe --confirm true
+unity/Builds/Win64/TableWorld.exe -batchmode -tw-host -tw-game <package>/table.json -tw-autoplay 100 -tw-report host.json -tw-quit
+unity/Builds/Win64/TableWorld.exe -batchmode -tw-join 127.0.0.1:7777 -tw-cache <empty folder> -tw-autoplay 100 -tw-report client.json -tw-quit
+python -I tools/samples/make_image_game.py <out folder> [--big]   # game package with real image files
 
 # Long simulations and generated files
 TW_GAMES=1000 dotnet test core.tests --filter GamePlayTests   # 1 000 random games of War and UNO

@@ -129,6 +129,9 @@ namespace Core.Rules
                 if (string.IsNullOrWhiteSpace(asset.Path))
                     Add($"{path}.path", ErrorCodes.MissingField, $"Asset '{asset.Id}' has no path.",
                         "Use a path relative to the game package, or builtin:<name> for generated assets.");
+                else if (!Asset.IsSafePath(asset.Path))
+                    Add($"{path}.path", ErrorCodes.InvalidPath, $"Asset path '{asset.Path}' leaves the game package.",
+                        "Use a relative path inside the package folder, without '..', drive letters or a leading slash.");
                 if (asset.Columns < 1)
                     Add($"{path}.columns", ErrorCodes.InvalidValue, "Columns must be at least 1.");
                 if (asset.Rows < 1)

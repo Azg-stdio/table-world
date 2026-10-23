@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Core.Engine;
 using Core.Net;
@@ -16,7 +17,8 @@ namespace TableWorld.View.Net
     /// Networked table (T3.2, ADR 0002): Netcode for GameObjects is only a pipe for the core protocol in
     /// <see cref="SessionHost"/>/<see cref="SessionClient"/>. The host runs the authoritative engine; each client
     /// shows its prediction and sends intents. One named message, JSON payloads, reliable fragmented sequenced delivery.
-    /// Seats: the host plays the first seat, each client the next free one.
+    /// Seats: the host plays the first seat, each client the next free one. Images that are files in the host's game
+    /// package travel to clients with <see cref="AssetHost"/>/<see cref="AssetClient"/> into a local cache (T3.4).
     /// </summary>
     public sealed class NetworkTableSession : MonoBehaviour
     {
@@ -29,6 +31,7 @@ namespace TableWorld.View.Net
         private NetworkManager _network;
         private SessionHost _host;
         private SessionClient _client;
+        private AssetClient _assets;
         private readonly Dictionary<ulong, string> _seatOf = new Dictionary<ulong, string>();
         private readonly Dictionary<string, float> _touched = new Dictionary<string, float>();
 
@@ -37,20 +40,29 @@ namespace TableWorld.View.Net
         public bool Synced => IsHost || (_client?.Synced ?? false);
         public SessionHost Host => _host;
         public SessionClient Client => _client;
+        public AssetClient Assets => _assets;
+
+        /// <summary>Content-addressed cache for assets received from hosts. <c>-tw-cache</c> overrides it (tests).</summary>
+        public static string CacheFolder { get; set; } = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TableWorld", "cache", "assets");
         public string Status { get; private set; } = "offline";
 
         public void Configure(TableView table) => _table = table;
 
         private void OnEnable()
         {
-            if (_table != null)
-                _table.Touched += Touch;
+            if (_table == null)
+                return;
+            _table.Touched += Touch;
+            _table.Loaded += OnTableLoaded;
         }
 
         private void OnDisable()
         {
-            if (_table != null)
-                _table.Touched -= Touch;
+            if (_table == null)
+                return;
+            _table.Touched -= Touch;
+            _table.Loaded -= OnTableLoaded;
         }
 
         /// <summary>Starts hosting the current table on <paramref name="port"/> (all interfaces).</summary>
@@ -59,13 +71,7 @@ namespace TableWorld.View.Net
             Stop();
             var transport = EnsureNetwork();
             transport.SetConnectionData("127.0.0.1", port, "0.0.0.0");
-            _host = new SessionHost(_table.Game);
-            _host.Executed += (origin, command, result) =>
-            {
-                // The host's own commands are shown by TableView.Execute; a client's command must be shown here.
-                if (origin != SessionHost.HostId)
-                    _table.ApplyRemote(command, result);
-            };
+            NewHost();
             _table.Router = HostRoute;
             _table.SeatOverride = _table.Engine.State.Players.Seats.FirstOrDefault()?.Id;
             _network.OnClientConnectedCallback += OnHostClientConnected;
@@ -113,6 +119,9 @@ namespace TableWorld.View.Net
             }
             _host = null;
             _client = null;
+            _assets = null;
+            if (_table != null)
+                _table.FetchAsset = null;
             _seatOf.Clear();
             if (_table != null)
             {
@@ -129,6 +138,34 @@ namespace TableWorld.View.Net
         private void OnDestroy() => Stop();
 
         // ---- host -------------------------------------------------------------------------------------------------
+
+        private void NewHost()
+        {
+            _host = new SessionHost(_table.Game) { Assets = new AssetHost(asset => _table.Assets?.ReadPackageFile(asset)) };
+            _host.Assets.Build(_table.Engine.State);
+            foreach (var warning in _host.Assets.Warnings)
+                Debug.LogWarning("[Net] " + warning);
+            _host.Executed += (origin, command, result) =>
+            {
+                // The host's own commands are shown by TableView.Execute; a client's command must be shown here.
+                if (origin != SessionHost.HostId)
+                    _table.ApplyRemote(command, result);
+            };
+        }
+
+        /// <summary>The host loaded another table: start a new order and send everyone the new table and its assets.</summary>
+        private void OnTableLoaded()
+        {
+            if (_host == null || _host.Game == _table.Game)
+                return;
+            NewHost();
+            foreach (var client in _seatOf.Keys.ToList())
+            {
+                var snapshot = _host.Snapshot(client.ToString());
+                snapshot.Message["seat"] = _seatOf[client];
+                Send(snapshot);
+            }
+        }
 
         private CommandResult HostRoute(Command command)
         {
@@ -171,6 +208,10 @@ namespace TableWorld.View.Net
             if (clientId != _network.LocalClientId)
                 return;
             _client = new SessionClient(clientId.ToString());
+            _assets = new AssetClient(new DirectoryAssetStore(CacheFolder));
+            _assets.Ready += id => _table.RefreshAsset(id);
+            _assets.Failed += (id, why) => Debug.LogWarning($"[Net] Asset '{id}' could not be received: {why}");
+            _table.FetchAsset = asset => _assets?.Read(asset.Id);
             _client.PredictionReplaced += game => _table.Adopt(game);
             _client.Applied += (command, result) => _table.ApplyRemote(command, result);
             _client.Refused += error => Debug.LogWarning($"[Net] The host refused a command: {error}");
@@ -204,11 +245,15 @@ namespace TableWorld.View.Net
             var message = JObject.Parse(text);
             if ((string)message["kind"] == "snapshot" && message["seat"] != null)
                 _table.SeatOverride = (string)message["seat"];
+            // The manifest first, so the snapshot's views already find cached images.
+            var request = _assets.Receive(message);
+            if (request != null)
+                SendTo(NetworkManager.ServerClientId, request);
             var reply = _client.Receive(message);
             if (reply != null)
                 SendTo(NetworkManager.ServerClientId, reply);
             if (_client.Synced)
-                Status = $"playing as {_table.SeatOverride}";
+                Status = _assets.Complete ? $"playing as {_table.SeatOverride}" : $"playing as {_table.SeatOverride}, receiving {_assets.Pending} image(s)";
         }
 
         // ---- transport --------------------------------------------------------------------------------------------

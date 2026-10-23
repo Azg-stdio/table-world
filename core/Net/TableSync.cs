@@ -66,14 +66,23 @@ namespace Core.Net
         /// <summary>Raised for every command the host executed successfully, with who sent it (the host's view applies it).</summary>
         public event Action<string, Command, CommandResult>? Executed;
 
-        /// <summary>A peer joined (or asked to resync): send it the whole table.</summary>
-        public Outgoing Snapshot(string clientId) => new Outgoing(clientId, new JObject
+        /// <summary>When set, snapshots carry its manifest and <c>asset_request</c> messages are answered (T3.4).</summary>
+        public AssetHost? Assets { get; set; }
+
+        /// <summary>A peer joined (or asked to resync): send it the whole table, and the asset manifest when there is one.</summary>
+        public Outgoing Snapshot(string clientId)
         {
-            ["kind"] = "snapshot",
-            ["order"] = _order,
-            ["state"] = TableJson.Serialize(Game.State, indented: false),
-            ["random"] = Game.Table.Random.State.ToString(),
-        });
+            var message = new JObject
+            {
+                ["kind"] = "snapshot",
+                ["order"] = _order,
+                ["state"] = TableJson.Serialize(Game.State, indented: false),
+                ["random"] = Game.Table.Random.State.ToString(),
+            };
+            if (Assets != null)
+                message["assets"] = Assets.Manifest();
+            return new Outgoing(clientId, message);
+        }
 
         public (CommandResult Result, Outgoing Broadcast) ExecuteLocal(Command command) => Run(HostId, 0, command);
 
@@ -97,6 +106,9 @@ namespace Core.Net
                     break;
                 case "resync":
                     outgoing.Add(Snapshot(clientId));
+                    break;
+                case "asset_request" when Assets != null:
+                    outgoing.AddRange(Assets.Receive(clientId, message));
                     break;
             }
             return outgoing;

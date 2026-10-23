@@ -48,6 +48,7 @@ namespace Core.Rules
         public const string UnknownSeat = "unknown_seat";
         public const string UnknownZone = "unknown_zone";
         public const string UnknownObject = "unknown_object";
+        public const string InvalidPath = "invalid_path";
 
         // Rules (T4.1).
         public const string UnknownEffect = "unknown_effect";

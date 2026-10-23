@@ -12,8 +12,9 @@ namespace TableWorld.View.Net
     /// <summary>
     /// Command-line driven network sessions, for builds and automated multiplayer checks (T3.2, T3.5):
     /// <c>-tw-host [port]</c>, <c>-tw-join address[:port]</c>, <c>-tw-autoplay N</c> (N random table commands, one every
-    /// 0.1 s, once synced), <c>-tw-report path</c> (after autoplay and 5 s of quiet, writes the state hash, seat and order
-    /// as JSON), <c>-tw-quit</c> (quit after reporting). <see cref="Run"/> starts the same from code (Editor tests).
+    /// 0.1 s, once synced), <c>-tw-report path</c> (after autoplay, once the table has not changed for 5 s, writes the state hash, seat and order
+    /// as JSON), <c>-tw-quit</c> (quit after reporting), <c>-tw-game file</c> (the host loads a game package first),
+    /// <c>-tw-cache folder</c> (asset cache, e.g. an empty one to check T3.4). <see cref="Run"/> starts the same from code.
     /// </summary>
     public sealed class NetworkAutoplay : MonoBehaviour
     {
@@ -40,8 +41,12 @@ namespace TableWorld.View.Net
             var join = Arg("-tw-join");
             if (!host && join == null)
                 yield break;
+            if (Arg("-tw-cache") is { } cache)
+                NetworkTableSession.CacheFolder = cache;
             // Let the table load first.
             yield return new WaitForSeconds(0.5f);
+            if (Arg("-tw-game") is { } game && !_table.Load(File.ReadAllText(game), Path.GetDirectoryName(Path.GetFullPath(game))))
+                Debug.LogError($"[Autoplay] Could not load {game}.");
             var autoplay = int.TryParse(Arg("-tw-autoplay"), out var n) ? n : 0;
             yield return Run(host, join, autoplay, Arg("-tw-report"), Array.IndexOf(args, "-tw-quit") >= 0, seed: host ? 1 : 2);
         }
@@ -72,10 +77,21 @@ namespace TableWorld.View.Net
                     Performed++;
                 yield return new WaitForSeconds(StepSeconds);
             }
-            yield return new WaitForSeconds(QuietSeconds);
+            // Report once the table has not changed for QuietSeconds: the other peers may still be playing.
+            var last = TableJson.Hash(_table.Engine.State);
+            for (float quiet = 0f, wait = 0f; quiet < QuietSeconds && wait < 300f; wait += 0.5f)
+            {
+                yield return new WaitForSeconds(0.5f);
+                var hash = TableJson.Hash(_table.Engine.State);
+                quiet = hash == last ? quiet + 0.5f : 0f;
+                last = hash;
+            }
+            for (var wait = 0f; _session.Assets != null && !_session.Assets.Complete && wait < 120f; wait += 0.5f)
+                yield return new WaitForSeconds(0.5f);
             if (report != null)
             {
                 var state = _table.Engine.State;
+                var images = state.Assets.Where(a => a.Type == AssetType.Image && !a.IsBuiltin).ToList();
                 File.WriteAllText(report, new JObject
                 {
                     ["hash"] = TableJson.Hash(state),
@@ -83,6 +99,12 @@ namespace TableWorld.View.Net
                     ["order"] = _session.Host?.Order ?? -1,
                     ["performed"] = Performed,
                     ["objects"] = state.Objects.Count,
+                    ["images"] = images.Count,
+                    ["imagesShown"] = images.Count(a => _table.Assets.Texture(a.Id) != null),
+                    ["assetsFetched"] = _session.Assets?.Fetched ?? 0,
+                    ["assetsFromCache"] = _session.Assets?.FromCache ?? 0,
+                    ["assetBytes"] = _session.Assets?.BytesReceived ?? 0,
+                    ["assetsPending"] = _session.Assets?.Pending ?? 0,
                 }.ToString());
             }
             Done = true;
