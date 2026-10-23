@@ -324,6 +324,41 @@ namespace TableWorld.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator F1AndQuestionMark_ToggleTheControlsList_EscapeCloses()
+        {
+            var help = Object.FindAnyObjectByType<HudController>().Help;
+            Assert.IsFalse(help.Visible);
+            yield return Tap(_keyboard.f1Key);
+            Assert.IsTrue(help.Visible, "F1 opens the controls");
+            yield return Tap(_keyboard.f1Key);
+            Assert.IsFalse(help.Visible, "F1 again closes them");
+            yield return Chord(_keyboard.leftShiftKey, _keyboard.slashKey);
+            Assert.IsTrue(help.Visible, "? opens them");
+            yield return Tap(_keyboard.escapeKey);
+            Assert.IsFalse(help.Visible, "Escape closes them");
+            var root = Object.FindAnyObjectByType<HudController>().GetComponent<UIDocument>().rootVisualElement;
+            Assert.Greater(root.Query(className: "help-row").ToList().Count, 40, "every binding is listed");
+
+            // The wheel over the open list scrolls it, not the camera; over the table it zooms again.
+            yield return Tap(_keyboard.f1Key);
+            Assert.IsTrue(help.Visible);
+            yield return Point(ScreenOf(root.Q("helpPanel")));
+            var distance = _camera.Distance;
+            Set(_mouse.scroll, new Vector2(0f, -120f));
+            yield return null;
+            Set(_mouse.scroll, Vector2.zero);
+            yield return null;
+            Assert.AreEqual(distance, _camera.Distance, 0.0001f, "no camera zoom over the panel");
+            yield return Tap(_keyboard.escapeKey);
+            yield return Point(ScreenOf(new Vector3(0.3f, 0f, 0.2f)));
+            Set(_mouse.scroll, new Vector2(0f, -120f));
+            yield return null;
+            Set(_mouse.scroll, Vector2.zero);
+            yield return null;
+            Assert.AreNotEqual(distance, _camera.Distance, "the wheel zooms over the table");
+        }
+
+        [UnityTest]
         public IEnumerator LeftDragOnEmptyTable_BoxSelects()
         {
             var a = ScreenOf(new Vector3(-0.4f, 0f, -0.2f));

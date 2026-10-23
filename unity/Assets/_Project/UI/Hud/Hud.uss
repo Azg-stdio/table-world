@@ -451,3 +451,71 @@
 .hand-toggle--collapsed {
     bottom: 18px;
 }
+
+.help-panel {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    width: 760px;
+    height: 80%;
+    padding: 14px 16px;
+    border-radius: 6px;
+    background-color: rgba(18, 20, 26, 0.96);
+}
+
+/* Title and button keep their size in the fixed-height panel; only the list gives way (and scrolls). */
+.help-title {
+    flex-shrink: 0;
+    margin-bottom: 8px;
+    -unity-font-style: bold;
+    font-size: 19px;
+    color: rgb(240, 236, 226);
+}
+
+.help-close {
+    flex-shrink: 0;
+    align-self: flex-end;
+}
+
+/* Fills the panel between title and button, and scrolls. */
+.help-list {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+/* Rows keep their height: the list scrolls instead of squeezing them. */
+.help-group {
+    flex-shrink: 0;
+    margin-top: 10px;
+    margin-bottom: 4px;
+    -unity-font-style: bold;
+    font-size: 16px;
+    color: rgb(240, 236, 226);
+}
+
+.help-row {
+    flex-shrink: 0;
+    flex-direction: row;
+    padding: 3px 0;
+    border-bottom-width: 1px;
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+.help-keys {
+    width: 320px;
+    flex-shrink: 0;
+    font-size: 14px;
+    color: rgb(250, 214, 140);
+    white-space: normal;
+}
+
+.help-what {
+    flex-grow: 1;
+    flex-shrink: 1;
+    font-size: 14px;
+    color: rgb(220, 216, 206);
+    white-space: normal;
+}

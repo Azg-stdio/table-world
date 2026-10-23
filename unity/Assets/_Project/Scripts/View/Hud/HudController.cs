@@ -38,6 +38,10 @@ namespace TableWorld.View.Hud
         private GameUiRenderer _gameUi;
         private TableOverlay _overlay;
         private HandBar _handBar;
+        private ControlsHelp _help;
+
+        /// <summary>The controls list (F1, ?, or the Controls button).</summary>
+        public ControlsHelp Help => _help;
         private LookCamera _look;
 
         public TableOverlay Overlay => _overlay;
@@ -76,6 +80,7 @@ namespace TableWorld.View.Hud
                 var camera = Camera.main != null ? Camera.main.GetComponent<TableCamera>() : null;
                 _overlay = new TableOverlay(_root, _table, _interaction, camera, _look);
                 _handBar = new HandBar(_root, _table, _interaction);
+                _help = new ControlsHelp(_root);
                 _interaction.Pinged += OnPing;
             }
 
@@ -109,6 +114,18 @@ namespace TableWorld.View.Hud
         }
 
         private void OnNotice(string text) => ShowStatus(text, error: true);
+
+        /// <summary>F1 or ? (Shift + /) toggles the controls list; Escape closes it.</summary>
+        private void HelpKeys()
+        {
+            var keyboard = UnityEngine.InputSystem.Keyboard.current;
+            if (keyboard == null || _help == null || (_interaction != null && _interaction.IgnoreDevices))
+                return;
+            if (keyboard.f1Key.wasPressedThisFrame || (keyboard.slashKey.wasPressedThisFrame && keyboard.shiftKey.isPressed))
+                _help.Toggle();
+            else if (keyboard.escapeKey.wasPressedThisFrame && _help.Visible)
+                _help.Hide();
+        }
 
         private string _facedSeat;
 
@@ -162,6 +179,7 @@ namespace TableWorld.View.Hud
             RefreshSelection();
             _overlay?.Update();
             _handBar?.Update();
+            HelpKeys();
             if (_netStatus != null && _session != null)
                 _netStatus.text = _session.Status == "offline" ? "" : _session.Status;
             if (Time.unscaledTime >= _nextGameRefresh)

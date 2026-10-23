@@ -2,3 +2,55 @@
     flex-grow: 1;
     -unity-font-definition: url("project://database/Assets/_Project/Art/ThirdParty/Inter/InterRegularSDF.asset");
 }
+
+/* Scroll views. The theme does not import Unity's default runtime theme, so the internals a ScrollView builds need their
+   own minimal styles: the viewport clips and fills, and a slim dragger shows where you are. */
+.unity-scroll-view {
+    overflow: hidden;
+}
+
+.unity-scroll-view__content-and-vertical-scroll-container {
+    flex-direction: row;
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.unity-scroll-view__content-viewport {
+    flex-grow: 1;
+    flex-shrink: 1;
+    overflow: hidden;
+}
+
+/* The content keeps its natural height (that is what scrolls); without this it shrinks to the viewport. */
+.unity-scroll-view__content-container {
+    flex-shrink: 0;
+}
+
+.unity-scroll-view__vertical-scroller {
+    width: 8px;
+    margin-left: 4px;
+}
+
+.unity-scroller__low-button,
+.unity-scroller__high-button {
+    display: none;
+}
+
+.unity-scroller__slider {
+    flex-grow: 1;
+}
+
+.unity-base-slider__drag-container {
+    flex-grow: 1;
+}
+
+.unity-base-slider__dragger {
+    position: absolute;
+    width: 8px;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.28);
+}
+
+.unity-scroll-view__horizontal-scroller {
+    display: none;
+}

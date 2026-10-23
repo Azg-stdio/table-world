@@ -60,6 +60,9 @@ namespace TableWorld.View
         /// <summary>Set each frame by the interaction: the wheel raises a held object, the right button taps it down.</summary>
         public bool SuppressMouse { get; set; }
 
+        /// <summary>Set each frame by the interaction while the pointer is over the HUD: the wheel scrolls the panel instead.</summary>
+        public bool SuppressWheel { get; set; }
+
         public void Configure(Vector3 pivot, float yaw, float pitch, float distance, Vector2 pivotExtents)
         {
             _pivot = pivot;
@@ -162,7 +165,7 @@ namespace TableWorld.View
                 }
 
                 var scroll = mouse.scroll.ReadValue().y;
-                if (Mathf.Abs(scroll) > 0.01f && (keyboard == null || !keyboard.altKey.isPressed))
+                if (Mathf.Abs(scroll) > 0.01f && !SuppressWheel && (keyboard == null || !keyboard.altKey.isPressed))
                     _distance = Mathf.Clamp(_distance * Mathf.Pow(1f - _zoomPerWheelStep, Mathf.Sign(scroll)), _minDistance, _maxDistance);
             }
 

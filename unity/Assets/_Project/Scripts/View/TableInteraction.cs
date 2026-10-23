@@ -323,6 +323,8 @@ namespace TableWorld.View
             {
                 _tableCamera.SuppressTurnKeys = Held != null || Hovered != null || alt;
                 _tableCamera.SuppressMouse = Held != null;
+                // The wheel over a panel scrolls the panel (help, search), not the camera.
+                _tableCamera.SuppressWheel = PointerBlocked != null && PointerBlocked(pointer);
             }
         }
 
