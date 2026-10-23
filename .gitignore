@@ -19,6 +19,8 @@
 # Screenshots from `unity command capture` (it always writes under Assets/)
 /unity/[Aa]ssets/Temp/
 /unity/[Aa]ssets/Temp.meta
+# Unity CLI pipeline package: per-machine editor config (port, watchdog, play-mode overrides)
+/unity/ProjectSettings/Packages/com.unity.pipeline/EditorPipelineConfig.json
 
 # Blender backups
 *.blend1

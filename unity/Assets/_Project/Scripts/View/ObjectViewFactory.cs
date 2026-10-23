@@ -128,7 +128,7 @@ namespace TableWorld.View
                     break;
                 }
             }
-            view.Body.isKinematic = model.Locked || view.Renderer.enabled == false;
+            view.Body.isKinematic = model.Locked || !view.Renderer.enabled || view.Held || view.Animating;
         }
 
         private static void RefreshCard(ObjectView view, AssetLibrary assets, Card card)

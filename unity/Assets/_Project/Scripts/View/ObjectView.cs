@@ -33,6 +33,12 @@ namespace TableWorld.View
             Body = body;
         }
 
+        /// <summary>True while the local player holds the object: the state then only drives rotation and visuals, not position.</summary>
+        public bool Held { get; internal set; }
+
+        /// <summary>True while an animation (a die roll) owns the transform.</summary>
+        public bool Animating { get; internal set; }
+
         internal void Rebind(TableObject model) => Model = model;
 
         /// <summary>Moves the GameObject to the state's pose. A resting height of 0 means "on the table": it is lifted to sit on it.</summary>
@@ -46,6 +52,11 @@ namespace TableWorld.View
                 var geometry = DiceGeometry.Get(die.Faces);
                 if (geometry.ValueFor(rotation) != value)
                     rotation = geometry.RotationFor(value, t.Rotation.Y);
+            }
+            if (Held || Animating)
+            {
+                transform.rotation = rotation;
+                return;
             }
             transform.SetPositionAndRotation(t.Position.ToUnity(), rotation);
             transform.localScale = t.Scale.ToUnity();

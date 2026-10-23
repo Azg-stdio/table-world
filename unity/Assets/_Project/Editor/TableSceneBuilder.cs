@@ -36,9 +36,12 @@ namespace TableWorld.Editor
 
             BuildLighting();
             BuildTable(felt, wood);
-            BuildCamera();
+            var camera = BuildCamera();
             var objects = new GameObject("Objects");
-            new GameObject("TableView").AddComponent<TableView>().Configure("Tables/sample", objects.transform, seed: 0);
+            var tableGo = new GameObject("TableView");
+            var table = tableGo.AddComponent<TableView>();
+            table.Configure("Tables/sample", objects.transform, seed: 0);
+            tableGo.AddComponent<TableInteraction>().Configure(table, camera, camera.GetComponent<TableCamera>());
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             AddToBuildSettingsFirst(ScenePath);
@@ -95,7 +98,7 @@ namespace TableWorld.Editor
             rim.isStatic = true;
         }
 
-        private static void BuildCamera()
+        private static Camera BuildCamera()
         {
             var go = new GameObject("Main Camera") { tag = "MainCamera" };
             var camera = go.AddComponent<Camera>();
@@ -107,6 +110,7 @@ namespace TableWorld.Editor
             go.AddComponent<AudioListener>();
             var tableCamera = go.AddComponent<TableCamera>();
             tableCamera.Configure(Vector3.zero, 0f, 55f, 1.4f, TableSize / 2f + new Vector2(0.2f, 0.2f));
+            return camera;
         }
 
         private static Material GetOrCreateMaterial(string name, Color color, float smoothness)

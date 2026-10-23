@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Engine;
@@ -19,7 +20,15 @@ namespace TableWorld.View
         [Tooltip("Seed for shuffles and rolls. 0 picks one from the clock.")]
         [SerializeField] private int _seed;
 
+        /// <summary>A free object still moving after this long reports its pose anyway.</summary>
+        public const float ReportAwakeAfterSeconds = 2f;
+        public const float PositionTolerance = 0.0005f;
+        public const float RotationToleranceDegrees = 0.5f;
+        public const float RollSeconds = 0.55f;
+
         private readonly Dictionary<string, ObjectView> _views = new Dictionary<string, ObjectView>();
+        private readonly Dictionary<string, float> _awakeSince = new Dictionary<string, float>();
+        private readonly List<ObjectView> _scratch = new List<ObjectView>();
 
         public TableEngine Engine { get; private set; }
         public AssetLibrary Assets { get; private set; }
@@ -80,6 +89,91 @@ namespace TableWorld.View
 
         public ObjectView ViewOf(string id) => id != null && _views.TryGetValue(id, out var view) ? view : null;
 
+        /// <summary>Seat that commands from this machine act as. Solo play: the first seat.</summary>
+        public string LocalSeat => Engine?.State.Players.Seats.FirstOrDefault()?.Id;
+
+        /// <summary>
+        /// Physics moves free objects; the state learns their final pose here. When a body falls asleep (or has been
+        /// awake too long) and its pose differs from the state, a <see cref="MoveCommand"/> records it.
+        /// </summary>
+        private void LateUpdate()
+        {
+            if (Engine == null)
+                return;
+            _scratch.Clear();
+            _scratch.AddRange(_views.Values);
+            foreach (var view in _scratch)
+            {
+                if (view == null || view.Held || view.Animating || view.Body.isKinematic)
+                {
+                    if (view != null)
+                        _awakeSince.Remove(view.Id);
+                    continue;
+                }
+                if (!view.Body.IsSleeping())
+                {
+                    if (!_awakeSince.TryGetValue(view.Id, out var since))
+                        _awakeSince[view.Id] = Time.time;
+                    else if (Time.time - since > ReportAwakeAfterSeconds)
+                    {
+                        ReportPose(view);
+                        _awakeSince[view.Id] = Time.time;
+                    }
+                    continue;
+                }
+                if (_awakeSince.Remove(view.Id))
+                    ReportPose(view);
+            }
+        }
+
+        /// <summary>Sends a Move when the view's pose differs from the state's. Returns true if one was sent.</summary>
+        public bool ReportPose(ObjectView view)
+        {
+            var t = view.Model.Transform;
+            var position = view.transform.position;
+            var rotation = view.transform.rotation;
+            if (Vector3.Distance(position, t.Position.ToUnity()) < PositionTolerance &&
+                Quaternion.Angle(rotation, t.Rotation.ToRotation()) < RotationToleranceDegrees)
+                return false;
+            return Execute(new MoveCommand
+            {
+                ObjectId = view.Id,
+                Position = position.ToCore(),
+                Rotation = rotation.eulerAngles.ToCore(),
+                Actor = LocalSeat,
+            }).Ok;
+        }
+
+        /// <summary>A short kinematic tumble that lands on the value the engine already chose.</summary>
+        private IEnumerator AnimateRoll(ObjectView view, int value)
+        {
+            view.Animating = true;
+            view.Body.isKinematic = true;
+            var start = view.transform.position;
+            var startRotation = view.transform.rotation;
+            var geometry = Meshes.DiceGeometry.Get(((Die)view.Model).Faces);
+            var yaw = UnityEngine.Random.Range(0f, 360f);
+            var end = geometry.RotationFor(value, yaw);
+            var spin = UnityEngine.Random.onUnitSphere;
+            for (var t = 0f; t < RollSeconds; t += Time.deltaTime)
+            {
+                if (view == null)
+                    yield break;
+                var k = t / RollSeconds;
+                var height = 4f * k * (1f - k) * 0.06f;
+                view.transform.position = start + Vector3.up * height;
+                var tumble = Quaternion.AngleAxis(720f * (1f - k), spin);
+                view.transform.rotation = Quaternion.Slerp(startRotation, tumble * end, k);
+                yield return null;
+            }
+            if (view == null)
+                yield break;
+            view.transform.SetPositionAndRotation(start, end);
+            view.Animating = false;
+            view.Body.isKinematic = view.Model.Locked;
+            ReportPose(view);
+        }
+
         private void Apply(IReadOnlyList<StateEvent> events)
         {
             foreach (var e in events)
@@ -89,6 +183,10 @@ namespace TableWorld.View
                     case ObjectAdded added:
                         if (Engine.Find(added.ObjectId) is { Container: null } obj)
                             Spawn(obj);
+                        break;
+                    case DieRolled rolled:
+                        if (ViewOf(rolled.ObjectId) is { } die && isActiveAndEnabled)
+                            StartCoroutine(AnimateRoll(die, rolled.Value));
                         break;
                     case ObjectRemoved removed:
                         Despawn(removed.ObjectId);

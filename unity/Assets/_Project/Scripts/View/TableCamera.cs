@@ -30,6 +30,9 @@ namespace TableWorld.View
 
         public Vector3 Pivot => _pivot;
 
+        /// <summary>Set each frame by the interaction while it uses Q/E to rotate a held object.</summary>
+        public bool SuppressTurnKeys { get; set; }
+
         public void Configure(Vector3 pivot, float yaw, float pitch, float distance, Vector2 pivotExtents)
         {
             _pivot = pivot;
@@ -76,8 +79,8 @@ namespace TableWorld.View
                 if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed) move.x -= 1;
                 if (move != Vector2.zero)
                     PanBy(move.normalized * (_keyPanSpeed * _distance * Time.unscaledDeltaTime));
-                if (keyboard.qKey.isPressed) _yaw -= _keyTurnSpeed * Time.unscaledDeltaTime;
-                if (keyboard.eKey.isPressed) _yaw += _keyTurnSpeed * Time.unscaledDeltaTime;
+                if (!SuppressTurnKeys && keyboard.qKey.isPressed) _yaw -= _keyTurnSpeed * Time.unscaledDeltaTime;
+                if (!SuppressTurnKeys && keyboard.eKey.isPressed) _yaw += _keyTurnSpeed * Time.unscaledDeltaTime;
             }
 
             Apply();
