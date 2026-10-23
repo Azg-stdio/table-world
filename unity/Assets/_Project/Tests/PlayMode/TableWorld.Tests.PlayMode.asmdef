@@ -3,7 +3,9 @@
     "rootNamespace": "TableWorld.Tests.PlayMode",
     "references": [
         "TableWorld.Runtime",
-        "UnityEngine.TestRunner"
+        "UnityEngine.TestRunner",
+        "Unity.InputSystem",
+        "Unity.InputSystem.TestFramework"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
