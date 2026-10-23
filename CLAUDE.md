@@ -167,7 +167,7 @@ dotnet test TableWorld.sln
 # Unity: open unity/ with Unity Hub (6.6). Builds with Windows Build Support (Mono).
 
 # Tools
-python -I tools/tts-analysis/analyze_mods.py "<Tabletop Simulator folder>" --json out.json   # local mod analysis
+python -I tools/tts-analysis/analyze_mods.py ["<Tabletop Simulator folder>"] --json docs/data/mods-<date>.json   # local mod analysis
 python -I tools/tts-analysis/bundle_headers.py "<folder>/Mods/Assetbundles"                # Unity version of each bundle
 
 # Unity CLI (with the Editor open)
