@@ -47,6 +47,8 @@ namespace TableWorld.Editor
             var session = tableGo.AddComponent<TableWorld.View.Net.NetworkTableSession>();
             session.Configure(table);
             tableGo.AddComponent<TableWorld.View.Net.NetworkAutoplay>().Configure(table, session);
+            // Other players' pointers and the objects they carry, live.
+            tableGo.AddComponent<TableWorld.View.Net.PresenceView>().Configure(table, session);
             // The room around the table, rebuilt from each loaded table's environment.
             tableGo.AddComponent<EnvironmentView>().Configure(table, tableRoot.transform, sun, camera);
             var interaction = tableGo.AddComponent<TableInteraction>();

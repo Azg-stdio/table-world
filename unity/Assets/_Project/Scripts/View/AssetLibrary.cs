@@ -141,7 +141,7 @@ namespace TableWorld.View
         private Material NewMaterial(string name, Color color, float smoothness)
         {
             if (_lit == null)
-                _lit = Shader.Find("Universal Render Pipeline/Lit");
+                _lit = RequiredShaders.Lit;
             var material = new Material(_lit) { name = name, enableInstancing = true };
             material.SetColor(BaseColor, color);
             material.SetFloat(Smoothness, smoothness);

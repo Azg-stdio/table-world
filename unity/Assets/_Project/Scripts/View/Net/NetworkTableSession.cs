@@ -22,7 +22,7 @@ namespace TableWorld.View.Net
     /// Seats: the host plays the first seat, each client the next free one. Images that are files in the host's game
     /// package travel to clients with <see cref="AssetHost"/>/<see cref="AssetClient"/> into a local cache (T3.4).
     /// </summary>
-    public sealed class NetworkTableSession : MonoBehaviour
+    public sealed partial class NetworkTableSession : MonoBehaviour
     {
         public const string MessageName = "tw";
         public const ushort DefaultPort = 7777;
@@ -165,6 +165,8 @@ namespace TableWorld.View.Net
             NewHost();
             _table.Router = HostRoute;
             _table.SeatOverride = _table.Engine.State.Players.Seats.FirstOrDefault()?.Id;
+            // The host simulates every object, except those a client is (or just was) carrying: that client reports them.
+            _table.ReportsPoseOf = view => !RemoteHeldRecently(view.Id);
             _network.OnClientConnectedCallback += OnHostClientConnected;
             _network.OnClientDisconnectCallback += OnHostClientDisconnected;
             if (!_network.StartHost())
@@ -173,6 +175,7 @@ namespace TableWorld.View.Net
                 return false;
             }
             _network.CustomMessagingManager.RegisterNamedMessageHandler(MessageName, OnHostMessage);
+            RegisterPresence(host: true);
             Status = status;
             return true;
         }
@@ -187,6 +190,7 @@ namespace TableWorld.View.Net
                 return false;
             }
             _network.CustomMessagingManager.RegisterNamedMessageHandler(MessageName, OnClientMessage);
+            RegisterPresence(host: false);
             Status = status;
             return true;
         }
@@ -227,6 +231,7 @@ namespace TableWorld.View.Net
                 _network.OnClientDisconnectCallback -= OnClientDisconnected;
                 if (_network.CustomMessagingManager != null)
                     _network.CustomMessagingManager.UnregisterNamedMessageHandler(MessageName);
+                UnregisterPresence();
                 if (_network.IsListening)
                     _network.Shutdown();
             }
@@ -307,6 +312,8 @@ namespace TableWorld.View.Net
 
         private void OnHostClientDisconnected(ulong clientId)
         {
+            if (_seatOf.TryGetValue(clientId, out var leaving) && leaving != null)
+                _presence.Remove(leaving);
             _seatOf.Remove(clientId);
             _host?.Seats.Remove(clientId.ToString());
             Status = HostStatus();
@@ -339,7 +346,7 @@ namespace TableWorld.View.Net
             _client.Applied += (command, result) => _table.ApplyRemote(command, result);
             _client.Refused += error => Debug.LogWarning($"[Net] The host refused a command: {error}");
             _table.Router = ClientRoute;
-            _table.ReportsPoseOf = view => _touched.TryGetValue(view.Id, out var at) && Time.unscaledTime - at < TouchSeconds;
+            _table.ReportsPoseOf = view => _touched.TryGetValue(view.Id, out var at) && Time.unscaledTime - at < TouchSeconds && !RemoteHeldRecently(view.Id);
             Status = "connected, waiting for the table";
         }
 

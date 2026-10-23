@@ -51,8 +51,10 @@ namespace TableWorld.View.Net
             if (Arg("-tw-game") is { } game && !_table.Load(File.ReadAllText(game), Path.GetDirectoryName(Path.GetFullPath(game))))
                 Debug.LogError($"[Autoplay] Could not load {game}.");
             var autoplay = int.TryParse(Arg("-tw-autoplay"), out var n) ? n : 0;
+            var carry = Arg("-tw-carry");
+            var carrySeconds = Array.IndexOf(args, "-tw-carry") is var c && c >= 0 && c + 2 < args.Length && float.TryParse(args[c + 2], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var s) ? s : 10f;
             yield return Run(host, host ? Arg("-tw-host") : join, autoplay, Arg("-tw-report"), Array.IndexOf(args, "-tw-quit") >= 0,
-                seed: host ? 1 : 2, codeFile: Arg("-tw-code-file"));
+                seed: host ? 1 : 2, codeFile: Arg("-tw-code-file"), carry: carry, carrySeconds: carrySeconds);
         }
 
         /// <summary>
@@ -60,7 +62,8 @@ namespace TableWorld.View.Net
         /// host, a port or <c>online</c> (Relay; the join code goes to <paramref name="codeFile"/>); for a client, an
         /// address[:port], a join code, or <c>@file</c> (wait for a host to write its code there).
         /// </summary>
-        public IEnumerator Run(bool host, string target, int commands, string report, bool quit, int seed, string codeFile = null)
+        public IEnumerator Run(bool host, string target, int commands, string report, bool quit, int seed, string codeFile = null,
+            string carry = null, float carrySeconds = 10f)
         {
             if (host && target == "online")
             {
@@ -102,6 +105,9 @@ namespace TableWorld.View.Net
                 Debug.LogError("[Autoplay] Never synced.");
                 yield break;
             }
+
+            if (carry != null)
+                yield return Carry(carry, carrySeconds);
 
             var random = new DeterministicRandom((ulong)seed);
             for (var i = 0; i < commands; i++)
@@ -172,6 +178,34 @@ namespace TableWorld.View.Net
                 return null;
             var (action, parameters) = options[r.Next(options.Count)];
             return new PerformActionCommand { Actor = seat, ActionId = action, Params = new System.Collections.Generic.Dictionary<string, string>(parameters) };
+        }
+
+        /// <summary>
+        /// Live presence check (<c>-tw-carry id [seconds]</c>): picks <paramref name="id"/> up and sweeps it in a circle over
+        /// the table with the pointer following, then drops it, as a player would. Other players must see it move live.
+        /// </summary>
+        private IEnumerator Carry(string id, float seconds)
+        {
+            var interaction = FindAnyObjectByType<TableInteraction>();
+            interaction.IgnoreDevices = true;
+            // Give the other players a moment to arrive and settle.
+            yield return new WaitForSeconds(3f);
+            if (_table.ViewOf(id) is not { } view || !interaction.Grab(view, false))
+            {
+                Debug.LogError($"[Autoplay] Could not pick up {id}.");
+                yield break;
+            }
+            Debug.Log($"[Autoplay] Carrying {id} for {seconds} s");
+            for (var t = 0f; t < seconds; t += Time.deltaTime)
+            {
+                var at = new Vector3(Mathf.Cos(t * 0.8f) * 0.35f, 0f, Mathf.Sin(t * 0.8f) * 0.2f);
+                interaction.DragTo(at);
+                interaction.OverridePointer(at);
+                yield return null;
+            }
+            interaction.Release();
+            interaction.OverridePointer(null);
+            Debug.Log($"[Autoplay] Dropped {id}");
         }
 
         /// <summary>Table commands that do not depend on physics: flips, shuffles, rolls, deals, takes, moves, cuts.</summary>

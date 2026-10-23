@@ -37,7 +37,7 @@ namespace TableWorld.View
                 return Pool[index];
             if (_material == null)
             {
-                _material = new Material(Shader.Find("Universal Render Pipeline/Unlit")) { name = "Selection" };
+                _material = new Material(RequiredShaders.Unlit) { name = "Selection" };
                 _material.SetColor("_BaseColor", Highlight);
             }
             // A unit frame scaled to the object's footprint: four strips around a hole.

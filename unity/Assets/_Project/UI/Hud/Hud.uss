@@ -519,3 +519,21 @@
     color: rgb(220, 216, 206);
     white-space: normal;
 }
+
+/* Other players' names next to their pointers. */
+.presence-layer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.presence-label {
+    position: absolute;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background-color: rgba(16, 18, 22, 0.75);
+    font-size: 13px;
+    -unity-font-style: bold;
+}

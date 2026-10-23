@@ -19,7 +19,7 @@ namespace TableWorld.View
             var marker = go.AddComponent<PingMarker>();
             marker._color = color;
             marker._born = Time.unscaledTime;
-            marker._material = new Material(Shader.Find("Universal Render Pipeline/Unlit")) { name = "Ping" };
+            marker._material = new Material(RequiredShaders.Unlit) { name = "Ping" };
             marker._material.SetColor("_BaseColor", color);
             go.AddComponent<MeshFilter>().sharedMesh = MeshFactory.Cylinder(0.02f, 0.002f, 32);
             var renderer = go.AddComponent<MeshRenderer>();

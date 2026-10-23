@@ -308,7 +308,7 @@ namespace TableWorld.View
             var k = 1f - Mathf.Exp(-HandMotionRate * Time.fixedDeltaTime);
             foreach (var view in _views.Values)
             {
-                if (view == null || !view.InHand || view.Held)
+                if (view == null || !view.InHand || view.Held || view.RemoteHolder != null)
                     continue;
                 var body = view.Body;
                 if ((body.position - view.HandPosition).sqrMagnitude < 1e-8f && Quaternion.Angle(body.rotation, view.HandRotation) < 0.05f)
@@ -652,8 +652,8 @@ namespace TableWorld.View
         /// <summary>Sends a Move when the view's pose differs from the state's. Returns true if one was sent.</summary>
         public bool ReportPose(ObjectView view)
         {
-            // A hand card's standing pose is only how it is shown.
-            if (view.InHand)
+            // A hand card's standing pose is only how it is shown; another player's carried object is theirs to report.
+            if (view.InHand || view.RemoteHolder != null)
                 return false;
             var t = view.Model.Transform;
             var position = view.transform.position;

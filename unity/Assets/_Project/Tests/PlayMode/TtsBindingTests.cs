@@ -238,7 +238,10 @@ namespace TableWorld.Tests.PlayMode
         {
             Assert.IsTrue(_table.Execute(new MoveCommand { ObjectId = "king_hearts", Position = new Vec3(0f, 0f, -0.42f), Actor = "seat_south" }).Ok);
             yield return new WaitForSeconds(0.5f);
-            var root = Object.FindAnyObjectByType<HudController>().GetComponent<UnityEngine.UIElements.UIDocument>().rootVisualElement;
+            var hud = Object.FindAnyObjectByType<HudController>();
+            // The shown/hidden choice is remembered between sessions; this test starts from a shown hand.
+            hud.HandBar.SetCollapsed(false);
+            var root = hud.GetComponent<UnityEngine.UIElements.UIDocument>().rootVisualElement;
             var card = root.Q("hand-king_hearts");
             Assert.IsNotNull(card, "the hand bar shows the card");
 

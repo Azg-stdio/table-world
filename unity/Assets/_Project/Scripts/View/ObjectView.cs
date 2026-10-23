@@ -45,6 +45,9 @@ namespace TableWorld.View
         /// <summary>True for a card in someone else's hand: its face shows the back, and its name is not shown.</summary>
         public bool HideFace { get; internal set; }
 
+        /// <summary>The seat of another player carrying this object right now (live presence), or null.</summary>
+        public string RemoteHolder { get; internal set; }
+
         /// <summary>Where the hand presentation wants this card; <see cref="TableView"/> glides it there.</summary>
         internal Vector3 HandPosition;
         internal Quaternion HandRotation;

@@ -122,9 +122,9 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 
 | # | Gap | What TTS does | Today | Priority |
 |---|---|---|---|---|
-| G1 | Seeing others move things | a held object moves live on every screen | others see it only after it is dropped and settles | P1 |
-| G2 | Other players' pointers | each player's hand cursor, in their colour, with their name | not shown | P1 |
-| G3 | Who holds / selected what | outline in the holder's colour | none | P1 |
+| G1 | Seeing others move things | a held object moves live on every screen | ✅ presence frames (15/s, unreliable) carry held poses; others see it glide and fall when dropped (2026-10-23) | P1 |
+| G2 | Other players' pointers | each player's hand cursor, in their colour, with their name | ✅ marker in the seat colour plus a name label | P1 |
+| G3 | Who holds / selected what | outline in the holder's colour | ✅ for held objects (frame in the holder's colour; others cannot grab it: "seat_x is holding that"); others' box selections not shown yet | P1 |
 | G4 | Controls help | `?` / Help menu lists every binding | ✅ F1, `?` or the Controls button; grouped list of every binding (`ControlsHelp.cs`, keep in step with this file); Escape closes; the wheel scrolls it, not the camera (2026-10-23) | P1 |
 | G5 | Sound | pick up, drop, card slide, shuffle, dice, chips | silent | P1 |
 | G6 | Deck count | hovering a deck or bag shows how many items | tooltip shows only the name | P1 |

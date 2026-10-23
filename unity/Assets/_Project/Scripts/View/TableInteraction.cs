@@ -75,6 +75,12 @@ namespace TableWorld.View
         /// <summary>The primary held object (the one the pointer grabbed).</summary>
         public ObjectView Held => _held.Count > 0 ? _held[0] : null;
         public IReadOnlyList<ObjectView> HeldGroup => _held;
+
+        /// <summary>Where the pointer touches the table (null when it is off the table or over the HUD); other players see it.</summary>
+        public Vector3? PointerOnTable { get; private set; }
+
+        /// <summary>Sets the pointer from code (automated sessions without a mouse, with <see cref="IgnoreDevices"/>).</summary>
+        public void OverridePointer(Vector3? point) => PointerOnTable = point;
         public ObjectView Hovered { get; private set; }
         public IReadOnlyList<ObjectView> Selection => _selection;
 
@@ -179,6 +185,7 @@ namespace TableWorld.View
             var ray = _camera.ScreenPointToRay(pointer);
             Hovered = overUi ? null : RaycastObject(ray, Held, out _);
             var surface = RaycastSurface(ray, Held, out var point);
+            PointerOnTable = surface && !overUi ? point : (Vector3?)null;
             var alt = keyboard.altKey.isPressed;
             var shift = keyboard.shiftKey.isPressed;
             var ctrl = keyboard.ctrlKey.isPressed;
@@ -483,6 +490,11 @@ namespace TableWorld.View
             if (view.HideFace)
             {
                 _table.Tell("That card is in another player's hand.");
+                return false;
+            }
+            if (view.RemoteHolder != null)
+            {
+                _table.Tell($"{view.RemoteHolder} is holding that.");
                 return false;
             }
             if (isFullContainer && !moveContainer && RulesTake(view))

@@ -38,6 +38,11 @@ namespace TableWorld.View.Hud
         private GameUiRenderer _gameUi;
         private TableOverlay _overlay;
         private HandBar _handBar;
+
+        /// <summary>The hand at the bottom of the screen.</summary>
+        public HandBar HandBar => _handBar;
+        private readonly List<Label> _presenceLabels = new List<Label>();
+        private TableWorld.View.Net.PresenceView _presence;
         private ControlsHelp _help;
 
         /// <summary>The controls list (F1, ?, or the Controls button).</summary>
@@ -115,6 +120,49 @@ namespace TableWorld.View.Hud
 
         private void OnNotice(string text) => ShowStatus(text, error: true);
 
+        /// <summary>Each other player's seat name, beside their pointer, in their colour.</summary>
+        private void UpdatePresenceLabels()
+        {
+            _presence ??= FindAnyObjectByType<TableWorld.View.Net.PresenceView>();
+            var layer = _root.Q("presenceLayer");
+            var camera = Camera.main;
+            if (layer == null || camera == null || _root.panel == null)
+                return;
+            var pointers = _presence != null ? _presence.Pointers : (IReadOnlyList<(string, Vector3, Color)>)System.Array.Empty<(string, Vector3, Color)>();
+            while (_presenceLabels.Count < pointers.Count)
+            {
+                var label = new Label();
+                label.AddToClassList("presence-label");
+                label.pickingMode = PickingMode.Ignore;
+                layer.Add(label);
+                _presenceLabels.Add(label);
+            }
+            for (var i = 0; i < _presenceLabels.Count; i++)
+            {
+                var label = _presenceLabels[i];
+                var visible = i < pointers.Count;
+                label.EnableInClassList(Hidden, !visible);
+                if (!visible)
+                    continue;
+                var (seat, position, color) = pointers[i];
+                var screen = camera.WorldToScreenPoint(position + Vector3.up * 0.05f);
+                if (screen.z < 0f)
+                {
+                    label.AddToClassList(Hidden);
+                    continue;
+                }
+                var panel = RuntimePanelUtils.ScreenToPanel(_root.panel, new Vector2(screen.x, Screen.height - screen.y));
+                label.text = seat;
+                // The seat colour is runtime data (any colour a game picks), so it is set from code: the label is filled
+                // with it, and the text is dark or light, whichever reads on that colour.
+                var luminance = 0.2126f * color.r + 0.7152f * color.g + 0.0722f * color.b;
+                label.style.backgroundColor = new Color(color.r, color.g, color.b, 0.9f);
+                label.style.color = luminance > 0.5f ? new Color(0.08f, 0.08f, 0.1f) : Color.white;
+                label.style.left = panel.x + 10f;
+                label.style.top = panel.y - 22f;
+            }
+        }
+
         /// <summary>F1 or ? (Shift + /) toggles the controls list; Escape closes it.</summary>
         private void HelpKeys()
         {
@@ -180,6 +228,7 @@ namespace TableWorld.View.Hud
             _overlay?.Update();
             _handBar?.Update();
             HelpKeys();
+            UpdatePresenceLabels();
             if (_netStatus != null && _session != null)
                 _netStatus.text = _session.Status == "offline" ? "" : _session.Status;
             if (Time.unscaledTime >= _nextGameRefresh)
