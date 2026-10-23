@@ -14,7 +14,8 @@ The M3-lite playtest: you host War and two friends join over the internet with a
 2. **Games → War**. The table loads with one deck.
 3. **Host online**. The address field shows a 6-character code, already copied to the clipboard. Paste it in your chat.
 4. Wait until the top bar says `code XXXXXX, 2 player(s) joined`. You play South; joiners get North, then any free seat.
-5. **Start game**, in the panel at the bottom left. Each player presses **Play top card** for their own seat (top right, or the bottom-left panel).
+5. **Start game**, in the panel at the bottom left.
+6. Play with your hands. In War, drag your own deck to play its top card. In UNO, drag a card from your hand onto the table to play it, or drag the draw pile to draw. If a move is not allowed (not your turn, card does not match), the card goes back and the bottom-left line says why. The buttons (top right, and at the top centre) still work.
 
 War has two seats, so the third person gets no seat and can only watch and move objects. For three players, also try **Simplified UNO** (load it before **Host online**, or load it while hosting: everyone receives the new table).
 
@@ -22,7 +23,7 @@ War has two seats, so the third person gets no seat and can only watch and move 
 
 1. Start `TableWorld.exe`.
 2. Type the code in the address field (replacing `127.0.0.1:7777`) and press **Join**.
-3. The top bar shows `playing as seat_north` once the table arrives.
+3. The top bar shows `playing as seat_north` once the table arrives. The camera starts behind your own seat; your hand stands at your edge of the table, and the other players' hands show only backs.
 
 ## 4. What to write down
 

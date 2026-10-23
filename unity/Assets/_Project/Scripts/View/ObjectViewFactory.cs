@@ -145,8 +145,11 @@ namespace TableWorld.View
         {
             var size = (card.Size ?? Card.DefaultSize).ToUnity();
             var mesh = MeshFactory.Box(new Vector3(size.x, CardThickness, size.y));
-            SetPrism(view, mesh, assets.ImageMaterial(card.FaceAsset, Ivory), assets.ImageMaterial(card.BackAsset, Ivory), assets.Plain(CardEdge), CardMass);
-            SetCell(view, MeshFactory.TopSubmesh, assets.CellScaleOffset(card.FaceAsset, card.FaceIndex));
+            // A card in another player's hand shows its back on both sides.
+            var faceAsset = view.HideFace ? card.BackAsset : card.FaceAsset;
+            var faceIndex = view.HideFace ? card.BackIndex : card.FaceIndex;
+            SetPrism(view, mesh, assets.ImageMaterial(faceAsset, Ivory), assets.ImageMaterial(card.BackAsset, Ivory), assets.Plain(CardEdge), CardMass);
+            SetCell(view, MeshFactory.TopSubmesh, assets.CellScaleOffset(faceAsset, faceIndex));
             SetCell(view, MeshFactory.BottomSubmesh, assets.CellScaleOffset(card.BackAsset, card.BackIndex));
         }
 

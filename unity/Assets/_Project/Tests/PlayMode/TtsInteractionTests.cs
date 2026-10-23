@@ -30,6 +30,7 @@ namespace TableWorld.Tests.PlayMode
             yield return null;
             _table = Object.FindAnyObjectByType<TableView>();
             _interaction = Object.FindAnyObjectByType<TableInteraction>();
+            _interaction.IgnoreDevices = true;
             _camera = Object.FindAnyObjectByType<TableCamera>();
             _overlay = Object.FindAnyObjectByType<HudController>().Overlay;
             yield return new WaitForSeconds(0.5f);

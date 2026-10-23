@@ -92,6 +92,9 @@ namespace TableWorld.View
         /// <summary>Set by the HUD: true when a screen point is over UI, so clicks there never reach the table.</summary>
         public Func<Vector2, bool> PointerBlocked { get; set; }
 
+        /// <summary>Ignore the real mouse and keyboard: tests that drive gestures from code set it, or a cursor over the Game view would steer held objects.</summary>
+        public bool IgnoreDevices { get; set; }
+
         /// <summary>Right click without dragging: on an object (or null for the table) at a screen point. The HUD opens a menu.</summary>
         public event Action<ObjectView, Vector2> ContextMenuRequested;
 
@@ -118,7 +121,7 @@ namespace TableWorld.View
 
             var mouse = Mouse.current;
             var keyboard = Keyboard.current;
-            if (mouse == null || keyboard == null)
+            if (mouse == null || keyboard == null || IgnoreDevices)
                 return;
 
             var pointer = mouse.position.ReadValue();
@@ -353,6 +356,14 @@ namespace TableWorld.View
 
             var model = view.Model;
             var isFullContainer = model is Deck { Cards: { Count: > 0 } } || model is Bag;
+            _playFromHand = null;
+            if (view.HideFace)
+            {
+                _table.Tell("That card is in another player's hand.");
+                return false;
+            }
+            if (isFullContainer && !moveContainer && RulesTake(view))
+                return false;
             if (isFullContainer && !moveContainer)
             {
                 var lift = view.transform.position + Vector3.up * HoldHeight;
@@ -368,6 +379,9 @@ namespace TableWorld.View
             else
             {
                 _table.Checkpoint();
+                // During a game that plays cards from hands, a card picked from your hand is played when dropped outside it.
+                if (model is Card && Gestures.PlaysObjects(_table.Game) && HandOfLocalSeat() is { } hand && _table.Engine.ZonesOf(model.Id).Contains(hand.Id))
+                    _playFromHand = hand;
             }
 
             _holdHeight = HoldHeight;
@@ -405,6 +419,12 @@ namespace TableWorld.View
         private void Hold(ObjectView view, Vector3 offset)
         {
             _table.NotifyTouched(view.Id);
+            if (view.InHand)
+            {
+                // Out of the hand's standing pose: it is carried flat, as the state has it.
+                view.InHand = false;
+                view.transform.rotation = view.Model.Transform.Rotation.ToRotation();
+            }
             _held.Add(view);
             _offsets[view] = offset;
             view.Held = true;
@@ -468,6 +488,13 @@ namespace TableWorld.View
         {
             view.Held = false;
             _table.NotifyTouched(view.Id);
+            if (_playFromHand is { } hand)
+            {
+                _playFromHand = null;
+                var p = view.transform.position;
+                if (!Geometry.Contains(hand, new Vec3(p.x, hand.Transform.Position.Y, p.z)) && PlayFromHand(view))
+                    return;
+            }
             if (joinBelow)
             {
                 var below = ObjectBelow(view);
@@ -497,6 +524,54 @@ namespace TableWorld.View
                 view.Body.angularVelocity = isDie ? spin : Vector3.zero;
                 view.Body.WakeUp();
             }
+        }
+
+        // ---- rules gestures -------------------------------------------------------------------------------------
+
+        /// <summary>The hand a card was picked from, while it may be played by dropping it outside.</summary>
+        private Zone _playFromHand;
+
+        /// <summary>
+        /// Dragging from a pile the rules draw from performs the draw (it is refused, with the reason, when not legal now).
+        /// Returns true when the rules handled the gesture, so nothing is picked up.
+        /// </summary>
+        private bool RulesTake(ObjectView pile)
+        {
+            var game = _table.Game;
+            var seat = _table.LocalSeat;
+            var draws = Gestures.Draws(game, seat, pile.Id);
+            if (draws.Count > 0)
+            {
+                _table.Execute(draws[0]);
+                return true;
+            }
+            if (!Gestures.RulesTakeFrom(game, seat, pile.Id))
+                return false;
+            _table.Tell(game.Session.CurrentSeat != seat
+                ? $"It is {game.Session.CurrentSeat}'s turn."
+                : $"The rules do not let you take from {pile.Model.Name ?? pile.Id} now.");
+            return true;
+        }
+
+        /// <summary>
+        /// A card dropped outside the hand it came from: perform the action that plays it, or send it back to the hand
+        /// with the reason. Returns true when the drop was handled (played or sent back).
+        /// </summary>
+        private bool PlayFromHand(ObjectView card)
+        {
+            var game = _table.Game;
+            var seat = _table.LocalSeat;
+            var plays = Gestures.Plays(game, seat, card.Id);
+            if (plays.Count > 0 && _table.Execute(plays[0]).Ok)
+                return true;
+            if (plays.Count == 0)
+                _table.Tell(game.Session.CurrentSeat != seat
+                    ? $"It is {game.Session.CurrentSeat}'s turn."
+                    : $"{card.Model.Name ?? card.Id} cannot be played now.");
+            // Back to its slot in the hand: the state never moved it.
+            card.SnapToState();
+            _table.PresentHands();
+            return true;
         }
 
         // ---- object actions -------------------------------------------------------------------------------------

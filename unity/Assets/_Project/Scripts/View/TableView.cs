@@ -164,6 +164,11 @@ namespace TableWorld.View
 
         public bool Networked => Router != null;
 
+        /// <summary>Raised with a sentence for the player, e.g. why the rules refused a gesture.</summary>
+        public event Action<string> Notice;
+
+        public void Tell(string text) => Notice?.Invoke(text);
+
         /// <summary>Raised when the local player handles an object (grab, drop): a network client then owns its physics for a while.</summary>
         public event Action<string> Touched;
 
@@ -210,6 +215,88 @@ namespace TableWorld.View
             foreach (var obj in Engine.State.Objects.Where(o => o.Container == null))
                 Spawn(obj);
             SpawnZones();
+            PresentHands();
+        }
+
+        // ---- hands (TTS style) ------------------------------------------------------------------------------------
+
+        /// <summary>How far hand cards lean back from upright, toward their owner.</summary>
+        public const float HandTiltDegrees = 70f;
+        private string _presentedSeat;
+
+        /// <summary>
+        /// Cards in a hand zone stand up at the table edge facing their owner, out of the physics simulation; the owner
+        /// sees their faces, everyone else their backs. The state keeps them flat in their slots: this is view only.
+        /// </summary>
+        public void PresentHands()
+        {
+            if (Engine == null)
+                return;
+            var viewer = LocalSeat;
+            _presentedSeat = viewer;
+            var hands = new Dictionary<HandZone, List<ObjectView>>();
+            foreach (var view in _views.Values)
+            {
+                if (view == null || !(view.Model is Card))
+                    continue;
+                var hand = view.Held ? null : HandZoneOf(view.Id);
+                var hide = hand != null && hand.Owner != viewer;
+                if (hide != view.HideFace)
+                {
+                    view.HideFace = hide;
+                    ObjectViewFactory.Refresh(view, Assets);
+                }
+                if (hand == null)
+                {
+                    if (view.InHand)
+                    {
+                        view.InHand = false;
+                        view.Body.isKinematic = view.Model.Locked || view.Held;
+                        view.SnapToState();
+                    }
+                    continue;
+                }
+                if (!hands.TryGetValue(hand, out var members))
+                    hands[hand] = members = new List<ObjectView>();
+                members.Add(view);
+            }
+            foreach (var pair in hands)
+                StandInHand(pair.Key, pair.Value);
+        }
+
+        /// <summary>
+        /// Spreads a hand's cards evenly along the zone in the player's order (left to right as the owner sees it),
+        /// overlapping when they do not fit, each standing and leaning back toward the owner.
+        /// </summary>
+        private static void StandInHand(HandZone hand, List<ObjectView> cards)
+        {
+            var yaw = Quaternion.Euler(0f, hand.Transform.Rotation.Y, 0f);
+            var center = hand.Transform.Position.ToUnity();
+            float LocalX(ObjectView v) => (Quaternion.Inverse(yaw) * (v.Model.Transform.Position.ToUnity() - center)).x;
+            cards.Sort((a, b) => LocalX(a).CompareTo(LocalX(b)));
+            var size = (((Card)cards[0].Model).Size ?? Card.DefaultSize).ToUnity();
+            var width = hand.Size.X * hand.Transform.Scale.X;
+            var step = cards.Count < 2 ? 0f : Mathf.Min(size.x * 1.08f, (width - size.x) / (cards.Count - 1));
+            var lift = size.y / 2f * Mathf.Sin(HandTiltDegrees * Mathf.Deg2Rad) + 0.004f;
+            var pose = yaw * Quaternion.Euler(-HandTiltDegrees, 0f, 0f);
+            for (var i = 0; i < cards.Count; i++)
+            {
+                var view = cards[i];
+                view.InHand = true;
+                view.Body.isKinematic = true;
+                // Later cards sit a little closer to the owner, so overlapping cards never z-fight.
+                var local = new Vector3((i - (cards.Count - 1) / 2f) * step, 0f, -0.0015f * i);
+                var p = center + yaw * local;
+                view.transform.SetPositionAndRotation(new Vector3(p.x, lift, p.z), pose);
+            }
+        }
+
+        private HandZone HandZoneOf(string objectId)
+        {
+            foreach (var zoneId in Engine.ZonesOf(objectId))
+                if (Engine.State.Zones.FirstOrDefault(z => z.Id == zoneId) is HandZone hand)
+                    return hand;
+            return null;
         }
 
         /// <summary>
@@ -314,6 +401,8 @@ namespace TableWorld.View
         {
             if (Engine == null)
                 return;
+            if (_presentedSeat != LocalSeat)
+                PresentHands();
             _scratch.Clear();
             _scratch.AddRange(_views.Values);
             foreach (var view in _scratch)
@@ -391,6 +480,9 @@ namespace TableWorld.View
         /// <summary>Sends a Move when the view's pose differs from the state's. Returns true if one was sent.</summary>
         public bool ReportPose(ObjectView view)
         {
+            // A hand card's standing pose is only how it is shown.
+            if (view.InHand)
+                return false;
             var t = view.Model.Transform;
             var position = view.transform.position;
             var rotation = view.transform.rotation;
@@ -485,6 +577,7 @@ namespace TableWorld.View
                         break;
                 }
             }
+            PresentHands();
         }
 
         private void Spawn(TableObject obj)

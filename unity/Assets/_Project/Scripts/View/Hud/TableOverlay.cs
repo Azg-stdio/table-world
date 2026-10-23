@@ -342,7 +342,7 @@ namespace TableWorld.View.Hud
                 return;
             // A render texture is created at runtime, so it can only be set from code.
             _lookImage.style.backgroundImage = Background.FromRenderTexture(_look.Texture);
-            _lookCaption.text = (peek ? "Peek: " : "") + (view.Model.Name ?? view.Model.Id);
+            _lookCaption.text = view.HideFace ? "A card in another player's hand" : (peek ? "Peek: " : "") + (view.Model.Name ?? view.Model.Id);
         }
 
         private void UpdateTooltip()
@@ -351,7 +351,7 @@ namespace TableWorld.View.Hud
             var seconds = _interaction.TooltipSeconds;
             var show = view != null && seconds >= TooltipNameSeconds && _interaction.Held == null && _interaction.Looking == null && !MenuOpen
                        && !(view.Model.IsFaceUp == false && view.Model.TtsExtra?.Value<bool?>("HideWhenFaceDown") == true);
-            var text = view == null ? null : view.Model.Name ?? (view.Model is Card c ? null : view.Model.Type);
+            var text = view == null || view.HideFace ? null : view.Model.Name ?? (view.Model is Card c ? null : view.Model.Type);
             if (show && seconds >= TooltipDescriptionSeconds && !string.IsNullOrEmpty(view.Model.Description))
                 text = $"{text}\n{view.Model.Description}";
             show &= !string.IsNullOrEmpty(text);

@@ -649,6 +649,25 @@ namespace Core.Engine
         public JToken? Evaluate(string reference, string? viewer) =>
             WithContext(new Context { Actor = viewer ?? Session?.CurrentSeat }, () => ToValue(TryResolve(reference)));
 
+        /// <summary>Id of the object or zone that <paramref name="reference"/> (or a plain id) names for <paramref name="actor"/>, or null.</summary>
+        public string? TargetId(string reference, string? actor) =>
+            WithContext(new Context { Actor = actor ?? Session?.CurrentSeat }, () =>
+            {
+                try
+                {
+                    return ResolveTarget(reference, "target") switch
+                    {
+                        TableObject obj => obj.Id,
+                        Zone zone => zone.Id,
+                        _ => null,
+                    };
+                }
+                catch (RuleException)
+                {
+                    return null;
+                }
+            });
+
         /// <summary>The seat id a seat reference names for <paramref name="viewer"/>, or null.</summary>
         public string? SeatFor(string reference, string? viewer) =>
             WithContext(new Context { Actor = viewer ?? Session?.CurrentSeat }, () =>

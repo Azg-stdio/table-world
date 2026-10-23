@@ -98,15 +98,40 @@ namespace TableWorld.View.Hud
             _root.Q<Button>("gamesClose").clicked += () => _gamesPanel.AddToClassList(Hidden);
 
             if (_table != null)
+            {
                 _table.CommandExecuted += OnCommand;
+                _table.Notice += OnNotice;
+            }
             if (_interaction != null)
                 _interaction.PointerBlocked = IsOverUi;
+        }
+
+        private void OnNotice(string text) => ShowStatus(text, error: true);
+
+        private string _facedSeat;
+
+        /// <summary>The camera starts behind your seat: your own seat online, the first seat when playing alone.</summary>
+        private void FaceLocalSeat()
+        {
+            var state = _table.Engine.State;
+            var seat = state.Players.Seats.FirstOrDefault(s => s.Id == (_table.SeatOverride ?? state.Players.Seats.FirstOrDefault()?.Id));
+            var hand = seat == null ? null : state.Zones.FirstOrDefault(z => z.Id == seat.HandZone);
+            var key = hand == null ? null : $"{seat.Id}@{hand.Transform.Position.X},{hand.Transform.Position.Z}";
+            if (key == null || key == _facedSeat)
+                return;
+            _facedSeat = key;
+            var camera = Camera.main != null ? Camera.main.GetComponent<TableCamera>() : null;
+            if (camera != null)
+                camera.FaceFrom(hand.Transform.Position.ToUnity());
         }
 
         private void OnDisable()
         {
             if (_table != null)
+            {
                 _table.CommandExecuted -= OnCommand;
+                _table.Notice -= OnNotice;
+            }
             if (_interaction != null)
             {
                 _interaction.PointerBlocked = null;
@@ -131,6 +156,7 @@ namespace TableWorld.View.Hud
                 _gameUi.Build();
                 _shownSelection = null;
             }
+            FaceLocalSeat();
             RefreshSelection();
             _overlay?.Update();
             if (_netStatus != null && _session != null)
@@ -247,8 +273,9 @@ namespace TableWorld.View.Hud
                 return;
 
             var model = selected.Model;
-            _selectionTitle.text = string.IsNullOrEmpty(model.Name) ? $"{model.Type} {model.Id}" : model.Name;
-            _selectionDetail.text = Describe(model);
+            _selectionTitle.text = selected.HideFace ? "A card in another player's hand"
+                : string.IsNullOrEmpty(model.Name) ? $"{model.Type} {model.Id}" : model.Name;
+            _selectionDetail.text = selected.HideFace ? "" : Describe(model);
 
             AddAction(model.Locked ? "Unlock (L)" : "Lock (L)", () => _interaction.ToggleLock(selected));
             if (model.Locked)

@@ -17,7 +17,7 @@ The list of player interactions Table World must reproduce, taken from Tabletop 
 | Pan | hold MMB + move; WASD | KB:basic | ✅ | input |
 | Zoom | mouse wheel | KB:basic | ✅ | input |
 | Quick zoom to pointer / back | press MMB (no drag) on empty table; Z | KB:basic | ✅ | play, input |
-| Reset camera | Space | KB:basic | ✅ | play, input |
+| Reset camera | Space | KB:basic | ✅ (the start view is behind your own seat: your seat online, the first seat alone) | play, input |
 | Camera mode (3rd person, 1st person, top-down) | P | KB:basic, KB:adv | ✅ 3rd + top-down (first person ⏭ M6) | play, input |
 | Save / load camera | Ctrl+1…9 / Shift+1…9 | KB:menu | ✅ | play, input |
 | Turn camera | Q/E when not holding | — (ours) | ✅ | input |
@@ -72,7 +72,20 @@ The list of player interactions Table World must reproduce, taken from Tabletop 
 | Switch object state | number keys over an object with states (KB example: key 2 opens a book); menu | KB:states | ✅ | core, play |
 | Create states from a selection | menu "Create States" | KB:states | ⏭ authoring (M7 / MCP) | — |
 | Lock | menu toggle "Lock" (L: unverified) | KB:menu | ✅ (L) | play |
-| Hands toggle (can go to hand) | menu toggle | KB:menu | ⏭ M3 (hidden hands) | — |
+| Hands toggle (can go to hand) | menu toggle | KB:menu | ⏭ polish (every card can go to a hand today) | — |
+| Hand view: your cards stand at your table edge facing you, others see backs; others' hand cards cannot be picked up, and their name never shows | automatic in a hand zone | KB:basic | ✅ (view only: every client still receives the whole table) | play |
+| Reorder your hand | drag a card within your hand | KB:basic | ✅ | play |
+
+## 4b. Playing a rules game by hand (Table World; TTS has no rules engine)
+
+While a game with rules runs, gestures become rules actions, so turns, limits and win checks apply without the button list:
+
+| Gesture | Becomes | Status | Test |
+|---|---|---|---|
+| Drag a card out of your hand and drop it anywhere outside the hand | the legal action that takes that card as a parameter (UNO: play it); not legal → back to the hand with the reason | ✅ | core, play |
+| Drag from a pile the rules draw from | that legal draw action (UNO: draw and end the turn; War: play your top card); not legal → refused with the reason | ✅ | core, play |
+| Drag from a pile the rules only gather (UNO's discard) | refused: piles the rules use cannot be taken from freely | ✅ | core, play |
+| Anything else (dice, free tokens, cards on the table) | free play, as before | ✅ | — |
 
 ## 5. Editing the table
 

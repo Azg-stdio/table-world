@@ -39,6 +39,12 @@ namespace TableWorld.View
         /// <summary>True while an animation (a die roll) owns the transform.</summary>
         public bool Animating { get; internal set; }
 
+        /// <summary>True while a card sits in a hand zone: it stands up facing its owner and physics leaves it alone.</summary>
+        public bool InHand { get; internal set; }
+
+        /// <summary>True for a card in someone else's hand: its face shows the back, and its name is not shown.</summary>
+        public bool HideFace { get; internal set; }
+
         internal void Rebind(TableObject model) => Model = model;
 
         /// <summary>Moves the GameObject to the state's pose. A resting height of 0 means "on the table": it is lifted to sit on it.</summary>

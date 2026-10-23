@@ -90,6 +90,16 @@ namespace TableWorld.View
             SetView(_home);
         }
 
+        /// <summary>Turns the starting view to look across the table from <paramref name="seatPoint"/> (a seat's hand zone). Space returns here.</summary>
+        public void FaceFrom(Vector3 seatPoint)
+        {
+            var across = new Vector3(_home.Pivot.x - seatPoint.x, 0f, _home.Pivot.z - seatPoint.z);
+            if (across.sqrMagnitude < 1e-6f)
+                return;
+            _home.Yaw = Mathf.Atan2(across.x, across.z) * Mathf.Rad2Deg;
+            ResetView();
+        }
+
         /// <summary>Z or middle click on the table: zoom onto a point; again to go back.</summary>
         public void ToggleQuickZoom(Vector3 point)
         {
