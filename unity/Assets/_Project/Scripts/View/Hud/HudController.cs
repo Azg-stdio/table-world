@@ -34,6 +34,10 @@ namespace TableWorld.View.Hud
         private VisualElement _gameActions;
         private string _shownGameKey;
         private GameUiRenderer _gameUi;
+        private TableOverlay _overlay;
+        private LookCamera _look;
+
+        public TableOverlay Overlay => _overlay;
         private float _nextGameRefresh;
 
         /// <summary>At most this many action buttons; a game offering more should use parameters with fewer choices.</summary>
@@ -62,6 +66,13 @@ namespace TableWorld.View.Hud
             _gameLog = _root.Q<Label>("gameLog");
             _gameActions = _root.Q("gameActions");
             _gameUi = new GameUiRenderer(_root.Q("gameUi"), _table);
+            if (_interaction != null)
+            {
+                _look = _look != null ? _look : LookCamera.Create(transform);
+                var camera = Camera.main != null ? Camera.main.GetComponent<TableCamera>() : null;
+                _overlay = new TableOverlay(_root, _table, _interaction, camera, _look);
+                _interaction.Pinged += OnPing;
+            }
 
             _root.Q<Button>("saveButton").clicked += Save;
             _root.Q<Button>("loadButton").clicked += Load;
@@ -77,7 +88,16 @@ namespace TableWorld.View.Hud
             if (_table != null)
                 _table.CommandExecuted -= OnCommand;
             if (_interaction != null)
+            {
                 _interaction.PointerBlocked = null;
+                _interaction.Pinged -= OnPing;
+            }
+        }
+
+        private void OnPing(Vector3 point)
+        {
+            var seat = _table.Engine?.State.Players.Seats.FirstOrDefault(s => s.Id == _table.LocalSeat);
+            PingMarker.Spawn(point, ZoneViewFactory.SeatColor(seat?.Color ?? "white"));
         }
 
         private void Update()
@@ -92,6 +112,7 @@ namespace TableWorld.View.Hud
                 _shownSelection = null;
             }
             RefreshSelection();
+            _overlay?.Update();
             if (Time.unscaledTime >= _nextGameRefresh)
             {
                 _nextGameRefresh = Time.unscaledTime + 0.25f;

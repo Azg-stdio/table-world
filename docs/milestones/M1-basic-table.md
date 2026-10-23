@@ -26,11 +26,11 @@ Spec and status per interaction: [../tts-interactions.md](../tts-interactions.md
 | Id | Task | Size | Depends on | Done check | Status |
 |---|---|---|---|---|---|
 | T2.11a | Core commands: scale, delete, clone (copy/paste), set state, cut, split, spread, set die value, set name/description/tint; `CreatedIds` on results | M | T2.2 | One xUnit test per command, including failures; random-command property test covers them | done 2026-10-22 |
-| T2.11b | Rotate held or hovered (Q/E, Alt axis), flip by F / MMB click / Alt+MMB, scale (+/−), place under (U), nudge (N), tap down (RMB while holding), Alt+RMB drop bottom card | M | T2.11a | PlayMode tests per gesture | todo |
-| T2.11c | Looking: Alt zoom, Alt+Shift peek, hover tooltip | S | T2.10 | PlayMode tests | todo |
-| T2.11d | Number-row draw with 1 s buffer (multi-digit), digits switch states, G group, box select + pick up selection + RMB add to held group | M | T2.11a | PlayMode tests | todo |
-| T2.11e | Context menus (object and global) with the per-type actions: flip, rotate, lock, copy, delete, name, tint, deck draw/deal/search/cut/split/spread/shuffle, die roll/set, bag search/shuffle, states | M | T2.11a | PlayMode tests click every entry | todo |
-| T2.11f | Copy/paste (Ctrl+C/V), delete (Del), undo/redo (Ctrl+Z/Y), camera: Space reset, Z/MMB quick zoom, P top-down, Ctrl/Shift+digit save/load; Tab ping and measure | M | T2.11a | PlayMode tests | todo |
+| T2.11b | Rotate held or hovered (Q/E, Alt axis), flip by F / MMB click / Alt+MMB, scale (+/−), place under (U), nudge (N), tap down (RMB while holding), Alt+RMB drop bottom card | M | T2.11a | PlayMode tests per gesture | done 2026-10-22 |
+| T2.11c | Looking: Alt zoom, Alt+Shift peek, hover tooltip | S | T2.10 | PlayMode tests | done 2026-10-22 |
+| T2.11d | Number-row draw with 1 s buffer (multi-digit), digits switch states, G group, box select + pick up selection + RMB add to held group | M | T2.11a | PlayMode tests | done 2026-10-22 |
+| T2.11e | Context menus (object and global) with the per-type actions: flip, rotate, lock, copy, delete, name, tint, deck draw/deal/search/cut/split/spread/shuffle, die roll/set, bag search/shuffle, states | M | T2.11a | PlayMode tests click every entry | done 2026-10-22 |
+| T2.11f | Copy/paste (Ctrl+C/V), delete (Del), undo/redo (Ctrl+Z/Y), camera: Space reset, Z/MMB quick zoom, P top-down, Ctrl/Shift+digit save/load; Tab ping and measure | M | T2.11a | PlayMode tests | done 2026-10-22 |
 | T2.11g | Input binding tests: simulated keyboard and mouse (Input System test fixture) for every binding in the spec | M | T2.11b–f | `test run --mode PlayMode` green with one test per binding | todo |
 
 ## Simulation record
@@ -38,6 +38,7 @@ Spec and status per interaction: [../tts-interactions.md](../tts-interactions.md
 | Date | Simulation | Result |
 |---|---|---|
 | — | T2.8 2 000 objects | — (deferred) |
+| 2026-10-22 | T2.11b-f PlayMode tests (`Tests/PlayMode/TtsInteractionTests.cs`, real Table scene) | 19/19 plus smoke 1/1. Found and fixed: an Alt look opened by code was cancelled on the next frame by the key loop; nudge at 0.35 m/s moved a token only 5 mm on felt (now 0.8 m/s) |
 | 2026-10-22 | MVP bar: 500 generated objects (300 cards, 100 tokens, 50 d6, 50 hex tiles) in Editor play mode, unfocused with CLI auto-tick, Windows 11 + NVIDIA GPU | sample table 195.9 fps; 500 resting 88.8 fps (1 350 frames / 15.2 s); 500 dropped from 10 cm, averaged over 27 s incl. settling, 87.0 fps; Editor memory 971 → 1 070 MB. Above the 60 fps bar without instancing; a player build should be faster |
 | 2026-10-22 | T2.9 smoke test (`Tests/PlayMode/SmokeTests.cs`, seed 2026) | 1/1 passed: 50 commands (10 of them real grab/drag/drop gestures), 19 succeeded, 31 rejected with codes as expected; 25 objects on the table at the end, views = state, 0 errors |
 | 2026-10-22 | M1 scenario in play mode: deal 5, flip, shuffle, roll d20, save, exit play mode, start, load, wait 6 s | hash identical after load and after 6 s of physics (`sha256:5824b774…`); first attempt drifted 2–30 mm because old views overlapped new ones for one physics step, fixed by deactivating before `Destroy` |

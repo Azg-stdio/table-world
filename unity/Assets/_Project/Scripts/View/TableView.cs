@@ -85,12 +85,58 @@ namespace TableWorld.View
                 return false;
             }
 
-            Clear();
             _packageRoot = packageRoot;
-            var seed = _seed != 0 ? (ulong)_seed : (ulong)DateTime.UtcNow.Ticks;
-            Game = new GameEngine(parsed.State, seed);
             Assets = new AssetLibrary(parsed.State.Assets, packageRoot);
+            Replace(parsed.State);
+            _undo.Clear();
+            _redo.Clear();
+            Loaded?.Invoke();
+            return true;
+        }
+
+        private void Replace(TableState state)
+        {
+            Clear();
+            var seed = _seed != 0 ? (ulong)_seed : (ulong)DateTime.UtcNow.Ticks;
+            Game = new GameEngine(state, seed);
             SpawnAll();
+        }
+
+        // ---- undo / redo (Ctrl+Z / Ctrl+Y) ----------------------------------------------------------------------
+
+        public const int MaxUndo = 50;
+        private readonly List<string> _undo = new List<string>();
+        private readonly List<string> _redo = new List<string>();
+
+        public int UndoCount => _undo.Count;
+        public int RedoCount => _redo.Count;
+
+        /// <summary>Remembers the table as it is now, before a player action changes it.</summary>
+        public void Checkpoint()
+        {
+            if (Engine == null)
+                return;
+            var json = TableJson.Serialize(Engine.State, indented: false);
+            if (_undo.Count > 0 && _undo[_undo.Count - 1] == json)
+                return;
+            _undo.Add(json);
+            if (_undo.Count > MaxUndo)
+                _undo.RemoveAt(0);
+            _redo.Clear();
+        }
+
+        public bool Undo() => Step(_undo, _redo);
+
+        public bool Redo() => Step(_redo, _undo);
+
+        private bool Step(List<string> from, List<string> to)
+        {
+            if (from.Count == 0)
+                return false;
+            to.Add(TableJson.Serialize(Engine.State, indented: false));
+            var json = from[from.Count - 1];
+            from.RemoveAt(from.Count - 1);
+            Replace(TableJson.Parse(json).State);
             Loaded?.Invoke();
             return true;
         }
@@ -139,6 +185,10 @@ namespace TableWorld.View
                     if (ViewOf(id) is { Animating: false } view && !view.Body.isKinematic)
                         ReportPose(view);
 
+            // Every player command can be undone; pose reports from physics are not separate steps.
+            if (!(command is MoveCommand && _reportingId != null))
+                Checkpoint();
+
             var result = Game.Execute(command);
             if (result.Ok)
                 Apply(result.Events);
@@ -175,6 +225,15 @@ namespace TableWorld.View
                     foreach (var id in c.ObjectIds)
                         yield return id;
                     break;
+                case ScaleCommand c: yield return c.ObjectId; break;
+                case DeleteCommand c: yield return c.ObjectId; break;
+                case CloneCommand c: yield return c.ObjectId; break;
+                case SetStateCommand c: yield return c.ObjectId; break;
+                case CutCommand c: yield return c.DeckId; break;
+                case SplitCommand c: yield return c.DeckId; break;
+                case SpreadCommand c: yield return c.DeckId; break;
+                case SetDieValueCommand c: yield return c.ObjectId; break;
+                case SetPropertiesCommand c: yield return c.ObjectId; break;
             }
         }
 

@@ -2,6 +2,21 @@
     <ui:Style src="Hud.uss" />
     <ui:VisualElement name="root" class="hud" picking-mode="Ignore">
         <ui:VisualElement name="gameUi" class="game-ui" picking-mode="Ignore" />
+        <ui:VisualElement name="overlay" class="overlay" picking-mode="Ignore">
+            <ui:VisualElement name="boxRect" class="box-rect hidden" picking-mode="Ignore" />
+            <ui:Label name="tooltip" class="tooltip hidden" picking-mode="Ignore" />
+            <ui:Label name="measure" class="tooltip hidden" picking-mode="Ignore" />
+            <ui:VisualElement name="lookPanel" class="look-panel hidden" picking-mode="Ignore">
+                <ui:VisualElement name="lookImage" class="look-image" picking-mode="Ignore" />
+                <ui:Label name="lookCaption" class="look-caption" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:VisualElement name="searchPanel" class="search-panel hidden">
+                <ui:Label name="searchTitle" class="selection-title" />
+                <ui:ScrollView name="searchList" class="search-list" />
+                <ui:Button name="searchClose" class="hud-button" text="Close" />
+            </ui:VisualElement>
+            <ui:VisualElement name="contextMenu" class="context-menu hidden" />
+        </ui:VisualElement>
         <ui:VisualElement name="topBar" class="top-bar">
             <ui:Label name="turnLabel" class="turn-label" text="Free play" />
             <ui:VisualElement name="seatList" class="seat-list" picking-mode="Ignore" />
