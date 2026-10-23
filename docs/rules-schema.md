@@ -1,6 +1,6 @@
-# Rules format — v0 draft
+# Rules format — v0
 
-Status: **draft for T1.3 / T4.1**. The implementing agent owns this file: when `core/Rules` implements something different, change the doc in the same commit. A machine-readable JSON Schema goes in `docs/rules-schema.v0.json` (T4.1).
+Status: **v0, the target `core/` implements** (table model in T2.1, rules in T4.1). When `core/Rules` implements something different, change this doc in the same commit. A machine-readable JSON Schema goes in `docs/rules-schema.v0.json` (T4.1).
 
 ## Goals
 
@@ -57,12 +57,12 @@ Common fields (all optional except `id` and `type`):
 }
 ```
 
-Units are meters, Y up, left-handed like Unity. Rotation is Euler degrees.
+Units are meters, Y up, left-handed like Unity. **The table surface is Y = 0.** Rotation is Euler degrees. A card lying face up has rotation `[0, 0, 0]`; face down is `[0, 0, 180]` (same as TTS).
 
 | `type` | Extra fields |
 |---|---|
 | `Card` | `faceAsset`, `faceIndex`, `backAsset`, `backIndex`, `faceUp`, `size` (`[w, h]` in m, default 0.0635 × 0.0889) |
-| `Deck` | `spriteSheet` `{ "asset", "columns", "rows", "backAsset", "backIndex" }`, `cards` `[ { "index", "name", "tags" } ]` ordered top first |
+| `Deck` | `spriteSheet` `{ "asset", "columns", "rows", "backAsset", "backIndex" }`, `cards` `[ { "index", "name", "tags", "meta" } ]` ordered **top first** (`cards[0]` is the card a draw takes; same order as TTS `DeckIDs`) |
 | `Token` | `asset` (image), `shape` (`round` \| `square` \| `image`), `thickness`, `color` |
 | `Tile` | `asset`, `shape` (`square` \| `hex` \| `circle`), `thickness`, `stackable` |
 | `Die` | `faces` (4, 6, 8, 10, 12, 20), `labels` (optional per face), `value` |
@@ -224,13 +224,13 @@ Rules: always a `path`, a stable `code`, a one-sentence `message`, and a `sugges
   "game": { "id": "war", "name": "War", "minPlayers": 2, "maxPlayers": 2 },
   "assets": [ { "id": "std_faces", "type": "image", "path": "assets/standard_faces.png" }, { "id": "std_back", "type": "image", "path": "assets/standard_back.png" } ],
   "objects": [
-    { "id": "deck_main", "type": "Deck", "transform": { "position": [0, 1, 0] },
+    { "id": "deck_main", "type": "Deck", "transform": { "position": [0, 0, 0] },
       "spriteSheet": { "asset": "std_faces", "columns": 13, "rows": 4, "backAsset": "std_back", "backIndex": 0 },
       "cards": [ { "index": 0, "name": "2 of clubs", "meta": { "rank": 2 } } /* ... 52 */ ] },
-    { "id": "deck_p1", "type": "Deck", "tags": ["deck:seat_1"], "transform": { "position": [-0.3, 1, 0] }, "spriteSheet": { "asset": "std_faces", "columns": 13, "rows": 4, "backAsset": "std_back", "backIndex": 0 }, "cards": [] },
-    { "id": "deck_p2", "type": "Deck", "tags": ["deck:seat_2"], "transform": { "position": [0.3, 1, 0] },  "spriteSheet": { "asset": "std_faces", "columns": 13, "rows": 4, "backAsset": "std_back", "backIndex": 0 }, "cards": [] }
+    { "id": "deck_p1", "type": "Deck", "tags": ["deck:seat_1"], "transform": { "position": [-0.3, 0, 0] }, "spriteSheet": { "asset": "std_faces", "columns": 13, "rows": 4, "backAsset": "std_back", "backIndex": 0 }, "cards": [] },
+    { "id": "deck_p2", "type": "Deck", "tags": ["deck:seat_2"], "transform": { "position": [0.3, 0, 0] },  "spriteSheet": { "asset": "std_faces", "columns": 13, "rows": 4, "backAsset": "std_back", "backIndex": 0 }, "cards": [] }
   ],
-  "zones": [ { "id": "battlefield", "type": "ScriptingZone", "transform": { "position": [0, 1, 0.2] }, "size": [0.4, 0.1, 0.2] } ],
+  "zones": [ { "id": "battlefield", "type": "ScriptingZone", "transform": { "position": [0, 0, 0.2] }, "size": [0.4, 0.1, 0.2] } ],
   "players": { "seats": [ { "id": "seat_1", "color": "red" }, { "id": "seat_2", "color": "blue" } ] },
   "variables": { "warDepth": 0 },
   "turn": { "order": "clockwise", "startingPlayer": "seat_1", "phases": ["play", "resolve"] },
@@ -250,8 +250,8 @@ Rules: always a `path`, a stable `code`, a one-sentence `message`, and a `sugges
 
 The tie-breaking of War is the kind of logic that is awkward declaratively; it is the first test case for the Lua escape hatch. If T4.2 finds a clean declarative form (`compare` on `$event.objects` with `forEach`), prefer it and drop the Lua.
 
-## Open questions for T4.1
+## Resolved questions (T1.3, 2026-10-22)
 
-- Should `deal` to `allPlayers` go to the seat's `deck` tag or `handZone`? Proposal: explicit `toTag`/`toZone`, no magic.
-- Deck card order: `cards[0]` is the top. TTS stores the top at the **end** of `DeckIDs` (verify in T8.1).
-- Are per-phase `actions` a whitelist (yes in v0) or can actions declare their own phases?
+- **`deal` target:** no magic. `deal.to` is `allPlayers` or a list of seat ids, and the destination per seat is explicit: `toZone` (a zone id or `$seat.hand`) **or** `toTag` (the object tagged `<tag>:<seat id>`, e.g. `deck` → `deck:seat_1`). Exactly one of the two is required.
+- **Deck card order:** `cards[0]` is the top. TTS uses the same order: `DeckIDs[0]` / `ContainedObjects[0]` is the top card (`takeObject` index 0); the local saves agree (the only deck whose contained cards keep their stacking heights has the highest card at index 0). The importer copies the order as is.
+- **Per-phase `actions`:** a whitelist in v0. Actions do not declare phases.

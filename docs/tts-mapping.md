@@ -1,11 +1,13 @@
-# TTS equivalence table — v0 draft
+# TTS equivalence table — v0
 
-Status: **draft for T1.3 / T8.1**. Items marked *verify* must be checked against the local saves (`~/Documents/My Games/Tabletop Simulator/Mods/Workshop/*.json`) before they become code. The implementing agent owns this file.
+Status: **v0**, checked against the 6 local saves on 2026-10-22 (T1.3). The importer (M7) implements it; the table model in `core/` (T2.1) must be able to hold every field listed here. The implementing agent owns this file.
 
 ## Units and axes
 
 - Table World native unit: **meters**, Y up, left-handed (same as Unity, same as TTS). No axis flip on import.
-- **ONE constant:** `TtsUnitsToMeters = 0.03` (3 cm per TTS unit). Rationale: a TTS `Card` at scale 1 is approximately 2 × 3 TTS units (*verify by reading a Deck/Card bounds in TTS via Lua `getBounds()` or from a known mesh*), and a real poker card is 63.5 × 88.9 mm. 0.03 gives 60 × 90 mm, close enough for physics and legible defaults. Our own default card is 63.5 × 88.9 mm regardless of this constant.
+- **ONE constant:** `TtsUnitsToMeters = 0.03` (3 cm per TTS unit), defined once in `core/Tts`. Rationale: a TTS `Card` at scale 1 is approximately 2 × 3 TTS units and a real poker card is 63.5 × 88.9 mm; 0.03 gives 60 × 90 mm, close enough for physics and legible defaults. Our own default card is 63.5 × 88.9 mm regardless of this constant.
+  - Data check (T1.3): the Pokémon Master Trainer mat has card snap slots 4.40 units apart for cards at scale 1.48, so a scale-1 card is at most 2.97 units wide: consistent with ~2 units. The exact mesh bounds cannot be read from a save; T8.1 measures them once with `getBounds()` in a running TTS and adjusts this constant if it is off by more than 10 %.
+- **Table surface:** `posY ≈ 0.96` TTS units on the default tables (all global snap points lying on the bare table in two mods have `y = 0.96`). The importer maps `ourY = (ttsY − 0.96) × TtsUnitsToMeters`, so the table surface is Y = 0 like in our model. Custom tables (`Table_Custom`) may differ; the importer reads the table preset's height when it is not a default table.
 - Rotation: TTS `rotX/rotY/rotZ` are Euler degrees, same convention as Unity. Flipped cards have `rotZ ≈ 180`.
 - Scale: TTS `scaleX/Y/Z` multiply the base mesh; import as `transform.scale` and let the object type define the base size.
 
@@ -29,7 +31,7 @@ TTS `Name` → our `type`. Prefix `Custom_` means the mesh/image comes from a UR
 | TTS `Name` | Ours | Fields to carry |
 |---|---|---|
 | `Card`, `CardCustom` | `Card` | `CardID` = deckKey × 100 + index; `CustomDeck[deckKey]` gives `FaceURL`, `BackURL`, `NumWidth`, `NumHeight`, `BackIsHidden`, `UniqueBack`; `SidewaysCard`, `HideWhenFaceDown` |
-| `Deck`, `DeckCustom` | `Deck` | `DeckIDs[]`, `ContainedObjects[]` (full cards), `CustomDeck{}`; order: *verify* which end is the top |
+| `Deck`, `DeckCustom` | `Deck` | `DeckIDs[]`, `ContainedObjects[]` (full cards), `CustomDeck{}`; `DeckIDs[0]` is the **top** card, same as our `cards[0]`. Contained cards' `Transform` is stale (their last position before joining) and is ignored |
 | `Custom_Token` | `Token` | `CustomImage.ImageURL`, `ImageSecondaryURL`, `ImageScalar`, `WidthScale`, `CustomToken.Thickness`, `MergeDistancePixels`, `StandUp`, `Stackable` |
 | `Custom_Tile` | `Tile` | `CustomImage.CustomTile.Type` (0 box, 1 hex, 2 circle, 3 rounded), `Thickness`, `Stackable`, `Stretch` |
 | `Die_4/6/8/10/12/20`, `Die_6_Rounded` | `Die` | `RotationValues[]` (value ↔ rotation), `faces` |
@@ -57,7 +59,7 @@ TTS `Name` → our `type`. Prefix `Custom_` means the mesh/image comes from a UR
 | `GMNotes` | `gmNotes` |
 | `Tags[]` | `tags` |
 | `Locked` | `locked` |
-| `Transform` | `transform` (× `TtsUnitsToMeters` for position; scale as is) |
+| `Transform` | `transform` (position: subtract table height on Y, then × `TtsUnitsToMeters`; scale as is) |
 | `ColorDiffuse {r,g,b}` | `tint` |
 | `States {n: object}` | `states` |
 | `ContainedObjects[]` | children with `container` = this id |
@@ -84,9 +86,11 @@ TTS decks: `NumWidth` × `NumHeight` cells, row-major, index 0 at top-left. Defa
 
 Re-run `python -I tools/tts-analysis/analyze_mods.py` after adding mods to refresh this list.
 
-## Things to verify in T1.3 / T8.1
+## Verification status
 
-- Card base size in TTS units (the 2 × 3 assumption) and the resulting `TtsUnitsToMeters`.
-- Which end of `DeckIDs` is the top of the deck.
-- Whether `Transform.posY` of resting objects includes the table height (table surface Y in TTS is about 1 unit; *verify*).
-- `RotationValues` format on dice and how `Custom_Dice` maps value to rotation.
+| Item | Status |
+|---|---|
+| Deck order | **Resolved (T1.3):** `DeckIDs[0]` is the top |
+| Table surface height | **Resolved (T1.3):** 0.96 units on default tables |
+| Card base size in TTS units → `TtsUnitsToMeters` | **Bounded (T1.3):** ≤ 2.97 units wide; exact `getBounds()` in T8.1 |
+| `RotationValues` on dice, `Custom_Dice` value ↔ rotation | Open → T8.1 (no dice logic needs it before the importer) |
