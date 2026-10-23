@@ -31,16 +31,19 @@ Status: **v0, the target `core/` implements** (table model in T2.1, rules in T4.
 }
 ```
 
-Ids are strings, unique within their collection, `[a-z0-9_-]+`. Cross-references use ids. Unknown keys are a validation error (keeps the agent honest).
+Ids are strings matching `[a-z0-9_-]+`. **Objects, deck cards and zones share one id namespace** (effects can target either); assets and seats have their own. Cross-references use ids. Unknown keys are a validation error, keys are case-sensitive, and comments (`//`) are allowed in the JSON.
+
+The table part of this document (`schemaVersion`, `assets`, `objects`, `zones`, `players`) is implemented by `Core.Rules.TableState` (T2.1) and is also the **save-file format**. Serialization omits nulls, defaults and empty lists; `TableJson.Hash` is the SHA-256 of the compact JSON and is the state identity used by save/load tests.
 
 ## Assets
 
 ```jsonc
-{ "id": "deck_faces", "type": "image", "path": "assets/faces.png", "hash": "sha256:..." }
-{ "id": "dragon",     "type": "model", "path": "assets/dragon.glb", "hash": "sha256:..." }
+{ "id": "deck_faces", "type": "image", "path": "assets/faces.png", "columns": 10, "rows": 7, "hash": "sha256:..." }
+{ "id": "dragon",     "type": "model", "path": "assets/dragon.glb" }
+{ "id": "std_deck",   "type": "image", "path": "builtin:standard_deck", "columns": 10, "rows": 7 }
 ```
 
-Paths are relative to the game package. Hashes are filled by the tooling, not the agent.
+`type`: `image` | `model` (glTF) | `assetBundle` | `audio`. Paths are relative to the game package; `builtin:<name>` is an asset the client generates (the MVP's procedural deck and dice). Hashes are filled by the tooling, not the agent. **The sprite-sheet grid belongs to the image** (`columns` × `rows`, default 1 × 1, row-major, index 0 top-left, same as TTS `NumWidth` × `NumHeight`), so one deck can mix cards from several sheets like a TTS `CustomDeck` with several keys.
 
 ## Table objects
 
@@ -50,35 +53,41 @@ Common fields (all optional except `id` and `type`):
 {
   "id": "deck_main", "type": "Deck", "name": "Main deck", "description": "", "gmNotes": "",
   "tags": ["draw"], "locked": false,
-  "transform": { "position": [0, 1, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
-  "container": null,                 // id of the Bag/Deck that holds it, or null
-  "states": null,                    // { "1": {...object}, "2": {...} } alternate states, TTS-style
-  "script": null                     // per-object Lua
+  "transform": { "position": [0, 0, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
+  "container": null,                 // id of the Bag/InfiniteBag that holds it, or null
+  "tint": [1, 1, 1],                 // optional RGB(A) multiplier 0–1 (TTS ColorDiffuse)
+  "states": { "2": { /* object */ } }, // alternate states keyed by positive integer; the object itself is the active state
+  "script": null,                    // per-object Lua
+  "ttsExtra": { }                    // TTS fields carried verbatim but not interpreted (importer only)
 }
 ```
 
-Units are meters, Y up, left-handed like Unity. **The table surface is Y = 0.** Rotation is Euler degrees. A card lying face up has rotation `[0, 0, 0]`; face down is `[0, 0, 180]` (same as TTS).
+Units are meters, Y up, left-handed like Unity. **The table surface is Y = 0.** Rotation is Euler degrees in Unity order. **Face up is not stored**: it is derived from rotation (up axis pointing up), so a card at `[0, 0, 0]` is face up and `[0, 0, 180]` is face down (same as TTS). Effects that say `faceUp` set the rotation.
+
+Containment: only `Bag` and `InfiniteBag` hold objects (via the child's `container`); bags may nest, cycles are invalid, and the order of contents is the order in `objects` (first = top). States cannot have a container or nested states. Cards inside a deck are not objects: they are entries in the deck's `cards`.
 
 | `type` | Extra fields |
 |---|---|
-| `Card` | `faceAsset`, `faceIndex`, `backAsset`, `backIndex`, `faceUp`, `size` (`[w, h]` in m, default 0.0635 × 0.0889) |
-| `Deck` | `spriteSheet` `{ "asset", "columns", "rows", "backAsset", "backIndex" }`, `cards` `[ { "index", "name", "tags", "meta" } ]` ordered **top first** (`cards[0]` is the card a draw takes; same order as TTS `DeckIDs`) |
-| `Token` | `asset` (image), `shape` (`round` \| `square` \| `image`), `thickness`, `color` |
-| `Tile` | `asset`, `shape` (`square` \| `hex` \| `circle`), `thickness`, `stackable` |
-| `Die` | `faces` (4, 6, 8, 10, 12, 20), `labels` (optional per face), `value` |
-| `Model` | `asset` (glTF or bundle), `collider` (`convex` \| `box` \| `mesh`), `kind` (`generic` \| `figurine` \| `board` \| `chip`) |
-| `Bag` / `InfiniteBag` | `contents` are objects whose `container` is this id; `InfiniteBag` clones on take |
+| `Card` | `faceAsset`, `faceIndex`, `backAsset`, `backIndex`, `size` (`[w, h]` in m, default 0.0635 × 0.0889), `meta` (free-form, e.g. `{ "rank": 11, "suit": "hearts" }`) |
+| `Deck` | default `faceAsset`, `backAsset`, `backIndex`; `size`; `cards`: `[ { "id"?, "faceIndex", "name", "description", "gmNotes", "tags", "meta", "script", "faceAsset"?, "backAsset"?, "backIndex"? } ]` ordered **top first** (`cards[0]` is the card a draw takes; same order as TTS `DeckIDs`). Per-card asset fields override the deck's. A card without `id` gets `<deckId>-<n>` when it leaves the deck |
+| `Token` | `asset` (image), `shape` (`round` \| `square` \| `image`), `thickness` (m), `stackable` |
+| `Tile` | `asset`, `shape` (`square` \| `hex` \| `circle` \| `rounded`), `thickness`, `stackable` |
+| `Die` | `faces` (4, 6, 8, 10, 12, 20; default 6), `labels` (optional, one per face), `value` (1..faces, null before the first roll), `asset` (custom dice image) |
+| `Model` | `asset` (`model` or `assetBundle`), `diffuseAsset`, `collider` (`convex` \| `box` \| `mesh`), `kind` (`generic` \| `figurine` \| `dice` \| `coin` \| `board` \| `chip`), `material` (`plastic` \| `wood` \| `metal` \| `cardboard` \| `glass`) |
+| `Bag` / `InfiniteBag` | `asset` (optional model look); contents are the objects whose `container` is this id; `InfiniteBag` clones its template on take |
 | `Board` | `asset`, `size` |
-| `Figure` | `asset`, `height` |
+| `Figure` | `asset`, `height` (m) |
 
 ## Zones
 
 ```jsonc
 { "id": "hand_p1", "type": "HandZone", "owner": "seat_1", "transform": {...}, "size": [0.4, 0.1, 0.2] }
 { "id": "battlefield", "type": "ScriptingZone", "transform": {...}, "size": [0.3, 0.1, 0.3] }
-{ "id": "snap_discard", "type": "SnapPoint", "transform": {...}, "rotationSnap": true }
+{ "id": "snap_discard", "type": "SnapPoint", "transform": {...}, "rotationSnap": true, "parent": "board_main" }
 { "id": "gm_area", "type": "HiddenZone", "visibleTo": ["host"], ... }
 ```
+
+Every zone has `name`, `tags`, `transform`, `size` (box in m, default 0.1 on each axis; ignored by `SnapPoint`) and an optional `parent` object it moves with (TTS `AttachedSnapPoints`). `HiddenZone.visibleTo` lists seat ids or `host`. A seat's `handZone` must be a `HandZone` owned by that seat.
 
 ## Players
 
@@ -222,13 +231,13 @@ Rules: always a `path`, a stable `code`, a one-sentence `message`, and a `sugges
 {
   "schemaVersion": "0.1",
   "game": { "id": "war", "name": "War", "minPlayers": 2, "maxPlayers": 2 },
-  "assets": [ { "id": "std_faces", "type": "image", "path": "assets/standard_faces.png" }, { "id": "std_back", "type": "image", "path": "assets/standard_back.png" } ],
+  "assets": [ { "id": "std_faces", "type": "image", "path": "assets/standard_faces.png", "columns": 13, "rows": 4 }, { "id": "std_back", "type": "image", "path": "assets/standard_back.png" } ],
   "objects": [
     { "id": "deck_main", "type": "Deck", "transform": { "position": [0, 0, 0] },
-      "spriteSheet": { "asset": "std_faces", "columns": 13, "rows": 4, "backAsset": "std_back", "backIndex": 0 },
-      "cards": [ { "index": 0, "name": "2 of clubs", "meta": { "rank": 2 } } /* ... 52 */ ] },
-    { "id": "deck_p1", "type": "Deck", "tags": ["deck:seat_1"], "transform": { "position": [-0.3, 0, 0] }, "spriteSheet": { "asset": "std_faces", "columns": 13, "rows": 4, "backAsset": "std_back", "backIndex": 0 }, "cards": [] },
-    { "id": "deck_p2", "type": "Deck", "tags": ["deck:seat_2"], "transform": { "position": [0.3, 0, 0] },  "spriteSheet": { "asset": "std_faces", "columns": 13, "rows": 4, "backAsset": "std_back", "backIndex": 0 }, "cards": [] }
+      "faceAsset": "std_faces", "backAsset": "std_back",
+      "cards": [ { "faceIndex": 0, "name": "2 of clubs", "meta": { "rank": 2 } } /* ... 52 */ ] },
+    { "id": "deck_p1", "type": "Deck", "tags": ["deck:seat_1"], "transform": { "position": [-0.3, 0, 0] }, "faceAsset": "std_faces", "backAsset": "std_back", "cards": [] },
+    { "id": "deck_p2", "type": "Deck", "tags": ["deck:seat_2"], "transform": { "position": [0.3, 0, 0] },  "faceAsset": "std_faces", "backAsset": "std_back", "cards": [] }
   ],
   "zones": [ { "id": "battlefield", "type": "ScriptingZone", "transform": { "position": [0, 0, 0.2] }, "size": [0.4, 0.1, 0.2] } ],
   "players": { "seats": [ { "id": "seat_1", "color": "red" }, { "id": "seat_2", "color": "blue" } ] },

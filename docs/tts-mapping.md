@@ -72,7 +72,7 @@ TTS `Name` → our `type`. Prefix `Custom_` means the mesh/image comes from a UR
 
 ## Sprite sheets
 
-TTS decks: `NumWidth` × `NumHeight` cells, row-major, index 0 at top-left. Default custom deck layout is 10 × 7 (70 cards). Our `Deck.spriteSheet` uses the same convention. `UniqueBack` means the back URL is also a sheet with per-card backs.
+TTS decks: `NumWidth` × `NumHeight` cells, row-major, index 0 at top-left. Default custom deck layout is 10 × 7 (70 cards). Our image assets carry the same grid (`columns` × `rows`); each TTS `CustomDeck` key becomes one face asset (and one back asset), and cards reference them by `faceAsset` + `faceIndex` (`CardID % 100`). `UniqueBack` means the back URL is also a sheet with per-card backs.
 
 ## Assets and URLs
 
