@@ -28,6 +28,8 @@ namespace TableWorld.Editor
             // Setting Time.fixedDeltaTime alone does not reach the disk; dirtying the TimeManager makes SaveAssets write it.
             Time.fixedDeltaTime = FixedTimestep;
             EditorUtility.SetDirty(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TimeManager.asset")[0]);
+            // A networked table must keep exchanging messages while its window is in the background.
+            PlayerSettings.runInBackground = true;
 
             // Every URP asset (one per quality level) gets the short shadow distance so small objects cast crisp shadows.
             foreach (var guid in AssetDatabase.FindAssets("t:UniversalRenderPipelineAsset", new[] { "Assets/_Project/Settings" }))
