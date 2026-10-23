@@ -20,6 +20,7 @@ Last updated: 2026-10-23 (working rule 9: polish). Planning closed 2026-10-22.
    - **Clean console:** zero errors and no new warnings in the Editor and in `Player.log`.
    - **Think like a TTS player:** compare against what Tabletop Simulator does for the same situation, not only the task's literal text. Missing pieces become rows in the task's file, not silent gaps.
    - **Honest status:** ✅ only for what was exercised. "Partial" with the reason otherwise.
+   - **People-only checks:** anything automated tests cannot judge (real networks, real mice, feel) is added as a line to `playtest.md` §5 in the same commit, so the friends session has a complete checklist.
 
 ## Decisions (2026-10-22)
 
