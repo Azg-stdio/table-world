@@ -190,6 +190,9 @@ unity command build run --target StandaloneWindows64 --outputPath Builds/Win64/T
 unity/Builds/Win64/TableWorld.exe -batchmode -tw-host -tw-game <package>/table.json -tw-autoplay 100 -tw-report host.json -tw-quit
 unity/Builds/Win64/TableWorld.exe -batchmode -tw-join 127.0.0.1:7777 -tw-cache <empty folder> -tw-autoplay 100 -tw-report client.json -tw-quit
 python -I tools/samples/make_image_game.py <out folder> [--big]   # game package with real image files
+# Online (T3.3, Relay join code; one auth profile per process on the same machine):
+unity/Builds/Win64/TableWorld.exe -batchmode -tw-profile host -tw-host online -tw-code-file code.txt -tw-game <package>/table.json -tw-autoplay 100 -tw-report host.json -tw-quit
+unity/Builds/Win64/TableWorld.exe -batchmode -tw-profile client -tw-join @code.txt -tw-autoplay 100 -tw-report client.json -tw-quit
 
 # Long simulations and generated files
 TW_GAMES=1000 dotnet test core.tests --filter GamePlayTests   # 1 000 random games of War and UNO

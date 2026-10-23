@@ -33,7 +33,8 @@ Use **Netcode for GameObjects** with **Unity Transport**, but only as a transpor
 - Switching library or transport touches one small adapter, not the game: the protocol is library-agnostic. This contains the main risk (no confirmed NGO 2.x Steam transport): if T3.7 finds no working NGO Steam transport, the fallback is a thin adapter on Steamworks.NET's networking sockets, or swapping NGO for FishNet/Mirror under the same `core/Net` protocol.
 - We give up NGO features we do not need (object spawning, ownership, NetworkTransform interpolation). Physics is not replicated: each peer simulates locally and only final poses travel, as `Move` commands, which is what M1 already does.
 - Bandwidth: commands are small; full snapshots (join, resync) are the table JSON (~30–60 KB for a 52-card game) and go through fragmented reliable delivery.
-- Assets (T3.4) use the same pipe: snapshots carry a manifest of image hashes; clients request 16 KB chunks with a window of 16 and keep a content-addressed cache. A 10.7 MB package crossed localhost within the run; Relay throughput is untested until T3.3.
+- Assets (T3.4) use the same pipe: snapshots carry a manifest of image hashes; clients request 16 KB chunks with a window of 4 and keep a content-addressed cache. Over Relay a 10.7 MB package took about 51 s, with command round trips near 200 ms meanwhile. If that is too slow in the playtest, the next steps are raw binary chunks (no base64) on a second named message, and a separate pipeline so images never sit ahead of commands.
+- Join codes (T3.3): Multiplayer Services sessions allocate Relay, but a custom `INetworkHandler` hands the connection data to `NetworkTableSession`, which starts NGO itself. The game layer is the same for LAN, Relay and (later) Steam.
 
 ## Spike record (2026-10-23)
 

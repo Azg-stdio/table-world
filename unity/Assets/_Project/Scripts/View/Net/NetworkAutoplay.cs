@@ -14,7 +14,8 @@ namespace TableWorld.View.Net
     /// <c>-tw-host [port]</c>, <c>-tw-join address[:port]</c>, <c>-tw-autoplay N</c> (N random table commands, one every
     /// 0.1 s, once synced), <c>-tw-report path</c> (after autoplay, once the table has not changed for 5 s, writes the state hash, seat and order
     /// as JSON), <c>-tw-quit</c> (quit after reporting), <c>-tw-game file</c> (the host loads a game package first),
-    /// <c>-tw-cache folder</c> (asset cache, e.g. an empty one to check T3.4). <see cref="Run"/> starts the same from code.
+    /// <c>-tw-cache folder</c> (asset cache, e.g. an empty one to check T3.4). Online (T3.3): <c>-tw-host online
+    /// -tw-code-file f</c>, <c>-tw-join CODE</c> or <c>-tw-join @f</c>, <c>-tw-profile name</c> (one per process on a machine). <see cref="Run"/> starts the same from code.
     /// </summary>
     public sealed class NetworkAutoplay : MonoBehaviour
     {
@@ -43,22 +44,55 @@ namespace TableWorld.View.Net
                 yield break;
             if (Arg("-tw-cache") is { } cache)
                 NetworkTableSession.CacheFolder = cache;
+            if (Arg("-tw-profile") is { } profile)
+                RelayLobby.Profile = profile;
             // Let the table load first.
             yield return new WaitForSeconds(0.5f);
             if (Arg("-tw-game") is { } game && !_table.Load(File.ReadAllText(game), Path.GetDirectoryName(Path.GetFullPath(game))))
                 Debug.LogError($"[Autoplay] Could not load {game}.");
             var autoplay = int.TryParse(Arg("-tw-autoplay"), out var n) ? n : 0;
-            yield return Run(host, join, autoplay, Arg("-tw-report"), Array.IndexOf(args, "-tw-quit") >= 0, seed: host ? 1 : 2);
+            yield return Run(host, host ? Arg("-tw-host") : join, autoplay, Arg("-tw-report"), Array.IndexOf(args, "-tw-quit") >= 0,
+                seed: host ? 1 : 2, codeFile: Arg("-tw-code-file"));
         }
 
-        /// <summary>Hosts (or joins), plays <paramref name="commands"/> random commands, then reports.</summary>
-        public IEnumerator Run(bool host, string join, int commands, string report, bool quit, int seed)
+        /// <summary>
+        /// Hosts or joins, plays <paramref name="commands"/> random commands, then reports. <paramref name="target"/>: for a
+        /// host, a port or <c>online</c> (Relay; the join code goes to <paramref name="codeFile"/>); for a client, an
+        /// address[:port], a join code, or <c>@file</c> (wait for a host to write its code there).
+        /// </summary>
+        public IEnumerator Run(bool host, string target, int commands, string report, bool quit, int seed, string codeFile = null)
         {
-            if (host)
-                _session.StartHost(ParsePort(Arg2(join)) ?? NetworkTableSession.DefaultPort);
+            if (host && target == "online")
+            {
+                var hosting = _session.HostWithCodeAsync();
+                yield return new WaitUntil(() => hosting.IsCompleted);
+                if (!hosting.Result)
+                {
+                    Debug.LogError("[Autoplay] " + _session.Status);
+                    yield break;
+                }
+                Debug.Log("[Autoplay] Join code " + _session.JoinCode);
+                if (codeFile != null)
+                    File.WriteAllText(codeFile, _session.JoinCode);
+            }
+            else if (host)
+                _session.StartHost(ParsePort(target) ?? NetworkTableSession.DefaultPort);
+            else if (target.StartsWith("@") || RelayLobby.LooksLikeCode(target))
+            {
+                var file = target.StartsWith("@") ? target.Substring(1) : null;
+                for (var wait = 0f; file != null && !File.Exists(file) && wait < 60f; wait += 0.5f)
+                    yield return new WaitForSeconds(0.5f);
+                var joining = _session.JoinWithCodeAsync(file != null ? File.ReadAllText(file) : target);
+                yield return new WaitUntil(() => joining.IsCompleted);
+                if (!joining.Result)
+                {
+                    Debug.LogError("[Autoplay] " + _session.Status);
+                    yield break;
+                }
+            }
             else
             {
-                var parts = join.Split(':');
+                var parts = target.Split(':');
                 _session.StartClient(parts[0], parts.Length > 1 && ushort.TryParse(parts[1], out var p) ? p : NetworkTableSession.DefaultPort);
             }
             for (var wait = 0f; !_session.Synced && wait < 30f; wait += 0.2f)
@@ -77,12 +111,14 @@ namespace TableWorld.View.Net
                     Performed++;
                 yield return new WaitForSeconds(StepSeconds);
             }
-            // Report once the table has not changed for QuietSeconds: the other peers may still be playing.
-            var last = TableJson.Hash(_table.Engine.State);
+            // Report once the table has not changed (and a host has sent no asset chunks) for QuietSeconds: the other
+            // peers may still be playing or downloading.
+            string Activity() => TableJson.Hash(_table.Engine.State) + "/" + (_session.Host?.Assets?.ChunksServed ?? 0);
+            var last = Activity();
             for (float quiet = 0f, wait = 0f; quiet < QuietSeconds && wait < 300f; wait += 0.5f)
             {
                 yield return new WaitForSeconds(0.5f);
-                var hash = TableJson.Hash(_table.Engine.State);
+                var hash = Activity();
                 quiet = hash == last ? quiet + 0.5f : 0f;
                 last = hash;
             }
@@ -94,7 +130,10 @@ namespace TableWorld.View.Net
                 var images = state.Assets.Where(a => a.Type == AssetType.Image && !a.IsBuiltin).ToList();
                 File.WriteAllText(report, new JObject
                 {
-                    ["hash"] = TableJson.Hash(state),
+                    // A client compares the state the host confirmed: once the host quits, the client's table plays on
+                    // offline and its own physics may move things.
+                    ["hash"] = TableJson.Hash(_session.Client?.Confirmed?.State ?? state),
+                    ["liveHash"] = TableJson.Hash(state),
                     ["seat"] = _table.LocalSeat,
                     ["order"] = _session.Host?.Order ?? -1,
                     ["performed"] = Performed,
@@ -105,6 +144,9 @@ namespace TableWorld.View.Net
                     ["assetsFromCache"] = _session.Assets?.FromCache ?? 0,
                     ["assetBytes"] = _session.Assets?.BytesReceived ?? 0,
                     ["assetsPending"] = _session.Assets?.Pending ?? 0,
+                    ["assetSeconds"] = Math.Round(_session.AssetSeconds, 2),
+                    ["roundTripsDownloading"] = Summary(_session.RoundTrips.Where(t => t.Downloading).Select(t => t.Seconds)),
+                    ["roundTripsAfter"] = Summary(_session.RoundTrips.Where(t => !t.Downloading).Select(t => t.Seconds)),
                 }.ToString());
             }
             Done = true;
@@ -133,7 +175,12 @@ namespace TableWorld.View.Net
             };
         }
 
-        private static string Arg2(string value) => value;
+        /// <summary>"n=…, median …, max …" in milliseconds.</summary>
+        private static string Summary(System.Collections.Generic.IEnumerable<float> seconds)
+        {
+            var sorted = seconds.OrderBy(s => s).ToList();
+            return sorted.Count == 0 ? "n=0" : $"n={sorted.Count}, median {sorted[sorted.Count / 2] * 1000:F0} ms, max {sorted[sorted.Count - 1] * 1000:F0} ms";
+        }
 
         private static ushort? ParsePort(string value) => ushort.TryParse(value, out var port) ? port : (ushort?)null;
     }

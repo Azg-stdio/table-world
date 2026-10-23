@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Core.Engine;
 using Core.Net;
 using Core.Rules;
@@ -9,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using Unity.Collections;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
+using Unity.Services.Multiplayer;
 using UnityEngine;
 
 namespace TableWorld.View.Net
@@ -42,6 +44,15 @@ namespace TableWorld.View.Net
         public SessionClient Client => _client;
         public AssetClient Assets => _assets;
 
+        /// <summary>Seconds from the snapshot to the last image arriving; negative until then.</summary>
+        public float AssetSeconds { get; private set; } = -1f;
+
+        private float _snapshotAt;
+        private readonly Queue<float> _sentAt = new Queue<float>();
+
+        /// <summary>Round trips of this client's commands (sent → ordered by the host), in seconds, and whether images were still downloading.</summary>
+        public List<(float Seconds, bool Downloading)> RoundTrips { get; } = new List<(float, bool)>();
+
         /// <summary>Content-addressed cache for assets received from hosts. <c>-tw-cache</c> overrides it (tests).</summary>
         public static string CacheFolder { get; set; } = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TableWorld", "cache", "assets");
@@ -69,8 +80,88 @@ namespace TableWorld.View.Net
         public bool StartHost(ushort port = DefaultPort)
         {
             Stop();
-            var transport = EnsureNetwork();
-            transport.SetConnectionData("127.0.0.1", port, "0.0.0.0");
+            EnsureNetwork().SetConnectionData("127.0.0.1", port, "0.0.0.0");
+            return LaunchHost($"hosting on port {port}");
+        }
+
+        /// <summary>Joins a host at <paramref name="address"/>:<paramref name="port"/>; the table appears when the snapshot arrives.</summary>
+        public bool StartClient(string address, ushort port = DefaultPort)
+        {
+            Stop();
+            EnsureNetwork().SetConnectionData(address, port);
+            return LaunchClient($"connecting to {address}:{port}");
+        }
+
+        // ---- join codes over Relay (T3.3) -------------------------------------------------------------------------
+
+        private ISession _relay;
+        private RelayLobby.Handler _relayHandler;
+
+        /// <summary>The code friends type to join, while hosting over Relay.</summary>
+        public string JoinCode { get; private set; }
+
+        /// <summary>Hosts over Relay and shows a join code. Returns false (with the reason in <see cref="Status"/>) on failure.</summary>
+        public async Task<bool> HostWithCodeAsync()
+        {
+            Stop();
+            Status = "creating a join code…";
+            var handler = NewRelayHandler(host: true);
+            try
+            {
+                var session = await RelayLobby.HostAsync(handler, Mathf.Max(2, _table.Engine.State.Players.Seats.Count));
+                _relay = session;
+                JoinCode = session.Code;
+                Status = HostStatus();
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                handler.Detached = true;
+                ShutdownNetwork();
+                Status = "could not host online: " + RelayLobby.Explain(e);
+                return false;
+            }
+        }
+
+        /// <summary>Joins a Relay host by its code.</summary>
+        public async Task<bool> JoinWithCodeAsync(string code)
+        {
+            Stop();
+            Status = $"joining {code.Trim().ToUpperInvariant()}…";
+            var handler = NewRelayHandler(host: false);
+            try
+            {
+                _relay = await RelayLobby.JoinAsync(code, handler);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                handler.Detached = true;
+                ShutdownNetwork();
+                Status = "could not join: " + RelayLobby.Explain(e);
+                return false;
+            }
+        }
+
+        private RelayLobby.Handler NewRelayHandler(bool host)
+        {
+            _relayHandler = new RelayLobby.Handler(configuration =>
+            {
+                EnsureNetwork().SetRelayServerData(configuration.RelayServerData);
+                return host ? LaunchHost("hosting online") : LaunchClient("connecting through Relay");
+            }, ShutdownNetwork);
+            return _relayHandler;
+        }
+
+        private string HostStatus() =>
+            (JoinCode != null ? $"code {JoinCode}, " : "hosting, ") + $"{_seatOf.Count} player(s) joined";
+
+        // ---- start / stop -----------------------------------------------------------------------------------------
+
+        private bool LaunchHost(string status)
+        {
             NewHost();
             _table.Router = HostRoute;
             _table.SeatOverride = _table.Engine.State.Players.Seats.FirstOrDefault()?.Id;
@@ -78,33 +169,55 @@ namespace TableWorld.View.Net
             _network.OnClientDisconnectCallback += OnHostClientDisconnected;
             if (!_network.StartHost())
             {
-                Stop();
+                ShutdownNetwork();
                 return false;
             }
             _network.CustomMessagingManager.RegisterNamedMessageHandler(MessageName, OnHostMessage);
-            Status = $"hosting on port {port}";
+            Status = status;
             return true;
         }
 
-        /// <summary>Joins a host at <paramref name="address"/>:<paramref name="port"/>; the table appears when the snapshot arrives.</summary>
-        public bool StartClient(string address, ushort port = DefaultPort)
+        private bool LaunchClient(string status)
         {
-            Stop();
-            var transport = EnsureNetwork();
-            transport.SetConnectionData(address, port);
             _network.OnClientConnectedCallback += OnClientConnected;
             _network.OnClientDisconnectCallback += OnClientDisconnected;
             if (!_network.StartClient())
             {
-                Stop();
+                ShutdownNetwork();
                 return false;
             }
             _network.CustomMessagingManager.RegisterNamedMessageHandler(MessageName, OnClientMessage);
-            Status = $"connecting to {address}:{port}";
+            Status = status;
             return true;
         }
 
+        /// <summary>Leaves the session (and its Relay session, if any) and goes back to local play.</summary>
         public void Stop()
+        {
+            var relay = _relay;
+            _relay = null;
+            JoinCode = null;
+            if (_relayHandler != null)
+                _relayHandler.Detached = true;
+            _relayHandler = null;
+            ShutdownNetwork();
+            if (relay != null)
+                _ = LeaveQuietly(relay);
+        }
+
+        private static async Task LeaveQuietly(ISession session)
+        {
+            try
+            {
+                await session.LeaveAsync();
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("[Net] Leaving the online session failed: " + e.Message);
+            }
+        }
+
+        private void ShutdownNetwork()
         {
             if (_network != null)
             {
@@ -185,13 +298,13 @@ namespace TableWorld.View.Net
             var snapshot = _host.Snapshot(clientId.ToString());
             snapshot.Message["seat"] = seat;
             Send(snapshot);
-            Status = $"hosting, {_seatOf.Count} player(s) joined";
+            Status = HostStatus();
         }
 
         private void OnHostClientDisconnected(ulong clientId)
         {
             _seatOf.Remove(clientId);
-            Status = $"hosting, {_seatOf.Count} player(s) joined";
+            Status = HostStatus();
         }
 
         private void OnHostMessage(ulong sender, FastBufferReader reader)
@@ -209,7 +322,12 @@ namespace TableWorld.View.Net
                 return;
             _client = new SessionClient(clientId.ToString());
             _assets = new AssetClient(new DirectoryAssetStore(CacheFolder));
-            _assets.Ready += id => _table.RefreshAsset(id);
+            _assets.Ready += id =>
+            {
+                _table.RefreshAsset(id);
+                if (_assets.Complete && AssetSeconds < 0f)
+                    AssetSeconds = Time.realtimeSinceStartup - _snapshotAt;
+            };
             _assets.Failed += (id, why) => Debug.LogWarning($"[Net] Asset '{id}' could not be received: {why}");
             _table.FetchAsset = asset => _assets?.Read(asset.Id);
             _client.PredictionReplaced += game => _table.Adopt(game);
@@ -235,7 +353,10 @@ namespace TableWorld.View.Net
                 Touch(move.ObjectId);
             var (result, intent) = _client.Submit(command);
             if (intent != null)
+            {
+                _sentAt.Enqueue(Time.realtimeSinceStartup);
                 SendTo(NetworkManager.ServerClientId, intent);
+            }
             return result;
         }
 
@@ -243,8 +364,17 @@ namespace TableWorld.View.Net
         {
             reader.ReadValueSafe(out string text);
             var message = JObject.Parse(text);
-            if ((string)message["kind"] == "snapshot" && message["seat"] != null)
-                _table.SeatOverride = (string)message["seat"];
+            // The host answers this client's intents in send order, with an order (accepted or refused) whose origin is us.
+            var kind = (string)message["kind"];
+            if (_sentAt.Count > 0 && kind == "order" && (string)message["origin"] == _network.LocalClientId.ToString())
+                RoundTrips.Add((Time.realtimeSinceStartup - _sentAt.Dequeue(), !_assets.Complete));
+            if (kind == "snapshot")
+            {
+                if (message["seat"] != null)
+                    _table.SeatOverride = (string)message["seat"];
+                _snapshotAt = Time.realtimeSinceStartup;
+                AssetSeconds = -1f;
+            }
             // The manifest first, so the snapshot's views already find cached images.
             var request = _assets.Receive(message);
             if (request != null)

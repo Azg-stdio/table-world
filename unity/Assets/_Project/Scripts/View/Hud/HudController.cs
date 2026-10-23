@@ -81,7 +81,17 @@ namespace TableWorld.View.Hud
             _netStatus = _root.Q<Label>("netStatus");
             var address = _root.Q<TextField>("netAddress");
             _root.Q<Button>("hostButton").clicked += () => _session?.StartHost(Port(address.value));
-            _root.Q<Button>("joinButton").clicked += () => _session?.StartClient(Host(address.value), Port(address.value));
+            _root.Q<Button>("hostOnlineButton").clicked += () => HostOnline(address);
+            // The field takes an address (LAN) or a join code (online).
+            _root.Q<Button>("joinButton").clicked += () =>
+            {
+                if (_session == null)
+                    return;
+                if (TableWorld.View.Net.RelayLobby.LooksLikeCode(address.value))
+                    _ = _session.JoinWithCodeAsync(address.value);
+                else
+                    _session.StartClient(Host(address.value), Port(address.value));
+            };
             _root.Q<Button>("loadButton").clicked += Load;
 
             if (_table != null)
@@ -288,6 +298,15 @@ namespace TableWorld.View.Hud
             _status.EnableInClassList("status-label--error", !result.Ok);
             _status.RemoveFromClassList(Hidden);
             _shownSelectionHash = null;
+        }
+
+        private async void HostOnline(TextField address)
+        {
+            if (_session == null || !await _session.HostWithCodeAsync())
+                return;
+            // Show the code where friends' copies would type it, and put it on the clipboard to paste in a chat.
+            address.value = _session.JoinCode;
+            GUIUtility.systemCopyBuffer = _session.JoinCode;
         }
 
         private static string Host(string address) => address.Split(':')[0].Trim();

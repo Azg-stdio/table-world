@@ -602,10 +602,21 @@ namespace TableWorld.View
             _held.Clear();
             _offsets.Clear();
             held.Held = false;
-            held.transform.position = new Vector3(spot.x, held.Renderer.bounds.extents.y + 0.001f, spot.z);
+            // Teleport the body itself (not only the transform) and drop the speed it had while following the cursor,
+            // or the object can shoot out from under its new top before the physics step catches up.
+            var below = new Vector3(spot.x, held.Renderer.bounds.extents.y + 0.001f, spot.z);
             held.Body.isKinematic = held.Model.Locked;
-            held.Body.WakeUp();
-            target.Body.WakeUp();
+            held.Body.position = below;
+            held.transform.position = below;
+            foreach (var body in new[] { held.Body, target.Body })
+            {
+                if (!body.isKinematic)
+                {
+                    body.linearVelocity = Vector3.zero;
+                    body.angularVelocity = Vector3.zero;
+                }
+                body.WakeUp();
+            }
             return true;
         }
 

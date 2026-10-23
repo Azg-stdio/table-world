@@ -102,6 +102,9 @@ namespace Core.Net
 
         public IReadOnlyList<ManifestEntry> Entries => _entries;
 
+        /// <summary>Chunks sent so far, to all clients.</summary>
+        public long ChunksServed { get; private set; }
+
         /// <summary>Problems found while building the manifest (missing files, oversize assets, hash mismatches).</summary>
         public List<string> Warnings { get; } = new List<string>();
 
@@ -158,6 +161,7 @@ namespace Core.Net
                     continue;
                 var offset = index * ChunkSize;
                 var length = Math.Min(ChunkSize, data.Length - offset);
+                ChunksServed++;
                 replies.Add(new Outgoing(clientId, new JObject
                 {
                     ["kind"] = "asset_chunk",
@@ -180,7 +184,7 @@ namespace Core.Net
     /// </summary>
     public sealed class AssetClient
     {
-        public const int Window = 16;
+        public const int Window = 4;
         public const int MaxAttempts = 3;
 
         private sealed class Download
