@@ -132,6 +132,13 @@ namespace TableWorld.View
 
         public CommandResult Execute(Command command)
         {
+            // A body that is still settling has not reported its pose yet; record it first, or the command's
+            // ObjectUpdated would snap the object back to its last recorded position.
+            if (!(command is MoveCommand))
+                foreach (var id in TargetsOf(command))
+                    if (ViewOf(id) is { Animating: false } view && !view.Body.isKinematic)
+                        ReportPose(view);
+
             var result = Game.Execute(command);
             if (result.Ok)
                 Apply(result.Events);
@@ -148,6 +155,28 @@ namespace TableWorld.View
         }
 
         public ObjectView ViewOf(string id) => id != null && _views.TryGetValue(id, out var view) ? view : null;
+
+        /// <summary>Objects on the table a table command reads or changes.</summary>
+        private static IEnumerable<string> TargetsOf(Command command)
+        {
+            switch (command)
+            {
+                case FlipCommand c: yield return c.ObjectId; break;
+                case LockCommand c: yield return c.ObjectId; break;
+                case RollCommand c: yield return c.ObjectId; break;
+                case ShuffleCommand c: yield return c.ObjectId; break;
+                case TakeCommand c: yield return c.ContainerId; break;
+                case DealCommand c: yield return c.DeckId; break;
+                case InsertCommand c:
+                    yield return c.ObjectId;
+                    yield return c.IntoId;
+                    break;
+                case GroupCommand c:
+                    foreach (var id in c.ObjectIds)
+                        yield return id;
+                    break;
+            }
+        }
 
         /// <summary>
         /// Seat that commands from this machine act as. Solo (hot seat): the seat whose turn it is during a game,
