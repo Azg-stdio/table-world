@@ -315,6 +315,8 @@ namespace Core.Rules
                 CheckColor(env.Lighting.LampColor, $"{path}.lighting.lampColor");
                 CheckIntensity(env.Lighting.AmbientIntensity, $"{path}.lighting.ambientIntensity");
                 CheckIntensity(env.Lighting.LampIntensity, $"{path}.lighting.lampIntensity");
+                CheckColor(env.Lighting.TableLightColor, $"{path}.lighting.tableLightColor");
+                CheckIntensity(env.Lighting.TableLightIntensity, $"{path}.lighting.tableLightIntensity");
                 CheckColor(env.Table.FeltColor, $"{path}.table.feltColor");
                 CheckColor(env.Table.WoodColor, $"{path}.table.woodColor");
                 CheckOptionalAsset(env.Table.FeltAsset, $"{path}.table.feltAsset", AssetType.Image);

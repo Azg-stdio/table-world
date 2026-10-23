@@ -45,10 +45,13 @@ Optional. The room around the table, so a game (a mod) can set its own place. Om
   "room": "gameNight",                 // gameNight (default: dim room, warm lamp over the table) | none (plain background, sun light)
   "roomAsset": "my_room",              // model or assetBundle asset that replaces the built-in room (loads with M4)
   "wallColor": [0.16, 0.12, 0.1], "floorColor": [0.22, 0.14, 0.09],   // colours 0–1
-  "lighting": { "ambientIntensity": 0.45, "ambientColor": [0.55, 0.45, 0.38], "lampIntensity": 3.2, "lampColor": [1, 0.83, 0.62] },   // intensities 0–8
+  "lighting": { "ambientIntensity": 0.3, "ambientColor": [0.6, 0.6, 0.62], "lampIntensity": 3.2, "lampColor": [1, 0.83, 0.62],
+                "tableLightIntensity": 2.6, "tableLightColor": [1, 0.99, 0.97] },   // intensities 0–8
   "table": { "feltColor": [0.09, 0.27, 0.19], "feltAsset": "felt_image", "woodColor": [0.36, 0.22, 0.12] }
 }
 ```
+
+**Light on game pieces is kept neutral.** The lamp, its fill and the room colours set the mood and light only the room and the table's wooden frame; game pieces and the felt are lit only by the table light (neutral white by default), so card art keeps its true colours whatever mood a game picks. Ambient light reaches everything, so keep it low and neutral. A game can still tint the table light on purpose.
 
 The TTS importer maps `Sky` → `room`/`roomAsset`, `Table` + `TableURL` → `table.feltAsset`, and `Lighting` → `lighting`. Player avatars join this block when physics characters exist (M6).
 

@@ -1209,6 +1209,15 @@
           "items": {
             "type": "number"
           }
+        },
+        "tableLightIntensity": {
+          "type": "number"
+        },
+        "tableLightColor": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
         }
       },
       "additionalProperties": false

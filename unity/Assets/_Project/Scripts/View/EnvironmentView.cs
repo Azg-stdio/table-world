@@ -1,6 +1,7 @@
 using Core.Rules;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace TableWorld.View
 {
@@ -9,14 +10,26 @@ namespace TableWorld.View
     /// import, sets it; none means the default room). The default "game night" room is a small dim room with a warm
     /// pendant lamp over the table, dark walls and a wooden floor. The table's felt and wood follow the environment too.
     /// Everything here is built from primitives at runtime, so a game can change it without an Editor.
+    /// <para>
+    /// Light is split by URP rendering layers: the warm lamp and fill light only the room (walls, floor, rug, legs, the
+    /// wooden rim); game pieces and the felt are lit only by a neutral table light, so card art keeps its true colours
+    /// whatever mood the room has. Ambient is neutral for the same reason.
+    /// </para>
     /// </summary>
     public sealed class EnvironmentView : MonoBehaviour
     {
         // Game night defaults (linear colours, URP non-physical intensities).
         public static readonly Color DefaultWall = new Color(0.16f, 0.12f, 0.1f);
         public static readonly Color DefaultFloor = new Color(0.22f, 0.14f, 0.09f);
-        public static readonly Color DefaultAmbient = new Color(0.55f, 0.45f, 0.38f);
-        public const float DefaultAmbientIntensity = 0.45f;
+        public static readonly Color DefaultAmbient = new Color(0.6f, 0.6f, 0.62f);
+        public const float DefaultAmbientIntensity = 0.3f;
+        public static readonly Color DefaultTableLight = new Color(1f, 0.99f, 0.97f);
+        public const float DefaultTableLightIntensity = 2.6f;
+
+        /// <summary>Rendering layer of game pieces and the felt (Unity's default layer, so every object is on it).</summary>
+        public const uint PiecesLayers = 1u << 0;
+        /// <summary>Rendering layer of the room and the table's wooden frame.</summary>
+        public const uint RoomLayers = 1u << 1;
         public static readonly Color DefaultLamp = new Color(1f, 0.83f, 0.62f);
         public const float DefaultLampIntensity = 3.2f;
         public static readonly Color DefaultFelt = new Color(0.09f, 0.27f, 0.19f);
@@ -35,9 +48,11 @@ namespace TableWorld.View
 
         private GameObject _room;
         private Light _lamp;
+        private Light _tableLight;
         private Shader _lit;
 
         public Light Lamp => _lamp;
+        public Light TableLight => _tableLight;
         public GameObject Room => _room;
 
         public void Configure(TableView table, Transform tableRoot, Light sun, Camera camera)
@@ -83,6 +98,7 @@ namespace TableWorld.View
                 Destroy(_room);
             _room = null;
             _lamp = null;
+            _tableLight = null;
 
             var wall = ToColor(env.WallColor, DefaultWall);
             var floor = ToColor(env.FloorColor, DefaultFloor);
@@ -102,6 +118,11 @@ namespace TableWorld.View
             {
                 _lamp.color = ToColor(lighting.LampColor, DefaultLamp);
                 _lamp.intensity = lighting.LampIntensity ?? DefaultLampIntensity;
+            }
+            if (_tableLight != null)
+            {
+                _tableLight.color = ToColor(lighting.TableLightColor, DefaultTableLight);
+                _tableLight.intensity = lighting.TableLightIntensity ?? DefaultTableLightIntensity;
             }
             // Without a room the old directional light keeps the table readable.
             if (_sun != null)
@@ -149,6 +170,7 @@ namespace TableWorld.View
             glow.SetColor("_EmissionColor", new Color(1f, 0.85f, 0.6f) * 3f);
             bulb.GetComponent<Renderer>().sharedMaterial = glow;
             bulb.GetComponent<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
+            bulb.GetComponent<Renderer>().renderingLayerMask = RoomLayers;
 
             var lampGo = new GameObject("Lamp Light");
             lampGo.transform.SetParent(_room.transform, false);
@@ -161,6 +183,25 @@ namespace TableWorld.View
             _lamp.shadows = LightShadows.Soft;
             _lamp.shadowStrength = 0.85f;
             _lamp.shadowNearPlane = 0.1f;
+            // The lamp lights the room only, but everything (the table, the pieces) still casts its shadow on the floor.
+            SetLayers(_lamp, RoomLayers);
+            var lampData = _lamp.GetUniversalAdditionalLightData();
+            lampData.customShadowLayers = true;
+            lampData.shadowRenderingLayers = uint.MaxValue;
+
+            // The table light: same place, neutral white, lights only game pieces and the felt, and casts their shadows.
+            var tableGo = new GameObject("Table Light");
+            tableGo.transform.SetParent(_room.transform, false);
+            tableGo.transform.SetPositionAndRotation(new Vector3(0f, LampHeight, 0f), Quaternion.Euler(90f, 0f, 0f));
+            _tableLight = tableGo.AddComponent<Light>();
+            _tableLight.type = LightType.Spot;
+            _tableLight.spotAngle = 120f;
+            _tableLight.innerSpotAngle = 80f;
+            _tableLight.range = 4f;
+            _tableLight.shadows = LightShadows.Soft;
+            _tableLight.shadowStrength = 0.8f;
+            _tableLight.shadowNearPlane = 0.1f;
+            SetLayers(_tableLight, PiecesLayers);
 
             // A faint warm fill so the far side of the table and the room are not black.
             var fillGo = new GameObject("Fill Light");
@@ -172,6 +213,7 @@ namespace TableWorld.View
             fill.intensity = 0.7f;
             fill.color = new Color(1f, 0.8f, 0.6f);
             fill.shadows = LightShadows.None;
+            SetLayers(fill, RoomLayers);
         }
 
         /// <summary>Felt colour or image, wood colour; per-instance materials so the shared material assets stay untouched.</summary>
@@ -191,6 +233,8 @@ namespace TableWorld.View
                 else if (renderer.name.StartsWith("Rim"))
                 {
                     renderer.material.color = ToColor(look.WoodColor, DefaultWood);
+                    // The wooden frame belongs to the room's warm light; the felt is a game surface.
+                    renderer.renderingLayerMask = _room != null ? RoomLayers : PiecesLayers;
                 }
             }
         }
@@ -205,6 +249,7 @@ namespace TableWorld.View
             quad.transform.SetPositionAndRotation(position, rotation);
             quad.transform.localScale = new Vector3(size.x, size.y, 1f);
             quad.GetComponent<Renderer>().sharedMaterial = NewMaterial(color, smoothness);
+            quad.GetComponent<Renderer>().renderingLayerMask = RoomLayers;
             return quad;
         }
 
@@ -217,6 +262,7 @@ namespace TableWorld.View
             box.transform.position = position;
             box.transform.localScale = size;
             box.GetComponent<Renderer>().sharedMaterial = NewMaterial(color, smoothness);
+            box.GetComponent<Renderer>().renderingLayerMask = RoomLayers;
             return box;
         }
 
@@ -231,6 +277,7 @@ namespace TableWorld.View
             shade.transform.localScale = new Vector3(radius * 2f, height / 2f, radius * 2f);
             var renderer = shade.GetComponent<Renderer>();
             renderer.sharedMaterial = NewMaterial(color, 0.4f);
+            renderer.renderingLayerMask = RoomLayers;
             // The shade must not block its own light.
             renderer.shadowCastingMode = ShadowCastingMode.Off;
             return shade;
@@ -243,6 +290,16 @@ namespace TableWorld.View
             var material = new Material(_lit) { color = color };
             material.SetFloat("_Smoothness", smoothness);
             return material;
+        }
+
+        /// <summary>The rendering layers a light lights (URP keeps them in its additional light data).</summary>
+        public static uint LightingLayersOf(Light light) => light.GetUniversalAdditionalLightData().renderingLayers;
+
+        /// <summary>URP reads a light's layers from its additional light data, which overrides <see cref="Light.renderingLayerMask"/>.</summary>
+        private static void SetLayers(Light light, uint layers)
+        {
+            light.GetUniversalAdditionalLightData().renderingLayers = layers;
+            light.renderingLayerMask = (int)layers;
         }
 
         private static Color ToColor(float[] values, Color fallback) =>

@@ -44,6 +44,14 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsNotNull(_environment.Lamp);
             Assert.AreEqual(EnvironmentView.DefaultLampIntensity, _environment.Lamp.intensity, 0.001f);
             Assert.IsFalse(GameObject.Find("Sun").GetComponent<Light>().enabled, "the room's lamp replaces the sun");
+            // Game pieces keep their true colours: a neutral table light for pieces and felt, the warm lamp for the room.
+            var pieces = _environment.TableLight;
+            Assert.IsNotNull(pieces);
+            Assert.Less(Mathf.Abs(pieces.color.r - pieces.color.b), 0.05f, "the table light is neutral white");
+            Assert.AreEqual(EnvironmentView.PiecesLayers, EnvironmentView.LightingLayersOf(pieces));
+            Assert.AreEqual(EnvironmentView.RoomLayers, EnvironmentView.LightingLayersOf(_environment.Lamp));
+            Assert.AreEqual(EnvironmentView.RoomLayers, GameObject.Find("Wall North").GetComponent<Renderer>().renderingLayerMask);
+            Assert.AreEqual(EnvironmentView.PiecesLayers, GameObject.Find("Surface").GetComponent<Renderer>().renderingLayerMask, "the felt is a game surface");
             Same(EnvironmentView.DefaultFelt, FeltColor());
         }
 

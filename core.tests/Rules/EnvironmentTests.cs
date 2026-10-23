@@ -23,7 +23,7 @@ namespace Core.Tests.Rules
     ""roomAsset"": ""room"",
     ""wallColor"": [0.1, 0.1, 0.12],
     ""floorColor"": [0.2, 0.15, 0.1],
-    ""lighting"": { ""ambientIntensity"": 0.3, ""ambientColor"": [1, 0.9, 0.8], ""lampIntensity"": 2.5, ""lampColor"": [1, 0.85, 0.6] },
+    ""lighting"": { ""ambientIntensity"": 0.3, ""ambientColor"": [1, 0.9, 0.8], ""lampIntensity"": 2.5, ""lampColor"": [1, 0.85, 0.6], ""tableLightIntensity"": 2, ""tableLightColor"": [1, 1, 1] },
     ""table"": { ""feltColor"": [0.1, 0.3, 0.2], ""feltAsset"": ""felt"", ""woodColor"": [0.4, 0.25, 0.15] }
   }");
             var parsed = TableJson.Parse(json);
@@ -32,6 +32,7 @@ namespace Core.Tests.Rules
             Assert.Equal(RoomPreset.None, env.Room);
             Assert.Equal("room", env.RoomAsset);
             Assert.Equal(2.5f, env.Lighting.LampIntensity);
+            Assert.Equal(2f, env.Lighting.TableLightIntensity);
             Assert.Equal("felt", env.Table.FeltAsset);
 
             var again = TableJson.Parse(TableJson.Serialize(parsed.State));

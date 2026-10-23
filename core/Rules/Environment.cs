@@ -9,7 +9,11 @@ namespace Core.Rules
         None,
     }
 
-    /// <summary>Light in the room. Every value is optional; unset values keep the room preset's.</summary>
+    /// <summary>
+    /// Light in the room. Every value is optional; unset values keep the room preset's. The lamp and ambient set the
+    /// room's mood; game pieces and the felt are lit only by the table light, neutral white by default, so card art keeps
+    /// its true colours whatever mood a game picks.
+    /// </summary>
     public sealed class LightingDef
     {
         /// <summary>Light that reaches everything, from the room (0 = none). Colour 0–1.</summary>
@@ -18,6 +22,9 @@ namespace Core.Rules
         /// <summary>The lamp over the table (0 = off).</summary>
         public float? LampIntensity { get; set; }
         public float[]? LampColor { get; set; }
+        /// <summary>The light on game pieces and the felt only (0 = off). Neutral white unless a game wants otherwise.</summary>
+        public float? TableLightIntensity { get; set; }
+        public float[]? TableLightColor { get; set; }
     }
 
     /// <summary>How the table itself looks.</summary>
