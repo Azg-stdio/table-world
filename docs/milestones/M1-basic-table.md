@@ -2,7 +2,7 @@
 
 **Goal:** a solo-playable table with physical cards, decks, tokens and dice, saved and loaded from the `core/` model as JSON.
 **Done when:** deal a hand from a sprite-sheet deck, flip, shuffle, roll dice, save, close, load and see it unchanged. 500 objects at 60 fps (MVP); 2 000 later (T2.8).
-**In the MVP:** yes. **Status:** in progress. **Depends on:** M0.
+**In the MVP:** yes. **Status:** done 2026-10-22 except the manual mouse checklist below (needs a human); T2.8 deferred. **Depends on:** M0.
 
 **Binding design rule:** the Unity view never mutates state on its own. Every interaction becomes a `Command` that `core` executes; the view reacts to `StateEvent`s. Physics only moves free objects and reports the final pose as a `Command`. This is what makes M3 a transport layer instead of a rewrite.
 
@@ -23,7 +23,8 @@
 
 | Date | Simulation | Result |
 |---|---|---|
-| — | T2.8 2 000 objects | — |
+| — | T2.8 2 000 objects | — (deferred) |
+| 2026-10-22 | MVP bar: 500 generated objects (300 cards, 100 tokens, 50 d6, 50 hex tiles) in Editor play mode, unfocused with CLI auto-tick, Windows 11 + NVIDIA GPU | sample table 195.9 fps; 500 resting 88.8 fps (1 350 frames / 15.2 s); 500 dropped from 10 cm, averaged over 27 s incl. settling, 87.0 fps; Editor memory 971 → 1 070 MB. Above the 60 fps bar without instancing; a player build should be faster |
 | 2026-10-22 | T2.9 smoke test (`Tests/PlayMode/SmokeTests.cs`, seed 2026) | 1/1 passed: 50 commands (10 of them real grab/drag/drop gestures), 19 succeeded, 31 rejected with codes as expected; 25 objects on the table at the end, views = state, 0 errors |
 | 2026-10-22 | M1 scenario in play mode: deal 5, flip, shuffle, roll d20, save, exit play mode, start, load, wait 6 s | hash identical after load and after 6 s of physics (`sha256:5824b774…`); first attempt drifted 2–30 mm because old views overlapped new ones for one physics step, fixed by deactivating before `Destroy` |
 
