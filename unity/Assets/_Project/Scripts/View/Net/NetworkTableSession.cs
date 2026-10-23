@@ -58,6 +58,9 @@ namespace TableWorld.View.Net
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TableWorld", "cache", "assets");
         public string Status { get; private set; } = "offline";
 
+        /// <summary>Players connected to this host (not counting the host).</summary>
+        public int JoinedCount => _seatOf.Count;
+
         public void Configure(TableView table) => _table = table;
 
         private void OnEnable()

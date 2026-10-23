@@ -25,6 +25,9 @@ namespace TableWorld.View.Net
         private readonly List<(string Seat, Vector3 Position, Color Color)> _shownPointers = new List<(string, Vector3, Color)>();
         private Material _unlit;
 
+        /// <summary>Another player picked something up (for its sound).</summary>
+        public event System.Action<ObjectView> RemotePickedUp;
+
         /// <summary>Pointers drawn this frame, for the HUD's name labels.</summary>
         public IReadOnlyList<(string Seat, Vector3 Position, Color Color)> Pointers => _shownPointers;
 
@@ -83,6 +86,7 @@ namespace TableWorld.View.Net
                     view.Body.isKinematic = true;
                     // The pose is set every frame here; rigidbody interpolation would drag it back.
                     view.Body.interpolation = RigidbodyInterpolation.None;
+                    RemotePickedUp?.Invoke(view);
                 }
                 view.transform.SetPositionAndRotation(
                     Vector3.Lerp(view.transform.position, pair.Value.Position, k),

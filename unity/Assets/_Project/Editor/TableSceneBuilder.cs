@@ -48,11 +48,13 @@ namespace TableWorld.Editor
             session.Configure(table);
             tableGo.AddComponent<TableWorld.View.Net.NetworkAutoplay>().Configure(table, session);
             // Other players' pointers and the objects they carry, live.
-            tableGo.AddComponent<TableWorld.View.Net.PresenceView>().Configure(table, session);
+            var presence = tableGo.AddComponent<TableWorld.View.Net.PresenceView>();
+            presence.Configure(table, session);
             // The room around the table, rebuilt from each loaded table's environment.
             tableGo.AddComponent<EnvironmentView>().Configure(table, tableRoot.transform, sun, camera);
             var interaction = tableGo.AddComponent<TableInteraction>();
             interaction.Configure(table, camera, camera.GetComponent<TableCamera>());
+            tableGo.AddComponent<TableSounds>().Configure(table, interaction, presence, SoundClips());
 
             var hud = new GameObject("Hud");
             var document = hud.AddComponent<UIDocument>();
@@ -116,6 +118,40 @@ namespace TableWorld.Editor
             rim.transform.localScale = scale;
             rim.GetComponent<Renderer>().sharedMaterial = material;
             rim.isStatic = true;
+        }
+
+        public const string CasinoAudio = "Assets/_Project/Art/ThirdParty/KenneyCasinoAudio";
+        public const string ImpactAudio = "Assets/_Project/Art/ThirdParty/KenneyImpactSounds";
+
+        /// <summary>The table's sound banks from the CC0 packs (referenced here so builds include them).</summary>
+        private static TableSounds.Clips SoundClips() => new TableSounds.Clips
+        {
+            CardPlace = Clips(CasinoAudio, "card-place"),
+            CardSlide = Clips(CasinoAudio, "card-slide"),
+            CardShuffle = Clips(CasinoAudio, "card-shuffle"),
+            CardFan = Clips(CasinoAudio, "card-fan"),
+            ChipLay = Clips(CasinoAudio, "chip-lay"),
+            ChipsHandle = Clips(CasinoAudio, "chips-handle"),
+            DiceGrab = Clips(CasinoAudio, "dice-grab"),
+            DiceThrow = Clips(CasinoAudio, "dice-throw"),
+            DieImpact = Clips(CasinoAudio, "die-throw"),
+            WoodImpact = Clips(ImpactAudio, "impactWood_light"),
+            SoftImpact = Clips(ImpactAudio, "impactSoft_medium"),
+            Ping = Clips(ImpactAudio, "impactGlass_light"),
+        };
+
+        private static AudioClip[] Clips(string folder, string prefix)
+        {
+            var clips = new System.Collections.Generic.List<AudioClip>();
+            foreach (var guid in AssetDatabase.FindAssets("t:AudioClip", new[] { folder }))
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                if (System.IO.Path.GetFileName(path).StartsWith(prefix))
+                    clips.Add(AssetDatabase.LoadAssetAtPath<AudioClip>(path));
+            }
+            if (clips.Count == 0)
+                Debug.LogError($"[TableSceneBuilder] No sounds '{prefix}*' in {folder}.");
+            return clips.ToArray();
         }
 
         private static Camera BuildCamera()

@@ -96,6 +96,7 @@ namespace TableWorld.View
             Replace(parsed.State);
             _undo.Clear();
             _redo.Clear();
+            _loadedAt = Time.time;
             Loaded?.Invoke();
             return true;
         }
@@ -144,12 +145,26 @@ namespace TableWorld.View
             var json = from[from.Count - 1];
             from.RemoveAt(from.Count - 1);
             Replace(TableJson.Parse(json).State);
+            _loadedAt = Time.time;
             Loaded?.Invoke();
             return true;
         }
 
         /// <summary>Raised after a table is loaded (the HUD rebuilds its seats).</summary>
         public event Action Loaded;
+
+        /// <summary>An object hit something hard enough to be heard (speed in m/s). Silent for a moment after a table loads.</summary>
+        public event Action<ObjectView, float> Impacted;
+
+        /// <summary>Objects settle for a moment after a table loads; that clatter is not played.</summary>
+        public const float QuietAfterLoadSeconds = 0.5f;
+        private float _loadedAt = float.NegativeInfinity;
+
+        private void OnImpact(ObjectView view, float speed)
+        {
+            if (Time.time - _loadedAt > QuietAfterLoadSeconds)
+                Impacted?.Invoke(view, speed);
+        }
 
         // ---- networking hooks (T3.2) --------------------------------------------------------------------------
 
@@ -187,6 +202,7 @@ namespace TableWorld.View
             SpawnAll();
             _undo.Clear();
             _redo.Clear();
+            _loadedAt = Time.time;
             Loaded?.Invoke();
         }
 
@@ -486,7 +502,9 @@ namespace TableWorld.View
                 var tumble = spin - Vector3.up * Vector3.Dot(spin, Vector3.up);
                 if (velocity.sqrMagnitude > DieSettleSpeed * DieSettleSpeed || tumble.sqrMagnitude > DieSettleTumble * DieSettleTumble)
                     continue;
-                if (!RestsOnFace(Meshes.DiceGeometry.Get(die.Faces), body.rotation))
+                // Only a die lying on something settles: one released straight down is still for an instant at the top
+                // of its fall, and putting it to sleep there froze it in mid-air.
+                if (!view.Touching || !RestsOnFace(Meshes.DiceGeometry.Get(die.Faces), body.rotation))
                     continue;
                 // Writing velocities keeps a body awake; once it is still, let PhysX put it to sleep.
                 if (velocity.sqrMagnitude < 1e-6f && body.angularVelocity.sqrMagnitude < 1e-4f)
@@ -548,13 +566,11 @@ namespace TableWorld.View
             if (forward.sqrMagnitude < 1e-6f)
                 forward = Vector3.forward;
             var flat = Quaternion.LookRotation(forward.normalized, Vector3.up) * (up.y >= 0f ? Quaternion.identity : Quaternion.Euler(0f, 0f, 180f));
-            var position = view.Body.position + Vector3.up * 0.004f;
-            if (tries == 1)
-            {
-                view.transform.rotation = flat;
-                Physics.SyncTransforms();
-                position = ClearOfSupports(view, flat);
-            }
+            view.transform.rotation = flat;
+            Physics.SyncTransforms();
+            // First try: flat just above whatever lies under its footprint (never inside it: a card laid flat into a die
+            // stays interpenetrating and both jitter forever). If it ends up propped again, slide it clear onto the felt.
+            var position = tries == 1 ? ClearOfSupports(view, flat) : AboveSupports(view, flat);
             view.Body.rotation = flat;
             view.Body.position = position;
             view.transform.SetPositionAndRotation(position, flat);
@@ -565,38 +581,57 @@ namespace TableWorld.View
             return true;
         }
 
+        private readonly RaycastHit[] _supportHits = new RaycastHit[32];
+
+        /// <summary>Where <paramref name="view"/>, laid flat, sits on top of the highest thing under its footprint (or the felt).</summary>
+        private Vector3 AboveSupports(ObjectView view, Quaternion flat)
+        {
+            var half = view.Collider is BoxCollider box ? Vector3.Scale(box.size, view.transform.lossyScale) / 2f : view.Renderer.bounds.extents;
+            var p = view.Body.position;
+            var count = Physics.BoxCastNonAlloc(new Vector3(p.x, 1f, p.z), new Vector3(half.x, 0.0005f, half.z), Vector3.down, _supportHits, flat, 2f,
+                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            var top = 0f;
+            for (var i = 0; i < count; i++)
+                if (_supportHits[i].rigidbody != view.Body && _supportHits[i].distance > 0f)
+                    top = Mathf.Max(top, _supportHits[i].point.y);
+            return new Vector3(p.x, top + half.y + 0.002f, p.z);
+        }
+
         /// <summary>Where <paramref name="view"/>, laid flat, rests on the felt without overlapping anything: pushed out along the shorter way.</summary>
+        /// <summary>How far, at most, a card is moved to find free felt; rings are this far apart, sixteen spots each.</summary>
+        public const float ClearSearchRadius = 0.25f;
+        public const float ClearSearchStep = 0.01f;
+        private readonly Collider[] _clearHits = new Collider[16];
+
         private Vector3 ClearOfSupports(ObjectView view, Quaternion flat)
         {
             var half = view.Collider is BoxCollider box ? Vector3.Scale(box.size, view.transform.lossyScale) / 2f : view.Renderer.bounds.extents;
-            var position = new Vector3(view.Body.position.x, half.y + 0.001f, view.Body.position.z);
-            for (var pass = 0; pass < 4; pass++)
+            var start = new Vector3(view.Body.position.x, half.y + 0.001f, view.Body.position.z);
+            // The nearest spot where the flat card touches no other object: rings around where it is, closest first. (Pushing
+            // away from one neighbour drove a card between two dice into the other one and back.)
+            for (var radius = 0f; radius <= ClearSearchRadius; radius += ClearSearchStep)
             {
-                var overlaps = Physics.OverlapBox(position, half, flat, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
-                var push = Vector3.zero;
-                foreach (var other in overlaps)
+                var spots = radius == 0f ? 1 : 16;
+                for (var i = 0; i < spots; i++)
                 {
-                    if (other.attachedRigidbody == null || other.attachedRigidbody == view.Body)
-                        continue;
-                    var mine = new Bounds(position, Abs(flat * (half * 2f)));
-                    var theirs = other.bounds;
-                    var dx = Mathf.Min(mine.max.x, theirs.max.x) - Mathf.Max(mine.min.x, theirs.min.x);
-                    var dz = Mathf.Min(mine.max.z, theirs.max.z) - Mathf.Max(mine.min.z, theirs.min.z);
-                    if (dx <= 0f || dz <= 0f)
-                        continue;
-                    var away = position - theirs.center;
-                    var step = dx < dz ? new Vector3(Mathf.Sign(away.x) * (dx + 0.003f), 0f, 0f) : new Vector3(0f, 0f, Mathf.Sign(away.z) * (dz + 0.003f));
-                    if (step.sqrMagnitude > push.sqrMagnitude)
-                        push = step;
+                    var angle = i * Mathf.PI * 2f / spots;
+                    var spot = TableGeometry.ClampToDropArea(start + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * radius);
+                    if (!TouchesOtherObject(view, spot, half, flat))
+                        return spot;
                 }
-                if (push == Vector3.zero)
-                    break;
-                position = TableGeometry.ClampToDropArea(position + push);
             }
-            return position;
+            return start;
         }
 
-        private static Vector3 Abs(Vector3 v) => new Vector3(Mathf.Abs(v.x), Mathf.Abs(v.y), Mathf.Abs(v.z));
+        private bool TouchesOtherObject(ObjectView view, Vector3 at, Vector3 half, Quaternion rotation)
+        {
+            // A hair of clearance, so the card does not start out touching its neighbour.
+            var count = Physics.OverlapBoxNonAlloc(at, half + new Vector3(0.002f, 0f, 0.002f), _clearHits, rotation, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            for (var i = 0; i < count; i++)
+                if (_clearHits[i].attachedRigidbody != null && _clearHits[i].attachedRigidbody != view.Body)
+                    return true;
+            return false;
+        }
 
         /// <summary>A body counts as resting when asleep, or when it has barely moved for <see cref="StillSeconds"/>.</summary>
         public const float StillSeconds = 0.25f;
@@ -757,7 +792,9 @@ namespace TableWorld.View
         {
             if (_views.ContainsKey(obj.Id))
                 return;
-            _views[obj.Id] = ObjectViewFactory.Create(obj, Assets, _objectsRoot != null ? _objectsRoot : transform);
+            var view = ObjectViewFactory.Create(obj, Assets, _objectsRoot != null ? _objectsRoot : transform);
+            view.ImpactHandler = OnImpact;
+            _views[obj.Id] = view;
         }
 
         private void Despawn(string id)

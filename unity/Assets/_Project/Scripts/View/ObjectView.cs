@@ -45,6 +45,30 @@ namespace TableWorld.View
         /// <summary>True for a card in someone else's hand: its face shows the back, and its name is not shown.</summary>
         public bool HideFace { get; internal set; }
 
+        /// <summary>Set by <see cref="TableView"/>: called when this object hits something hard enough to be heard.</summary>
+        internal System.Action<ObjectView, float> ImpactHandler;
+
+        /// <summary>Impacts slower than this are silent (resting contact, gentle sliding).</summary>
+        public const float AudibleImpactSpeed = 0.12f;
+        private float _lastImpact;
+
+        private float _touchingUntil = float.NegativeInfinity;
+
+        /// <summary>True while the body is in contact with something (the table, another object).</summary>
+        public bool Touching => Time.fixedTime <= _touchingUntil;
+
+        private void OnCollisionStay(Collision collision) => _touchingUntil = Time.fixedTime + Time.fixedDeltaTime * 2f;
+
+        private void OnCollisionEnter(Collision collision)
+        {
+            _touchingUntil = Time.fixedTime + Time.fixedDeltaTime * 2f;
+            var speed = collision.relativeVelocity.magnitude;
+            if (speed < AudibleImpactSpeed || Time.time - _lastImpact < 0.06f || ImpactHandler == null)
+                return;
+            _lastImpact = Time.time;
+            ImpactHandler(this, speed);
+        }
+
         /// <summary>The seat of another player carrying this object right now (live presence), or null.</summary>
         public string RemoteHolder { get; internal set; }
 

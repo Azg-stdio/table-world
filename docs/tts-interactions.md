@@ -126,7 +126,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G2 | Other players' pointers | each player's hand cursor, in their colour, with their name | ✅ marker in the seat colour plus a name label | P1 |
 | G3 | Who holds / selected what | outline in the holder's colour | ✅ for held objects (frame in the holder's colour; others cannot grab it: "seat_x is holding that"); others' box selections not shown yet | P1 |
 | G4 | Controls help | `?` / Help menu lists every binding | ✅ F1, `?` or the Controls button; grouped list of every binding (`ControlsHelp.cs`, keep in step with this file); Escape closes; the wheel scrolls it, not the camera (2026-10-23) | P1 |
-| G5 | Sound | pick up, drop, card slide, shuffle, dice, chips | silent | P1 |
+| G5 | Sound | pick up, drop, card slide, shuffle, dice, chips | ✅ Kenney CC0 packs: pickups by kind, landings from real impacts (louder for harder hits), shuffle, roll, deal, flip, ping; others' actions sound too; silent while a table settles after loading (2026-10-23). Volume setting comes with G13 | P1 |
 | G6 | Deck count | hovering a deck or bag shows how many items | ✅ "52 cards", "3 items", "endless" under the name (2026-10-23) | P1 |
 | G7 | Search shows cards | a grid of card faces, drag one out | ✅ grid of faces with names, top first; pressing a card picks it up so it follows the pointer (bag items as name tiles) | P1 |
 | G8 | Hand card close-up | hovering a card in your hand raises and enlarges it | ✅ hand bar (2026-10-23) | P1 |

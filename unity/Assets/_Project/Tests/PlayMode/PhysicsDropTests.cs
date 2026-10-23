@@ -214,6 +214,20 @@ namespace TableWorld.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator Die_ReleasedStraightDown_LandsInsteadOfFreezingInTheAir()
+        {
+            // Raised and released without any throw: still for an instant at the top of the fall.
+            Assert.IsTrue(_interaction.Grab(V("d6"), false));
+            _interaction.RaiseHeld(0.15f);
+            yield return new WaitForSeconds(0.5f);
+            _interaction.Release();
+            yield return new WaitForSeconds(1.5f);
+            var die = V("d6");
+            Assert.Less(die.Renderer.bounds.min.y, 0.003f, $"the die rests on the table (bottom at {die.Renderer.bounds.min.y * 1000f:F1} mm)");
+            Assert.Less(Vector3.Distance(die.transform.position, die.Model.Transform.Position.ToUnity()), 0.002f, "and the state knows where");
+        }
+
+        [UnityTest]
         public IEnumerator Card_DroppedFromHigh() => Drop("queen_clubs", new Vector3(-0.05f, 0f, 0.05f), Vector3.zero, 0.2f, new List<string>());
 
         [UnityTest]

@@ -14,7 +14,8 @@ namespace TableWorld.View.Net
     /// <c>-tw-host [port]</c>, <c>-tw-join address[:port]</c>, <c>-tw-autoplay N</c> (N random table commands, one every
     /// 0.1 s, once synced), <c>-tw-report path</c> (after autoplay, once the table has not changed for 5 s, writes the state hash, seat and order
     /// as JSON), <c>-tw-quit</c> (quit after reporting), <c>-tw-game file</c> (the host loads a game package first),
-    /// <c>-tw-cache folder</c> (asset cache, e.g. an empty one to check T3.4). Online (T3.3): <c>-tw-host online
+    /// <c>-tw-cache folder</c> (asset cache, e.g. an empty one to check T3.4), <c>-tw-wait-players N</c> (a host waits for
+    /// N players to join before playing and reporting), <c>-tw-carry id [seconds]</c> (pick it up and sweep it around). Online (T3.3): <c>-tw-host online
     /// -tw-code-file f</c>, <c>-tw-join CODE</c> or <c>-tw-join @f</c>, <c>-tw-profile name</c> (one per process on a machine). <see cref="Run"/> starts the same from code.
     /// </summary>
     public sealed class NetworkAutoplay : MonoBehaviour
@@ -54,7 +55,8 @@ namespace TableWorld.View.Net
             var carry = Arg("-tw-carry");
             var carrySeconds = Array.IndexOf(args, "-tw-carry") is var c && c >= 0 && c + 2 < args.Length && float.TryParse(args[c + 2], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var s) ? s : 10f;
             yield return Run(host, host ? Arg("-tw-host") : join, autoplay, Arg("-tw-report"), Array.IndexOf(args, "-tw-quit") >= 0,
-                seed: host ? 1 : 2, codeFile: Arg("-tw-code-file"), carry: carry, carrySeconds: carrySeconds);
+                seed: host ? 1 : 2, codeFile: Arg("-tw-code-file"), carry: carry, carrySeconds: carrySeconds,
+                waitPlayers: int.TryParse(Arg("-tw-wait-players"), out var w) ? w : 0);
         }
 
         /// <summary>
@@ -63,7 +65,7 @@ namespace TableWorld.View.Net
         /// address[:port], a join code, or <c>@file</c> (wait for a host to write its code there).
         /// </summary>
         public IEnumerator Run(bool host, string target, int commands, string report, bool quit, int seed, string codeFile = null,
-            string carry = null, float carrySeconds = 10f)
+            string carry = null, float carrySeconds = 10f, int waitPlayers = 0)
         {
             if (host && target == "online")
             {
@@ -103,7 +105,16 @@ namespace TableWorld.View.Net
             if (!_session.Synced)
             {
                 Debug.LogError("[Autoplay] Never synced.");
+                // An automated run must end, or it waits for nothing forever.
+                if (quit)
+                    Application.Quit(2);
                 yield break;
+            }
+            if (host && waitPlayers > 0)
+            {
+                for (var wait = 0f; _session.JoinedCount < waitPlayers && wait < 60f; wait += 0.2f)
+                    yield return new WaitForSeconds(0.2f);
+                Debug.Log($"[Autoplay] {_session.JoinedCount} player(s) joined");
             }
 
             if (carry != null)

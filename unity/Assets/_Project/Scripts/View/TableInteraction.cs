@@ -159,6 +159,9 @@ namespace TableWorld.View
         /// <summary>Tab + click: a ping at a world point.</summary>
         public event Action<Vector3> Pinged;
 
+        /// <summary>The local player picked something up (for its sound).</summary>
+        public event Action<ObjectView> PickedUp;
+
         public void Configure(TableView table, Camera camera, TableCamera tableCamera)
         {
             _table = table;
@@ -563,6 +566,7 @@ namespace TableWorld.View
                 view.transform.rotation = flat;
             }
             _table.ForgetRest(view.Id);
+            PickedUp?.Invoke(view);
             _held.Add(view);
             _offsets[view] = offset;
             view.Held = true;
