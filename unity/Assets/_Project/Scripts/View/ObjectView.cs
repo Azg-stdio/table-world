@@ -45,6 +45,22 @@ namespace TableWorld.View
         /// <summary>True for a card in someone else's hand: its face shows the back, and its name is not shown.</summary>
         public bool HideFace { get; internal set; }
 
+        /// <summary>Stands in a hand: kinematic, and its collider a trigger so it is still picked but never pushes anything.</summary>
+        internal void EnterHand()
+        {
+            InHand = true;
+            Body.isKinematic = true;
+            if (Collider != null)
+                Collider.isTrigger = true;
+        }
+
+        internal void LeaveHand()
+        {
+            InHand = false;
+            if (Collider != null)
+                Collider.isTrigger = false;
+        }
+
         internal void Rebind(TableObject model) => Model = model;
 
         /// <summary>Moves the GameObject to the state's pose. A resting height of 0 means "on the table": it is lifted to sit on it.</summary>

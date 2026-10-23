@@ -20,8 +20,8 @@ namespace TableWorld.Tests.PlayMode
         [UnitySetUp]
         public IEnumerator LoadUno()
         {
-            SceneManager.LoadScene("Table");
-            yield return null;
+            // Wait for the load to finish: right after LoadScene the previous test's table can still be found.
+            yield return SceneManager.LoadSceneAsync("Table");
             yield return null;
             _table = Object.FindAnyObjectByType<TableView>();
             _interaction = Object.FindAnyObjectByType<TableInteraction>();

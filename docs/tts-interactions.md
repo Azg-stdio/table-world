@@ -27,9 +27,10 @@ The list of player interactions Table World must reproduce, taken from Tabletop 
 | Interaction | TTS binding | Source | Status | Test |
 |---|---|---|---|---|
 | Pick up / drop | LMB press / release | KB:basic | ✅ | play, input |
-| Drop onto deck/card/bag joins it | release over it | unverified | ✅ | play |
+| Drop onto deck/card/bag joins it | release over it | unverified | ✅ (a card or deck covering ≥ 15 % of a card or deck joins it; anything covering ≥ 30 % of a bag goes in) | play |
+| Held objects lift, then hover above what is under them (Auto Raise, on by default in TTS) | automatic while holding | KB:menu | ✅ (a held object never sweeps its neighbours) | play |
 | Snap to snap points when dropped | release near point | KB:menu (Snap toggle) | ✅ | play |
-| Take top card by dragging a deck; move whole deck | drag; **unverified which is default in TTS** | unverified | ✅ (drag = take one, Shift+drag = whole deck) | play |
+| Take top card by dragging a deck; move whole deck | press and drag at once = take the top card/item; press and hold still ≈0.35 s = lift the whole deck or bag; click = select only | TTS (Miguel, 2026-10-23) | ✅ (Shift+drag also lifts the whole container) | input |
 | Box select | LMB drag on empty table, release highlights | KB:basic | ✅ | play, input |
 | Pick up a selection (all highlighted) | LMB on one of them | KB:basic | ✅ | play |
 | Add to held group | while holding, RMB over another object | KB:basic | ✅ | play |
@@ -119,3 +120,18 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 - **Conflicts we resolve on purpose:** TTS uses MMB *hold* to pan and MMB *click* to flip; we do the same (a click is a press-and-release without moving). Number keys draw over decks and switch states over objects with states (TTS does both). Shift+1…9 loads cameras; over a deck, plain digits draw.
 - **Q/E:** rotate the held object, otherwise the hovered object; turn the camera only when the pointer is over nothing.
 - Everything that changes the table goes through a core command (CLAUDE.md §3), so every row in sections 2–5 also works for an MCP agent and, later, over the network.
+
+## Physics behaviour (Table World failsafes, 2026-10-23)
+
+Measured by `PhysicsDropTests` (careless drops, the way people play). Each must come to rest within 1.5 s, at most 5 cm from where it was let go, flat (≤ 3°), on the table, with the state recording the rest pose:
+
+| Drop | Result |
+|---|---|
+| Still on felt / from 20 cm up | stops at once, flat |
+| Thrown fast / thrown at the rim | slides 4.5 cm, stops inside the rim (drags never leave the play area) |
+| Half on a card / ≥ 15 % on a deck | joins it (TTS) |
+| 8 % over a deck's edge, half on a die | laid flat beside it (two-stage lay-flat failsafe) |
+| On a hand zone's edge, sloppily into a hand with cards | joins the hand; standing hand cards are triggers, so nothing collides with them |
+| Mostly over a bag | goes into the bag |
+
+Also: overlapping bodies separate at ≤ 0.25 m/s instead of exploding apart; no object exceeds 3 m/s; anything that falls off or through the table is put back on it; a body that is nearly still for 0.25 s counts as resting (so a slow-creeping body is not left unrecorded); a body released, laid flat or teleported is always recorded when it rests, even if it falls asleep within one slow frame.

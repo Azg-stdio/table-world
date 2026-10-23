@@ -33,6 +33,14 @@ namespace TableWorld.View
         public const float NudgeRadius = 0.08f;
         public const float NudgeSpeed = 0.8f;
 
+        /// <summary>
+        /// TTS press timing on a deck or bag: drag right away to pull out its top item; press and keep still this long to
+        /// lift the whole container; release before either to just select it. Shift lifts the container at once.
+        /// </summary>
+        public const float HoldToLiftSeconds = 0.35f;
+
+        private ObjectView _pressedContainer;
+
         [SerializeField] private TableView _table;
         [SerializeField] private Camera _camera;
         [SerializeField] private TableCamera _tableCamera;
@@ -155,7 +163,10 @@ namespace TableWorld.View
                     else
                     {
                         ClearSelection();
-                        Grab(Hovered, moveContainer: shift);
+                        if (IsFullContainer(Hovered.Model) && !shift)
+                            _pressedContainer = Hovered;
+                        else
+                            Grab(Hovered, moveContainer: shift);
                     }
                 }
                 else
@@ -188,6 +199,16 @@ namespace TableWorld.View
                     _boxing = false;
                     BoxRect = null;
                 }
+            }
+
+            if (_pressedContainer != null)
+            {
+                if (!mouse.leftButton.isPressed)
+                    _pressedContainer = null;
+                else if (Vector2.Distance(pointer, _leftDown) > ClickMaxPixels)
+                    PressedContainerResolved(liftWhole: false);
+                else if (Time.unscaledTime - _leftTime >= HoldToLiftSeconds)
+                    PressedContainerResolved(liftWhole: true);
             }
 
             if (Held != null)
@@ -327,7 +348,17 @@ namespace TableWorld.View
             var primary = Held.Body;
             var height = _tapDown ? TapDownHeight : _holdHeight;
             var target = _target + Vector3.up * (height - HoldHeight);
-            var next = Vector3.Lerp(primary.position, target, 1f - Mathf.Exp(-FollowRate * Time.fixedDeltaTime));
+            // Auto raise (TTS): hover above whatever lies under the held object, never through it.
+            var halfHeight = Held.Renderer.bounds.extents.y;
+            var floor = HighestBelow(new Vector3(target.x, 0f, target.z), primary.position);
+            target.y = Mathf.Max(target.y, floor + halfHeight + (_tapDown ? 0.002f : AutoRaiseClearance));
+            // Lift before travelling: while it is still below its hover height it barely moves sideways, so a card
+            // picked up and dragged at once does not plough through its neighbours.
+            var k = 1f - Mathf.Exp(-FollowRate * Time.fixedDeltaTime);
+            var rising = primary.position.y < target.y - LiftFirstMargin;
+            var kSide = rising ? 1f - Mathf.Exp(-FollowRate * LiftFirstSideFactor * Time.fixedDeltaTime) : k;
+            var p0 = primary.position;
+            var next = new Vector3(Mathf.Lerp(p0.x, target.x, kSide), Mathf.Lerp(p0.y, target.y, k), Mathf.Lerp(p0.z, target.z, kSide));
             _velocity = (next - primary.position) / Time.fixedDeltaTime;
             foreach (var view in _held)
                 view.Body.MovePosition(next + _offsets[view]);
@@ -346,7 +377,43 @@ namespace TableWorld.View
             }
         }
 
+        /// <summary>Gap kept between a held object and the top of what is under it.</summary>
+        public const float AutoRaiseClearance = 0.012f;
+        /// <summary>While a held object is more than this below its hover height, it moves sideways at <see cref="LiftFirstSideFactor"/> speed.</summary>
+        public const float LiftFirstMargin = 0.006f;
+        public const float LiftFirstSideFactor = 0.12f;
+        private readonly RaycastHit[] _below = new RaycastHit[32];
+
+        /// <summary>Top of the highest thing (table, objects) under the held object's footprint at <paramref name="at"/>, ignoring what is held.</summary>
+        private float HighestBelow(Vector3 at, Vector3 heldPosition)
+        {
+            var extents = Held.Renderer.bounds.extents;
+            var top = 0f;
+            var origin = new Vector3(at.x, heldPosition.y + 0.5f, at.z);
+            var count = Physics.BoxCastNonAlloc(origin, new Vector3(extents.x, 0.0005f, extents.z), Vector3.down, _below, Quaternion.identity,
+                heldPosition.y + 1f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            for (var i = 0; i < count; i++)
+            {
+                var hit = _below[i];
+                if (hit.distance <= 0f || (hit.rigidbody != null && _held.Any(v => v.Body == hit.rigidbody)))
+                    continue;
+                top = Mathf.Max(top, hit.point.y);
+            }
+            return top;
+        }
+
         // ---- holding ----------------------------------------------------------------------------------------------
+
+        private static bool IsFullContainer(TableObject model) => model is Deck { Cards: { Count: > 0 } } || model is Bag;
+
+        /// <summary>The press on a deck or bag turned into a drag (take its top item) or a long hold (lift it whole).</summary>
+        private void PressedContainerResolved(bool liftWhole)
+        {
+            var container = _pressedContainer;
+            _pressedContainer = null;
+            if (container != null)
+                Grab(container, moveContainer: liftWhole);
+        }
 
         /// <summary>Starts holding <paramref name="view"/>, or one item taken out of it when it is a deck or bag.</summary>
         public bool Grab(ObjectView view, bool moveContainer)
@@ -422,9 +489,10 @@ namespace TableWorld.View
             if (view.InHand)
             {
                 // Out of the hand's standing pose: it is carried flat, as the state has it.
-                view.InHand = false;
+                view.LeaveHand();
                 view.transform.rotation = view.Model.Transform.Rotation.ToRotation();
             }
+            _table.ForgetRest(view.Id);
             _held.Add(view);
             _offsets[view] = offset;
             view.Held = true;
@@ -437,7 +505,7 @@ namespace TableWorld.View
             if (Held == null)
                 return;
             var halfHeight = Held.Renderer.bounds.extents.y;
-            _target = surfacePoint + Vector3.up * (HoldHeight + halfHeight);
+            _target = TableGeometry.ClampToDropArea(surfacePoint) + Vector3.up * (HoldHeight + halfHeight);
         }
 
         /// <summary>Tap down (RMB while holding): the held objects sink to the table while true.</summary>
@@ -498,6 +566,8 @@ namespace TableWorld.View
             if (joinBelow)
             {
                 var below = ObjectBelow(view);
+                if (below == null || !CanDropInto(view.Model, below.Model))
+                    below = MostOverlapped(view);
                 if (below != null && CanDropInto(view.Model, below.Model))
                 {
                     var insert = _table.Execute(new InsertCommand { ObjectId = view.Id, IntoId = below.Id, Actor = _table.LocalSeat });
@@ -523,6 +593,7 @@ namespace TableWorld.View
                 view.Body.linearVelocity = Vector3.ClampMagnitude(velocity, isDie ? MaxDieThrowSpeed : MaxThrowSpeed);
                 view.Body.angularVelocity = isDie ? spin : Vector3.zero;
                 view.Body.WakeUp();
+                _table.ReportWhenResting(view);
             }
         }
 
@@ -692,6 +763,8 @@ namespace TableWorld.View
                 }
                 body.WakeUp();
             }
+            _table.ReportWhenResting(held);
+            _table.ReportWhenResting(target);
             return true;
         }
 
@@ -900,6 +973,48 @@ namespace TableWorld.View
         {
             var seat = _table.Engine.State.Players.Seats.FirstOrDefault(s => s.Id == _table.LocalSeat);
             return seat == null ? null : _table.Engine.State.Zones.FirstOrDefault(z => z.Id == seat.HandZone);
+        }
+
+        /// <summary>A card or deck released over at least this share of another card or deck joins it (TTS joins on any real overlap).</summary>
+        public const float JoinOverlap = 0.15f;
+
+        /// <summary>Anything released over at least this share of a bag goes into it (TTS).</summary>
+        public const float BagOverlap = 0.3f;
+
+        /// <summary>
+        /// What <paramref name="view"/> joins when released over it without its centre being above it: the card or deck it
+        /// covers at least <see cref="JoinOverlap"/> of (cards and decks only), or the bag it covers at least
+        /// <see cref="BagOverlap"/> of. The largest overlap wins.
+        /// </summary>
+        private ObjectView MostOverlapped(ObjectView view)
+        {
+            var mine = view.Collider.bounds;
+            var area = mine.size.x * mine.size.z;
+            var isCard = view.Model is Card || view.Model is Deck;
+            ObjectView best = null;
+            var bestShare = 0f;
+            foreach (var other in _table.Views.Values)
+            {
+                if (other == null || other == view || other.Held || other.InHand || other.Model.Locked && !(other.Model is Bag) ||
+                    !CanDropInto(view.Model, other.Model) || other.transform.position.y > view.transform.position.y)
+                    continue;
+                var threshold = other.Model is Bag ? BagOverlap : isCard && (other.Model is Card || other.Model is Deck) ? JoinOverlap : float.MaxValue;
+                if (threshold > 1f)
+                    continue;
+                var b = other.Collider.bounds;
+                var dx = Mathf.Min(mine.max.x, b.max.x) - Mathf.Max(mine.min.x, b.min.x);
+                var dz = Mathf.Min(mine.max.z, b.max.z) - Mathf.Max(mine.min.z, b.min.z);
+                if (dx <= 0f || dz <= 0f)
+                    continue;
+                // Measured against the smaller footprint, so a big object over a small bag counts too.
+                var share = dx * dz / Mathf.Min(area, b.size.x * b.size.z);
+                if (share >= threshold && share > bestShare)
+                {
+                    bestShare = share;
+                    best = other;
+                }
+            }
+            return best;
         }
 
         private ObjectView ObjectBelow(ObjectView view)

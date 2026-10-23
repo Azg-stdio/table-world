@@ -20,11 +20,11 @@ namespace TableWorld.Editor
         public const string ScenePath = "Assets/_Project/Scenes/Table.unity";
         public const string MaterialsFolder = "Assets/_Project/Art/Materials";
 
-        /// <summary>Playing surface in metres. The top of the table is Y = 0, as in core.</summary>
-        public static readonly Vector2 TableSize = new Vector2(1.6f, 1.0f);
-        public const float TableThickness = 0.04f;
-        public const float RimHeight = 0.02f;
-        public const float RimWidth = 0.04f;
+        /// <summary>Playing surface in metres (<see cref="TableWorld.View.TableGeometry"/>). The top of the table is Y = 0, as in core.</summary>
+        public static readonly Vector2 TableSize = TableWorld.View.TableGeometry.Size;
+        public const float TableThickness = TableWorld.View.TableGeometry.Thickness;
+        public const float RimHeight = TableWorld.View.TableGeometry.RimHeight;
+        public const float RimWidth = TableWorld.View.TableGeometry.RimWidth;
 
         [MenuItem("Table World/Build Table Scene")]
         public static void Build()

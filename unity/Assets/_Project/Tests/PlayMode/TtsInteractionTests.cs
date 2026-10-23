@@ -25,8 +25,8 @@ namespace TableWorld.Tests.PlayMode
         [UnitySetUp]
         public IEnumerator LoadTable()
         {
-            SceneManager.LoadScene("Table");
-            yield return null;
+            // Wait for the load to finish: right after LoadScene the previous test's table can still be found.
+            yield return SceneManager.LoadSceneAsync("Table");
             yield return null;
             _table = Object.FindAnyObjectByType<TableView>();
             _interaction = Object.FindAnyObjectByType<TableInteraction>();
@@ -128,14 +128,15 @@ namespace TableWorld.Tests.PlayMode
             _interaction.Grab(V("ace_spades"), false);
             Assert.IsTrue(_interaction.AddToHeld(V("king_hearts")));
             Assert.AreEqual(2, _interaction.HeldGroup.Count);
-            _interaction.DragTo(new Vector3(0.3f, 0f, 0.3f));
+            // Clear felt: at (0.3, 0.3) the king would land on the bag and, as in TTS, go into it.
+            _interaction.DragTo(new Vector3(0.25f, 0f, 0.15f));
             yield return new WaitForSeconds(0.4f);
             Assert.IsTrue(_interaction.DropLast());
             Assert.AreEqual(1, _interaction.HeldGroup.Count);
             _interaction.Release();
             yield return new WaitForSeconds(1.5f);
-            Assert.Greater(M("ace_spades").Transform.Position.Z, 0.2f);
-            Assert.Greater(M("king_hearts").Transform.Position.Z, 0.2f);
+            Assert.Greater(M("ace_spades").Transform.Position.Z, 0.1f);
+            Assert.Greater(M("king_hearts").Transform.Position.Z, 0.1f);
         }
 
         [UnityTest]

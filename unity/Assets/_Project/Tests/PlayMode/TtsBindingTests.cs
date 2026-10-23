@@ -37,8 +37,8 @@ namespace TableWorld.Tests.PlayMode
         [UnitySetUp]
         public IEnumerator LoadTable()
         {
-            SceneManager.LoadScene("Table");
-            yield return null;
+            // Wait for the load to finish: right after LoadScene the previous test's table can still be found.
+            yield return SceneManager.LoadSceneAsync("Table");
             yield return null;
             _table = Object.FindAnyObjectByType<TableView>();
             _interaction = Object.FindAnyObjectByType<TableInteraction>();
@@ -170,6 +170,44 @@ namespace TableWorld.Tests.PlayMode
             yield return null;
             Release(_keyboard.leftShiftKey);
             Assert.AreEqual("deck_up", _interaction.Held?.Id, "Shift + drag takes the whole deck");
+            Release(_mouse.leftButton);
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator PressOnADeck_DragTakesTheTopCard_HoldLiftsTheDeck_ClickOnlySelects()
+        {
+            var deck = (Deck)M("deck_main");
+            var count = deck.Cards.Count;
+            var at = ScreenOf("deck_main");
+
+            // Click: nothing is taken or lifted.
+            yield return Point(at);
+            Press(_mouse.leftButton);
+            yield return null;
+            Assert.IsNull(_interaction.Held, "a press alone does not take anything yet");
+            Release(_mouse.leftButton);
+            yield return null;
+            Assert.IsNull(_interaction.Held);
+            Assert.AreEqual(count, ((Deck)M("deck_main")).Cards.Count);
+            Assert.AreEqual("deck_main", _interaction.Selected?.Id);
+
+            // Press and keep still: the whole deck lifts.
+            Press(_mouse.leftButton);
+            yield return new WaitForSeconds(TableInteraction.HoldToLiftSeconds + 0.15f);
+            Assert.AreEqual("deck_main", _interaction.Held?.Id, "holding still lifts the deck");
+            Release(_mouse.leftButton);
+            yield return new WaitForSeconds(1f);
+
+            // Press and drag at once: the top card comes out.
+            yield return Point(ScreenOf("deck_main"));
+            Press(_mouse.leftButton);
+            yield return null;
+            yield return Point(ScreenOf("deck_main") + new Vector2(40f, 0f));
+            yield return null;
+            Assert.IsNotNull(_interaction.Held);
+            Assert.AreNotEqual("deck_main", _interaction.Held.Id, "dragging takes the top card");
+            Assert.AreEqual(count - 1, ((Deck)M("deck_main")).Cards.Count);
             Release(_mouse.leftButton);
             yield return null;
         }

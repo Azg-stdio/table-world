@@ -250,7 +250,7 @@ namespace TableWorld.View
                 {
                     if (view.InHand)
                     {
-                        view.InHand = false;
+                        view.LeaveHand();
                         view.Body.isKinematic = view.Model.Locked || view.Held;
                         view.SnapToState();
                     }
@@ -282,8 +282,7 @@ namespace TableWorld.View
             for (var i = 0; i < cards.Count; i++)
             {
                 var view = cards[i];
-                view.InHand = true;
-                view.Body.isKinematic = true;
+                view.EnterHand();
                 // Later cards sit a little closer to the owner, so overlapping cards never z-fight.
                 var local = new Vector3((i - (cards.Count - 1) / 2f) * step, 0f, -0.0015f * i);
                 var p = center + yaw * local;
@@ -338,10 +337,9 @@ namespace TableWorld.View
                 Checkpoint();
 
             var result = Router != null ? Router(command) : Game.Execute(command);
+            // A refused command is normal play (the HUD tells the player why through CommandExecuted), not a console warning.
             if (result.Ok)
                 Apply(result.Events);
-            else
-                Debug.LogWarning($"[TableView] {command.GetType().Name} rejected: {result.Error}");
             if (result.StateRestored)
             {
                 // A rules command failed midway and the engine rolled the table back: rebuild every view.
@@ -413,18 +411,20 @@ namespace TableWorld.View
                         _awakeSince.Remove(view.Id);
                     continue;
                 }
-                if (!view.Body.IsSleeping())
+                if (!IsResting(view))
                 {
                     if (!_awakeSince.TryGetValue(view.Id, out var since))
                         _awakeSince[view.Id] = Time.time;
                     else if (Time.time - since > ReportAwakeAfterSeconds)
                     {
-                        ReportPose(view);
+                        // Never asleep (jittering on a die, say): the same lay-flat failsafe as a body that came to rest.
+                        if (!LayFlat(view))
+                            ReportPose(view);
                         _awakeSince[view.Id] = Time.time;
                     }
                     continue;
                 }
-                if (_awakeSince.Remove(view.Id))
+                if (_awakeSince.Remove(view.Id) && !LayFlat(view))
                     ReportPose(view);
             }
         }
@@ -443,6 +443,7 @@ namespace TableWorld.View
         {
             if (Engine == null)
                 return;
+            ReturnLostObjects();
             var damping = Mathf.Exp(-DieSettleRate * Time.fixedDeltaTime);
             foreach (var view in _views.Values)
             {
@@ -468,6 +469,148 @@ namespace TableWorld.View
                 body.angularVelocity *= damping;
             }
         }
+
+        /// <summary>
+        /// Failsafe: an object that fell through or off the table (a solver glitch, a hard throw) is put back on the
+        /// surface above where it left, still, instead of being lost below the world.
+        /// </summary>
+        private void ReturnLostObjects()
+        {
+            foreach (var view in _views.Values)
+            {
+                if (view == null || view.Held || view.Animating || view.InHand || view.Body.isKinematic)
+                    continue;
+                var p = view.Body.position;
+                if (!TableGeometry.IsLost(p))
+                    continue;
+                var back = TableGeometry.ClampToDropArea(new Vector3(p.x, 0f, p.z)) + Vector3.up * (view.Renderer.bounds.extents.y + 0.01f);
+                view.Body.linearVelocity = Vector3.zero;
+                view.Body.angularVelocity = Vector3.zero;
+                view.Body.position = back;
+                view.transform.position = back;
+                view.Body.WakeUp();
+                ReportWhenResting(view);
+            }
+        }
+
+        /// <summary>Cards and decks that come to rest leaning more than this are laid flat once.</summary>
+        public const float MaxRestingTiltDegrees = 3f;
+        private readonly Dictionary<string, int> _laidFlat = new Dictionary<string, int>();
+
+        /// <summary>
+        /// Failsafe: a card or deck that settled propped on an edge (half on a deck, against a token) is laid flat, face
+        /// kept. First where it is, a little higher, so it can drop flat onto what it leans on; if it still ends up
+        /// tilted, it is slid clear of whatever holds it up and put flat on the felt. Then it is left alone.
+        /// </summary>
+        private bool LayFlat(ObjectView view)
+        {
+            if (!(view.Model is Card || view.Model is Deck))
+                return false;
+            var up = view.transform.up;
+            var tilt = Vector3.Angle(up, up.y >= 0f ? Vector3.up : Vector3.down);
+            if (tilt <= MaxRestingTiltDegrees)
+                return false;
+            _laidFlat.TryGetValue(view.Id, out var tries);
+            if (tries >= 2)
+                return false;
+            _laidFlat[view.Id] = tries + 1;
+
+            var forward = Vector3.ProjectOnPlane(view.transform.forward, Vector3.up);
+            if (forward.sqrMagnitude < 1e-6f)
+                forward = Vector3.forward;
+            var flat = Quaternion.LookRotation(forward.normalized, Vector3.up) * (up.y >= 0f ? Quaternion.identity : Quaternion.Euler(0f, 0f, 180f));
+            var position = view.Body.position + Vector3.up * 0.004f;
+            if (tries == 1)
+            {
+                view.transform.rotation = flat;
+                Physics.SyncTransforms();
+                position = ClearOfSupports(view, flat);
+            }
+            view.Body.rotation = flat;
+            view.Body.position = position;
+            view.transform.SetPositionAndRotation(position, flat);
+            view.Body.linearVelocity = Vector3.zero;
+            view.Body.angularVelocity = Vector3.zero;
+            view.Body.WakeUp();
+            ReportWhenResting(view);
+            return true;
+        }
+
+        /// <summary>Where <paramref name="view"/>, laid flat, rests on the felt without overlapping anything: pushed out along the shorter way.</summary>
+        private Vector3 ClearOfSupports(ObjectView view, Quaternion flat)
+        {
+            var half = view.Collider is BoxCollider box ? Vector3.Scale(box.size, view.transform.lossyScale) / 2f : view.Renderer.bounds.extents;
+            var position = new Vector3(view.Body.position.x, half.y + 0.001f, view.Body.position.z);
+            for (var pass = 0; pass < 4; pass++)
+            {
+                var overlaps = Physics.OverlapBox(position, half, flat, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+                var push = Vector3.zero;
+                foreach (var other in overlaps)
+                {
+                    if (other.attachedRigidbody == null || other.attachedRigidbody == view.Body)
+                        continue;
+                    var mine = new Bounds(position, Abs(flat * (half * 2f)));
+                    var theirs = other.bounds;
+                    var dx = Mathf.Min(mine.max.x, theirs.max.x) - Mathf.Max(mine.min.x, theirs.min.x);
+                    var dz = Mathf.Min(mine.max.z, theirs.max.z) - Mathf.Max(mine.min.z, theirs.min.z);
+                    if (dx <= 0f || dz <= 0f)
+                        continue;
+                    var away = position - theirs.center;
+                    var step = dx < dz ? new Vector3(Mathf.Sign(away.x) * (dx + 0.003f), 0f, 0f) : new Vector3(0f, 0f, Mathf.Sign(away.z) * (dz + 0.003f));
+                    if (step.sqrMagnitude > push.sqrMagnitude)
+                        push = step;
+                }
+                if (push == Vector3.zero)
+                    break;
+                position = TableGeometry.ClampToDropArea(position + push);
+            }
+            return position;
+        }
+
+        private static Vector3 Abs(Vector3 v) => new Vector3(Mathf.Abs(v.x), Mathf.Abs(v.y), Mathf.Abs(v.z));
+
+        /// <summary>A body counts as resting when asleep, or when it has barely moved for <see cref="StillSeconds"/>.</summary>
+        public const float StillSeconds = 0.25f;
+        public const float StillSpeed = 0.004f;
+        public const float StillSpin = 0.08f;
+        private readonly Dictionary<string, float> _stillSince = new Dictionary<string, float>();
+
+        /// <summary>
+        /// Asleep, or nearly still for a while: PhysX can take a long time to put a slowly creeping body to sleep, and
+        /// until then the state would not learn where the object is.
+        /// </summary>
+        private bool IsResting(ObjectView view)
+        {
+            if (view.Body.IsSleeping())
+            {
+                _stillSince.Remove(view.Id);
+                return true;
+            }
+            if (view.Body.linearVelocity.magnitude > StillSpeed || view.Body.angularVelocity.magnitude > StillSpin)
+            {
+                _stillSince.Remove(view.Id);
+                return false;
+            }
+            if (!_stillSince.TryGetValue(view.Id, out var since))
+            {
+                _stillSince[view.Id] = Time.time;
+                return false;
+            }
+            return Time.time - since >= StillSeconds;
+        }
+
+        /// <summary>
+        /// Reports <paramref name="view"/>'s pose when it next comes to rest, even if it falls asleep before a frame
+        /// sees it awake (a slow frame can drop, land and sleep a card within one frame's physics steps).
+        /// </summary>
+        public void ReportWhenResting(ObjectView view)
+        {
+            if (view != null && !_awakeSince.ContainsKey(view.Id))
+                _awakeSince[view.Id] = Time.time;
+        }
+
+        /// <summary>The player picked it up: a later rest may be laid flat again.</summary>
+        public void ForgetRest(string objectId) => _laidFlat.Remove(objectId);
 
         private static bool RestsOnFace(Meshes.DiceGeometry geometry, Quaternion rotation)
         {

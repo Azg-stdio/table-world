@@ -42,6 +42,26 @@ namespace TableWorld.View
             bounceCombine = PhysicsMaterialCombine.Maximum,
         };
 
+        /// <summary>Overlapping bodies (a spawn, a teleport) separate at most this fast instead of exploding apart.</summary>
+        public const float MaxDepenetrationSpeed = 0.25f;
+        /// <summary>No object ever moves faster than this, whatever the solver does.</summary>
+        public const float MaxLinearSpeed = 3f;
+        /// <summary>Cards and decks: a tossed card slides a few centimetres and stops, as on cloth.</summary>
+        public const float CardLinearDamping = 1.5f;
+        public const float CardAngularDamping = 3f;
+
+        private static PhysicsMaterial _cardMaterial;
+
+        /// <summary>Card stock on felt: no bounce, enough friction that cards do not glide.</summary>
+        private static PhysicsMaterial CardMaterial => _cardMaterial != null ? _cardMaterial : _cardMaterial = new PhysicsMaterial("Card")
+        {
+            bounciness = 0f,
+            dynamicFriction = 0.55f,
+            staticFriction = 0.7f,
+            bounceCombine = PhysicsMaterialCombine.Minimum,
+            frictionCombine = PhysicsMaterialCombine.Maximum,
+        };
+
         public static ObjectView Create(TableObject model, AssetLibrary assets, Transform parent)
         {
             var root = new GameObject($"{model.Type} {model.Id}");
@@ -61,6 +81,8 @@ namespace TableWorld.View
             var body = root.AddComponent<Rigidbody>();
             body.interpolation = RigidbodyInterpolation.Interpolate;
             body.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+            body.maxDepenetrationVelocity = MaxDepenetrationSpeed;
+            body.maxLinearVelocity = MaxLinearSpeed;
 
             var view = root.AddComponent<ObjectView>();
             view.Init(model, visual, filter, renderer, body);
@@ -150,6 +172,7 @@ namespace TableWorld.View
             var faceIndex = view.HideFace ? card.BackIndex : card.FaceIndex;
             SetPrism(view, mesh, assets.ImageMaterial(faceAsset, Ivory), assets.ImageMaterial(card.BackAsset, Ivory), assets.Plain(CardEdge), CardMass);
             SetCell(view, MeshFactory.TopSubmesh, assets.CellScaleOffset(faceAsset, faceIndex));
+            UseCardPhysics(view);
             SetCell(view, MeshFactory.BottomSubmesh, assets.CellScaleOffset(card.BackAsset, card.BackIndex));
         }
 
@@ -166,6 +189,7 @@ namespace TableWorld.View
             {
                 // An empty deck stays as a drop target: invisible, kinematic, its collider a trigger.
                 SetPrism(view, mesh, assets.Plain(Ivory), assets.Plain(Ivory), assets.Plain(Ivory), CardMass);
+                UseCardPhysics(view);
                 view.Renderer.enabled = false;
                 view.Collider.isTrigger = true;
                 return;
@@ -177,6 +201,7 @@ namespace TableWorld.View
             var backAsset = backSideCard.BackAsset ?? deck.BackAsset;
             var backIndex = backSideCard.BackIndex ?? deck.BackIndex;
             SetPrism(view, mesh, assets.ImageMaterial(faceAsset, Ivory), assets.ImageMaterial(backAsset, Ivory), assets.Plain(CardEdge), CardMass * count);
+            UseCardPhysics(view);
             view.Renderer.enabled = true;
             view.Collider.isTrigger = false;
             SetCell(view, MeshFactory.TopSubmesh, assets.CellScaleOffset(faceAsset, faceSideCard.FaceIndex));
@@ -216,6 +241,13 @@ namespace TableWorld.View
             if (assets.Find(id) == null)
                 assets.Register(new Asset { Id = id, Type = AssetType.Image, Path = "builtin:dice_numbers", Columns = 5, Rows = 4 });
             return id;
+        }
+
+        private static void UseCardPhysics(ObjectView view)
+        {
+            view.Collider.sharedMaterial = CardMaterial;
+            view.Body.linearDamping = CardLinearDamping;
+            view.Body.angularDamping = CardAngularDamping;
         }
 
         private static void SetPrism(ObjectView view, Mesh mesh, Material top, Material bottom, Material sides, float mass)
