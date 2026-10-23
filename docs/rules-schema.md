@@ -97,6 +97,19 @@ Every zone has `name`, `tags`, `transform`, `size` (box in m, default 0.1 on eac
 
 Roles (`host`, `player`, `spectator`) are runtime facts, not part of the game file.
 
+## Table commands (engine, T2.2)
+
+Physical interaction goes through `Core.Engine.TableEngine.Execute(Command)`; the Unity view never edits `TableState` itself. Commands: `Move`, `Take`, `Insert`, `Flip`, `Shuffle`, `Search`, `Deal`, `Lock`, `Group`, `Roll`. Rule effects (T4.x) are built on the same operations.
+
+- **Transactional:** a command is fully checked before anything changes; a failed command returns one `ValidationError` (field, code, message, suggestion) and leaves the state byte-identical.
+- **Deterministic:** all randomness (shuffle, roll) comes from a seeded PCG32 (`DeterministicRandom`, verified against the reference implementation). Same state + seed + commands → same hash. This is what lets the host be authoritative in M3 and lets tests replay sessions.
+- **Dice:** the engine picks the value; the view animates the roll and shows that face. Physics never decides a result.
+- **Decks:** a deck stays a deck at 0 or 1 cards (unlike TTS, which turns the last card into a loose card), so rules can keep referring to `deck_p1`. Flipping a deck reverses its order like a real deck. Cards joining a deck take the deck's orientation.
+- **New ids:** a card leaving a deck without an id becomes `<deckId>-<n>`; infinite-bag clones become `<templateId>-<n>`; decks formed from loose cards become `deck-<n>`. Always the first free `n`, so ids are deterministic too.
+- **Locked objects** cannot be moved, flipped, rolled, grouped or inserted, but you can still take from, shuffle, search and deal from a locked deck or bag (TTS behaviour).
+- **Deal** goes round robin from the top into each seat's `HandZone`, face up, laid out along the zone's local X; it stops early if the deck runs out.
+- **Events:** `ObjectAdded`, `ObjectRemoved`, `ObjectUpdated`, `ContainerChanged`, `Shuffled`, `DieRolled`, `Searched`. The view re-reads the object from the state on each event.
+
 ## Resources and variables
 
 ```jsonc

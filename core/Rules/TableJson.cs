@@ -95,6 +95,14 @@ namespace Core.Rules
         public static string Serialize(TableState state, bool indented = true) =>
             JsonConvert.SerializeObject(state, indented ? Formatting.Indented : Formatting.None, WriteSettings);
 
+        /// <summary>Deep copy of one object through its JSON form (used for InfiniteBag clones).</summary>
+        internal static T CloneObject<T>(T obj) where T : TableObject
+        {
+            var token = JToken.FromObject(obj, JsonSerializer.Create(WriteSettings));
+            var serializer = JsonSerializer.Create(new JsonSerializerSettings { ContractResolver = Resolver, Converters = CreateConverters() });
+            return (T)token.ToObject<TableObject>(serializer)!;
+        }
+
         /// <summary>Content hash of the canonical (compact) JSON: equal hashes mean equal tables.</summary>
         public static string Hash(TableState state)
         {

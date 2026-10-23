@@ -48,6 +48,15 @@ namespace Core.Rules
         public const string UnknownSeat = "unknown_seat";
         public const string UnknownZone = "unknown_zone";
         public const string UnknownObject = "unknown_object";
+
+        // Engine (command) errors.
+        public const string UnknownCommand = "unknown_command";
+        public const string ObjectLocked = "object_locked";
+        public const string NotOnTable = "not_on_table";
+        public const string WrongObjectType = "wrong_object_type";
+        public const string ContainerEmpty = "container_empty";
+        public const string InvalidTarget = "invalid_target";
+        public const string NoHandZone = "no_hand_zone";
     }
 
     internal static class Suggest
