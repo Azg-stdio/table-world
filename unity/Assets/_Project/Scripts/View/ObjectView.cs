@@ -45,6 +45,19 @@ namespace TableWorld.View
         /// <summary>True for a card in someone else's hand: its face shows the back, and its name is not shown.</summary>
         public bool HideFace { get; internal set; }
 
+        /// <summary>
+        /// True while the object lies in a hidden zone this machine's player may not see into (G17): it is not drawn and
+        /// cannot be pointed at, hovered or box selected. Physics still runs, so the table stays the same for everyone.
+        /// </summary>
+        public bool ZoneHidden { get; private set; }
+
+        internal void SetZoneHidden(bool hidden)
+        {
+            ZoneHidden = hidden;
+            foreach (var renderer in GetComponentsInChildren<Renderer>(true))
+                renderer.forceRenderingOff = hidden;
+        }
+
         /// <summary>Set by <see cref="TableView"/>: called when this object hits something hard enough to be heard.</summary>
         internal System.Action<ObjectView, float> ImpactHandler;
 

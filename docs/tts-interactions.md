@@ -138,7 +138,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G14 | Token / chip stacks | same tokens stack into a counted stack, drag one off | tokens are separate | P2 |
 | G15 | Blindfold, peek alert | B blindfolds; others see "X peeked" | ⏭ (needs G2/G11) | P3 |
 | G16 | Toggles | Snap, Grid, Auto Raise, Sticky, Hands, Hide Face Down, Tooltip per object | Lock only | P3 |
-| G17 | Hidden zones that hide | contents invisible to everyone but the zone's owner | zones exist in the model; nothing is hidden | P1 |
+| G17 | Hidden zones that hide | contents invisible to everyone but the zone's owner | ✅ seats the zone does not list see an opaque block tinted toward the seeing seat's colour; objects inside are not drawn and cannot be hovered or box selected; `host` in `visibleTo` means the hosting machine (2026-10-23). Clients still receive the hidden objects' data (as in TTS): honest play, not anti-cheat | P1 |
 | G18 | Randomize, layout, fog-of-war zones | shuffle what is inside; auto-arrange contents; fog that players reveal | not implemented | P2 |
 | G19 | Physics modes | host sets full, semi-lock (nothing topples) or locked | full only | P1 |
 | G20 | Several dice at once | select dice, R rolls them all | ✅ R (or the menu's "Roll N selected dice") rolls every selected or held die together, one throw sound, status line lists each value and the total (2026-10-23) | P1 |

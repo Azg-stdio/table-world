@@ -155,6 +155,7 @@ namespace TableWorld.View.Net
                     ["order"] = _session.Host?.Order ?? -1,
                     ["performed"] = Performed,
                     ["objects"] = state.Objects.Count,
+                    ["zoneHidden"] = new JArray(_table.Views.Values.Where(v => v != null && v.ZoneHidden).Select(v => v.Id).OrderBy(id => id)),
                     ["game"] = state.Session == null ? null : $"turn {state.Session.Turn}, phase {state.Session.Phase}, over {state.Session.Over}, winner {state.Session.Winner ?? "-"}",
                     ["images"] = images.Count,
                     ["imagesShown"] = images.Count(a => _table.Assets.Texture(a.Id) != null),

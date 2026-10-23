@@ -135,5 +135,23 @@ namespace Core.Tests.Engine
             Assert.False(engine.IsHiddenFrom("locked_die", null));
             Assert.False(engine.IsHiddenFrom("loose", "seat_2"));
         }
+
+        [Fact]
+        public void HiddenZoneHiding_DependsOnSeatAndOnHosting_AndIgnoresHands()
+        {
+            var state = TableJson.Parse(EngineFixture.Json).State!;
+            state.Zones.Add(new HiddenZone { Id = "secret", Size = new Vec3(0.1f, 0.1f, 0.1f), VisibleTo = { "seat_2", "host" } });
+            state.Objects.Single(o => o.Id == "d6").Transform.Position = InHand1;
+            var engine = new TableEngine(state, 1);
+
+            Assert.Equal("secret", engine.HiddenZoneHiding("locked_die", "seat_1", host: false)?.Id);
+            Assert.Null(engine.HiddenZoneHiding("locked_die", "seat_2", host: false));
+            Assert.Null(engine.HiddenZoneHiding("locked_die", "seat_1", host: true));
+            Assert.Null(engine.HiddenZoneHiding("d6", "seat_2", host: false));   // in seat_1's hand: shown as backs, not hidden
+            Assert.Null(engine.HiddenZoneHiding("loose", "seat_1", host: false));
+
+            engine.Execute(new MoveCommand { ObjectId = "loose", Position = new Vec3(0f, 0f, 0f) });
+            Assert.Equal("secret", engine.HiddenZoneHiding("loose", "seat_1", host: false)?.Id);
+        }
     }
 }

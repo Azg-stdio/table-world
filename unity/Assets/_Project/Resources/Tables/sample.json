@@ -874,6 +874,25 @@
      -0.25
     ]
    }
+  },
+  {
+   "id": "secret_card",
+   "type": "Card",
+   "name": "Ace of hearts",
+   "faceAsset": "std_deck",
+   "faceIndex": 26,
+   "backAsset": "std_back",
+   "transform": {
+    "position": [
+     -0.6,
+     0,
+     0.15
+    ]
+   },
+   "meta": {
+    "rank": 14,
+    "suit": "hearts"
+   }
   }
  ],
  "zones": [
@@ -926,6 +945,26 @@
      0.1
     ]
    }
+  },
+  {
+   "id": "north_secret",
+   "type": "HiddenZone",
+   "name": "North's secret area",
+   "visibleTo": [
+    "seat_north"
+   ],
+   "transform": {
+    "position": [
+     -0.6,
+     0.05,
+     0.15
+    ]
+   },
+   "size": [
+    0.16,
+    0.1,
+    0.2
+   ]
   }
  ],
  "players": {

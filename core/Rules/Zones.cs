@@ -35,6 +35,10 @@ namespace Core.Rules
     public sealed class HiddenZone : Zone
     {
         public List<string> VisibleTo { get; set; } = new List<string>();
+
+        /// <summary>True when a viewer sitting at <paramref name="seat"/> (and hosting, if <paramref name="host"/>) sees inside.</summary>
+        public bool Reveals(string? seat, bool host) =>
+            (seat != null && VisibleTo.Contains(seat)) || (host && VisibleTo.Contains("host"));
     }
 
     /// <summary>Invisible trigger volume; fires enter/leave events for rules and scripts.</summary>

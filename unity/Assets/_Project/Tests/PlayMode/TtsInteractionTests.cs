@@ -192,6 +192,40 @@ namespace TableWorld.Tests.PlayMode
             }
         }
 
+        [UnityTest]
+        public IEnumerator HiddenZone_HidesItsContentsFromSeatsItDoesNotList()
+        {
+            // The sample's north_secret zone is visible to seat_north only; solo play sits at seat_south.
+            var secret = V("secret_card");
+            var fog = GameObject.Find("HiddenZone north_secret").transform.Find(ZoneViewFactory.FogName).gameObject;
+            Assert.AreEqual("seat_south", _table.LocalSeat);
+            Assert.IsTrue(secret.ZoneHidden);
+            Assert.IsTrue(secret.GetComponentsInChildren<Renderer>().All(r => r.forceRenderingOff), "not drawn");
+            Assert.IsTrue(fog.activeSelf, "the fog covers the zone");
+            _interaction.SelectInScreenRect(new Rect(0, 0, Screen.width, Screen.height));
+            CollectionAssert.DoesNotContain(_interaction.Selection.ToList(), secret, "cannot be box selected");
+            _interaction.ClearSelection();
+
+            // Anything moved in disappears too.
+            Assert.IsTrue(_table.Execute(new MoveCommand { ObjectId = "ace_spades", Position = new Core.Rules.Vec3(-0.62f, 0.01f, 0.12f) }).Ok);
+            yield return null;
+            Assert.IsTrue(V("ace_spades").ZoneHidden);
+
+            // The seat it lists sees inside, with no fog.
+            _table.SeatOverride = "seat_north";
+            yield return null;
+            Assert.IsFalse(secret.ZoneHidden);
+            Assert.IsFalse(secret.GetComponentsInChildren<Renderer>().Any(r => r.forceRenderingOff));
+            Assert.IsFalse(fog.activeSelf);
+
+            // Taken out again, it shows for everyone.
+            _table.SeatOverride = null;
+            Assert.IsTrue(_table.Execute(new MoveCommand { ObjectId = "ace_spades", Position = new Core.Rules.Vec3(-0.3f, 0.01f, -0.12f) }).Ok);
+            yield return null;
+            Assert.IsFalse(V("ace_spades").ZoneHidden);
+            Assert.IsTrue(secret.ZoneHidden);
+        }
+
         // ---- 3. looking ----
 
         [UnityTest]

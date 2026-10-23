@@ -179,6 +179,12 @@ namespace TableWorld.View
 
         public bool Networked => Router != null;
 
+        /// <summary>
+        /// True on the machine that hosts the table (solo play too); false on a network client. Hidden zones that list
+        /// <c>host</c> reveal their contents only here.
+        /// </summary>
+        public bool HostsTable { get; set; } = true;
+
         /// <summary>Raised with a sentence for the player, e.g. why the rules refused a gesture.</summary>
         public event Action<string> Notice;
 
@@ -250,6 +256,8 @@ namespace TableWorld.View
         /// <summary>Hand cards glide to their places at this rate (about 0.15 s).</summary>
         public const float HandMotionRate = 22f;
         private string _presentedSeat;
+        private bool _presentedHosting = true;
+        private readonly List<(HiddenZone Zone, GameObject Fog)> _fogs = new List<(HiddenZone, GameObject)>();
 
         /// <summary>
         /// Cards in a hand zone stand up at the table edge facing their owner, out of the physics simulation; the owner
@@ -261,10 +269,20 @@ namespace TableWorld.View
                 return;
             var viewer = LocalSeat;
             _presentedSeat = viewer;
+            _presentedHosting = HostsTable;
+            foreach (var fog in _fogs)
+                if (fog.Fog != null)
+                    fog.Fog.SetActive(!fog.Zone.Reveals(viewer, HostsTable));
             var hands = new Dictionary<HandZone, List<ObjectView>>();
             foreach (var view in _views.Values)
             {
-                if (view == null || !(view.Model is Card))
+                if (view == null)
+                    continue;
+                // Hidden zones (G17): what lies inside is not drawn for viewers the zone does not list.
+                var zoneHidden = !view.Held && Engine.HiddenZoneHiding(view.Id, viewer, HostsTable) != null;
+                if (zoneHidden != view.ZoneHidden)
+                    view.SetZoneHidden(zoneHidden);
+                if (!(view.Model is Card))
                     continue;
                 var hand = view.Held ? null : HandZoneOf(view.Id);
                 var hide = hand != null && hand.Owner != viewer;
@@ -443,7 +461,7 @@ namespace TableWorld.View
         {
             if (Engine == null)
                 return;
-            if (_presentedSeat != LocalSeat)
+            if (_presentedSeat != LocalSeat || _presentedHosting != HostsTable)
                 PresentHands();
             _scratch.Clear();
             _scratch.AddRange(_views.Values);
@@ -815,11 +833,20 @@ namespace TableWorld.View
             var seats = Engine.State.Players.Seats;
             foreach (var zone in Engine.State.Zones)
             {
-                var owner = zone is HandZone hand ? seats.FirstOrDefault(s => s.Id == hand.Owner) : null;
+                // A hand is drawn in its owner's colour, a hidden zone's fog in the colour of the first seat that sees into it.
+                var owner = zone switch
+                {
+                    HandZone hand => seats.FirstOrDefault(s => s.Id == hand.Owner),
+                    HiddenZone hidden => seats.FirstOrDefault(s => hidden.VisibleTo.Contains(s.Id)),
+                    _ => null,
+                };
                 var parent = ViewOf(zone.Parent)?.transform ?? (_objectsRoot != null ? _objectsRoot : transform);
                 var view = ZoneViewFactory.Create(zone, ZoneViewFactory.SeatColor(owner?.Color), Assets, parent);
-                if (view != null)
-                    _zoneViews.Add(view);
+                if (view == null)
+                    continue;
+                _zoneViews.Add(view);
+                if (zone is HiddenZone hiddenZone && view.transform.Find(ZoneViewFactory.FogName) is { } fog)
+                    _fogs.Add((hiddenZone, fog.gameObject));
             }
         }
 
@@ -836,6 +863,7 @@ namespace TableWorld.View
                     Destroy(zone);
                 }
             _zoneViews.Clear();
+            _fogs.Clear();
             foreach (var view in _views.Values)
                 if (view != null)
                 {

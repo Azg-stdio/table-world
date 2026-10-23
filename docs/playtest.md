@@ -75,6 +75,7 @@ Everything below already passes automated tests on one machine (two processes, s
 - [ ] Search a deck (right click → Search): the card grid is readable, and pressing a card and dragging it to the table feels natural.
 - [ ] Hovering a deck or bag shows how many cards or items it holds.
 - [ ] Rolling several dice at once (select or pick them up together, R) reads clearly for everyone.
+- [ ] Hidden zone (the sample table's dark block on the left belongs to the north seat): the north player sees the Ace of hearts inside, the south player sees only the block; dropping a card in hides it from the other seat.
 - [ ] Sounds: picking up, dropping, shuffling, rolling, dealing feel right and are not too loud or repetitive; friends' actions are heard too.
 
 **After the session**
@@ -85,3 +86,4 @@ Everything below already passes automated tests on one machine (two processes, s
 - Relay throughput was measured at about 200–240 KB/s per joining player, so custom games with large images take a while to arrive. Objects show plain colours until their image lands. The sample games use generated cards and need no download.
 - If the host quits, everyone else is disconnected; there is no host migration.
 - Undo/redo are off while playing online.
+- Hidden zones and other players' hands hide what is inside on screen, but every machine still receives the data (as in TTS): fine among friends, not a protection against cheating.

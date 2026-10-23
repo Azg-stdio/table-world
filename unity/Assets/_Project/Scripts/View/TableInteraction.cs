@@ -1139,7 +1139,7 @@ namespace TableWorld.View
             ClearSelection();
             foreach (var view in _table.Views.Values)
             {
-                if (view == null)
+                if (view == null || view.ZoneHidden)
                     continue;
                 var screen = _camera.WorldToScreenPoint(view.transform.position);
                 if (screen.z > 0 && rect.Contains(new Vector2(screen.x, screen.y)))
@@ -1295,7 +1295,7 @@ namespace TableWorld.View
             for (var i = 0; i < count; i++)
             {
                 var view = _hits[i].collider.GetComponentInParent<ObjectView>();
-                if (view == null || view == ignore || _held.Contains(view) || _hits[i].distance >= bestDistance)
+                if (view == null || view == ignore || _held.Contains(view) || view.ZoneHidden || _hits[i].distance >= bestDistance)
                     continue;
                 best = view;
                 bestDistance = _hits[i].distance;

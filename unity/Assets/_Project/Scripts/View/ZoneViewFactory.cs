@@ -6,7 +6,8 @@ namespace TableWorld.View
 {
     /// <summary>
     /// Flat markers for zones, drawn just above the felt and without colliders (they never block a grab or a drop):
-    /// hand zones as an outline in the seat colour, hidden zones as a grey outline, snap points as a small dark disc.
+    /// hand zones as an outline in the seat colour, hidden zones as an outline plus an opaque fog block (shown by
+    /// <see cref="TableView"/> to the players the zone hides from), snap points as a small dark disc.
     /// Scripting zones stay invisible, as in TTS. Zones with a parent object move with it.
     /// </summary>
     public static class ZoneViewFactory
@@ -16,6 +17,12 @@ namespace TableWorld.View
         public const float SnapRadius = 0.009f;
 
         private static readonly Color HiddenColor = new Color(0.25f, 0.25f, 0.28f);
+        private static readonly Color FogColor = new Color(0.16f, 0.17f, 0.19f);
+
+        /// <summary>Name of a hidden zone's fog child.</summary>
+        public const string FogName = "Fog";
+        /// <summary>The fog is at most this tall, so a tall zone does not wall off the table; taller contents are hidden by the view.</summary>
+        public const float MaxFogHeight = 0.08f;
         private static readonly Color SnapColor = new Color(0.05f, 0.16f, 0.11f);
 
         public static GameObject Create(Zone zone, Color seatColor, AssetLibrary assets, Transform parent)
@@ -37,6 +44,15 @@ namespace TableWorld.View
             }
 
             var color = zone is HandZone ? seatColor : HiddenColor;
+            if (zone is HiddenZone)
+            {
+                // TTS draws a hidden zone as a cloud in its owner's colour: here a dark block tinted toward that colour.
+                var fog = new GameObject(FogName);
+                fog.transform.SetParent(root.transform, false);
+                var size = new Vector3(zone.Size.X * t.Scale.X, Mathf.Min(zone.Size.Y * t.Scale.Y, MaxFogHeight), zone.Size.Z * t.Scale.Z);
+                AddPiece(fog, MeshFactory.Box(size), new Vector3(0f, size.y / 2f, 0f), assets.Plain(Color.Lerp(FogColor, seatColor, 0.18f), 0.05f));
+                color = Color.Lerp(HiddenColor, seatColor, 0.5f);
+            }
             var material = assets.Plain(color, 0.1f);
             var w = zone.Size.X * t.Scale.X;
             var d = zone.Size.Z * t.Scale.Z;

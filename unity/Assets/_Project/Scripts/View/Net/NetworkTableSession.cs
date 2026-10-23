@@ -249,6 +249,7 @@ namespace TableWorld.View.Net
                 _table.Router = null;
                 _table.SeatOverride = null;
                 _table.ReportsPoseOf = null;
+                _table.HostsTable = true;
             }
             Status = "offline";
         }
@@ -349,6 +350,7 @@ namespace TableWorld.View.Net
             _client.Applied += (command, result) => _table.ApplyRemote(command, result);
             _client.Refused += error => Debug.LogWarning($"[Net] The host refused a command: {error}");
             _table.Router = ClientRoute;
+            _table.HostsTable = false;
             _table.ReportsPoseOf = view => _touched.TryGetValue(view.Id, out var at) && Time.unscaledTime - at < TouchSeconds && !RemoteHeldRecently(view.Id);
             Status = "connected, waiting for the table";
         }

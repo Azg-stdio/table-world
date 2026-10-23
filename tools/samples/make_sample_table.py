@@ -60,11 +60,15 @@ table = {
         {"id": "board", "type": "Board", "size": [0.3, 0.2], **at(0.45, -0.05)},
         {"id": "hero", "type": "Figure", "name": "Hero", "tint": [0.6, 0.75, 0.95], **at(0.3, -0.25)},
         {"id": "statue", "type": "Model", "asset": "placeholder_model", **at(0.4, -0.25)},
+        loose_card("secret_card", 26, -0.6, 0.15),
     ],
     "zones": [
         {"id": "hand_south", "type": "HandZone", "owner": "seat_south", "transform": {"position": [0, 0.05, -0.42]}, "size": [0.6, 0.1, 0.12]},
         {"id": "hand_north", "type": "HandZone", "owner": "seat_north", "transform": {"position": [0, 0.05, 0.42], "rotation": [0, 180, 0]}, "size": [0.6, 0.1, 0.12]},
         {"id": "discard", "type": "SnapPoint", "transform": {"position": [-0.05, 0, 0.1]}},
+        # Only the north seat sees inside (the default south player sees fog).
+        {"id": "north_secret", "type": "HiddenZone", "name": "North's secret area", "visibleTo": ["seat_north"],
+         "transform": {"position": [-0.6, 0.05, 0.15]}, "size": [0.16, 0.1, 0.2]},
     ],
     "players": {"seats": [
         {"id": "seat_south", "color": "red", "handZone": "hand_south"},

@@ -80,11 +80,23 @@ namespace Core.Engine
                 {
                     case HandZone hand when hand.Owner != seat:
                         return true;
-                    case HiddenZone hidden when !(seat == null ? hidden.VisibleTo.Contains("host") : hidden.VisibleTo.Contains(seat)):
+                    case HiddenZone hidden when !hidden.Reveals(seat, host: seat == null):
                         return true;
                 }
             }
             return false;
+        }
+
+        /// <summary>
+        /// The hidden zone that keeps the object out of sight of a viewer at <paramref name="seat"/> (hosting when
+        /// <paramref name="host"/>), or null. Hand zones are not considered: the view shows their backs instead.
+        /// </summary>
+        public HiddenZone? HiddenZoneHiding(string objectId, string? seat, bool host)
+        {
+            foreach (var zoneId in ZonesOf(objectId))
+                if (State.Zones.FirstOrDefault(z => z.Id == zoneId) is HiddenZone hidden && !hidden.Reveals(seat, host))
+                    return hidden;
+            return null;
         }
 
         /// <summary>Objects inside a bag, top first.</summary>

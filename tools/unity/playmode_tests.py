@@ -81,8 +81,8 @@ def run(filter_text, timeout):
     cli("command", "editor.playmode", "set_run_in_background", "--enable", "true")
     cli("command", "console", "clear")
     args = ["command", "test", "run", "--mode", "PlayMode", "--async_tests", "true"]
-    if filter_text:
-        args += ["--filter", filter_text]
+    # Always pass a filter: without one the Test Runner may reuse the previous run's filter.
+    args += ["--filter", filter_text or "TableWorld.Tests"]
     started = time.time()
     print(f"[run] starting PlayMode tests{' matching ' + filter_text if filter_text else ''}")
     cli(*args)
