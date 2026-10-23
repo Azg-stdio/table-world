@@ -20,6 +20,8 @@ namespace TableWorld.View.Hud
 
         [SerializeField] private TableView _table;
         [SerializeField] private TableInteraction _interaction;
+        [SerializeField] private TableWorld.View.Net.NetworkTableSession _session;
+        private Label _netStatus;
 
         private VisualElement _root;
         private Label _turnLabel;
@@ -46,10 +48,11 @@ namespace TableWorld.View.Hud
         private string _shownSelectionHash;
         private TableEngine _shownEngine;
 
-        public void Configure(TableView table, TableInteraction interaction)
+        public void Configure(TableView table, TableInteraction interaction, TableWorld.View.Net.NetworkTableSession session = null)
         {
             _table = table;
             _interaction = interaction;
+            _session = session;
         }
 
         private void OnEnable()
@@ -75,6 +78,10 @@ namespace TableWorld.View.Hud
             }
 
             _root.Q<Button>("saveButton").clicked += Save;
+            _netStatus = _root.Q<Label>("netStatus");
+            var address = _root.Q<TextField>("netAddress");
+            _root.Q<Button>("hostButton").clicked += () => _session?.StartHost(Port(address.value));
+            _root.Q<Button>("joinButton").clicked += () => _session?.StartClient(Host(address.value), Port(address.value));
             _root.Q<Button>("loadButton").clicked += Load;
 
             if (_table != null)
@@ -113,6 +120,8 @@ namespace TableWorld.View.Hud
             }
             RefreshSelection();
             _overlay?.Update();
+            if (_netStatus != null && _session != null)
+                _netStatus.text = _session.Status == "offline" ? "" : _session.Status;
             if (Time.unscaledTime >= _nextGameRefresh)
             {
                 _nextGameRefresh = Time.unscaledTime + 0.25f;
@@ -280,6 +289,11 @@ namespace TableWorld.View.Hud
             _status.RemoveFromClassList(Hidden);
             _shownSelectionHash = null;
         }
+
+        private static string Host(string address) => address.Split(':')[0].Trim();
+
+        private static ushort Port(string address) =>
+            address.Contains(":") && ushort.TryParse(address.Split(':')[1], out var port) ? port : TableWorld.View.Net.NetworkTableSession.DefaultPort;
 
         private void Save()
         {

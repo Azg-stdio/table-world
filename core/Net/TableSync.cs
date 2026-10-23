@@ -63,6 +63,9 @@ namespace Core.Net
 
         public long Order => _order;
 
+        /// <summary>Raised for every command the host executed successfully, with who sent it (the host's view applies it).</summary>
+        public event Action<string, Command, CommandResult>? Executed;
+
         /// <summary>A peer joined (or asked to resync): send it the whole table.</summary>
         public Outgoing Snapshot(string clientId) => new Outgoing(clientId, new JObject
         {
@@ -105,6 +108,7 @@ namespace Core.Net
             if (!result.Ok)
                 return (result, new Outgoing(origin == HostId ? null : origin, Rejection(origin, clientSeq, result.Error!)));
             _order++;
+            Executed?.Invoke(origin, command, result);
             return (result, new Outgoing(null, new JObject
             {
                 ["kind"] = "order",

@@ -2,7 +2,10 @@
     "name": "TableWorld.Runtime",
     "rootNamespace": "TableWorld",
     "references": [
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "Unity.Netcode.Runtime",
+        "Unity.Networking.Transport",
+        "Unity.Collections"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -367,3 +367,19 @@
     color: rgb(240, 236, 226);
     font-size: 13px;
 }
+
+.net-address {
+    width: 150px;
+    margin-left: 8px;
+}
+
+.net-address .unity-base-text-field__input {
+    min-height: 22px;
+    padding: 2px 6px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    background-color: rgb(36, 40, 48);
+    color: rgb(240, 236, 226);
+    font-size: 13px;
+}

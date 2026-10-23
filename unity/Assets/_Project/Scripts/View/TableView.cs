@@ -125,9 +125,10 @@ namespace TableWorld.View
             _redo.Clear();
         }
 
-        public bool Undo() => Step(_undo, _redo);
+        /// <summary>Undo/redo replace the whole table, so they are local-only (not while networked).</summary>
+        public bool Undo() => !Networked && Step(_undo, _redo);
 
-        public bool Redo() => Step(_redo, _undo);
+        public bool Redo() => !Networked && Step(_redo, _undo);
 
         private bool Step(List<string> from, List<string> to)
         {
@@ -143,6 +144,43 @@ namespace TableWorld.View
 
         /// <summary>Raised after a table is loaded (the HUD rebuilds its seats).</summary>
         public event Action Loaded;
+
+        // ---- networking hooks (T3.2) --------------------------------------------------------------------------
+
+        /// <summary>When set (networked play), commands go through it instead of straight to <see cref="Game"/>.</summary>
+        public Func<Command, CommandResult> Router { get; set; }
+
+        /// <summary>When set, the seat this machine plays (a network client); otherwise hot seat.</summary>
+        public string SeatOverride { get; set; }
+
+        /// <summary>When set, physics poses are only reported for objects it accepts (a client reports what it touched).</summary>
+        public Func<ObjectView, bool> ReportsPoseOf { get; set; }
+
+        public bool Networked => Router != null;
+
+        /// <summary>Raised when the local player handles an object (grab, drop): a network client then owns its physics for a while.</summary>
+        public event Action<string> Touched;
+
+        public void NotifyTouched(string objectId) => Touched?.Invoke(objectId);
+
+        /// <summary>Shows another engine's table (a snapshot or a rebuilt prediction from the network).</summary>
+        public void Adopt(GameEngine game)
+        {
+            Clear();
+            Game = game;
+            Assets = new AssetLibrary(game.State.Assets, _packageRoot);
+            SpawnAll();
+            _undo.Clear();
+            _redo.Clear();
+            Loaded?.Invoke();
+        }
+
+        /// <summary>Applies the events of a command another peer performed (already executed on <see cref="Game"/>).</summary>
+        public void ApplyRemote(Command command, CommandResult result)
+        {
+            Apply(result.Events);
+            CommandExecuted?.Invoke(command, result);
+        }
 
         private void SpawnAll()
         {
@@ -189,7 +227,7 @@ namespace TableWorld.View
             if (!(command is MoveCommand && _reportingId != null))
                 Checkpoint();
 
-            var result = Game.Execute(command);
+            var result = Router != null ? Router(command) : Game.Execute(command);
             if (result.Ok)
                 Apply(result.Events);
             else
@@ -241,9 +279,9 @@ namespace TableWorld.View
         /// Seat that commands from this machine act as. Solo (hot seat): the seat whose turn it is during a game,
         /// otherwise the first seat. Multiplayer (M3) will pin it per client.
         /// </summary>
-        public string LocalSeat => Game?.Session is { Started: true, Over: false } session
+        public string LocalSeat => SeatOverride ?? (Game?.Session is { Started: true, Over: false } session
             ? session.CurrentSeat
-            : Engine?.State.Players.Seats.FirstOrDefault()?.Id;
+            : Engine?.State.Players.Seats.FirstOrDefault()?.Id);
 
         /// <summary>
         /// Physics moves free objects; the state learns their final pose here. When a body falls asleep (or has been
@@ -257,7 +295,7 @@ namespace TableWorld.View
             _scratch.AddRange(_views.Values);
             foreach (var view in _scratch)
             {
-                if (view == null || view.Held || view.Animating || view.Body.isKinematic)
+                if (view == null || view.Held || view.Animating || view.Body.isKinematic || (ReportsPoseOf != null && !ReportsPoseOf(view)))
                 {
                     if (view != null)
                         _awakeSince.Remove(view.Id);

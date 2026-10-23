@@ -404,6 +404,7 @@ namespace TableWorld.View
 
         private void Hold(ObjectView view, Vector3 offset)
         {
+            _table.NotifyTouched(view.Id);
             _held.Add(view);
             _offsets[view] = offset;
             view.Held = true;
@@ -466,6 +467,7 @@ namespace TableWorld.View
         private void ReleaseOne(ObjectView view, bool joinBelow, Vector3 velocity, Vector3 spin)
         {
             view.Held = false;
+            _table.NotifyTouched(view.Id);
             if (joinBelow)
             {
                 var below = ObjectBelow(view);

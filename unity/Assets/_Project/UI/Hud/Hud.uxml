@@ -20,6 +20,10 @@
         <ui:VisualElement name="topBar" class="top-bar">
             <ui:Label name="turnLabel" class="turn-label" text="Free play" />
             <ui:VisualElement name="seatList" class="seat-list" picking-mode="Ignore" />
+            <ui:Label name="netStatus" class="seat-name" />
+            <ui:TextField name="netAddress" class="net-address" value="127.0.0.1:7777" />
+            <ui:Button name="hostButton" class="hud-button" text="Host" />
+            <ui:Button name="joinButton" class="hud-button" text="Join" />
             <ui:Button name="saveButton" class="hud-button" text="Save (F5)" />
             <ui:Button name="loadButton" class="hud-button" text="Load (F9)" />
         </ui:VisualElement>

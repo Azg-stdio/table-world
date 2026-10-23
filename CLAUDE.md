@@ -185,6 +185,10 @@ dotnet build mcp-server -c Release
 dotnet mcp-server/bin/Release/net9.0/TableWorld.Mcp.dll --file games/my-game.json   # --no-bridge: headless only
 dotnet test mcp-server.tests          # contract tests: starts the server over stdio
 
+# Multiplayer (T3.2): build the player, then host in the Editor (HUD "Host") and join from the build, or script both:
+unity command build run --target StandaloneWindows64 --outputPath Builds/Win64/TableWorld.exe --scenes Assets/_Project/Scenes/Table.unity --confirm true
+unity/Builds/Win64/TableWorld.exe -tw-join 127.0.0.1:7777 -tw-autoplay 100 -tw-report out.json -tw-quit   # also: -tw-host [port]
+
 # Long simulations and generated files
 TW_GAMES=1000 dotnet test core.tests --filter GamePlayTests   # 1 000 random games of War and UNO
 TW_UPDATE_SCHEMA=1 dotnet test core.tests --filter SchemaFile # regenerate docs/rules-schema.v0.json

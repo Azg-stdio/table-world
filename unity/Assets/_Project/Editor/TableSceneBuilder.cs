@@ -44,6 +44,9 @@ namespace TableWorld.Editor
             var table = tableGo.AddComponent<TableView>();
             table.Configure("Tables/sample", objects.transform, seed: 0);
             tableGo.AddComponent<TableWorld.View.Bridge.BridgeClient>().Configure(table);
+            var session = tableGo.AddComponent<TableWorld.View.Net.NetworkTableSession>();
+            session.Configure(table);
+            tableGo.AddComponent<TableWorld.View.Net.NetworkAutoplay>().Configure(table, session);
             var interaction = tableGo.AddComponent<TableInteraction>();
             interaction.Configure(table, camera, camera.GetComponent<TableCamera>());
 
@@ -51,7 +54,7 @@ namespace TableWorld.Editor
             var document = hud.AddComponent<UIDocument>();
             document.panelSettings = HudBuilder.GetOrCreatePanelSettings();
             document.visualTreeAsset = HudBuilder.Hud;
-            hud.AddComponent<HudController>().Configure(table, interaction);
+            hud.AddComponent<HudController>().Configure(table, interaction, session);
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             AddToBuildSettingsFirst(ScenePath);
