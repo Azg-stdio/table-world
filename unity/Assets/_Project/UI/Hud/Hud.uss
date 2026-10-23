@@ -545,7 +545,7 @@
     height: 80%;
     padding: 14px 16px;
     border-radius: 6px;
-    background-color: rgba(18, 20, 26, 0.96);
+    background-color: rgb(18, 20, 26);
 }
 
 /* Title and button keep their size in the fixed-height panel; only the list gives way (and scrolls). */
@@ -751,4 +751,140 @@
     background-color: rgb(36, 40, 48);
     color: rgb(240, 236, 226);
     font-size: 15px;
+}
+
+/* Escape menu (G13): a short column of large buttons in the middle of the screen. */
+.escape-panel {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    width: 320px;
+    padding: 16px 18px;
+    border-radius: 6px;
+    background-color: rgba(18, 20, 26, 0.96);
+}
+
+.escape-title {
+    -unity-text-align: middle-center;
+    margin-bottom: 12px;
+}
+
+.escape-button {
+    margin: 0 0 8px 0;
+    -unity-text-align: middle-center;
+    padding: 8px 12px;
+    font-size: 17px;
+}
+
+.escape-confirm {
+    margin-top: 4px;
+    padding-top: 10px;
+    border-top-width: 1px;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.escape-confirm-row {
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+.escape-danger {
+    background-color: rgb(150, 52, 46);
+}
+
+.escape-danger:hover {
+    background-color: rgb(182, 66, 58);
+}
+
+/* Settings (G31): one row per setting, label on the left, control on the right. */
+.settings-panel {
+    width: 640px;
+}
+
+.settings-row {
+    flex-shrink: 0;
+    flex-direction: row;
+    align-items: center;
+    min-height: 34px;
+    padding: 2px 0;
+    border-bottom-width: 1px;
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+.settings-label {
+    flex-grow: 1;
+    font-size: 15px;
+    color: rgb(220, 216, 206);
+}
+
+.settings-slider {
+    width: 220px;
+    margin: 0 8px 0 0;
+}
+
+.settings-slider .unity-base-slider__tracker {
+    height: 4px;
+    margin-top: -2px;
+    border-width: 0;
+    border-radius: 2px;
+    background-color: rgba(255, 255, 255, 0.18);
+}
+
+.settings-slider .unity-base-slider__dragger {
+    width: 16px;
+    height: 16px;
+    margin-top: -8px;
+    border-width: 0;
+    border-radius: 8px;
+    background-color: rgb(242, 196, 82);
+}
+
+.settings-slider .unity-base-slider__dragger-border {
+    display: none;
+}
+
+.settings-value {
+    width: 56px;
+    font-size: 14px;
+    color: rgb(250, 214, 140);
+    -unity-text-align: middle-right;
+}
+
+.settings-step {
+    width: 30px;
+    margin: 0;
+    padding: 2px 0;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    background-color: rgb(46, 52, 62);
+    color: rgb(240, 236, 226);
+    font-size: 18px;
+    -unity-text-align: middle-center;
+}
+
+.settings-step:hover {
+    background-color: rgb(66, 76, 92);
+}
+
+.settings-choice {
+    width: 200px;
+    font-size: 14px;
+    color: rgb(250, 214, 140);
+    -unity-text-align: middle-center;
+}
+
+.settings-note {
+    flex-shrink: 0;
+    margin-top: 10px;
+    font-size: 13px;
+    color: rgb(150, 148, 140);
+    white-space: normal;
+}
+
+.settings-buttons {
+    flex-shrink: 0;
+    flex-direction: row;
+    justify-content: space-between;
 }

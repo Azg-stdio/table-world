@@ -27,6 +27,29 @@
                 <ui:ScrollView name="helpList" class="help-list" />
                 <ui:Button name="helpClose" class="hud-button help-close" text="Close (F1)" />
             </ui:VisualElement>
+            <ui:VisualElement name="escapePanel" class="escape-panel hidden">
+                <ui:Label class="help-title escape-title" text="Table World" />
+                <ui:Button name="escResume" class="hud-button escape-button" text="Resume" />
+                <ui:Button name="escSettings" class="hud-button escape-button" text="Settings" />
+                <ui:Button name="escControls" class="hud-button escape-button" text="Controls" />
+                <ui:Button name="escLeave" class="hud-button escape-button" text="Leave session" />
+                <ui:Button name="escQuit" class="hud-button escape-button" text="Quit to desktop" />
+                <ui:VisualElement name="escQuitConfirm" class="escape-confirm hidden">
+                    <ui:Label name="escQuitQuestion" class="selection-detail" text="Quit Table World?" />
+                    <ui:VisualElement class="escape-confirm-row">
+                        <ui:Button name="escQuitYes" class="hud-button escape-danger" text="Quit" />
+                        <ui:Button name="escQuitNo" class="hud-button" text="Cancel" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="settingsPanel" class="help-panel settings-panel hidden">
+                <ui:Label class="help-title" text="Settings" />
+                <ui:ScrollView name="settingsList" class="help-list" />
+                <ui:VisualElement class="settings-buttons">
+                    <ui:Button name="settingsReset" class="hud-button" text="Reset to defaults" />
+                    <ui:Button name="settingsBack" class="hud-button" text="Back (Esc)" />
+                </ui:VisualElement>
+            </ui:VisualElement>
             <ui:VisualElement name="contextMenu" class="context-menu hidden" />
         </ui:VisualElement>
         <ui:VisualElement name="topBar" class="top-bar">

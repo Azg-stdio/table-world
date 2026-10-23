@@ -126,7 +126,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G2 | Other players' pointers | each player's hand cursor, in their colour, with their name | ✅ marker in the seat colour plus a name label | P1 |
 | G3 | Who holds / selected what | outline in the holder's colour | ✅ for held objects (frame in the holder's colour; others cannot grab it: "seat_x is holding that"); others' box selections not shown yet | P1 |
 | G4 | Controls help | `?` / Help menu lists every binding | ✅ F1, `?` or the Controls button; grouped list of every binding (`ControlsHelp.cs`, keep in step with this file); Escape closes; the wheel scrolls it, not the camera (2026-10-23) | P1 |
-| G5 | Sound | pick up, drop, card slide, shuffle, dice, chips | ✅ Kenney CC0 packs: pickups by kind, landings from real impacts (louder for harder hits), shuffle, roll, deal, flip, ping; others' actions sound too; silent while a table settles after loading (2026-10-23). Volume setting comes with G13 | P1 |
+| G5 | Sound | pick up, drop, card slide, shuffle, dice, chips | ✅ Kenney CC0 packs: pickups by kind, landings from real impacts (louder for harder hits), shuffle, roll, deal, flip, ping; others' actions sound too; silent while a table settles after loading (2026-10-23). Volume in Settings (G13) | P1 |
 | G6 | Deck count | hovering a deck or bag shows how many items | ✅ "52 cards", "3 items", "endless" under the name (2026-10-23) | P1 |
 | G7 | Search shows cards | a grid of card faces, drag one out | ✅ grid of faces with names, top first; pressing a card picks it up so it follows the pointer (bag items as name tiles) | P1 |
 | G8 | Hand card close-up | hovering a card in your hand raises and enlarges it | ✅ hand bar (2026-10-23) | P1 |
@@ -134,7 +134,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G10 | Seats | click a colour to sit there, spectator, change seat | ✅ seat chips show who sits where (you, host, taken); click a free one to sit, Watch to spectate; the host decides (a taken seat is refused) and refuses a spectator's commands; solo, a click picks which seat you play (2026-10-23). Player names come with G23 | P2 |
 | G11 | Chat and game log | chat box, messages and rule messages scroll back | ✅ bottom-left chat: Enter opens it, Enter sends, Escape or a click away closes; closed, the last lines show for 12 s. Chat tab (messages, rolls, joins/leaves/seats, rules messages) and Log tab (plus every action: shuffled, dealt, flipped, took a card from…). The host stamps each sender (no speaking for another seat), cleans text, limits bursts and sends the last 100 lines to joiners; each machine words the log for its own seat, so a hidden or face-down card is only "a card". Keys type while chatting instead of acting (also in rename and address fields) (2026-10-23) | P2 |
 | G12 | Lighting | even light around the table | ✅ game night room: warm lamp over the table plus a fill light (2026-10-23) | P2 |
-| G13 | Escape menu | settings (mouse, volume, graphics), leave, quit | none | P2 |
+| G13 | Escape menu | settings (mouse, volume, graphics), leave, quit | ✅ Escape closes the topmost thing open (right-click menu, search, games, controls, settings) and, with nothing open, opens the menu: Resume, Settings, Controls, Leave session / Stop hosting (online only), Quit to desktop (asked again, warning a host's players) (2026-10-23) | P2 |
 | G14 | Token / chip stacks | same tokens stack into a counted stack, drag one off | tokens are separate | P2 |
 | G15 | Blindfold, peek alert | B blindfolds; others see "X peeked" | ⏭ (needs G2/G11) | P3 |
 | G16 | Toggles | Snap, Grid, Auto Raise, Sticky, Hands, Hide Face Down, Tooltip per object | Lock only | P3 |
@@ -152,7 +152,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G28 | Table tools | grid overlay and snapping, drawing, line/arrow, 3D text, decals, gizmo (precise move/rotate/scale), flick, joints | ping and measure only | P2 |
 | G29 | Tables and environment | table types, backgrounds, lighting tool | one table | P3 |
 | G30 | Saving | named saves, autosave, save objects to a chest | one quick save | P2 |
-| G31 | Settings | rebindable keys, mouse sensitivity, volume, graphics | none | P2 (with G13) |
+| G31 | Settings | rebindable keys, mouse sensitivity, volume, graphics | 🟡 master and table-sound volume, orbit / zoom / pan speed, invert orbit, window mode, resolution, VSync, frame limit, antialiasing (off, FXAA, SMAA), interface size; applied as they change, saved per machine in `settings.json` in the user data folder, clamped on load (2026-10-23). Rebindable keys still to do (needs a binding layer under the direct key reads) | P2 (with G13) |
 | G32 | Shaking a held bag or deck shuffles it | verify | no | P3 |
 | G33 | Protocol-level hidden information | hands and hidden zones are not sent to players who cannot see them | every client receives the whole table | P2 |
 | G34 | First person and physics characters | P toggles first person; characters (M6) | ⏭ M6 | — |

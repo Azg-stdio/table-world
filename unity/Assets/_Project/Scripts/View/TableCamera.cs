@@ -66,6 +66,12 @@ namespace TableWorld.View
         /// <summary>Set each frame by the interaction while the player types in the HUD: keys do not move the camera.</summary>
         public bool SuppressKeys { get; set; }
 
+        /// <summary>Player settings (G31): multipliers on the mouse orbit, wheel zoom and keyboard pan speeds, and an inverted orbit.</summary>
+        public float OrbitScale { get; set; } = 1f;
+        public float ZoomScale { get; set; } = 1f;
+        public float PanScale { get; set; } = 1f;
+        public bool InvertOrbitY { get; set; }
+
         public void Configure(Vector3 pivot, float yaw, float pitch, float distance, Vector2 pivotExtents)
         {
             _pivot = pivot;
@@ -163,13 +169,14 @@ namespace TableWorld.View
                     PanByPixels(delta);
                 else if (mouse.rightButton.isPressed)
                 {
-                    _yaw += delta.x * _orbitDegreesPerPixel;
-                    _pitch = Mathf.Clamp(_pitch - delta.y * _orbitDegreesPerPixel, _minPitch, _maxPitch);
+                    var degrees = _orbitDegreesPerPixel * OrbitScale;
+                    _yaw += delta.x * degrees;
+                    _pitch = Mathf.Clamp(_pitch - delta.y * degrees * (InvertOrbitY ? -1f : 1f), _minPitch, _maxPitch);
                 }
 
                 var scroll = mouse.scroll.ReadValue().y;
                 if (Mathf.Abs(scroll) > 0.01f && !SuppressWheel && (keyboard == null || !keyboard.altKey.isPressed))
-                    _distance = Mathf.Clamp(_distance * Mathf.Pow(1f - _zoomPerWheelStep, Mathf.Sign(scroll)), _minDistance, _maxDistance);
+                    _distance = Mathf.Clamp(_distance * Mathf.Pow(1f - Mathf.Min(0.6f, _zoomPerWheelStep * ZoomScale), Mathf.Sign(scroll)), _minDistance, _maxDistance);
             }
 
             if (keyboard != null && !keyboard.ctrlKey.isPressed && !SuppressKeys)
@@ -180,7 +187,7 @@ namespace TableWorld.View
                 if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed) move.x += 1;
                 if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed) move.x -= 1;
                 if (move != Vector2.zero)
-                    PanBy(move.normalized * (_keyPanSpeed * _distance * Time.unscaledDeltaTime));
+                    PanBy(move.normalized * (_keyPanSpeed * PanScale * _distance * Time.unscaledDeltaTime));
                 if (!SuppressTurnKeys && keyboard.qKey.isPressed) _yaw -= _keyTurnSpeed * Time.unscaledDeltaTime;
                 if (!SuppressTurnKeys && keyboard.eKey.isPressed) _yaw += _keyTurnSpeed * Time.unscaledDeltaTime;
             }

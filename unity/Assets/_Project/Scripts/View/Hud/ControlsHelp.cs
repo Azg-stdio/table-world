@@ -79,6 +79,7 @@ namespace TableWorld.View.Hud
                 ("Tab + click", "Ping"),
                 ("Tab + drag", "Measure"),
                 ("F1 or ?", "This list"),
+                ("Escape", "Close what is open; with nothing open, the menu (settings, leave, quit)"),
             }),
             ("Chat", new[]
             {
@@ -125,6 +126,8 @@ namespace TableWorld.View.Hud
             else
                 _panel?.RemoveFromClassList("hidden");
         }
+
+        public void Show() => _panel?.RemoveFromClassList("hidden");
 
         public void Hide() => _panel?.AddToClassList("hidden");
     }

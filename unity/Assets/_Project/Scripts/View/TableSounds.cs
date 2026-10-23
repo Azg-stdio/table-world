@@ -15,7 +15,7 @@ namespace TableWorld.View
     /// </summary>
     public sealed class TableSounds : MonoBehaviour
     {
-        /// <summary>Master volume for table sounds (settings will expose it, G13).</summary>
+        /// <summary>Volume of table sounds, set from the player settings (<see cref="Settings.GameSettings.TableVolume"/>).</summary>
         public static float Volume = 0.8f;
         public const int Voices = 12;
 

@@ -4,6 +4,7 @@ using System.Linq;
 using Core.Engine;
 using Core.Rules;
 using UnityEngine;
+using TableWorld.View.Settings;
 using UnityEngine.UIElements;
 
 namespace TableWorld.View.Hud
@@ -50,6 +51,11 @@ namespace TableWorld.View.Hud
         /// <summary>The controls list (F1, ?, or the Controls button).</summary>
         public ControlsHelp Help => _help;
         private ChatPanel _chat;
+        private EscapeMenu _escape;
+        private PanelSettings _sharedPanelSettings;
+
+        /// <summary>The Escape menu and settings (G13, G31).</summary>
+        public EscapeMenu Escape => _escape;
 
         /// <summary>Chat and game log, bottom left (Enter).</summary>
         public ChatPanel Chat => _chat;
@@ -73,7 +79,14 @@ namespace TableWorld.View.Hud
 
         private void OnEnable()
         {
-            _root = GetComponent<UIDocument>().rootVisualElement;
+            var document = GetComponent<UIDocument>();
+            // The interface size setting changes the panel's scaling: on a copy, so the shared asset never changes in play.
+            if (_sharedPanelSettings == null && document.panelSettings != null)
+            {
+                _sharedPanelSettings = document.panelSettings;
+                document.panelSettings = Instantiate(_sharedPanelSettings);
+            }
+            _root = document.rootVisualElement;
             _turnLabel = _root.Q<Label>("turnLabel");
             _seatList = _root.Q("seatList");
             _selectionPanel = _root.Q("selectionPanel");
@@ -96,6 +109,8 @@ namespace TableWorld.View.Hud
             }
             if (_table != null)
                 _chat = new ChatPanel(_root, _table, _session);
+            _escape = new EscapeMenu(_root, GameSettings.Load(GameSettings.DefaultPath), ApplySettings, _session, () => _help?.Show());
+            ApplySettings(_escape.Settings);
 
             _root.Q<Button>("saveButton").clicked += Save;
             _netStatus = _root.Q<Label>("netStatus");
@@ -183,16 +198,45 @@ namespace TableWorld.View.Hud
             }
         }
 
-        /// <summary>F1 or ? (Shift + /) toggles the controls list; Escape closes it.</summary>
-        private void HelpKeys()
+        /// <summary>
+        /// F1 or ? (Shift + /) toggles the controls list. Escape closes the topmost thing open (menu, search, games, controls,
+        /// settings), and opens the Escape menu when nothing is. The chat handles its own Escape while it has the keyboard.
+        /// </summary>
+        private void MenuKeys()
         {
             var keyboard = UnityEngine.InputSystem.Keyboard.current;
-            if (keyboard == null || _help == null || (_interaction != null && _interaction.IgnoreDevices) || TypingInUi())
+            if (keyboard == null || (_interaction != null && _interaction.IgnoreDevices) || TypingInUi())
                 return;
-            if (keyboard.f1Key.wasPressedThisFrame || (keyboard.slashKey.wasPressedThisFrame && keyboard.shiftKey.isPressed))
+            if (_help != null && (keyboard.f1Key.wasPressedThisFrame || (keyboard.slashKey.wasPressedThisFrame && keyboard.shiftKey.isPressed)))
                 _help.Toggle();
-            else if (keyboard.escapeKey.wasPressedThisFrame && _help.Visible)
+            else if (keyboard.escapeKey.wasPressedThisFrame)
+                PressEscape();
+        }
+
+        /// <summary>What Escape does (also called by tests).</summary>
+        public void PressEscape()
+        {
+            if (_overlay != null && _overlay.MenuOpen)
+                _overlay.CloseMenu();
+            else if (_overlay != null && _overlay.SearchOpen)
+                _overlay.CloseSearch();
+            else if (_gamesPanel != null && !_gamesPanel.ClassListContains(Hidden))
+                _gamesPanel.AddToClassList(Hidden);
+            else if (_help != null && _help.Visible)
                 _help.Hide();
+            else
+                _escape?.Back();
+        }
+
+        private void ApplySettings(GameSettings settings)
+        {
+            var camera = Camera.main != null ? Camera.main.GetComponent<TableCamera>() : null;
+            settings.Apply(camera);
+            var panel = GetComponent<UIDocument>().panelSettings;
+            if (panel != null && _sharedPanelSettings != null)
+                panel.referenceResolution = new Vector2Int(
+                    Mathf.RoundToInt(_sharedPanelSettings.referenceResolution.x / settings.UiScale),
+                    Mathf.RoundToInt(_sharedPanelSettings.referenceResolution.y / settings.UiScale));
         }
 
         private string _facedSeat;
@@ -254,7 +298,7 @@ namespace TableWorld.View.Hud
             RefreshSelection();
             _overlay?.Update();
             _handBar?.Update();
-            HelpKeys();
+            MenuKeys();
             _chat?.Update(TypingInUi() || (_interaction != null && _interaction.IgnoreDevices));
             UpdatePresenceLabels();
             if (_netStatus != null && _session != null)

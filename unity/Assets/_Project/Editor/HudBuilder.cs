@@ -103,7 +103,7 @@ namespace TableWorld.Editor
                 characters.Append((char)c);
             for (var c = 160; c < 256; c++)
                 characters.Append((char)c);
-            characters.Append("…–—‘’“”·×÷−±≈≠≤≥→←↑↓↔•●○✓✗°′″€");
+            characters.Append("…–—‘’“”·×÷−±≈≠≤≥→←↑↓↔•●○✓✗°′″€‹›");
             return characters.ToString();
         }
 
