@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    MCP server (stdio). Speaks board games, not Unity: an agent builds and plays a game through these tools.
+    Run: dotnet run (project mcp-server), optional argument: file path of the game document to open and autosave.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <AssemblyName>TableWorld.Mcp</AssemblyName>
+    <RootNamespace>TableWorld.Mcp</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" Version="2.3.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.13" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\core\Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The agent can read the format reference through get_rules_reference. -->
+    <EmbeddedResource Include="..\docs\rules-schema.md" LogicalName="rules-schema.md" />
+    <InternalsVisibleTo Include="TableWorld.Mcp.Tests" />
+  </ItemGroup>
+
+</Project>

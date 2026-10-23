@@ -179,4 +179,12 @@ unity doctor                 # diagnostics
 unity command script eval_file --file tools/unity-probes/ProbeBundles.cs --timeout 120   # read-only experiment
 ```
 
-(Update this section when `mcp-server/` exists.)
+# MCP server (stdio). An agent adds it with e.g.:
+#   claude mcp add table-world -- dotnet run --project <repo>/mcp-server -- --file <repo>/games/my-game.json
+dotnet run --project mcp-server -- --file games/my-game.json
+dotnet test mcp-server.tests          # contract tests: starts the server over stdio
+
+# Long simulations and generated files
+TW_GAMES=1000 dotnet test core.tests --filter GamePlayTests   # 1 000 random games of War and UNO
+TW_UPDATE_SCHEMA=1 dotnet test core.tests --filter SchemaFile # regenerate docs/rules-schema.v0.json
+python -I tools/samples/make_games.py                         # regenerate games/war.json, games/uno-lite.json

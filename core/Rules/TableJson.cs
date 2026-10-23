@@ -20,10 +20,18 @@ namespace Core.Rules
         public IReadOnlyList<ValidationError> Errors { get; }
         public bool Ok => State != null && Errors.Count == 0;
 
-        internal TableParseResult(TableState? state, IReadOnlyList<ValidationError> errors)
+        /// <summary>
+        /// True when the errors are about shape (bad JSON, unknown keys, kinds or types, wrong value types). Semantic checks
+        /// (references, ids, rules) only run on a well-shaped document, so a false value with errors means "well shaped but
+        /// incomplete or inconsistent".
+        /// </summary>
+        public bool Structural { get; }
+
+        internal TableParseResult(TableState? state, IReadOnlyList<ValidationError> errors, bool structural)
         {
             State = state;
             Errors = errors;
+            Structural = structural;
         }
     }
 
@@ -58,13 +66,13 @@ namespace Core.Rules
             catch (JsonReaderException e)
             {
                 errors.Add(new ValidationError(e.Path ?? "", ErrorCodes.InvalidJson, CleanMessage(e.Message)));
-                return new TableParseResult(null, errors);
+                return new TableParseResult(null, errors, structural: true);
             }
 
             if (root.Type != JTokenType.Object)
             {
                 errors.Add(new ValidationError("", ErrorCodes.InvalidJson, "The table document must be a JSON object."));
-                return new TableParseResult(null, errors);
+                return new TableParseResult(null, errors, structural: true);
             }
 
             KeyChecker.Check(root, typeof(TableState), errors);
@@ -90,9 +98,10 @@ namespace Core.Rules
             state.Zones.RemoveAll(z => z == null);
             state.Players.Seats.RemoveAll(s => s == null);
 
-            if (errors.Count == 0)
+            var structural = errors.Count > 0;
+            if (!structural)
                 errors.AddRange(TableValidator.Validate(state));
-            return new TableParseResult(state, errors);
+            return new TableParseResult(state, errors, structural);
         }
 
         public static string Serialize(TableState state, bool indented = true) =>
