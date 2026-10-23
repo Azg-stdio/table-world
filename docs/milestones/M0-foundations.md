@@ -24,7 +24,7 @@
 | T1.3 | Promote `docs/rules-schema.md` and `docs/tts-mapping.md` from v0 drafts to what `core/` will implement; verify the TTS unit constant and the deck top/bottom order against a local save | S | T1.1 | Both docs no longer say "draft"; "verify" notes resolved | done 2026-10-22 (card bounds measured in T8.1) |
 | T1.4 | CI: GitHub Actions on `windows-latest` + `ubuntu-latest`, `dotnet build` + `dotnet test` on push | S | T1.1 | Green run on `main` | in progress (workflow written; needs push for a green run on main) |
 | T1.5 | `analyze_mods.py --json docs/data/mods-<date>.json`; commit the 6-mod result | S | — | File in `docs/data/` | done 2026-10-22 |
-| T1.6 **human** + agent | Default asset kit: confirm everything is procedural for the MVP; later source CC0 packs into `unity/Assets/_Project/Art/ThirdParty/<pack>/` with `LICENSE.txt` | S | — | Decision recorded below | todo |
+| T1.6 **human** + agent | Default asset kit: confirm everything is procedural for the MVP; later source CC0 packs into `unity/Assets/_Project/Art/ThirdParty/<pack>/` with `LICENSE.txt` | S | — | Decision recorded below | done 2026-10-22 (all procedural for the MVP; CC0 sourcing after the playtest gate) |
 
 ## Asset kit decision (T1.6)
 
