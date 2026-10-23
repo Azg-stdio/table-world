@@ -4,7 +4,8 @@
     "references": [
         "TableWorld.Runtime",
         "Unity.RenderPipelines.Universal.Runtime",
-        "Unity.RenderPipelines.Core.Runtime"
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [
         "Editor"

@@ -30,6 +30,10 @@ namespace TableWorld.Editor
             EditorUtility.SetDirty(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TimeManager.asset")[0]);
             // A networked table must keep exchanging messages while its window is in the background.
             PlayerSettings.runInBackground = true;
+            // No project-wide input actions: the game reads Mouse/Keyboard directly and UI Toolkit falls back to the
+            // package's DefaultInputActions. The template asset Unity assigned left a stale action state on
+            // Mouse/position in the first Play session after each domain reload (hundreds of NullReferenceExceptions).
+            UnityEngine.InputSystem.InputSystem.actions = null;
 
             // Every URP asset (one per quality level) gets the short shadow distance so small objects cast crisp shadows.
             foreach (var guid in AssetDatabase.FindAssets("t:UniversalRenderPipelineAsset", new[] { "Assets/_Project/Settings" }))
