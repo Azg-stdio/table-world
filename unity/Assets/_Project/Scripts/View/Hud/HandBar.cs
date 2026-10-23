@@ -29,7 +29,7 @@ namespace TableWorld.View.Hud
         public const string CollapsedPref = "tw.hand.collapsed";
         private readonly TableView _table;
         private readonly TableInteraction _interaction;
-        private readonly Dictionary<(string Asset, int Index), Sprite> _sprites = new Dictionary<(string, int), Sprite>();
+        private readonly CardImages _images = new CardImages();
         private AssetLibrary _spritesFor;
         private string _shownKey;
 
@@ -109,11 +109,7 @@ namespace TableWorld.View.Hud
             if (key == _shownKey && _spritesFor == _table.Assets)
                 return;
             _shownKey = key;
-            if (_spritesFor != _table.Assets)
-            {
-                _sprites.Clear();
-                _spritesFor = _table.Assets;
-            }
+            _spritesFor = _table.Assets;
             Rebuild(cards, held);
         }
 
@@ -132,7 +128,7 @@ namespace TableWorld.View.Hud
                 var element = new VisualElement { name = "hand-" + card.Id };
                 element.AddToClassList("hand-card");
                 // Runtime card images (cells of a sprite sheet) can only be set from code.
-                if (FaceSprite(card) is { } sprite)
+                if (_images.Face(_table.Assets, card.FaceAsset, card.FaceIndex) is { } sprite)
                     element.style.backgroundImage = new StyleBackground(sprite);
                 element.style.left = i * step;
                 element.tooltip = card.Name;
@@ -172,21 +168,5 @@ namespace TableWorld.View.Hud
             return Mathf.InverseLerp(left, right, panelPoint.x);
         }
 
-        /// <summary>The card's face cell as a sprite (cached per asset and cell).</summary>
-        private Sprite FaceSprite(Card card)
-        {
-            var key = (card.FaceAsset, card.FaceIndex);
-            if (_sprites.TryGetValue(key, out var cached))
-                return cached;
-            var texture = _table.Assets?.Texture(card.FaceAsset);
-            if (texture == null)
-                return null;
-            var st = _table.Assets.CellScaleOffset(card.FaceAsset, card.FaceIndex);
-            var rect = new Rect(st.z * texture.width, st.w * texture.height, st.x * texture.width, st.y * texture.height);
-            var sprite = Sprite.Create(texture, rect, new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
-            sprite.name = $"{card.FaceAsset}#{card.FaceIndex}";
-            _sprites[key] = sprite;
-            return sprite;
-        }
     }
 }

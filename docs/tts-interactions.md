@@ -127,8 +127,8 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G3 | Who holds / selected what | outline in the holder's colour | ✅ for held objects (frame in the holder's colour; others cannot grab it: "seat_x is holding that"); others' box selections not shown yet | P1 |
 | G4 | Controls help | `?` / Help menu lists every binding | ✅ F1, `?` or the Controls button; grouped list of every binding (`ControlsHelp.cs`, keep in step with this file); Escape closes; the wheel scrolls it, not the camera (2026-10-23) | P1 |
 | G5 | Sound | pick up, drop, card slide, shuffle, dice, chips | silent | P1 |
-| G6 | Deck count | hovering a deck or bag shows how many items | tooltip shows only the name | P1 |
-| G7 | Search shows cards | a grid of card faces, drag one out | a text list with Take buttons | P1 |
+| G6 | Deck count | hovering a deck or bag shows how many items | ✅ "52 cards", "3 items", "endless" under the name (2026-10-23) | P1 |
+| G7 | Search shows cards | a grid of card faces, drag one out | ✅ grid of faces with names, top first; pressing a card picks it up so it follows the pointer (bag items as name tiles) | P1 |
 | G8 | Hand card close-up | hovering a card in your hand raises and enlarges it | ✅ hand bar (2026-10-23) | P1 |
 | G9 | Motion | flips, draws and deals animate | they snap | P2 |
 | G10 | Seats | click a colour to sit there, spectator, change seat | assigned in join order | P2 |

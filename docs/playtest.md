@@ -72,6 +72,8 @@ Everything below already passes automated tests on one machine (two processes, s
 - [ ] Throwing dice feels right and they settle flat.
 - [ ] The room and light: cards look white, text is readable, nothing too dark.
 - [ ] The controls list (F1) explains what people try to do.
+- [ ] Search a deck (right click → Search): the card grid is readable, and pressing a card and dragging it to the table feels natural.
+- [ ] Hovering a deck or bag shows how many cards or items it holds.
 
 **After the session**
 - [ ] Each person sends their `Player.log` if anything broke (path below).

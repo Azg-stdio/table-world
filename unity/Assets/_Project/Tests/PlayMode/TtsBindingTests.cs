@@ -448,6 +448,16 @@ namespace TableWorld.Tests.PlayMode
             yield return new WaitForSeconds(TableOverlay.TooltipNameSeconds + 0.2f);
             Assert.AreEqual("ace_spades", _interaction.TooltipView?.Id);
             Assert.Greater(_interaction.TooltipSeconds, TableOverlay.TooltipNameSeconds);
+
+            // Decks and bags show how much they hold (TTS).
+            var deck = (Deck)M("deck_main");
+            yield return Point(ScreenOf("deck_main"));
+            yield return new WaitForSeconds(TableOverlay.TooltipNameSeconds + 0.2f);
+            var root = Object.FindAnyObjectByType<HudController>().GetComponent<UIDocument>().rootVisualElement;
+            StringAssert.EndsWith($"{deck.Cards.Count} cards", root.Q<Label>("tooltip").text);
+            Assert.IsFalse(root.Q<Label>("tooltip").ClassListContains("hidden"));
+            StringAssert.EndsWith("3 items", TableOverlay.TooltipText(_table.ViewOf("bag"), _table.Engine));
+            StringAssert.EndsWith("endless", TableOverlay.TooltipText(_table.ViewOf("coin_supply"), _table.Engine));
         }
 
         [UnityTest]

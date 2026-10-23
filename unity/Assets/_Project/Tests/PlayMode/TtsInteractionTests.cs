@@ -7,6 +7,7 @@ using TableWorld.View;
 using TableWorld.View.Hud;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 using UnityEngine.TestTools;
 
 namespace TableWorld.Tests.PlayMode
@@ -273,6 +274,33 @@ namespace TableWorld.Tests.PlayMode
             Open(); _overlay.Choose("Delete (Del)");
             Assert.IsNull(M("deck_main"));
             yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator Search_ShowsCardFaces_AndDraggingOneOutPicksItUp()
+        {
+            var deck = (Deck)M("deck_main");
+            var count = deck.Cards.Count;
+            _overlay.OpenSearch(V("deck_main"));
+            var root = Object.FindAnyObjectByType<HudController>().GetComponent<UIDocument>().rootVisualElement;
+            var cells = root.Query(className: "search-card").ToList();
+            Assert.AreEqual(count, cells.Count, "one cell per card");
+            Assert.IsTrue(cells.All(c => c.Q(className: "search-card-image").style.backgroundImage.value.sprite != null), "every cell shows its card face");
+
+            // The fifth card: taken out and held, so it follows the pointer onto the table.
+            var fifth = deck.Cards[4];
+            var held = _overlay.DragOutOfSearch(V("deck_main"), fifth.Id, 4);
+            Assert.IsNotNull(held);
+            Assert.AreEqual(held, _interaction.Held);
+            Assert.AreEqual(fifth.FaceIndex, ((Card)held.Model).FaceIndex, "the card chosen is the card taken");
+            Assert.AreEqual(count - 1, ((Deck)M("deck_main")).Cards.Count);
+            Assert.AreEqual(count - 1, root.Query(className: "search-card").ToList().Count, "the window shows what is left");
+            _interaction.DragTo(new Vector3(0.2f, 0f, 0.1f));
+            yield return new WaitForSeconds(0.5f);
+            _interaction.Release();
+            yield return new WaitForSeconds(1f);
+            Assert.AreEqual(0.2f, held.Model.Transform.Position.X, 0.03f);
+            _overlay.CloseSearch();
         }
 
         [UnityTest]

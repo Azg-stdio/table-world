@@ -35,6 +35,8 @@ namespace TableWorld.View.Hud
         private readonly VisualElement _search;
         private readonly Label _searchTitle;
         private readonly ScrollView _searchList;
+        private readonly CardImages _images = new CardImages();
+        private ObjectView _searchContainer;
         private readonly List<(string Label, Action Run)> _entries = new List<(string, Action)>();
         private Vector3 _menuWorldPoint;
         private ObjectView _menuTarget;
@@ -292,14 +294,28 @@ namespace TableWorld.View.Hud
             var result = _table.Execute(new SearchCommand { ContainerId = container.Id, Actor = _table.LocalSeat });
             if (!result.Ok)
                 return;
+            _searchContainer = container;
             _searchList.Clear();
-            _searchTitle.text = $"Search: {container.Model.Name ?? container.Id}";
+            var grid = new VisualElement();
+            grid.AddToClassList("search-grid");
+            _searchList.Add(grid);
             if (result.DeckContents != null)
-                foreach (var card in result.DeckContents)
-                    SearchRow(container, card.Name ?? card.Id ?? $"card {card.FaceIndex}", card.Id, index: result.DeckContents.ToList().IndexOf(card));
+            {
+                var deck = (Deck)container.Model;
+                _searchTitle.text = $"Search: {deck.Name ?? "Deck"} ({result.DeckContents.Count} cards, top first)";
+                for (var i = 0; i < result.DeckContents.Count; i++)
+                {
+                    var card = result.DeckContents[i];
+                    var face = _images.Face(_table.Assets, card.FaceAsset ?? deck.FaceAsset, card.FaceIndex);
+                    grid.Add(SearchCell(container, card.Name ?? card.Id ?? $"Card {i + 1}", card.Id, i, face));
+                }
+            }
             else
+            {
+                _searchTitle.text = $"Search: {container.Model.Name ?? "Bag"} ({result.BagContents.Count} items)";
                 foreach (var id in result.BagContents)
-                    SearchRow(container, _table.Engine.Find(id)?.Name ?? id, id, index: -1);
+                    grid.Add(SearchCell(container, _table.Engine.Find(id)?.Name ?? _table.Engine.Find(id)?.Type ?? id, id, -1, null));
+            }
             _search.RemoveFromClassList(Hidden);
         }
 
@@ -319,17 +335,51 @@ namespace TableWorld.View.Hud
             return ok;
         }
 
-        private void SearchRow(ObjectView container, string label, string entryId, int index)
+        /// <summary>
+        /// One card (face image and name) or bag item (name) in the Search window. Pressing it takes it out and puts it in
+        /// your hand-held grip, so it follows the pointer onto the table (TTS: drag a card out of the search window).
+        /// </summary>
+        private VisualElement SearchCell(ObjectView container, string label, string entryId, int index, Sprite face)
         {
-            var row = new VisualElement();
-            row.AddToClassList("search-row");
-            var text = new Label(label);
-            text.AddToClassList("game-ui-label");
-            var take = new Button(() => TakeFromSearch(container, entryId, index)) { text = "Take" };
-            take.AddToClassList("hud-button");
-            row.Add(text);
-            row.Add(take);
-            _searchList.Add(row);
+            var cell = new VisualElement { tooltip = label };
+            cell.AddToClassList(face != null ? "search-card" : "search-item");
+            if (face != null)
+            {
+                var image = new VisualElement();
+                image.AddToClassList("search-card-image");
+                // Card faces are runtime images, so they can only be set from code.
+                image.style.backgroundImage = new StyleBackground(face);
+                cell.Add(image);
+            }
+            var name = new Label(label);
+            name.AddToClassList("search-card-name");
+            cell.Add(name);
+            cell.RegisterCallback<PointerDownEvent>(e =>
+            {
+                if (e.button == 0)
+                    DragOutOfSearch(container, entryId, index);
+            });
+            return cell;
+        }
+
+        /// <summary>Takes an entry out beside the container and picks it up, so it follows the pointer. Returns the taken object.</summary>
+        public ObjectView DragOutOfSearch(ObjectView container, string entryId, int index)
+        {
+            if (_interaction.Held != null)
+                return null;
+            var beside = container.transform.position + new Vector3(0f, 0.04f, -0.12f);
+            var command = new TakeCommand { ContainerId = container.Id, Actor = _table.LocalSeat, Position = beside.ToCore() };
+            if (entryId != null)
+                command.EntryId = entryId;
+            else
+                command.Index = Math.Max(0, index);
+            var result = _table.Execute(command);
+            if (!result.Ok || !(_table.ViewOf(result.CreatedId) is { } taken))
+                return null;
+            _interaction.Grab(taken, false);
+            if (SearchOpen && container != null && _table.ViewOf(container.Id) != null)
+                OpenSearch(container);
+            return taken;
         }
 
         // ---- looking, tooltip, box, measure -----------------------------------------------------------------------
@@ -345,13 +395,40 @@ namespace TableWorld.View.Hud
             _lookCaption.text = view.HideFace ? "A card in another player's hand" : (peek ? "Peek: " : "") + (view.Model.Name ?? view.Model.Id);
         }
 
+        /// <summary>
+        /// The hover tooltip's first line(s): the name, and for a deck or bag how many cards or items it holds (TTS shows the
+        /// count). Null for an unnamed card, and for a card in someone else's hand (its name would give it away).
+        /// </summary>
+        public static string TooltipText(ObjectView view, Core.Engine.TableEngine engine)
+        {
+            if (view.HideFace)
+                return null;
+            var model = view.Model;
+            string count = null;
+            switch (model)
+            {
+                case Core.Rules.Deck deck:
+                    count = deck.Cards.Count == 1 ? "1 card" : $"{deck.Cards.Count} cards";
+                    break;
+                case Core.Rules.InfiniteBag _:
+                    count = "endless";
+                    break;
+                case Core.Rules.Bag bag:
+                    var items = engine.ContentsOf(bag.Id).Count();
+                    count = items == 1 ? "1 item" : $"{items} items";
+                    break;
+            }
+            var name = model.Name ?? (model is Core.Rules.Card ? null : model.Type);
+            return count == null ? name : $"{name}\n{count}";
+        }
+
         private void UpdateTooltip()
         {
             var view = _interaction.TooltipView;
             var seconds = _interaction.TooltipSeconds;
             var show = view != null && seconds >= TooltipNameSeconds && _interaction.Held == null && _interaction.Looking == null && !MenuOpen
                        && !(view.Model.IsFaceUp == false && view.Model.TtsExtra?.Value<bool?>("HideWhenFaceDown") == true);
-            var text = view == null || view.HideFace ? null : view.Model.Name ?? (view.Model is Card c ? null : view.Model.Type);
+            var text = view == null ? null : TooltipText(view, _table.Engine);
             if (show && seconds >= TooltipDescriptionSeconds && !string.IsNullOrEmpty(view.Model.Description))
                 text = $"{text}\n{view.Model.Description}";
             show &= !string.IsNullOrEmpty(text);

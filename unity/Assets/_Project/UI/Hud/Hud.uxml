@@ -12,9 +12,9 @@
                 <ui:Label name="lookCaption" class="look-caption" picking-mode="Ignore" />
             </ui:VisualElement>
             <ui:VisualElement name="searchPanel" class="search-panel hidden">
-                <ui:Label name="searchTitle" class="selection-title" />
+                <ui:Label name="searchTitle" class="help-title" />
                 <ui:ScrollView name="searchList" class="search-list" />
-                <ui:Button name="searchClose" class="hud-button" text="Close" />
+                <ui:Button name="searchClose" class="hud-button help-close" text="Close" />
             </ui:VisualElement>
             <ui:VisualElement name="gamesPanel" class="search-panel hidden">
                 <ui:Label name="gamesTitle" class="selection-title" text="Open a game" />

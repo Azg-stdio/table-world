@@ -345,23 +345,68 @@
     left: 50%;
     top: 50%;
     translate: -50% -50%;
-    width: 420px;
-    max-height: 70%;
+    width: 760px;
+    height: 76%;
     padding: 10px;
     border-radius: 6px;
     background-color: rgb(22, 24, 30);
 }
 
+/* Fills the panel between title and button, and scrolls. */
 .search-list {
+    flex-grow: 1;
     flex-shrink: 1;
     margin-bottom: 8px;
+    overflow: hidden;
 }
 
-.search-row {
+.search-grid {
     flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* A card in the Search window: its face and its name; pressing it picks it up. */
+.search-card {
+    width: 96px;
+    margin: 4px;
+    padding: 3px;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+.search-card:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+}
+
+.search-card-image {
+    height: 126px;
+    border-radius: 4px;
+    background-color: rgb(250, 248, 240);
+    -unity-background-scale-mode: stretch-to-fill;
+}
+
+.search-card-name {
+    margin-top: 2px;
+    font-size: 12px;
+    color: rgb(220, 216, 206);
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+/* A bag item has no flat image: a name tile. */
+.search-item {
+    width: 140px;
+    min-height: 44px;
+    margin: 4px;
+    padding: 6px;
+    justify-content: center;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+.search-item:hover {
+    background-color: rgba(255, 255, 255, 0.16);
 }
 
 .menu-field .unity-base-text-field__input {
