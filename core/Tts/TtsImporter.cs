@@ -45,7 +45,14 @@ namespace Core.Tts
         private readonly Dictionary<string, ImportedAsset> _assetsByKey = new Dictionary<string, ImportedAsset>();
         private TableState State => _result.State;
 
-        public static ImportResult Import(string saveJson) => new TtsImporter().Run(JObject.Parse(saveJson));
+        /// <summary>
+        /// Reads a save. <paramref name="imageSize"/> gives an image's pixel size by its URL when the file is at hand (the
+        /// TTS cache): tiles then get their true proportions, and pieces lying on them can be placed on top.
+        /// </summary>
+        public static ImportResult Import(string saveJson, Func<string, (int Width, int Height)?>? imageSize = null) =>
+            new TtsImporter { _imageSize = imageSize }.Run(JObject.Parse(saveJson));
+
+        private Func<string, (int Width, int Height)?>? _imageSize;
 
         /// <summary>TTS's cache name for a URL: the URL with everything but letters and digits removed.</summary>
         public static string CacheKey(string url) => Regex.Replace(url ?? "", "[^A-Za-z0-9]", "");
@@ -75,6 +82,7 @@ namespace Core.Tts
                     Convert(obj, container: null);
             foreach (var seat in State.Players.Seats)
                 seat.HandZone = State.Zones.OfType<HandZone>().FirstOrDefault(z => z.Owner == seat.Id)?.Id;
+            Settle();
             Table((string?)save["Table"]);
             return _result;
         }
@@ -113,6 +121,50 @@ namespace Core.Tts
             }
             if (look.Size != null || look.Hidden)
                 State.Environment = new EnvironmentDef { Table = look };
+        }
+
+        /// <summary>
+        /// TTS draws locked mats and boards that share a height without trouble (a playmat at y 0.99 on a background at
+        /// 1.00); here they would sink into each other and hide. Each locked piece lying within a bigger locked surface
+        /// below it is put on that surface's top, from the bottom up, so the layers show as in TTS.
+        /// </summary>
+        private void Settle()
+        {
+            var flats = State.Objects.Where(o => o.Container == null && o.Locked).ToList();
+            float Thickness(TableObject o) => o switch
+            {
+                Tile t => (t.Thickness ?? 0.003f) * Math.Max(1, t.Count),
+                Token t => (t.Thickness ?? 0.003f) * Math.Max(1, t.Count),
+                Card _ => 0.0003f,
+                Deck d => 0.0003f * Math.Max(1, d.Cards.Count),
+                Board _ => 0.01f,
+                _ => 0.01f,
+            };
+            (float X, float Z) Half(TableObject o)
+            {
+                var size = Footprint.Of(o);
+                return (Math.Abs(size.X * o.Transform.Scale.X) / 2f, Math.Abs(size.Y * o.Transform.Scale.Z) / 2f);
+            }
+            float Area(TableObject o)
+            {
+                var h = Half(o);
+                return h.X * h.Z;
+            }
+            var placed = new List<TableObject>();
+            foreach (var obj in flats.OrderBy(o => o.Transform.Position.Y).ThenByDescending(Area))
+            {
+                var p = obj.Transform.Position;
+                var bottom = p.Y - Thickness(obj) / 2f;
+                var area = Area(obj);
+                var support = placed.Where(s => Area(s) > area * 1.5f)
+                    .Where(s => Math.Abs(p.X - s.Transform.Position.X) <= Half(s).X && Math.Abs(p.Z - s.Transform.Position.Z) <= Half(s).Z)
+                    .Select(s => s.Transform.Position.Y + Thickness(s) / 2f)
+                    .DefaultIfEmpty(float.MinValue).Max();
+                // Only pieces sunk into a surface (by less than 2 cm) move; one clearly below it stays where it is.
+                if (support > bottom && support - bottom < 0.02f)
+                    obj.Transform.Position = new Vec3(p.X, support + Thickness(obj) / 2f + 0.0002f, p.Z);
+                placed.Add(obj);
+            }
         }
 
         /// <summary>Moves the whole table down by <paramref name="by"/> metres (objects and zones on the table; attached ones follow their parent).</summary>
@@ -298,12 +350,23 @@ namespace Core.Tts
                     var result = new Tile
                     {
                         Asset = Asset((string?)image?["ImageURL"], AssetType.Image),
+                        // A TTS tile is 2 units at scale 1 and, stretched (the default), takes its image's proportions.
+                        Size = new Vec2(2f * TtsUnits.TtsUnitsToMeters, 2f * TtsUnits.TtsUnitsToMeters),
+                        KeepAspect = (bool?)tile?["Stretch"] ?? true,
                         Shape = ((int?)tile?["Type"] ?? 0) switch { 1 => TileShape.Hex, 2 => TileShape.Circle, 3 => TileShape.Rounded, _ => TileShape.Square },
                         Stackable = (bool?)tile?["Stackable"] ?? false,
                         Count = Math.Max(1, (int?)o["Number"] ?? 1),
                     };
                     if ((float?)tile?["Thickness"] is { } thickness && thickness > 0f)
                         result.Thickness = thickness * TtsUnits.TtsUnitsToMeters;
+                    // With the image at hand, its proportions go into the size now (the game also learns them on load).
+                    if (result.KeepAspect && (string?)image?["ImageURL"] is { } url && _imageSize?.Invoke(url) is { } pixels && pixels.Width > 0 && pixels.Height > 0)
+                    {
+                        var aspect = (float)pixels.Width / pixels.Height;
+                        var side = 2f * TtsUnits.TtsUnitsToMeters;
+                        result.Size = aspect >= 1f ? new Vec2(side * aspect, side) : new Vec2(side, side / aspect);
+                        result.KeepAspect = false;
+                    }
                     return result;
                 }
                 case "Custom_Dice":

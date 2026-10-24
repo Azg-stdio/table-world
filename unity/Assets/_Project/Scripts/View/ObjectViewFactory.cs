@@ -113,9 +113,11 @@ namespace TableWorld.View
                 {
                     // A counted stack (G14) is one body, as tall as its pieces.
                     var size = (token.Thickness ?? TokenThickness) * token.Count;
+                    // A TTS token is shaped by its image: it takes the image's proportions.
+                    var face2 = token.Shape == TokenShape.Image ? Proportioned(new Vector2(TokenDiameter, TokenDiameter), assets.Texture(token.Asset)) : new Vector2(TokenDiameter, TokenDiameter);
                     var mesh = token.Shape == TokenShape.Round
                         ? MeshFactory.Cylinder(TokenDiameter / 2f, size)
-                        : MeshFactory.Box(new Vector3(TokenDiameter, size, TokenDiameter));
+                        : MeshFactory.Box(new Vector3(face2.x, size, face2.y));
                     var face = assets.ImageMaterial(token.Asset, model.Tint.ToColor(Ivory));
                     var edge = model.Tint.ToColor(Ivory) * 0.85f;
                     SetPrism(view, mesh, face, face, token.Count > 1 ? assets.Grooved(edge) : assets.Plain(edge), 0.002f * token.Count);
@@ -125,11 +127,14 @@ namespace TableWorld.View
                 case Tile tile:
                 {
                     var thickness = (tile.Thickness ?? TileThickness) * tile.Count;
+                    var area = tile.Size is { } tileSize ? new Vector2(tileSize.X, tileSize.Y) : new Vector2(TileSize, TileSize);
+                    if (tile.KeepAspect)
+                        area = Proportioned(area, assets.Texture(tile.Asset));
                     var mesh = tile.Shape switch
                     {
-                        TileShape.Hex => MeshFactory.HexPrism(TileSize * 0.6f, thickness),
-                        TileShape.Circle => MeshFactory.Cylinder(TileSize / 2f, thickness),
-                        _ => MeshFactory.Box(new Vector3(TileSize, thickness, TileSize)),
+                        TileShape.Hex => MeshFactory.HexPrism(area.y * 0.6f, thickness),
+                        TileShape.Circle => MeshFactory.Cylinder(area.y / 2f, thickness),
+                        _ => MeshFactory.Box(new Vector3(area.x, thickness, area.y)),
                     };
                     var face = assets.ImageMaterial(tile.Asset, model.Tint.ToColor(new Color(0.8f, 0.7f, 0.5f)));
                     var edge = model.Tint.ToColor(new Color(0.6f, 0.5f, 0.35f));
@@ -217,6 +222,18 @@ namespace TableWorld.View
             view.Body.isKinematic = view.Pinned || !view.Renderer.enabled || view.Held || view.Animating;
             ScriptButtonsView.Refresh(view);
             ScriptInputsView.Refresh(view);
+        }
+
+        /// <summary>
+        /// A base size given the image's proportions: the longer side grows, the shorter keeps the base (TTS tiles and
+        /// tokens). Until the image is here the piece stays square; it is reshaped when the image arrives.
+        /// </summary>
+        private static Vector2 Proportioned(Vector2 area, Texture texture)
+        {
+            if (texture == null || texture.width <= 0 || texture.height <= 0)
+                return area;
+            var aspect = (float)texture.width / texture.height;
+            return aspect >= 1f ? new Vector2(area.y * aspect, area.y) : new Vector2(area.x, area.x / aspect);
         }
 
         private static void RefreshCard(ObjectView view, AssetLibrary assets, Card card)

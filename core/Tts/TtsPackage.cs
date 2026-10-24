@@ -98,7 +98,8 @@ namespace Core.Tts
         /// </summary>
         public static Report Write(string saveFile, string ttsFolder, string packageFolder)
         {
-            var import = TtsImporter.Import(File.ReadAllText(saveFile));
+            var import = TtsImporter.Import(File.ReadAllText(saveFile), url =>
+                CachedFile(ttsFolder, new ImportedAsset { Type = AssetType.Image, CacheKey = TtsImporter.CacheKey(url), Url = url }) is { } file ? ImageSize.Of(file) : null);
             Directory.CreateDirectory(packageFolder);
             var report = new Report { Objects = import.State.Objects.Count, Notes = import.Notes };
             foreach (var asset in import.Assets)

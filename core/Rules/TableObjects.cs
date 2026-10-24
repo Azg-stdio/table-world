@@ -192,6 +192,13 @@ namespace Core.Rules
     {
         public string? Asset { get; set; }
         public TileShape Shape { get; set; }
+        /// <summary>Base size in metres before scale (width × depth); null is the view's default. TTS tiles are 6 cm (2 units).</summary>
+        public Vec2? Size { get; set; }
+        /// <summary>
+        /// The tile takes its image's proportions (TTS <c>Stretch</c>): the longer side grows, the base size is the
+        /// shorter one. A TTS playmat at scale 12.6 with a 10 000 × 6 050 image is 41.7 × 25.2 units.
+        /// </summary>
+        public bool KeepAspect { get; set; }
         public float? Thickness { get; set; }
         /// <summary>Identical pieces dropped on each other form one counted stack (TTS <c>Stackable</c>).</summary>
         public bool Stackable { get; set; }

@@ -53,7 +53,14 @@ namespace TableWorld.View
         private GameObject _room;
         private Light _lamp;
         private Light _tableLight;
-        private readonly System.Collections.Generic.List<Light> _extraTableLights = new System.Collections.Generic.List<Light>();
+        private bool _bigTable;
+
+        /// <summary>
+        /// Even light over a big table, as a share of the lamp's intensity. Lower than the lamp's brightness under it: the
+        /// lamp's warm pool suits our green felt, but evenly over a whole TTS layout it washed dark art out to grey (a
+        /// #202020 background showed as #5A).
+        /// </summary>
+        private const float DirectionalShare = 0.4f;
         private Shader _lit;
 
         public Light Lamp => _lamp;
@@ -174,12 +181,7 @@ namespace TableWorld.View
             if (_tableLight != null)
             {
                 _tableLight.color = ToColor(lighting.TableLightColor, DefaultTableLight);
-                _tableLight.intensity = lighting.TableLightIntensity ?? DefaultTableLightIntensity;
-                foreach (var extra in _extraTableLights)
-                {
-                    extra.color = _tableLight.color;
-                    extra.intensity = _tableLight.intensity;
-                }
+                _tableLight.intensity = (lighting.TableLightIntensity ?? DefaultTableLightIntensity) * (_bigTable ? DirectionalShare : 1f);
             }
             // Without a room the old directional light keeps the table readable.
             if (_sun != null)
@@ -261,6 +263,16 @@ namespace TableWorld.View
             bulb.GetComponent<Renderer>().sharedMaterial = glow;
             bulb.GetComponent<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
             bulb.GetComponent<Renderer>().renderingLayerMask = RoomLayers;
+            // Over a big table (an imported TTS game) a pendant lamp a metre up only blocks the view: the light stays,
+            // the fixture goes.
+            var big = TableGeometry.Size.x > TableGeometry.DefaultSize.x + 0.01f || TableGeometry.Size.y > TableGeometry.DefaultSize.y + 0.01f;
+            if (big)
+            {
+                shade.SetActive(false);
+                foreach (Transform part in _room.transform)
+                    if (part.name == "Lamp Cord")
+                        part.gameObject.SetActive(false);
+            }
 
             var lampGo = new GameObject("Lamp Light");
             lampGo.transform.SetParent(_room.transform, false);
@@ -293,31 +305,15 @@ namespace TableWorld.View
             _tableLight.shadowNearPlane = 0.1f;
             SetLayers(_tableLight, PiecesLayers);
 
-            // A big table (an imported TTS game) gets more of the same light, one about every 1.6 m, without shadows
-            // (the centre light keeps them): one lamp lights about 1.8 m around it.
-            _extraTableLights.Clear();
+            // A big table (an imported TTS game) is lit evenly from above, as TTS lights it: the lamp's spot reaches
+            // about 1.8 m, and several overlapping spots made the middle several times too bright.
             var size = TableGeometry.Size;
-            var columns = Mathf.Max(1, Mathf.CeilToInt(size.x / 1.6f));
-            var rows = Mathf.Max(1, Mathf.CeilToInt(size.y / 1.6f));
-            for (var cx = 0; cx < columns; cx++)
-                for (var cz = 0; cz < rows; cz++)
-                {
-                    var x = (cx + 0.5f) * size.x / columns - size.x / 2f;
-                    var z = (cz + 0.5f) * size.y / rows - size.y / 2f;
-                    if (columns * rows == 1 || Mathf.Abs(x) < 0.5f && Mathf.Abs(z) < 0.5f)
-                        continue;
-                    var extraGo = new GameObject("Table Light (more)");
-                    extraGo.transform.SetParent(_room.transform, false);
-                    extraGo.transform.SetPositionAndRotation(new Vector3(x, LampHeight, z), Quaternion.Euler(90f, 0f, 0f));
-                    var extra = extraGo.AddComponent<Light>();
-                    extra.type = LightType.Spot;
-                    extra.spotAngle = 120f;
-                    extra.innerSpotAngle = 80f;
-                    extra.range = 4f;
-                    extra.shadows = LightShadows.None;
-                    SetLayers(extra, PiecesLayers);
-                    _extraTableLights.Add(extra);
-                }
+            _bigTable = size.x > TableGeometry.DefaultSize.x + 0.01f || size.y > TableGeometry.DefaultSize.y + 0.01f;
+            if (_bigTable)
+            {
+                _tableLight.type = LightType.Directional;
+                tableGo.transform.rotation = Quaternion.Euler(80f, 20f, 0f);
+            }
 
             // The table light points straight down, so the sides of chips, dice, tiles and models got only the dim ambient
             // and looked black. Two faint, low, shadowless lights from opposite corners light every side of a piece.
