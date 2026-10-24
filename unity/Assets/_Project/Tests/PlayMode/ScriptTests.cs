@@ -8,6 +8,7 @@ using TableWorld.View.Net;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using UnityEngine.UIElements;
 
 namespace TableWorld.Tests.PlayMode
 {
@@ -67,6 +68,72 @@ end";
 
             yield return new WaitForSeconds(0.5f);
             Assert.AreEqual("Timer fired", table.Engine.Find("note").Name, "Wait.time runs on the host's clock");
+        }
+
+        [UnityTest]
+        public IEnumerator ScriptUi_IsDrawn_LaidOut_Clicked_AndHidden()
+        {
+            yield return SceneManager.LoadSceneAsync("Table");
+            yield return null;
+            var table = Object.FindAnyObjectByType<TableView>();
+            Object.FindAnyObjectByType<TableInteraction>().IgnoreDevices = true;
+            yield return new WaitForSeconds(0.3f);
+
+            var global = @"
+n = 0
+function onLoad()
+  UI.setXml([[
+<Defaults><Button color=""#3060C0"" textColor=""#FFFFFF"" fontSize=""22""/></Defaults>
+<Panel id=""bar"" color=""#202020"" width=""300"" height=""80"" rectAlignment=""UpperLeft"" offsetXY=""20 -20"">
+  <HorizontalLayout spacing=""10"" padding=""10 10 10 10"">
+    <Button id=""go"" onClick=""go"">Go</Button>
+    <Text id=""count"" fontSize=""24"" color=""#FFFFFF"" alignment=""MiddleCenter"">0</Text>
+  </HorizontalLayout>
+</Panel>]])
+end
+function go(player, value, id)
+  n = n + 1
+  UI.setValue('count', tostring(n))
+  broadcastToAll(player.color .. ' ' .. value .. ' ' .. id)
+end";
+            var json = new JObject
+            {
+                ["schemaVersion"] = "0.1",
+                ["players"] = JObject.Parse(@"{ ""seats"": [ { ""id"": ""south"", ""color"": ""red"" } ] }"),
+                ["scripts"] = new JObject { ["global"] = global },
+            };
+            Assert.IsTrue(table.Load(json.ToString(), null));
+            yield return new WaitForSeconds(0.2f);
+            var view = Object.FindAnyObjectByType<TableWorld.View.ScriptUi.ScriptUiView>();
+            Assert.IsNotNull(view, "the HUD made the script UI view");
+            var bar = view.Root.Q("bar");
+            Assert.IsNotNull(bar);
+            Assert.AreEqual(300f, bar.layout.width, 1.5f, $"bar {bar.layout} root {view.Root.layout}");
+            Assert.AreEqual(20f, bar.layout.x, 1.5f, "offsetXY moves it right");
+            Assert.AreEqual(20f, bar.layout.y, 1.5f, "and down from the top (y is up in XmlUI)");
+            var go = view.Root.Q("go");
+            var count = view.Root.Q<Label>("count");
+            Assert.AreEqual("0", count.text);
+            Assert.AreEqual(135f, go.layout.width, 1.5f, "two children share the row: (300 - 20 padding - 10 spacing) / 2");
+            Assert.IsNotNull(view.Root.panel.Pick(go.worldBound.center), "the button catches the pointer");
+
+            using (var click = PointerUpEvent.GetPooled(new Event { type = EventType.MouseUp, button = 0, mousePosition = go.worldBound.center }))
+                go.SendEvent(click);
+            yield return null;
+            yield return null;
+            var session = Object.FindAnyObjectByType<NetworkTableSession>();
+            Assert.IsTrue(session.Chat.Entries.Any(e => e.Text == "Red -1 go"), "the click ran go(player, value, id)");
+            Assert.AreEqual("1", view.Root.Q<Label>("count").text, "and its setValue redrew the text");
+
+            table.Execute(new Core.Engine.SetUiAttributesCommand { ElementId = "bar", Attributes = { ["visibility"] = "Blue" } });
+            yield return null;
+            Assert.IsNull(view.Root.Q("bar"), "visible to Blue only: red does not see it");
+            table.Execute(new Core.Engine.SetUiAttributesCommand { ElementId = "bar", Attributes = { ["visibility"] = "Red|Blue", ["active"] = "False" } });
+            yield return null;
+            Assert.IsNull(view.Root.Q("bar"), "inactive");
+            table.Execute(new Core.Engine.SetUiAttributesCommand { ElementId = "bar", Attributes = { ["active"] = "True" } });
+            yield return null;
+            Assert.IsNotNull(view.Root.Q("bar"), "shown again for red");
         }
 
         [UnityTest]

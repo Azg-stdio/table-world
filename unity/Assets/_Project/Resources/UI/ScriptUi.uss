@@ -1,0 +1,73 @@
+/* Script UI (M5, ADR 0004): elements built by ScriptUiBuilder from the scripts' UI tree. Script data sets colours,
+   sizes and positions; what is here is the look that does not come from scripts. */
+.script-ui-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.script-ui-text {
+    white-space: normal;
+    margin: 0;
+    padding: 0;
+}
+
+.script-ui-button {
+    justify-content: center;
+    overflow: hidden;
+}
+
+.script-ui-button-text {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.script-ui-shade {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.script-ui-button:hover > .script-ui-shade {
+    background-color: rgba(0, 0, 0, 0.12);
+}
+
+.script-ui-button:active > .script-ui-shade {
+    background-color: rgba(0, 0, 0, 0.25);
+}
+
+.script-ui--disabled {
+    opacity: 0.5;
+}
+
+.script-ui-input {
+    margin: 0;
+}
+
+.script-ui-progress {
+    background-color: rgb(255, 255, 255);
+    overflow: hidden;
+}
+
+.script-ui-progress-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+}
+
+.script-ui-progress-text {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    -unity-text-align: middle-center;
+}

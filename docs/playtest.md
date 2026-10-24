@@ -91,7 +91,7 @@ Everything below already passes automated tests on one machine (two processes, s
 - [ ] Saves (host: Escape → Save & load): a named save of a game with your own images loads back with its pictures after restarting; an autosave appears after 10 minutes of play.
 - [ ] Blindfold (B) and peek (Alt + Shift over a face-down card): friends read the notices; nobody finds them annoying or missing.
 - [ ] Script buttons (a table whose script calls `createButton`): every player sees the buttons on the object, they darken under the pointer, a click (and a right click) does what the script says for whoever clicked, and nothing gets picked up by accident.
-- [ ] Chat: Enter, type, Enter: everyone sees it with your seat colour; `/roll 2d6` shows the same dice for everyone; the Log tab reads the same on every screen and never names a card someone could not see; typing never flips or moves anything.
+- [ ] Script UI (a table whose script calls `UI.setXml`, e.g. a counter with a button): it sits where the script put it on every screen size, buttons darken under the pointer and react for whoever clicks, typing in its fields never moves pieces, and clicks on it never reach the table underneath.\n- [ ] Chat: Enter, type, Enter: everyone sees it with your seat colour; `/roll 2d6` shows the same dice for everyone; the Log tab reads the same on every screen and never names a card someone could not see; typing never flips or moves anything.
 
 **After the session**
 - [ ] Each person sends their `Player.log` if anything broke (path below).

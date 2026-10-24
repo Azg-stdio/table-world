@@ -31,6 +31,7 @@ logged on the host and never stop the game.
 | `startLuaCoroutine(owner, name)` | runs the owner's function a frame at a time (`coroutine.yield(0)` waits a frame) |
 | `destroyObject(obj)` | `Delete` |
 | `getSeatedPlayers()` | the seats' colours |
+| `Player[color]`, `Player.Red`, `Player.getPlayers()`, `Player.getAvailableColors()` | players: `color`, `steam_name`, `seated`, `getHandObjects()`, `broadcast(text)`, `print(text)`; camera calls (`lookAt`) are accepted without effect |
 | `getNotebookTabs()`, `addNotebookTab({title, body, color})`, `editNotebookTab({index, title, body, color})`, `removeNotebookTab(index)` | the notebook (G25); colour "Grey" is everyone's page |
 | `log(...)`, `JSON.encode_pretty(table)` | host log; JSON |
 
@@ -81,6 +82,30 @@ and scripts make them again in `onLoad`, so a loaded table drops the saved ones 
 
 *To check against TTS:* the 500-per-unit size and whether TTS mirrors a button's local x.
 
+### Script UI (ADR 0004)
+
+`UI` is the global screen UI; `obj.UI` the UI drawn on an object. Both have `setAttribute(id, name, value)`,
+`setAttributes(id, table)`, `getAttribute(id, name)`, `getAttributes(id)`, `setValue(id, text)`, `getValue(id)`,
+`show(id)`, `hide(id)`, `setXml(xml)`, `getXml()`, `setXmlTable(t)`, `getXmlTable()` (`{ tag, attributes, value,
+children }`), `getCustomAssets()`; `setCustomAssets` is accepted without effect (images come with the table's assets).
+Values are strings; booleans read `True` / `False` as in TTS. Elements are found by `id`, depth first.
+
+Handlers named in the XML (`onClick="fn"`, `"Global/fn"`, `"<guid>/fn"`, `"fn(arg)"`) run as `fn(player, value, id)`:
+`player` is `{ color, steam_name, seated, ... }`, `value` the argument in brackets, else the mouse button for clicks
+(`"-1"` left, `"-2"` right, `"-3"` middle) or the new value of an input, toggle (`True` / `False`), slider or dropdown
+(the option's text); `onEndEdit` fires when an input loses the keyboard. Without an owner, a global UI's handler is in
+the global script and an object UI's in that object's.
+
+Drawn elements: `Panel`, `Text`, `Image`, `Button`, `HorizontalLayout`, `VerticalLayout`, `GridLayout`, `TableLayout` /
+`Row` / `Cell`, `InputField`, `Toggle`, `Slider`, `Dropdown` / `Option`, `ProgressBar`, scroll views. Layout: free
+elements by `rectAlignment` + `offsetXY` (y up) with `width` / `height` in pixels or % (default: the whole parent) on a
+1920 × 1080 canvas; in layout groups `width` / `height` are the preferred size and `childForceExpand*` (default true)
+shares the rest. `visibility` (`Red|Blue|Host`) hides an element from other seats; `active` switches it.
+
+*To check against TTS:* Text's default alignment (upper left here), a clear Panel letting the pointer through (it does
+here), the default colours of ProgressBar fills, how XmlUI scales with screen size (match 0.5 here). Not yet:
+`allowDragging`, show / hide animations, tooltips, `Defaults` changed after load.
+
 Zones (`getObjectFromGUID` of a zone): `getGUID()`, `getName()`, `getObjects()`, `getPosition()`, `hasTag(tag)`.
 
 ## Events
@@ -100,6 +125,6 @@ Defined in the global script or any object script; colours are seat colours capi
 
 ## Not yet (T6.3)
 
-`UI.*` and XmlUI, `createInput`, `Player[color]`, `Turns`, `spawnObject`, physics casts,
+UI drawn on objects (`obj.UI` is kept and scripted, but drawn only on screen UI so far), `createInput`, `Turns`, `spawnObject`, physics casts,
 `setInvisibleTo`, joints, music, collision events. The coverage of the local mods is measured by
 `tools/tts-analysis/lua_coverage.py` (T6.4).

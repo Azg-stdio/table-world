@@ -30,6 +30,9 @@ IMPLEMENTED = {
     "Global.setTable", "getNotebookTabs", "addNotebookTab", "editNotebookTab", "removeNotebookTab",
     "onObjectEnterScriptingZone", "onObjectLeaveScriptingZone",
     "createButton", "editButton", "removeButton", "clearButtons", "getButtons",
+    "UI.setAttribute", "UI.setAttributes", "UI.getAttribute", "UI.getAttributes", "UI.setValue", "UI.getValue", "UI.show",
+    "UI.hide", "UI.setXml", "UI.getXml", "UI.setXmlTable", "UI.getXmlTable", "UI.setCustomAssets", "UI.getCustomAssets",
+    "onClick", "onValueChanged", "onEndEdit", "getHandObjects", "lookAt", "Player.getPlayers", "Player.getAvailableColors",
     # events
     "onLoad", "onObjectDrop", "onDrop", "onObjectEnterZone", "onObjectLeaveZone", "onObjectFlip", "onFlip",
     "onObjectRandomize", "onRandomize", "onPlayerTurn",

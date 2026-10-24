@@ -20,6 +20,7 @@ namespace TableWorld.View.Hud
         private const string Hidden = "hidden";
 
         [SerializeField] private TableView _table;
+        private TableWorld.View.ScriptUi.ScriptUiView _scriptUi;
         [SerializeField] private TableInteraction _interaction;
         [SerializeField] private TableWorld.View.Net.NetworkTableSession _session;
         private Label _netStatus;
@@ -173,6 +174,9 @@ namespace TableWorld.View.Hud
             {
                 _table.CommandExecuted += OnCommand;
                 _table.Notice += OnNotice;
+                // The scripts' own screen UI (M5), drawn under the HUD.
+                if (_scriptUi == null)
+                    _scriptUi = TableWorld.View.ScriptUi.ScriptUiView.Create(_sharedPanelSettings, _table);
             }
             if (_interaction != null)
             {
@@ -185,6 +189,8 @@ namespace TableWorld.View.Hud
         public bool TypingInUi()
         {
             if (_chat != null && _chat.Open)
+                return true;
+            if (_scriptUi != null && _scriptUi.Typing)
                 return true;
             var focused = _root?.panel?.focusController?.focusedElement as VisualElement;
             return focused != null && (focused is TextField || focused.GetFirstAncestorOfType<TextField>() != null);
@@ -500,6 +506,8 @@ namespace TableWorld.View.Hud
         /// <summary>True when the screen point is over an opaque HUD element, so the table must ignore the click.</summary>
         private bool IsOverUi(Vector2 screenPosition)
         {
+            if (_scriptUi != null && _scriptUi.IsOver(screenPosition))
+                return true;
             if (_root?.panel == null)
                 return false;
             var panelPosition = RuntimePanelUtils.ScreenToPanel(_root.panel, new Vector2(screenPosition.x, Screen.height - screenPosition.y));
@@ -657,7 +665,8 @@ namespace TableWorld.View.Hud
             // Moves and strokes are too frequent for the status line (strokes are in the game log).
             if (result.Ok && (command is MoveCommand || command is AddDrawingCommand || command is EraseDrawingCommand ||
                               command is DropCommand || command is PickUpCommand || command is PeekCommand || command is BlindfoldCommand ||
-                              command is SetButtonsCommand || command is ClickButtonCommand))
+                              command is SetButtonsCommand || command is ClickButtonCommand || command is SetScriptUiCommand ||
+                              command is SetUiAttributesCommand || command is UiEventCommand))
                 return;
             var name = command.GetType().Name.Replace("Command", "");
             _status.text = result.Ok ? (command is RollCommand ? RollText(result) : command is SetPhysicsCommand physics ? $"Physics: {PhysicsName(physics.Mode)}" : TurnText(command) ?? $"{name}: done")
