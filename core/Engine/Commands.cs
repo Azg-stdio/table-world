@@ -25,6 +25,8 @@ namespace Core.Engine
         /// <see cref="RollCommand"/> is the engine's own roll. Null leaves the value unchanged.
         /// </summary>
         public int? DieValue { get; set; }
+        /// <summary>Moves a locked object too (M5): TTS scripts place locked boards and tokens; players cannot move them.</summary>
+        public bool EvenLocked { get; set; }
     }
 
     /// <summary>

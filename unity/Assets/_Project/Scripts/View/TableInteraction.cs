@@ -359,7 +359,7 @@ namespace TableWorld.View
                      hoverHit.collider != null && hoverHit.collider.GetComponent<ScriptInputView>() is { } input)
                 InputEditRequested?.Invoke(input, pointer);
             // Left button on a clickable part of a script's UI on an object (M5).
-            else if (mouse.leftButton.wasPressedThisFrame && Held == null && !overUi && _tool == Tool.Grab && !tab && UseObjectUi(hoverHit, "-1"))
+            else if (mouse.leftButton.wasPressedThisFrame && Held == null && !overUi && _tool == Tool.Grab && !tab && UseObjectUi(ray, "-1"))
             {
             }
             // Left button: grab, box select, or (with Tab) ping and measure.
@@ -445,7 +445,7 @@ namespace TableWorld.View
                 _rightOnButton = Held == null && !overUi && HoveredButton != null;
                 if (_rightOnButton)
                     ClickButton(HoveredButton, alt: true);
-                else if (Held == null && !overUi && UseObjectUi(hoverHit, "-2"))
+                else if (Held == null && !overUi && UseObjectUi(ray, "-2"))
                     _rightOnButton = true;
                 else if (Held != null)
                 {
@@ -1608,10 +1608,34 @@ namespace TableWorld.View
                 InputEditRequested?.Invoke(input, _camera.WorldToScreenPoint(input.transform.position));
         }
 
-        /// <summary>A click on a script's UI drawn on an object (M5): true when an element there took it.</summary>
-        private bool UseObjectUi(RaycastHit hit, string button) =>
-            Hovered != null && hit.collider != null &&
-            hit.collider.GetComponent<TableWorld.View.ScriptUi.ObjectUiSurface>() is { } surface && surface.TryUse(hit.point, button);
+        /// <summary>
+        /// A click on a script's UI drawn on an object or at a zone (M5): the nearest UI surface under the pointer, unless
+        /// something solid is in front of it; true when an element there took the click.
+        /// </summary>
+        private bool UseObjectUi(Ray ray, string button)
+        {
+            var count = Physics.RaycastNonAlloc(ray, _hits, 50f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide);
+            TableWorld.View.ScriptUi.ObjectUiSurface best = null;
+            var bestDistance = float.MaxValue;
+            var point = Vector3.zero;
+            var solid = float.MaxValue;
+            for (var i = 0; i < count; i++)
+            {
+                var hit = _hits[i];
+                if (hit.collider.GetComponent<TableWorld.View.ScriptUi.ObjectUiSurface>() is { } surface)
+                {
+                    if (hit.distance < bestDistance)
+                    {
+                        best = surface;
+                        bestDistance = hit.distance;
+                        point = hit.point;
+                    }
+                }
+                else if (!hit.collider.isTrigger && hit.distance < solid)
+                    solid = hit.distance;
+            }
+            return best != null && bestDistance <= solid + 0.001f && best.TryUse(point, button);
+        }
 
         /// <summary>Clicks a script button (M5): the host's scripts run its function with this seat's colour.</summary>
         public void ClickButton(ScriptButtonView button, bool alt)

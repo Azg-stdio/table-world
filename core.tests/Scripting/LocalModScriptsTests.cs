@@ -16,8 +16,7 @@ namespace Core.Tests.Scripting
     /// T6.4: runs the scripts of the Tabletop Simulator mods on this machine in the sandbox (global and object scripts,
     /// their onLoad, and a few seconds of timers) and reports the errors by kind. The mods never enter the repository:
     /// set <c>TW_TTS_DIR</c> to the Tabletop Simulator folder to run it; without it the test does nothing.
-    /// Objects are stand-ins (a token per scripted object, with its GUID, name, script, state and XmlUI) until the
-    /// importer (M7) maps real ones, so errors about missing objects or contents are expected.
+    /// The table is what the importer (T8.1) makes of the save, without its images and models (not needed by scripts).
     /// </summary>
     public class LocalModScriptsTests
     {
@@ -37,42 +36,10 @@ namespace Core.Tests.Scripting
             {
                 if (!(JToken.Parse(File.ReadAllText(file)) is JObject save) || save["ObjectStates"] == null)
                     continue;
-                var state = new TableState();
-                state.Players.Seats.Add(new Seat { Id = "white", Color = "white" });
-                state.Players.Seats.Add(new Seat { Id = "red", Color = "red" });
-                if ((string?)save["LuaScript"] is { Length: > 0 } global)
-                    state.Scripts[ScriptHost.GlobalName] = global;
-                state.GlobalScriptState = (string?)save["LuaScriptState"];
-                var xmlErrors = 0;
-                List<UiNode> Ui(string? xml)
-                {
-                    try
-                    {
-                        return XmlUi.Parse(xml ?? "");
-                    }
-                    catch (System.Xml.XmlException)
-                    {
-                        xmlErrors++;
-                        return new List<UiNode>();
-                    }
-                }
-                state.ScriptUi = Ui((string?)save["XmlUI"]);
-                var seen = new HashSet<string>();
-                foreach (var o in Walk(save["ObjectStates"] as JArray))
-                {
-                    var guid = (string?)o["GUID"];
-                    if (guid == null || !seen.Add(guid))
-                        continue;
-                    var script = (string?)o["LuaScript"];
-                    var xml = (string?)o["XmlUI"];
-                    state.Objects.Add(new Token
-                    {
-                        Id = guid, Name = (string?)o["Nickname"], Description = (string?)o["Description"], GmNotes = (string?)o["GMNotes"],
-                        Script = string.IsNullOrWhiteSpace(script) ? null : script, ScriptState = (string?)o["LuaScriptState"],
-                        Tags = (o["Tags"] as JArray)?.Select(t => (string)t!).ToList() ?? new List<string>(),
-                        ScriptUi = Ui(xml),
-                    });
-                }
+                // The table as the importer makes it (T8.1): real decks, bags, zones and their scripts.
+                var imported = TtsImporter.Import(save.ToString());
+                var state = imported.State;
+                var xmlErrors = imported.Notes.Count(n => n.Contains("XmlUI") && n.Contains("does not read"));
                 var engine = new TableEngine(state, 1);
                 var log = new List<string>();
                 var said = 0;

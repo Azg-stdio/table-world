@@ -169,6 +169,52 @@ namespace Core.Tests.Scripting
         }
 
         [Fact]
+        public void ZoneScripts_RunWithTheZoneAsSelf_AndHearZoneEvents()
+        {
+            var engine = EngineFixture.Create();
+            engine.State.Zones.Add(new ScriptingZone
+            {
+                Id = "pool", Size = new Vec3(0.3f, 0.2f, 0.3f), Transform = new TableTransform { Position = new Vec3(0.6f, 0f, 0f) },
+                Script = "function onLoad(saved) broadcastToAll('zone ' .. self.getGUID() .. ' ' .. saved .. ' ' .. self.getBounds().size.x) end " +
+                         "function onObjectEnterZone(zone, obj) if zone == self then broadcastToAll('in me: ' .. obj.getGUID()) end end " +
+                         "function onSave() return 'kept' end",
+                ScriptState = "before",
+            });
+            var said = new System.Collections.Generic.List<string>();
+            ScriptHost? host = null;
+            host = new ScriptHost(() => engine, c => { var r = engine.Execute(c); host!.OnCommand(c, r, null); return r; });
+            host.Broadcast += said.Add;
+            host.Load(0);
+            var move = new MoveCommand { ObjectId = "d6", Position = new Vec3(0.6f, 0f, 0f) };
+            host.OnCommand(move, engine.Execute(move), null);
+            host.Save();
+            Assert.Equal(new[] { "zone pool before 10", "in me: d6" }, said);
+            Assert.Equal("kept", engine.State.Zones.Single(z => z.Id == "pool").ScriptState);
+        }
+
+        [Fact]
+        public void ScriptsInABag_StartWhenTakenOut_AndStopWhenPutBack()
+        {
+            var engine = EngineFixture.Create();
+            engine.Find("t1")!.Script = "function onLoad() broadcastToAll('t1 alive') Wait.time(function() broadcastToAll('t1 tick') end, 1, -1) end";
+            var said = new System.Collections.Generic.List<string>();
+            ScriptHost? host = null;
+            host = new ScriptHost(() => engine, c => { var r = engine.Execute(c); host!.OnCommand(c, r, null); return r; });
+            host.Broadcast += said.Add;
+            host.Load(0);
+            Assert.Empty(said);
+            void Run(Core.Engine.Command c) => host.OnCommand(c, engine.Execute(c), null);
+            Run(new TakeCommand { ContainerId = "bag", EntryId = "t1", Position = new Vec3(0.5f, 0f, 0f) });
+            Assert.Equal(new[] { "t1 alive" }, said);
+            host.Tick(1.01);
+            Assert.Equal("t1 tick", said.Last());
+            Run(new InsertCommand { ObjectId = "t1", IntoId = "bag" });
+            host.Tick(2.02);
+            host.Tick(3.03);
+            Assert.Equal(2, said.Count);
+        }
+
+        [Fact]
         public void LogPrettyJsonAndSmoothMoving_Work()
         {
             var (_, host, said) = Load(@"

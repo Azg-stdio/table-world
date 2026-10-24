@@ -171,6 +171,8 @@ namespace Core.Rules
                 if (_state.Grid != null)
                     Errors.AddRange(CheckGrid(_state.Grid, "grid"));
                 Errors.AddRange(CheckUi(_state.ScriptUi, "scriptUi"));
+                for (var i = 0; i < _state.Zones.Count; i++)
+                    Errors.AddRange(CheckUi(_state.Zones[i].ScriptUi, $"zones[{i}].scriptUi"));
                 var pageIds = new HashSet<string>();
                 for (var i = 0; i < _state.Notebook.Count; i++)
                 {

@@ -4,8 +4,10 @@ Scripts are TTS-style Lua run by `core/Scripting/ScriptHost` on the host only (A
 follow Tabletop Simulator: positions are in TTS units with the table surface at y = 0.96 (one unit = 3 cm,
 `TtsUnits.TtsUnitsToMeters`), rotations in degrees. Methods work with `obj.method(...)` and `obj:method(...)`.
 
-Where scripts live: the table's global script is `scripts["global"]`; an object's script is its `script` field. Inside an
-object script, `self` is that object.
+Where scripts live: the table's global script is `scripts["global"]`; an object's script is its `script` field; a zone's
+(TTS scripting triggers have them) is the zone's `script`. Inside an object or zone script, `self` is that object or zone.
+An object inside a bag or deck is not in play: its script starts when it comes out (and runs `onLoad`) and stops when it
+goes back in, as in TTS. Scripts may move locked objects (`setPosition`, `setRotation`); players cannot.
 
 ## Limits
 
@@ -134,7 +136,9 @@ button parameters plus `input_function`, `value`, `alignment` (1 auto, 2 left, 3
 each change calls `input_function(obj, player_color, value, true)` and Enter (or clicking away) calls it with `false`.
 The text is table state, so everyone sees it; a string the function returns becomes the text.
 
-Zones (`getObjectFromGUID` of a zone): `getGUID()`, `getName()`, `getObjects()`, `getPosition()`, `hasTag(tag)`.
+Zones (`getObjectFromGUID` of a zone, or `self` in a zone script): `getGUID()`, `guid`, `getName()`, `getObjects()`,
+`getPosition()`, `getRotation()`, `getScale()` (the box in TTS units), `getBounds()`, `getBoundsNormalized()`, `getTags()`,
+`hasTag(tag)`, `getLuaScript()`, `getVar(name)`, `call(name, value)`, and `UI` (drawn at the zone, in its frame).
 
 ## Events
 

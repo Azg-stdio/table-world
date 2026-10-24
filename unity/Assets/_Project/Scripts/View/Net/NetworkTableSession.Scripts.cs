@@ -104,7 +104,8 @@ namespace TableWorld.View.Net
         /// <summary>Tells the scripts about a command, with the colour of the seat that did it.</summary>
         private void ScriptsHear(Command command, CommandResult result, string seat)
         {
-            if (_scripts == null || IsClient || _scripts.ScriptCount == 0)
+            // Even with no script running: a scripted object coming out of a bag starts its own.
+            if (_scripts == null || IsClient)
                 return;
             var color = seat == null ? null : _table.Engine.State.Players.Seats.FirstOrDefault(s => s.Id == seat)?.Color;
             _scripts.OnCommand(command, result, color);

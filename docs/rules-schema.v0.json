@@ -1937,6 +1937,18 @@
         "parent": {
           "type": "string"
         },
+        "script": {
+          "type": "string"
+        },
+        "scriptState": {
+          "type": "string"
+        },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
+          }
+        },
         "owner": {
           "type": "string"
         }
@@ -1977,6 +1989,18 @@
         },
         "parent": {
           "type": "string"
+        },
+        "script": {
+          "type": "string"
+        },
+        "scriptState": {
+          "type": "string"
+        },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
+          }
         },
         "visibleTo": {
           "type": "array",
@@ -2021,6 +2045,18 @@
         },
         "parent": {
           "type": "string"
+        },
+        "script": {
+          "type": "string"
+        },
+        "scriptState": {
+          "type": "string"
+        },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
+          }
         }
       },
       "additionalProperties": false,
@@ -2059,6 +2095,18 @@
         },
         "parent": {
           "type": "string"
+        },
+        "script": {
+          "type": "string"
+        },
+        "scriptState": {
+          "type": "string"
+        },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
+          }
         },
         "rotationSnap": {
           "type": "boolean"
@@ -2100,6 +2148,18 @@
         },
         "parent": {
           "type": "string"
+        },
+        "script": {
+          "type": "string"
+        },
+        "scriptState": {
+          "type": "string"
+        },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
+          }
         },
         "direction": {
           "enum": [
@@ -2162,6 +2222,18 @@
         },
         "parent": {
           "type": "string"
+        },
+        "script": {
+          "type": "string"
+        },
+        "scriptState": {
+          "type": "string"
+        },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
+          }
         }
       },
       "additionalProperties": false,

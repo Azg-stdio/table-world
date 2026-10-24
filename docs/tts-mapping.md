@@ -51,7 +51,7 @@ TTS `Name` → our `type`. Prefix `Custom_` means the mesh/image comes from a UR
 | `Digital_Clock` | `Clock` | `Clock.ClockMode` (`Current` → `clock`, `Stopwatch`, `Timer`), `Clock.SecondsPassed` → `seconds`, `Clock.Paused` → `running` (negated) |
 | `Checker_*`, `Chess_*`, `BlockSquare`, `BlockRectangle`, `Bowl`, `Domino`, `Go_*` | `Token` / `Model` with built-in presets | map by name to the default asset kit |
 | `Notecard`, `Counter`, `Custom_PDF`, `Tablet`, `Custom_Text` | `Notecard`, `Counter` (UI), out of v0 for PDF/Tablet/Text | keep as placeholder with notes |
-| `ScriptingTrigger` | `ScriptingZone` | transform + scale is the box |
+| `ScriptingTrigger` | `ScriptingZone` | transform + scale is the box; `LuaScript` / `LuaScriptState` → the zone's `script` / `scriptState`, `XmlUI` → its `scriptUi` |
 | `HandTrigger` | `HandZone` | `FogColor` = owner color; hidden to others |
 | `FogOfWarTrigger` | `HiddenZone` | fog of war proper (revealers) not built yet (P3); no local mod uses one |
 | `RandomizeTrigger` | `RandomizeZone` | transform + scale is the box |

@@ -291,6 +291,41 @@ end";
         }
 
         [UnityTest]
+        public IEnumerator ZoneScripts_DrawUiAtTheZone_AndHearItsClicks()
+        {
+            yield return SceneManager.LoadSceneAsync("Table");
+            yield return null;
+            var table = Object.FindAnyObjectByType<TableView>();
+            Object.FindAnyObjectByType<TableInteraction>().IgnoreDevices = true;
+            yield return new WaitForSeconds(0.3f);
+            var zoneScript = "function onLoad() self.UI.setXml([[<Button id=\"z\" onClick=\"hit\" width=\"300\" height=\"100\" position=\"0 0 -60\">Zone</Button>]]) end " +
+                             "function hit(player, value, id) broadcastToAll('zone button ' .. id) end";
+            var json = new JObject
+            {
+                ["schemaVersion"] = "0.1",
+                ["zones"] = new JArray(new JObject
+                {
+                    ["id"] = "pool", ["type"] = "ScriptingZone", ["size"] = new JArray(0.12, 0.06, 0.12), ["script"] = zoneScript,
+                    ["transform"] = new JObject { ["position"] = new JArray(0.1, 0.03, 0) },
+                }),
+                ["players"] = JObject.Parse(@"{ ""seats"": [ { ""id"": ""south"", ""color"": ""red"" } ] }"),
+            };
+            Assert.IsTrue(table.Load(json.ToString(), null));
+            yield return null;
+            yield return null;
+            var anchor = GameObject.Find("Zone UI pool");
+            Assert.IsNotNull(anchor, "the zone's UI hangs at the zone");
+            var surface = anchor.GetComponentInChildren<TableWorld.View.ScriptUi.ObjectUiSurface>();
+            Assert.IsNotNull(surface);
+            for (var wait = 0; wait < 120 && !surface.Ready; wait++)
+                yield return null;
+            Assert.IsTrue(surface.TryUse(surface.transform.position, "-1"));
+            yield return null;
+            var session = Object.FindAnyObjectByType<NetworkTableSession>();
+            Assert.IsTrue(session.Chat.Entries.Any(e => e.Text == "zone button z"), "the zone's own script ran the click");
+        }
+
+        [UnityTest]
         public IEnumerator ScriptButtons_AreDrawn_HitByThePointer_AndClicked()
         {
             yield return SceneManager.LoadSceneAsync("Table");

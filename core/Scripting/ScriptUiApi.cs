@@ -23,7 +23,8 @@ namespace Core.Scripting
                 body(args, args.Count > 0 && args[0].Type == DataType.Table && args[0].Table == t ? 1 : 0));
             DynValue At(CallbackArguments a, int self, int i) => a.Count > i + self ? a[i + self] : DynValue.Nil;
             string? Str(CallbackArguments a, int self, int i) => At(a, self, i).Type == DataType.Nil ? null : UiString(At(a, self, i));
-            List<UiNode> Nodes() => objectId == null ? Engine.State.ScriptUi : Engine.Find(objectId)?.ScriptUi ?? new List<UiNode>();
+            List<UiNode> Nodes() => objectId == null ? Engine.State.ScriptUi
+                : Engine.Find(objectId)?.ScriptUi ?? Engine.State.Zones.FirstOrDefault(z => z.Id == objectId)?.ScriptUi ?? new List<UiNode>();
             DynValue Set(string? id, Dictionary<string, string?> attributes, bool setValue = false, string? value = null) =>
                 id == null ? DynValue.False : DynValue.NewBoolean(Issue(new SetUiAttributesCommand
                 {
@@ -258,7 +259,8 @@ namespace Core.Scripting
         /// </summary>
         private void UiUsed(UiEventCommand ui, string? color)
         {
-            var nodes = ui.ObjectId == null ? Engine.State.ScriptUi : Engine.Find(ui.ObjectId)?.ScriptUi;
+            var nodes = ui.ObjectId == null ? Engine.State.ScriptUi
+                : Engine.Find(ui.ObjectId)?.ScriptUi ?? Engine.State.Zones.FirstOrDefault(z => z.Id == ui.ObjectId)?.ScriptUi;
             if (nodes == null || !(TableEngine.UiAt(nodes, ui.Path) is { } node) || !(node.Get(ui.Event) is { } handler))
                 return;
             var value = ui.Value ?? (ui.Event == "onClick" ? "-1" : "");

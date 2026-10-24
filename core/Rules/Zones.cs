@@ -23,6 +23,14 @@ namespace Core.Rules
 
         /// <summary>Object this zone is attached to and moves with (TTS <c>AttachedSnapPoints</c>), or null.</summary>
         public string? Parent { get; set; }
+
+        /// <summary>The zone's own Lua script (TTS scripting triggers have them), run like an object's; <c>self</c> is the zone.</summary>
+        public string? Script { get; set; }
+        /// <summary>What the zone's script saved with <c>onSave</c>.</summary>
+        public string? ScriptState { get; set; }
+        /// <summary>UI its script drew at the zone (M5; TTS scripting triggers can carry XmlUI), in the zone's frame.</summary>
+        public List<UiNode> ScriptUi { get; set; } = new List<UiNode>();
+        public bool ShouldSerializeScriptUi() => ScriptUi.Count > 0;
     }
 
     /// <summary>A seat's hand. Contents are hidden from every other seat.</summary>

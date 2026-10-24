@@ -82,19 +82,21 @@ namespace TableWorld.View.ScriptUi
         private static PanelSettings _panel;
         private static StyleSheet _style;
 
-        public static void Refresh(ObjectView view, ScriptUiContext context)
+        public static void Refresh(ObjectView view, ScriptUiContext context) => Refresh(view.transform, view.Model.ScriptUi, context);
+
+        /// <summary>Draws <paramref name="nodes"/> in <paramref name="host"/>'s frame (an object's view, or a zone's anchor).</summary>
+        public static void Refresh(Transform host, IReadOnlyList<UiNode> nodes, ScriptUiContext context)
         {
-            var old = view.transform.Find(RootName);
+            var old = host.Find(RootName);
             if (old != null)
             {
                 old.SetParent(null);
                 Object.Destroy(old.gameObject);
             }
-            var nodes = view.Model.ScriptUi;
             if (nodes.Count == 0)
                 return;
             var root = new GameObject(RootName).transform;
-            root.SetParent(view.transform, false);
+            root.SetParent(host, false);
             for (var i = 0; i < nodes.Count; i++)
                 if (nodes[i].Active)
                     Surface(root, nodes[i], i, context);

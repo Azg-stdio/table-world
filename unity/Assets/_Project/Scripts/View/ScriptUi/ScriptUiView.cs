@@ -109,9 +109,16 @@ namespace TableWorld.View.ScriptUi
             if (all)
             {
                 _drawnObjects.Clear();
+                foreach (var anchor in _zoneAnchors.Values)
+                    if (anchor != null)
+                        Destroy(anchor);
+                _zoneAnchors.Clear();
                 foreach (var obj in state.Objects)
                     if (obj.ScriptUi.Count > 0)
                         _dirtyObjects.Add(obj.Id);
+                foreach (var zone in state.Zones)
+                    if (zone.ScriptUi.Count > 0)
+                        _dirtyObjects.Add(zone.Id);
             }
             // A view made again since it was drawn (or never drawn) needs its UI.
             foreach (var pair in _drawnObjects.ToList())
@@ -121,6 +128,12 @@ namespace TableWorld.View.ScriptUi
                 return;
             foreach (var id in _dirtyObjects.ToList())
             {
+                if (state.Zones.FirstOrDefault(z => z.Id == id) is { } zone)
+                {
+                    ObjectUiView.Refresh(ZoneAnchor(zone), zone.ScriptUi, ContextFor(id));
+                    _dirtyObjects.Remove(id);
+                    continue;
+                }
                 var view = _table.ViewOf(id);
                 if (view == null)
                 {
@@ -128,23 +141,43 @@ namespace TableWorld.View.ScriptUi
                     _dirtyObjects.Remove(id);
                     continue;
                 }
-                var objectId = id;
-                ObjectUiView.Refresh(view, new ScriptUiContext
-                {
-                    Texture = _context.Texture,
-                    ViewerColor = _drawnViewer,
-                    ViewerIsHost = _drawnHost,
-                    Raise = (path, evt, value) => _table?.Execute(new UiEventCommand
-                    {
-                        ObjectId = objectId, Path = path, Event = evt, Value = value, Actor = _table.LocalSeat,
-                    }),
-                });
+                ObjectUiView.Refresh(view, ContextFor(id));
                 if (view.Model.ScriptUi.Count > 0)
                     _drawnObjects[id] = view;
                 else
                     _drawnObjects.Remove(id);
                 _dirtyObjects.Remove(id);
             }
+        }
+
+        private ScriptUiContext ContextFor(string objectId) => new ScriptUiContext
+        {
+            Texture = _context.Texture,
+            ViewerColor = _drawnViewer,
+            ViewerIsHost = _drawnHost,
+            Raise = (path, evt, value) => _table?.Execute(new UiEventCommand
+            {
+                ObjectId = objectId, Path = path, Event = evt, Value = value, Actor = _table.LocalSeat,
+            }),
+        };
+
+        private readonly Dictionary<string, GameObject> _zoneAnchors = new Dictionary<string, GameObject>();
+
+        /// <summary>
+        /// Where a zone's UI hangs (TTS scripting triggers carry XmlUI): the zone's pose, scaled like a TTS object of the
+        /// zone's size, since a trigger's scale is its box.
+        /// </summary>
+        private Transform ZoneAnchor(Zone zone)
+        {
+            if (!_zoneAnchors.TryGetValue(zone.Id, out var anchor) || anchor == null)
+            {
+                anchor = new GameObject($"Zone UI {zone.Id}");
+                _zoneAnchors[zone.Id] = anchor;
+            }
+            var t = anchor.transform;
+            t.SetPositionAndRotation(zone.Transform.Position.ToUnity(), Quaternion.Euler(zone.Transform.Rotation.ToUnity()));
+            t.localScale = zone.Size.ToUnity() / Core.Tts.TtsUnits.TtsUnitsToMeters;
+            return t;
         }
 
         private void LateUpdate()

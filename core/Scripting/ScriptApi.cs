@@ -346,6 +346,30 @@ namespace Core.Scripting
                 t["getObjects"] = DynValue.NewCallback((_, a) => List(script, Engine.ObjectsIn(id).Select(o => o.Id)));
                 t["getPosition"] = DynValue.NewCallback((_, a) => DynValue.NewTable(ToTts(script, zone.Transform.Position)));
                 t["hasTag"] = DynValue.NewCallback((_, a) => DynValue.NewBoolean(zone.Tags.Contains(Arg(a, 0) ?? "")));
+                t["getTags"] = DynValue.NewCallback((_, a) =>
+                {
+                    var tags = new Table(script);
+                    for (var i = 0; i < zone.Tags.Count; i++)
+                        tags[i + 1] = zone.Tags[i];
+                    return DynValue.NewTable(tags);
+                });
+                t["getRotation"] = DynValue.NewCallback((_, a) => DynValue.NewTable(Vector(script, zone.Transform.Rotation)));
+                // A trigger's scale is its box in TTS units.
+                t["getScale"] = DynValue.NewCallback((_, a) => DynValue.NewTable(Vector(script,
+                    new Vec3(zone.Size.X / TtsUnitsToMeters, zone.Size.Y / TtsUnitsToMeters, zone.Size.Z / TtsUnitsToMeters))));
+                t["getBounds"] = DynValue.NewCallback((_, a) =>
+                {
+                    var bounds = new Table(script);
+                    bounds["center"] = ToTts(script, zone.Transform.Position);
+                    bounds["size"] = Vector(script, new Vec3(zone.Size.X / TtsUnitsToMeters, zone.Size.Y / TtsUnitsToMeters, zone.Size.Z / TtsUnitsToMeters));
+                    bounds["offset"] = Vector(script, new Vec3(0f, 0f, 0f));
+                    return DynValue.NewTable(bounds);
+                });
+                t["getBoundsNormalized"] = t["getBounds"];
+                t["getLuaScript"] = DynValue.NewCallback((_, a) => Str(zone.Script));
+                t["getVar"] = DynValue.NewCallback((_, a) => _objectScripts.TryGetValue(id, out var s) ? Copy(s.Globals.Get(Arg(a, 0) ?? ""), script) : DynValue.Nil);
+                t["call"] = DynValue.NewCallback((_, a) => CallIn(_objectScripts.TryGetValue(id, out var s) ? s : null, script, a, Self(a)));
+                t["UI"] = UiApi(script, id);
                 var zoneProxy = DynValue.NewTable(t);
                 _proxies[(script, id)] = zoneProxy;
                 return zoneProxy;
@@ -494,11 +518,11 @@ namespace Core.Scripting
                     return Fn((o, a) => DynValue.NewTable(Vector(script, o.Transform.Rotation)));
                 case "setPosition": case "setPositionSmooth":
                     return Fn((o, a) => FromTts(At(a, 0), true) is { } p
-                        ? Do(new MoveCommand { ObjectId = id, Position = p, Rotation = o.Transform.Rotation })
+                        ? Do(new MoveCommand { ObjectId = id, Position = p, Rotation = o.Transform.Rotation, EvenLocked = true })
                         : DynValue.False);
                 case "setRotation": case "setRotationSmooth":
                     return Fn((o, a) => FromTts(At(a, 0), false) is { } r
-                        ? Do(new MoveCommand { ObjectId = id, Position = o.Transform.Position, Rotation = r })
+                        ? Do(new MoveCommand { ObjectId = id, Position = o.Transform.Position, Rotation = r, EvenLocked = true })
                         : DynValue.False);
                 case "flip":
                     return Fn((o, a) => Do(new FlipCommand { ObjectId = id }));

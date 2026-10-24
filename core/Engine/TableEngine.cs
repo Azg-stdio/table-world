@@ -230,7 +230,7 @@ namespace Core.Engine
 
         private CommandResult Move(MoveCommand c)
         {
-            if (RequireOnTable(c.ObjectId, "objectId", out var obj) is { } fail)
+            if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: c.EvenLocked) is { } fail)
                 return fail;
             if (c.DieValue.HasValue)
             {
@@ -507,28 +507,38 @@ namespace Core.Engine
 
         // ---- script UI (M5, ADR 0004) ------------------------------------------------------------------------------
 
-        /// <summary>The global UI (no object) or an object's; null with <paramref name="fail"/> when the object is not there.</summary>
-        private List<UiNode>? UiOf(string? objectId, out TableObject? owner, out CommandResult? fail)
+        /// <summary>
+        /// The global UI (no id), an object's, or a zone's; null with <paramref name="fail"/> when neither is there.
+        /// <paramref name="setUi"/> replaces that tree.
+        /// </summary>
+        private List<UiNode>? UiOf(string? objectId, out Action<List<UiNode>>? setUi, out CommandResult? fail)
         {
-            owner = null;
             fail = null;
+            setUi = null;
             if (objectId == null)
+            {
+                setUi = nodes => State.ScriptUi = nodes;
                 return State.ScriptUi;
+            }
+            if (State.Zones.FirstOrDefault(z => z.Id == objectId) is { } zone)
+            {
+                setUi = nodes => zone.ScriptUi = nodes;
+                return zone.ScriptUi;
+            }
             fail = RequireOnTable(objectId, "objectId", out var obj, allowLocked: true);
-            owner = obj;
-            return fail == null ? obj!.ScriptUi : null;
+            if (fail != null)
+                return null;
+            setUi = nodes => obj!.ScriptUi = nodes;
+            return obj!.ScriptUi;
         }
 
         private CommandResult SetScriptUi(SetScriptUiCommand c)
         {
-            if (!(UiOf(c.ObjectId, out var owner, out var fail) is { }))
+            if (!(UiOf(c.ObjectId, out var setUi, out var fail) is { }))
                 return fail!;
             if (TableValidator.CheckUi(c.Nodes, "nodes").FirstOrDefault() is { } bad)
                 return CommandResult.Fail(bad.Path, bad.Code, bad.Message);
-            if (owner != null)
-                owner.ScriptUi = c.Nodes;
-            else
-                State.ScriptUi = c.Nodes;
+            setUi!(c.Nodes);
             return CommandResult.Success(new List<StateEvent> { new ScriptUiChanged(c.ObjectId) });
         }
 

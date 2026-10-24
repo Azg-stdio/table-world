@@ -75,7 +75,15 @@ namespace Core.Scripting
                 Issue(new SetInputsCommand { ObjectId = withInputs.Id });
             if (state.Scripts.TryGetValue(GlobalName, out var source) && !string.IsNullOrWhiteSpace(source))
                 _global = Compile(source, null, "Global");
-            foreach (var obj in state.Objects.Where(o => !string.IsNullOrWhiteSpace(o.Script)))
+            // Zone scripts (TTS scripting triggers) run like object scripts, with the zone as self; ids are shared, so one map holds both.
+            foreach (var zone in state.Zones.Where(z => !string.IsNullOrWhiteSpace(z.Script)))
+            {
+                var script = Compile(zone.Script!, zone.Id, zone.Name ?? zone.Id);
+                if (script != null)
+                    _objectScripts[zone.Id] = script;
+            }
+            // An object inside a bag or deck is not in play: its script starts when it comes out (as in TTS).
+            foreach (var obj in state.Objects.Where(o => !string.IsNullOrWhiteSpace(o.Script) && o.Container == null))
             {
                 var script = Compile(obj.Script!, obj.Id, obj.Name ?? obj.Id);
                 if (script != null)
@@ -85,7 +93,7 @@ namespace Core.Scripting
             if (_global != null)
                 CallIfDefined(_global, "onLoad", DynValue.NewString(state.GlobalScriptState ?? ""));
             foreach (var pair in _objectScripts.ToList())
-                CallIfDefined(pair.Value, "onLoad", DynValue.NewString(Engine.Find(pair.Key)?.ScriptState ?? ""));
+                CallIfDefined(pair.Value, "onLoad", DynValue.NewString(Engine.Find(pair.Key)?.ScriptState ?? ZoneOf(pair.Key)?.ScriptState ?? ""));
         }
 
         /// <summary>
@@ -98,8 +106,13 @@ namespace Core.Scripting
             if (_global != null && CallIfDefined(_global, "onSave") is { Type: DataType.String } global)
                 state.GlobalScriptState = global.String;
             foreach (var pair in _objectScripts.ToList())
-                if (CallIfDefined(pair.Value, "onSave") is { Type: DataType.String } saved && Engine.Find(pair.Key) is { } obj)
-                    obj.ScriptState = saved.String;
+                if (CallIfDefined(pair.Value, "onSave") is { Type: DataType.String } saved)
+                {
+                    if (Engine.Find(pair.Key) is { } obj)
+                        obj.ScriptState = saved.String;
+                    else if (ZoneOf(pair.Key) is { } zone)
+                        zone.ScriptState = saved.String;
+                }
         }
 
         /// <summary>Recompiles one object's script after <c>setLuaScript</c> (or a player edit) and runs its onLoad.</summary>
@@ -121,6 +134,8 @@ namespace Core.Scripting
             _objectScripts[id] = script;
             CallIfDefined(script, "onLoad", DynValue.NewString(obj.ScriptState ?? ""));
         }
+
+        private Zone? ZoneOf(string id) => Engine.State.Zones.FirstOrDefault(z => z.Id == id);
 
         /// <summary>Scripts loaded right now (the global one counts).</summary>
         public int ScriptCount => (_global != null ? 1 : 0) + _objectScripts.Count;
@@ -246,7 +261,12 @@ namespace Core.Scripting
         /// </summary>
         public void OnCommand(Command command, CommandResult result, string? color)
         {
-            if (!result.Ok || ScriptCount == 0)
+            if (!result.Ok)
+                return;
+            // Scripts start and stop with their objects even when none is running yet (one may be about to come out of a bag).
+            foreach (var e in result.Events)
+                StartOrStop(e);
+            if (ScriptCount == 0)
                 return;
             var who = color == null ? DynValue.Nil : DynValue.NewString(Capital(color));
             switch (command)
@@ -311,6 +331,43 @@ namespace Core.Scripting
                         break;
                 }
             }
+        }
+
+        /// <summary>
+        /// Objects in play run their scripts; objects in a bag or deck do not (as in TTS). A scripted object that comes
+        /// out, is taken from a deck, is cloned or shows a new state starts its script; one that goes in or is removed stops.
+        /// </summary>
+        private void StartOrStop(StateEvent e)
+        {
+            switch (e)
+            {
+                case ObjectAdded added:
+                    if (!_objectScripts.ContainsKey(added.ObjectId) && Engine.Find(added.ObjectId) is { Container: null, Script: { Length: > 0 } })
+                        ReloadObject(added.ObjectId);
+                    break;
+                case ContainerChanged { To: null } outside:
+                    if (!_objectScripts.ContainsKey(outside.ObjectId) && Engine.Find(outside.ObjectId) is { Script: { Length: > 0 } })
+                        ReloadObject(outside.ObjectId);
+                    break;
+                case ContainerChanged inside:
+                    StopObject(inside.ObjectId);
+                    break;
+                case ObjectRemoved removed:
+                    StopObject(removed.ObjectId);
+                    break;
+            }
+        }
+
+        /// <summary>Stops an object's script: its timers and coroutines end and its proxies go.</summary>
+        private void StopObject(string id)
+        {
+            if (!_objectScripts.TryGetValue(id, out var script))
+                return;
+            _objectScripts.Remove(id);
+            _timers.RemoveAll(t => t.Script == script);
+            _coroutines.RemoveAll(c => c.Script == script);
+            foreach (var key in _proxies.Keys.Where(k => k.Item1 == script).ToList())
+                _proxies.Remove(key);
         }
 
         /// <summary>

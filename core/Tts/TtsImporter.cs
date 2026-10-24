@@ -450,8 +450,10 @@ namespace Core.Tts
             // A trigger's scale is its box, in TTS units.
             zone.Size = new Vec3(Math.Abs(t.Scale.X) * TtsUnits.TtsUnitsToMeters, Math.Abs(t.Scale.Y) * TtsUnits.TtsUnitsToMeters, Math.Abs(t.Scale.Z) * TtsUnits.TtsUnitsToMeters);
             zone.Transform = new TableTransform { Position = t.Position, Rotation = t.Rotation };
-            if ((string?)o["LuaScript"] is { Length: > 0 })
-                _result.Notes.Add($"{name} {o["GUID"]} has a script; zones do not run scripts yet.");
+            zone.Script = NullIfEmpty((string?)o["LuaScript"]);
+            zone.ScriptState = NullIfEmpty((string?)o["LuaScriptState"]);
+            if ((string?)o["XmlUI"] is { Length: > 0 } xml)
+                zone.ScriptUi = Ui(xml, $"{name} {o["GUID"]}");
             return zone;
         }
 
