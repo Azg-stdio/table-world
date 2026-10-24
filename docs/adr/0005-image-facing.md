@@ -14,10 +14,15 @@ Imported TTS tables showed every image upside down to its owner. The saves are c
 So TTS draws images upright from +Z at yaw 0, and a piece that faces the south seat has yaw 180. Cards in a TTS hand
 are likewise turned 180° from the hand zone.
 
-Buttons and object XmlUI are the exception: they read upright from −Z at yaw 0. The evidence:
-- Riftbound's buttons have no rotation on objects with yaw 0 by south seats and yaw 180 by north seats (38 each).
-- Riftbound's playmat menus have no rotation either.
-- Gloomhaven adds `rotation="0 0 180"` or `{0,180,0}` to UI on objects turned 180°.
+Buttons follow the same rule. Riftbound's evidence:
+- Every south-side Recycle button and Points counter lies at yaw 180 with unrotated buttons; the north-side ones lie at yaw 0.
+- Its deck counts use rotation `{0,0,180}` only when the deck is face down.
+
+(An earlier reading paired objects with the nearest hand zone and concluded the opposite; it was corrected on 2026-10-24.)
+
+Object XmlUI is the exception: it reads upright from −Z at yaw 0. The evidence:
+- Riftbound's playmat menus have no rotation and sit on unturned holders by the south seats.
+- Gloomhaven adds `rotation="0 0 180"` to UI on objects turned 180°.
 
 ## Decision
 
@@ -28,7 +33,9 @@ Rotations in our table model are TTS's, unchanged (principle 5), and the rendere
   into a hand, a drop into a hand, rules moves with a face, and layout zones.
 - **Hands:** cards standing in a hand are turned to face the owner.
 - **Inspection:** the inspect camera takes an image's top edge as the piece's −Z side.
-- **Buttons and object UI:** they keep reading upright from −Z.
+- **Buttons and inputs:** they read upright from +Z at rotation 0, like images (`ScriptButtonsView`, `ScriptInputsView`).
+  Buttons drawn in the same place show in the order the script made them (TTS's outlined-text trick).
+- **Object XmlUI:** it reads upright from −Z (`ObjectUiView`).
 - **Our own content:** the sample table, War, UNO-lite and the MCP server's `create_deck` place pieces at yaw 180 for
   the south seat and 0 for the north.
 

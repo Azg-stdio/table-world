@@ -7,39 +7,74 @@ using UnityEngine.UIElements;
 namespace TableWorld.View.Hud
 {
     /// <summary>
-    /// TTS hand view: the local seat's hand shown at the bottom of the screen, whatever the camera does. Hover raises and
-    /// enlarges a card; pressing one picks up the real card (it then follows the pointer like any grab, so dropping it
-    /// on the table plays or places it); releasing over the bar puts a card into the hand at that position.
-    /// Styling lives in Hud.uss (hand-bar, hand-card); only positions and card images are set from code.
+    /// TTS hand view: the local seat's hand shown at the bottom of the screen, whatever the camera does. It is a drawer:
+    /// the handle above it drags it from a thin strip of each card up to the whole cards (a click flips between the strip
+    /// and the last open height, remembered on this machine). Hovering a card raises it into full view; pressing one
+    /// picks up the real card (it then follows the pointer like any grab, so dropping it on the table plays or places
+    /// it); releasing over the bar puts a card into the hand at that position.
+    /// Styling lives in Hud.uss (hand-bar, hand-card, hand-toggle); sizes, positions and card images are set from code.
     /// </summary>
     public sealed class HandBar
     {
-        /// <summary>Horizontal distance between card centres at the reference resolution when they fit.</summary>
-        public const float CardStep = 92f;
-        public const float CardWidth = 100f;
-        /// <summary>The bar never grows wider than this; more cards overlap.</summary>
-        public const float MaxWidth = 900f;
+        /// <summary>Card height as a share of the screen, within <see cref="MinCardHeight"/>..<see cref="MaxCardHeight"/> pixels.</summary>
+        public const float CardHeightShare = 0.3f;
+        public const float MinCardHeight = 150f;
+        public const float MaxCardHeight = 340f;
+        /// <summary>Of a card's width, the step between card centres when they fit.</summary>
+        public const float StepShare = 0.92f;
+        /// <summary>The bar never grows wider than this share of the screen; more cards overlap.</summary>
+        public const float MaxWidthShare = 0.8f;
+        /// <summary>What a closed drawer still shows of each card, and the gap under a fully open one.</summary>
+        public const float PeekPixels = 22f;
+        public const float BottomPadding = 12f;
+        /// <summary>A press on the handle that moves less than this is a click, not a drag.</summary>
+        public const float DragThreshold = 4f;
         /// <summary>Releasing within this many pixels above the bar still counts as dropping into the hand.</summary>
         public const float DropMargin = 60f;
+        public const float DefaultReveal = 0.6f;
 
         private readonly VisualElement _bar;
         private readonly Button _toggle;
 
-        /// <summary>Remembered per player on this machine.</summary>
+        /// <summary>How open the drawer is (0 a strip, 1 whole cards), remembered per player on this machine.</summary>
+        public const string RevealPref = "tw.hand.reveal";
+        /// <summary>The older shown/hidden switch: a hidden hand opens closed.</summary>
         public const string CollapsedPref = "tw.hand.collapsed";
         private readonly TableView _table;
         private readonly TableInteraction _interaction;
         private readonly CardImages _images = new CardImages();
         private AssetLibrary _spritesFor;
         private string _shownKey;
+        private float _reveal;
+        private float _openReveal = DefaultReveal;
+        private float _cardHeight = MinCardHeight;
+        private VisualElement _hovered;
+        private float? _dragFrom;
+        private float _dragReveal;
+        private bool _dragged;
 
         public HandBar(VisualElement root, TableView table, TableInteraction interaction)
         {
             _bar = root.Q("handBar");
             _toggle = root.Q<Button>("handToggle");
             if (_toggle != null)
-                _toggle.clicked += () => SetCollapsed(!Collapsed);
-            SetCollapsed(LoadCollapsed());
+            {
+                _toggle.clicked += () =>
+                {
+                    if (!_dragged)
+                        SetCollapsed(!Collapsed);
+                    _dragged = false;
+                };
+                _toggle.tooltip = "Drag up or down to show more or less of your hand; click to hide or show it.";
+                _toggle.RegisterCallback<PointerDownEvent>(StartDrag, TrickleDown.TrickleDown);
+                _toggle.RegisterCallback<PointerMoveEvent>(Drag, TrickleDown.TrickleDown);
+                _toggle.RegisterCallback<PointerUpEvent>(EndDrag, TrickleDown.TrickleDown);
+            }
+            // A new screen size gives new card sizes.
+            root.RegisterCallback<GeometryChangedEvent>(_ => _shownKey = null);
+            _reveal = LoadReveal();
+            if (_reveal > 0.1f)
+                _openReveal = _reveal;
             _table = table;
             _interaction = interaction;
             if (_interaction != null)
@@ -47,40 +82,99 @@ namespace TableWorld.View.Hud
                 _interaction.HandDrop = DropSlot;
                 _interaction.HandCardAt = CardAt;
             }
+            Layout();
         }
 
-        public bool Collapsed { get; private set; }
+        /// <summary>The drawer is shut to a strip of each card.</summary>
+        public bool Collapsed => _reveal <= 0.001f;
 
-        /// <summary>Hide or show the hand: hidden leaves a thin strip of each card, and hovering still shows one.</summary>
-        public void SetCollapsed(bool collapsed)
+        /// <summary>How open the drawer is: 0 a strip of each card, 1 the whole cards.</summary>
+        public float Reveal => _reveal;
+
+        /// <summary>Shuts the drawer to a strip, or opens it to its last open height.</summary>
+        public void SetCollapsed(bool collapsed) => SetReveal(collapsed ? 0f : _openReveal);
+
+        public void SetReveal(float reveal)
         {
-            Collapsed = collapsed;
-            _bar?.EnableInClassList("hand-bar--collapsed", collapsed);
+            _reveal = Mathf.Clamp01(reveal);
+            if (_reveal > 0.1f)
+                _openReveal = _reveal;
+            Layout();
+            try
+            {
+                PlayerPrefs.SetFloat(RevealPref, _reveal);
+            }
+            catch (System.Exception)
+            {
+                // A preference that cannot be saved only costs the player a drag next time.
+            }
+        }
+
+        private static float LoadReveal()
+        {
+            try
+            {
+                if (PlayerPrefs.HasKey(RevealPref))
+                    return Mathf.Clamp01(PlayerPrefs.GetFloat(RevealPref, DefaultReveal));
+                return PlayerPrefs.GetInt(CollapsedPref, 0) == 1 ? 0f : DefaultReveal;
+            }
+            catch (System.Exception)
+            {
+                return DefaultReveal;
+            }
+        }
+
+        /// <summary>Pixels of each resting card in view.</summary>
+        private float Visible => PeekPixels + _reveal * (_cardHeight + BottomPadding - PeekPixels);
+
+        /// <summary>Places the drawer, its handle and a hovered card for the current opening.</summary>
+        private void Layout()
+        {
+            if (_bar == null)
+                return;
+            var full = _cardHeight + BottomPadding;
+            _bar.style.height = full;
+            _bar.style.bottom = Visible - full;
             if (_toggle != null)
             {
-                _toggle.EnableInClassList("hand-toggle--collapsed", collapsed);
-                _toggle.text = collapsed ? "Show hand" : "Hide hand";
+                _toggle.style.bottom = Visible + 6f;
+                _toggle.text = Collapsed ? "Show hand" : "Hide hand";
+                _toggle.EnableInClassList("hand-toggle--collapsed", Collapsed);
             }
-            try
-            {
-                PlayerPrefs.SetInt(CollapsedPref, collapsed ? 1 : 0);
-            }
-            catch (System.Exception)
-            {
-                // A preference that cannot be saved only costs the player one click next time.
-            }
+            foreach (var card in _bar.Children())
+                card.style.translate = card == _hovered ? new Translate(0f, -(full - Visible)) : new Translate(0f, 0f);
         }
 
-        private static bool LoadCollapsed()
+        private void StartDrag(PointerDownEvent evt)
         {
-            try
-            {
-                return PlayerPrefs.GetInt(CollapsedPref, 0) == 1;
-            }
-            catch (System.Exception)
-            {
-                return false;
-            }
+            if (evt.button != 0)
+                return;
+            _dragFrom = evt.position.y;
+            _dragReveal = _reveal;
+            _dragged = false;
+            _toggle.CapturePointer(evt.pointerId);
+        }
+
+        private void Drag(PointerMoveEvent evt)
+        {
+            if (_dragFrom is not { } from)
+                return;
+            var moved = from - evt.position.y;
+            if (!_dragged && Mathf.Abs(moved) < DragThreshold)
+                return;
+            _dragged = true;
+            // Up opens: the handle follows the pointer.
+            var range = _cardHeight + BottomPadding - PeekPixels;
+            SetReveal(_dragReveal + moved / Mathf.Max(1f, range));
+        }
+
+        private void EndDrag(PointerUpEvent evt)
+        {
+            if (_dragFrom == null)
+                return;
+            _dragFrom = null;
+            if (_toggle.HasPointerCapture(evt.pointerId))
+                _toggle.ReleasePointer(evt.pointerId);
         }
 
         /// <summary>The local seat's hand cards, left to right as the owner sees them.</summary>
@@ -116,12 +210,20 @@ namespace TableWorld.View.Hud
         private void Rebuild(List<TableObject> cards, string held)
         {
             _bar.Clear();
+            _hovered = null;
             var shown = cards.Where(c => c.Id != held).ToList();
             _bar.EnableInClassList("hidden", shown.Count == 0 && held == null);
             _toggle?.EnableInClassList("hidden", shown.Count == 0);
-            var step = shown.Count < 2 ? 0f : Mathf.Min(CardStep, (MaxWidth - CardWidth) / (shown.Count - 1));
-            var width = shown.Count == 0 ? CardWidth : CardWidth + step * (shown.Count - 1);
-            _bar.style.width = width;
+            var screen = _bar.panel?.visualTree.layout ?? new Rect(0f, 0f, 1200f, 800f);
+            var screenHeight = float.IsNaN(screen.height) || screen.height <= 0f ? 800f : screen.height;
+            var screenWidth = float.IsNaN(screen.width) || screen.width <= 0f ? 1200f : screen.width;
+            _cardHeight = Mathf.Clamp(screenHeight * CardHeightShare, MinCardHeight, MaxCardHeight);
+            // The cards' own proportions (a TTS card, a tarot card), from the first card.
+            var size = shown.Count > 0 ? ((Card)shown[0]).Size ?? Card.DefaultSize : Card.DefaultSize;
+            var cardWidth = _cardHeight * size.X / Mathf.Max(0.001f, size.Y);
+            var maxWidth = screenWidth * MaxWidthShare;
+            var step = shown.Count < 2 ? 0f : Mathf.Min(cardWidth * StepShare, (maxWidth - cardWidth) / (shown.Count - 1));
+            _bar.style.width = shown.Count == 0 ? cardWidth : cardWidth + step * (shown.Count - 1);
             for (var i = 0; i < shown.Count; i++)
             {
                 var card = (Card)shown[i];
@@ -130,12 +232,27 @@ namespace TableWorld.View.Hud
                 // Runtime card images (cells of a sprite sheet) can only be set from code.
                 if (_images.Face(_table.Assets, card.FaceAsset, card.FaceIndex) is { } sprite)
                     element.style.backgroundImage = new StyleBackground(sprite);
+                element.style.width = cardWidth;
+                element.style.height = _cardHeight;
+                element.style.bottom = BottomPadding;
                 element.style.left = i * step;
                 element.tooltip = card.Name;
-                // The hovered card comes to the front; the others keep their places (positions are absolute).
-                element.RegisterCallback<PointerEnterEvent>(_ => element.BringToFront());
+                // The hovered card comes to the front and rises into full view; the others keep their places.
+                element.RegisterCallback<PointerEnterEvent>(_ =>
+                {
+                    element.BringToFront();
+                    _hovered = element;
+                    Layout();
+                });
+                element.RegisterCallback<PointerLeaveEvent>(_ =>
+                {
+                    if (_hovered == element)
+                        _hovered = null;
+                    Layout();
+                });
                 _bar.Add(element);
             }
+            Layout();
         }
 
         /// <summary>
@@ -160,13 +277,14 @@ namespace TableWorld.View.Hud
                 return null;
             var panelPoint = RuntimePanelUtils.ScreenToPanel(_bar.panel, new Vector2(screen.x, Screen.height - screen.y));
             var rect = _bar.worldBound;
-            // An empty bar still accepts drops across a card-wide area.
-            var left = rect.xMin - CardWidth / 2f;
-            var right = rect.xMax + CardWidth / 2f;
+            var cardWidth = _cardHeight * Card.DefaultSize.X / Card.DefaultSize.Y;
+            // An empty bar still accepts drops across a card-wide area. The bar's top is the top of what is in view (the
+            // rest of it is below the screen edge).
+            var left = rect.xMin - cardWidth / 2f;
+            var right = rect.xMax + cardWidth / 2f;
             if (panelPoint.x < left || panelPoint.x > right || panelPoint.y < rect.yMin - DropMargin)
                 return null;
             return Mathf.InverseLerp(left, right, panelPoint.x);
         }
-
     }
 }

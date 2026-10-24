@@ -391,6 +391,19 @@ namespace TableWorld.Tests.PlayMode
             yield return new WaitForSeconds(0.3f);
             Assert.AreEqual("Hide hand", toggle.text);
             Assert.AreEqual(shown, root.Q("hand-king_hearts").worldBound.yMin, 1f);
+
+            // The drawer: fully open shows the whole card above the screen edge; shut leaves only a strip.
+            var screenBottom = root.panel.visualTree.worldBound.height;
+            hud.HandBar.SetReveal(1f);
+            yield return new WaitForSeconds(0.3f);
+            var open = root.Q("hand-king_hearts").worldBound;
+            Assert.LessOrEqual(open.yMax, screenBottom - HandBar.BottomPadding + 1f, "fully open: the whole card shows");
+            Assert.GreaterOrEqual(open.height, HandBar.MinCardHeight - 1f, "cards are big enough to read");
+            hud.HandBar.SetReveal(0f);
+            yield return new WaitForSeconds(0.3f);
+            Assert.AreEqual(screenBottom - HandBar.PeekPixels, root.Q("hand-king_hearts").worldBound.yMin, 2f, "shut: a strip of each card");
+            Assert.AreEqual("Show hand", toggle.text);
+            hud.HandBar.SetCollapsed(false);
         }
 
         /// <summary>Heading of an object about the vertical, 0..360 (independent of flips).</summary>

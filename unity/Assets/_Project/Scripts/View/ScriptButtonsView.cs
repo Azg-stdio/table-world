@@ -14,6 +14,22 @@ namespace TableWorld.View
 
         /// <summary>Darkens the button while the pointer is on it, like TTS.</summary>
         public void SetHovered(bool hovered) => Shade?.EnableInClassList("script-button-shade--hover", hovered);
+
+        private UIRenderer _renderer;
+
+        /// <summary>
+        /// Buttons drawn in the same place show in the order the script made them, as in TTS (Riftbound writes deck
+        /// counts as eight black copies around a white one). Transparent panels are otherwise sorted by distance, and an
+        /// outline copy a few millimetres nearer the camera covered the white one. The panel's renderer is made by the
+        /// document after the button is built (and the document's own sorting order does not reach it), so it is set here.
+        /// </summary>
+        private void LateUpdate()
+        {
+            if (_renderer == null)
+                _renderer = GetComponentInChildren<UIRenderer>();
+            if (_renderer != null && _renderer.sortingOrder != Index)
+                _renderer.sortingOrder = Index;
+        }
     }
 
     /// <summary>
@@ -28,6 +44,8 @@ namespace TableWorld.View
         private const float PixelsPerMetre = 4000f;
         /// <summary>Above its spot, so it does not fight the surface it lies on.</summary>
         private const float Lift = 0.0004f;
+        /// <summary>Each later button sits this much further out, so it never fights an earlier one in depth.</summary>
+        private const float LayerStep = 0.00005f;
 
         private static PanelSettings _panel;
         private static StyleSheet _style;
@@ -56,7 +74,9 @@ namespace TableWorld.View
             var go = new GameObject($"Button {index}");
             var t = go.transform;
             t.SetParent(root, false);
-            t.localPosition = def.Position.ToUnity() + Vector3.up * Lift;
+            // Outward on the side it is on: a face-down deck carries its buttons on its underside (TTS y below 0).
+            var outward = def.Position.Y < 0f ? Vector3.down : Vector3.up;
+            t.localPosition = def.Position.ToUnity() + outward * (Lift + index * LayerStep);
             t.localRotation = Quaternion.Euler(def.Rotation.X, def.Rotation.Y, def.Rotation.Z);
             var clickable = def.Width > 0f && def.Height > 0f;
             var button = go.AddComponent<ScriptButtonView>();
@@ -81,7 +101,9 @@ namespace TableWorld.View
 
             var face = new GameObject("Face").transform;
             face.SetParent(t, false);
-            face.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            // TTS buttons read upright from +z at rotation 0, like its card images (Riftbound's south-side counters and
+            // recycle buttons lie at yaw 180 unrotated); object XmlUI is the other way round (ObjectUiView).
+            face.localRotation = Quaternion.Euler(0f, 180f, 0f) * Quaternion.Euler(90f, 0f, 0f);
             face.localScale = Vector3.one * (NotecardView.PixelsPerUnit / PixelsPerMetre);
             var document = face.gameObject.AddComponent<UIDocument>();
             document.panelSettings = Panel();

@@ -62,7 +62,8 @@ namespace TableWorld.View
 
             var face = new GameObject("Face").transform;
             face.SetParent(t, false);
-            face.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            // Upright from +z at rotation 0, like buttons (ScriptButtonsView).
+            face.localRotation = Quaternion.Euler(0f, 180f, 0f) * Quaternion.Euler(90f, 0f, 0f);
             face.localScale = Vector3.one * (NotecardView.PixelsPerUnit / PixelsPerMetre);
             var document = face.gameObject.AddComponent<UIDocument>();
             document.panelSettings = Panel();
