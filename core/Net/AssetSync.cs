@@ -114,7 +114,8 @@ namespace Core.Net
             _byHash.Clear();
             Warnings.Clear();
             var entries = new List<ManifestEntry>();
-            foreach (var asset in state.Assets.Where(a => a.Type == AssetType.Image && !a.IsBuiltin))
+            // Images and model meshes travel; asset bundles come later (M4).
+            foreach (var asset in state.Assets.Where(a => (a.Type == AssetType.Image || a.Type == AssetType.Model) && !a.IsBuiltin))
             {
                 byte[]? data;
                 try

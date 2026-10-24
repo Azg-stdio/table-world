@@ -140,10 +140,23 @@ namespace TableWorld.View
                 case Die die:
                     RefreshDie(view, assets, die, tint);
                     break;
+                case Bag bag when bag.Asset != null && assets.Mesh(bag.Asset) is { } bagMesh:
+                    // A bag with its own model (TTS Custom_Model_Bag): the model's mesh, untextured until the importer maps its image.
+                    SetModel(view, bagMesh, assets.Plain(model.Tint.ToColor(bag is InfiniteBag ? InfiniteBagCloth : BagCloth), 0.1f), 0.05f);
+                    break;
                 case Bag bag:
                 {
                     var cloth = assets.Plain(model.Tint.ToColor(bag is InfiniteBag ? InfiniteBagCloth : BagCloth), 0.1f);
                     SetPrism(view, MeshFactory.Cylinder(BagRadius, BagHeight, 24), cloth, cloth, cloth, 0.05f);
+                    break;
+                }
+                case Model modelObject when assets.Mesh(modelObject.Asset) is { } modelMesh:
+                {
+                    // A custom model (TTS Custom_Model, G38): its OBJ mesh with its diffuse image.
+                    var skin = modelObject.DiffuseAsset != null
+                        ? assets.ImageMaterial(modelObject.DiffuseAsset, model.Tint.ToColor(Color.white))
+                        : assets.Plain(model.Tint.ToColor(Ivory), modelObject.Material == ModelMaterial.Metal ? 0.7f : 0.3f);
+                    SetModel(view, modelMesh, skin, 0.05f);
                     break;
                 }
                 case Board board:
@@ -316,6 +329,23 @@ namespace TableWorld.View
                 meshCollider.convex = true;
                 meshCollider.sharedMesh = mesh;
             }
+        }
+
+        /// <summary>A model's own mesh (one material) with a convex collider of its shape.</summary>
+        private static void SetModel(ObjectView view, Mesh mesh, Material material, float mass)
+        {
+            view.Filter.sharedMesh = mesh;
+            view.Renderer.sharedMaterials = new[] { material };
+            view.Body.mass = mass;
+            if (!(view.Collider is MeshCollider collider))
+            {
+                if (view.Collider != null)
+                    Object.Destroy(view.Collider);
+                collider = view.gameObject.AddComponent<MeshCollider>();
+                view.Collider = collider;
+            }
+            collider.convex = true;
+            collider.sharedMesh = mesh;
         }
 
         /// <summary>A round stand under a standee: its own renderer and convex collider, part of the object's rigidbody.</summary>

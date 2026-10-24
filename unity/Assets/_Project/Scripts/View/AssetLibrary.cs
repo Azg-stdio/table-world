@@ -21,6 +21,7 @@ namespace TableWorld.View
 
         private readonly Dictionary<string, Asset> _assets = new Dictionary<string, Asset>();
         private readonly Dictionary<string, Texture2D> _texturesByPath = new Dictionary<string, Texture2D>();
+        private readonly Dictionary<string, Mesh> _meshesByPath = new Dictionary<string, Mesh>();
         private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
         private readonly string _packageRoot;
         private readonly System.Func<Asset, byte[]> _fetch;
@@ -43,6 +44,9 @@ namespace TableWorld.View
             if (_texturesByPath.TryGetValue(asset.Path, out var texture) && texture != null)
                 Object.Destroy(texture);
             _texturesByPath.Remove(asset.Path);
+            if (_meshesByPath.TryGetValue(asset.Path, out var mesh) && mesh != null)
+                Object.Destroy(mesh);
+            _meshesByPath.Remove(asset.Path);
             if (_materials.TryGetValue("img:" + assetId, out var material))
             {
                 Object.Destroy(material);
@@ -152,6 +156,52 @@ namespace TableWorld.View
             if (texture != null || _fetch == null)
                 _texturesByPath[asset.Path] = texture;
             return texture;
+        }
+
+        /// <summary>
+        /// A model asset's mesh (OBJ, TTS Custom_Model; M4/G38), or null: builtin placeholders, other formats (glTF comes
+        /// with T5.1), unreadable files, and files still downloading. Cached per path.
+        /// </summary>
+        public Mesh Mesh(string assetId)
+        {
+            var asset = Find(assetId);
+            if (asset == null || asset.Type != AssetType.Model || asset.IsBuiltin)
+                return null;
+            if (_meshesByPath.TryGetValue(asset.Path, out var cached))
+                return cached;
+            Mesh mesh = null;
+            var bytes = ReadPackageFile(asset) ?? _fetch?.Invoke(asset);
+            if (bytes != null)
+            {
+                if (!asset.Path.EndsWith(".obj", System.StringComparison.OrdinalIgnoreCase))
+                    Debug.LogWarning($"[AssetLibrary] '{asset.Path}': only OBJ models load for now; showing a placeholder.");
+                else if (Core.Models.ObjMesh.Parse(System.Text.Encoding.UTF8.GetString(bytes), out var error) is { } data)
+                    mesh = ToMesh(data, asset.Path);
+                else
+                    Debug.LogWarning($"[AssetLibrary] '{asset.Path}' is not a usable OBJ model: {error}");
+            }
+            else if (_fetch == null)
+                Debug.LogWarning($"[AssetLibrary] Missing model '{asset.Path}' (package: {_packageRoot ?? "none"}); showing a placeholder.");
+            if (mesh != null || _fetch == null)
+                _meshesByPath[asset.Path] = mesh;
+            return mesh;
+        }
+
+        private static Mesh ToMesh(Core.Models.MeshData data, string name)
+        {
+            var mesh = new Mesh { name = "model:" + name };
+            if (data.Positions.Count > 65000)
+                mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+            mesh.SetVertices(data.Positions.ConvertAll(p => new Vector3(p.X, p.Y, p.Z)));
+            mesh.SetUVs(0, data.Uvs.ConvertAll(u => new Vector2(u.X, u.Y)));
+            mesh.SetTriangles(data.Triangles, 0);
+            if (data.Normals.Count == data.Positions.Count)
+                mesh.SetNormals(data.Normals.ConvertAll(n => new Vector3(n.X, n.Y, n.Z)));
+            else
+                mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            mesh.RecalculateTangents();
+            return mesh;
         }
 
         /// <summary>The asset's file in the game package, or null. Paths were validated to stay inside the package.</summary>
