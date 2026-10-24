@@ -111,17 +111,20 @@ namespace TableWorld.View
                     break;
                 case Token token:
                 {
-                    var size = token.Thickness ?? TokenThickness;
+                    // A counted stack (G14) is one body, as tall as its pieces.
+                    var size = (token.Thickness ?? TokenThickness) * token.Count;
                     var mesh = token.Shape == TokenShape.Round
                         ? MeshFactory.Cylinder(TokenDiameter / 2f, size)
                         : MeshFactory.Box(new Vector3(TokenDiameter, size, TokenDiameter));
                     var face = assets.ImageMaterial(token.Asset, model.Tint.ToColor(Ivory));
-                    SetPrism(view, mesh, face, face, assets.Plain(model.Tint.ToColor(Ivory) * 0.85f), 0.002f);
+                    var edge = model.Tint.ToColor(Ivory) * 0.85f;
+                    SetPrism(view, mesh, face, face, token.Count > 1 ? assets.Grooved(edge) : assets.Plain(edge), 0.002f * token.Count);
+                    SetCell(view, MeshFactory.SideSubmesh, new Vector4(1f, token.Count, 0f, 0f));
                     break;
                 }
                 case Tile tile:
                 {
-                    var thickness = tile.Thickness ?? TileThickness;
+                    var thickness = (tile.Thickness ?? TileThickness) * tile.Count;
                     var mesh = tile.Shape switch
                     {
                         TileShape.Hex => MeshFactory.HexPrism(TileSize * 0.6f, thickness),
@@ -129,7 +132,9 @@ namespace TableWorld.View
                         _ => MeshFactory.Box(new Vector3(TileSize, thickness, TileSize)),
                     };
                     var face = assets.ImageMaterial(tile.Asset, model.Tint.ToColor(new Color(0.8f, 0.7f, 0.5f)));
-                    SetPrism(view, mesh, face, face, assets.Plain(model.Tint.ToColor(new Color(0.6f, 0.5f, 0.35f))), 0.005f);
+                    var edge = model.Tint.ToColor(new Color(0.6f, 0.5f, 0.35f));
+                    SetPrism(view, mesh, face, face, tile.Count > 1 ? assets.Grooved(edge) : assets.Plain(edge), 0.005f * tile.Count);
+                    SetCell(view, MeshFactory.SideSubmesh, new Vector4(1f, tile.Count, 0f, 0f));
                     break;
                 }
                 case Die die:

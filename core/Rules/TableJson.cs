@@ -107,6 +107,9 @@ namespace Core.Rules
         public static string Serialize(TableState state, bool indented = true) =>
             JsonConvert.SerializeObject(state, indented ? Formatting.Indented : Formatting.None, WriteSettings);
 
+        /// <summary>One object's canonical JSON (for comparing pieces, G14).</summary>
+        internal static JObject ToJson(TableObject obj) => JObject.FromObject(obj, JsonSerializer.Create(WriteSettings));
+
         /// <summary>Deep copy of one object through its JSON form (used for InfiniteBag clones).</summary>
         internal static T CloneObject<T>(T obj) where T : TableObject
         {

@@ -176,6 +176,13 @@ namespace TableWorld.View.Hud
             Item("Load table (F9)", () => _table.LoadFile(TableView.SavePath(TableView.QuickSaveName)));
         }
 
+        /// <summary>Takes <paramref name="count"/> pieces off a stack and sets them down beside it (G14).</summary>
+        private void TakeFromStack(ObjectView view, int count)
+        {
+            var beside = view.transform.position + view.transform.right * 0.06f;
+            Run(new TakeCommand { ContainerId = view.Id, Count = count, Position = beside.ToCore() });
+        }
+
         private void BuildObjectMenu(ObjectView view)
         {
             var model = view.Model;
@@ -194,6 +201,14 @@ namespace TableWorld.View.Hud
                     Row("Split into", new[] { 2, 3, 4 }.Where(n => n <= deck.Cards.Count).Select(n => ($"{n}", (Action)(() => Run(new SplitCommand { DeckId = deck.Id, Piles = n })))));
                     Item("Spread", () => Run(new SpreadCommand { DeckId = deck.Id }));
                     break;
+                case var stack when Stacks.CountOf(stack) > 1:
+                {
+                    var count = Stacks.CountOf(stack);
+                    Section($"Stack · {count}");
+                    Row("Take", new[] { 1, 2, 5, 10 }.Where(n => n < count).Select(n => ($"{n}", (Action)(() => TakeFromStack(view, n)))));
+                    Item("Split in half", () => TakeFromStack(view, count / 2));
+                    break;
+                }
                 case Die die:
                     Section($"d{die.Faces}{(die.Value.HasValue ? $" · shows {die.Value}" : "")}");
                     var selectedDice = _interaction.Selection.Contains(view) ? _interaction.Selection.Where(v => v.Model is Die).ToList() : null;
@@ -468,6 +483,9 @@ namespace TableWorld.View.Hud
                     break;
                 case Core.Rules.InfiniteBag _:
                     count = "endless";
+                    break;
+                case var stack when Core.Rules.Stacks.CountOf(stack) > 1:
+                    count = $"stack of {Core.Rules.Stacks.CountOf(stack)}";
                     break;
                 case Core.Rules.Bag bag:
                     var items = engine.ContentsOf(bag.Id).Count();

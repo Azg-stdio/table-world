@@ -476,7 +476,8 @@ namespace TableWorld.View
 
         // ---- holding ----------------------------------------------------------------------------------------------
 
-        private static bool IsFullContainer(TableObject model) => model is Deck { Cards: { Count: > 0 } } || model is Bag;
+        /// <summary>A deck or bag, or a counted stack (G14): a quick drag takes one off, a long press lifts it whole.</summary>
+        private static bool IsFullContainer(TableObject model) => model is Deck { Cards: { Count: > 0 } } || model is Bag || Stacks.CountOf(model) > 1;
 
         /// <summary>The press on a deck or bag turned into a drag (take its top item) or a long hold (lift it whole).</summary>
         private void PressedContainerResolved(bool liftWhole)
@@ -494,7 +495,7 @@ namespace TableWorld.View
                 return false;
 
             var model = view.Model;
-            var isFullContainer = model is Deck { Cards: { Count: > 0 } } || model is Bag;
+            var isFullContainer = IsFullContainer(model);
             _playFromHand = null;
             if (view.HideFace)
             {
@@ -1248,7 +1249,7 @@ namespace TableWorld.View
         // ---- queries ----------------------------------------------------------------------------------------------
 
         private static bool CanDropInto(TableObject dropped, TableObject target) =>
-            target is Bag || ((dropped is Card || dropped is Deck) && (target is Card || target is Deck));
+            target is Bag || ((dropped is Card || dropped is Deck) && (target is Card || target is Deck)) || Stacks.SameKind(dropped, target);
 
         private List<ObjectView> HeldPlusHovered()
         {

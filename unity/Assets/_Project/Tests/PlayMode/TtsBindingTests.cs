@@ -233,6 +233,61 @@ namespace TableWorld.Tests.PlayMode
             yield return null;
         }
 
+        [UnityTest]
+        public IEnumerator ChipStack_DropAddsToIt_DragTakesOne_HoldLiftsIt_MenuSplits()
+        {
+            int Count(string id) => Stacks.CountOf(M(id));
+            Assert.AreEqual(10, Count("chips_gold"));
+            StringAssert.EndsWith("stack of 10", TableOverlay.TooltipText(_table.ViewOf("chips_gold"), _table.Engine));
+
+            // Carry the loose chip over the stack and let go: it joins.
+            yield return Point(ScreenOf("chip_gold"));
+            Press(_mouse.leftButton);
+            yield return null;
+            Assert.AreEqual("chip_gold", _interaction.Held?.Id);
+            yield return Point(ScreenOf("chips_gold"));
+            yield return new WaitForSeconds(0.3f);
+            Release(_mouse.leftButton);
+            yield return new WaitForSeconds(0.5f);
+            Assert.IsNull(M("chip_gold"), "the loose chip joined the stack");
+            Assert.AreEqual(11, Count("chips_gold"));
+
+            // Press and drag at once: one chip comes off the top.
+            yield return Point(ScreenOf("chips_gold"));
+            Press(_mouse.leftButton);
+            yield return null;
+            yield return Point(ScreenOf("chips_gold") + new Vector2(60f, 0f));
+            yield return null;
+            var taken = _interaction.Held;
+            Assert.IsNotNull(taken);
+            Assert.AreNotEqual("chips_gold", taken.Id, "dragging takes one chip");
+            Assert.AreEqual(1, Stacks.CountOf(taken.Model));
+            Assert.AreEqual(10, Count("chips_gold"));
+            yield return Point(ScreenOf(new Vector3(0.2f, 0f, -0.15f)));
+            yield return new WaitForSeconds(0.2f);
+            Release(_mouse.leftButton);
+            yield return new WaitForSeconds(0.8f);
+
+            // Press and keep still: the whole stack lifts.
+            yield return Point(ScreenOf("chips_gold"));
+            Press(_mouse.leftButton);
+            yield return new WaitForSeconds(TableInteraction.HoldToLiftSeconds + 0.15f);
+            Assert.AreEqual("chips_gold", _interaction.Held?.Id, "holding still lifts the whole stack");
+            Release(_mouse.leftButton);
+            yield return new WaitForSeconds(1f);
+            Assert.AreEqual(10, Count("chips_gold"));
+
+            // Right-click menu: split in half.
+            var overlay = Object.FindAnyObjectByType<HudController>().Overlay;
+            overlay.OpenMenu(_table.ViewOf("chips_gold"), Vector2.zero);
+            CollectionAssert.Contains(overlay.MenuEntries, "Split in half");
+            Assert.IsTrue(overlay.Choose("Split in half"));
+            yield return new WaitForSeconds(0.5f);
+            Assert.AreEqual(5, Count("chips_gold"));
+            var height = _table.ViewOf("chips_gold").GetComponent<MeshFilter>().sharedMesh.bounds.size.y;
+            Assert.AreEqual(5 * ObjectViewFactory.TokenThickness, height, 0.0005f, "the stack is as tall as its chips");
+        }
+
         /// <summary>Screen position (Input System pixels, origin bottom left) of a HUD element's centre.</summary>
         private static Vector2 ScreenOf(UnityEngine.UIElements.VisualElement element)
         {

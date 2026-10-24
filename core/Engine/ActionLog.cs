@@ -55,6 +55,10 @@ namespace Core.Engine
                     var to = c.Seats.Count == 0 ? "everyone" : string.Join(", ", c.Seats);
                     return $"dealt {Plural(c.Count, "card")} from {Name(c.DeckId)} to {to}";
                 }
+                case TakeCommand c when engine.Find(c.ContainerId) is { } stack && Stacks.IsStackable(stack):
+                    return $"took {c.Count ?? 1} from {Name(c.ContainerId)} ({Stacks.CountOf(stack)} left)";
+                case InsertCommand c when engine.Find(c.IntoId) is { } stack && Stacks.IsStackable(stack):
+                    return $"stacked {Name(c.IntoId)} ({Stacks.CountOf(stack)})";
                 case TakeCommand c:
                 {
                     var taken = result.Events.OfType<ContainerChanged>().FirstOrDefault(e => e.From == c.ContainerId)?.ObjectId

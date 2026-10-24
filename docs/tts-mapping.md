@@ -32,8 +32,8 @@ TTS `Name` → our `type`. Prefix `Custom_` means the mesh/image comes from a UR
 |---|---|---|
 | `Card`, `CardCustom` | `Card` | `CardID` = deckKey × 100 + index; `CustomDeck[deckKey]` gives `FaceURL`, `BackURL`, `NumWidth`, `NumHeight`, `BackIsHidden`, `UniqueBack`; `SidewaysCard`, `HideWhenFaceDown` |
 | `Deck`, `DeckCustom` | `Deck` | `DeckIDs[]`, `ContainedObjects[]` (full cards), `CustomDeck{}`; `DeckIDs[0]` is the **top** card, same as our `cards[0]`. Contained cards' `Transform` is stale (their last position before joining) and is ignored |
-| `Custom_Token` | `Token` | `CustomImage.ImageURL`, `ImageSecondaryURL`, `ImageScalar`, `WidthScale`, `CustomToken.Thickness`, `MergeDistancePixels`, `StandUp`, `Stackable` |
-| `Custom_Tile` | `Tile` | `CustomImage.CustomTile.Type` (0 box, 1 hex, 2 circle, 3 rounded), `Thickness`, `Stackable`, `Stretch` |
+| `Custom_Token` | `Token` | `CustomImage.ImageURL`, `ImageSecondaryURL`, `ImageScalar`, `WidthScale`, `CustomToken.Thickness`, `MergeDistancePixels`, `StandUp`, `Stackable`; `Number` (pieces in a stack) → `count` *(verify in TTS that stacks save this way; no local mod has a saved stack)* |
+| `Custom_Tile` | `Tile` | `CustomImage.CustomTile.Type` (0 box, 1 hex, 2 circle, 3 rounded), `Thickness`, `Stackable`, `Stretch`; `Number` → `count` |
 | `Die_4/6/8/10/12/20`, `Die_6_Rounded` | `Die` | `RotationValues[]` (value ↔ rotation), `faces` |
 | `Custom_Dice` | `Die` | `CustomImage.CustomDice.Type` (0 d4, 1 d6, 2 d8, 3 d10, 4 d12, 5 d20), image |
 | `Custom_Model` | `Model` | `CustomMesh.MeshURL` (OBJ), `DiffuseURL`, `NormalURL`, `ColliderURL`, `Convex`, `MaterialIndex` (0 plastic, 1 wood, 2 metal, 3 cardboard, 4 glass), `TypeIndex` (0 generic, 1 figurine, 2 dice, 3 coin, 4 board, 5 chip, 6 bag, 7 infinite bag), `CastShadows` |
@@ -70,7 +70,7 @@ TTS `Name` → our `type`. Prefix `Custom_` means the mesh/image comes from a UR
 | `AttachedSnapPoints[]` | `SnapPoint` zones parented to the object |
 | `Hands` (bool) | `hideInHand` semantics |
 | `Sticky`, `Tooltip`, `Grid`, `Snap`, `IgnoreFoW`, `MeasureMovement`, `DragSelectable`, `Autoraise`, `HideWhenFaceDown` | interaction flags, kept verbatim in `ttsFlags` until we need them |
-| `AltLookAngle`, `Number`, `Text`, `Bag.Order` | kept in `ttsExtra` |
+| `AltLookAngle`, `Number` (except a token or tile stack's count), `Text`, `Bag.Order` | kept in `ttsExtra` |
 
 ## Sprite sheets
 

@@ -690,6 +690,65 @@
    }
   },
   {
+   "id": "chips_gold",
+   "type": "Token",
+   "name": "Gold chip",
+   "shape": "round",
+   "stackable": true,
+   "count": 10,
+   "tint": [
+    0.95,
+    0.75,
+    0.2
+   ],
+   "transform": {
+    "position": [
+     0.1,
+     0,
+     -0.28
+    ]
+   }
+  },
+  {
+   "id": "chip_gold",
+   "type": "Token",
+   "name": "Gold chip",
+   "shape": "round",
+   "stackable": true,
+   "tint": [
+    0.95,
+    0.75,
+    0.2
+   ],
+   "transform": {
+    "position": [
+     0.16,
+     0,
+     -0.28
+    ]
+   }
+  },
+  {
+   "id": "wounds",
+   "type": "Tile",
+   "name": "Wound",
+   "shape": "hex",
+   "stackable": true,
+   "count": 4,
+   "tint": [
+    0.75,
+    0.2,
+    0.2
+   ],
+   "transform": {
+    "position": [
+     0.24,
+     0,
+     -0.28
+    ]
+   }
+  },
+  {
    "id": "d4",
    "type": "Die",
    "faces": 4,
@@ -824,7 +883,9 @@
   {
    "id": "coin",
    "type": "Token",
+   "name": "Coin",
    "container": "coin_supply",
+   "stackable": true,
    "tint": [
     0.95,
     0.8,

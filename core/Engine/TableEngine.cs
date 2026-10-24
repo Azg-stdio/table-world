@@ -272,9 +272,29 @@ namespace Core.Engine
                     result.CreatedId = picked.Id;
                     return result;
                 }
+                case var stack when Stacks.CountOf(stack) > 1:
+                {
+                    var have = Stacks.CountOf(stack);
+                    var count = c.Count ?? 1;
+                    if (count < 1 || count >= have)
+                        return CommandResult.Fail("count", ErrorCodes.InvalidValue, $"Take 1 to {have - 1} of the {have} in '{stack.Id}'.",
+                            "To move the whole stack, move it.");
+                    var piece = TableJson.CloneObject(stack);
+                    piece.Id = Mint(stack.Id);
+                    piece.Locked = false;
+                    Stacks.SetCount(piece, count);
+                    Stacks.SetCount(stack, have - count);
+                    piece.Transform.Position = c.Position ?? Beside(stack);
+                    if (c.Rotation.HasValue)
+                        piece.Transform.Rotation = c.Rotation.Value;
+                    AddObject(piece);
+                    var result = CommandResult.Success(new List<StateEvent> { new ObjectUpdated(stack.Id), new ObjectAdded(piece.Id, stack.Id) });
+                    result.CreatedId = piece.Id;
+                    return result;
+                }
                 default:
                     return CommandResult.Fail("containerId", ErrorCodes.WrongObjectType,
-                        $"'{container.Id}' is a {container.Type}; only decks and bags can be taken from.");
+                        $"'{container.Id}' is a {container.Type}; only decks, bags and stacks can be taken from.");
             }
         }
 
@@ -310,6 +330,17 @@ namespace Core.Engine
                     result.CreatedId = deck.Id;
                     return result;
                 }
+                case var stack when Stacks.SameKind(obj, stack):
+                {
+                    var total = Stacks.CountOf(stack) + Stacks.CountOf(obj);
+                    if (total > Stacks.MaxCount)
+                        return CommandResult.Fail("intoId", ErrorCodes.LimitReached, $"A stack holds at most {Stacks.MaxCount}.", "Start another stack.");
+                    Stacks.SetCount(stack, total);
+                    RemoveObject(obj);
+                    events.Add(new ObjectRemoved(obj.Id));
+                    events.Add(new ObjectUpdated(stack.Id));
+                    break;
+                }
                 case Card card when obj is Deck deck:
                 {
                     // The deck lands on the card: the card ends up at the bottom (or top) and the deck takes its place.
@@ -320,7 +351,7 @@ namespace Core.Engine
                 }
                 default:
                     return CommandResult.Fail("intoId", ErrorCodes.InvalidTarget,
-                        $"A {obj.Type} cannot go into a {target.Type}. Bags take anything; decks and cards take cards and decks.");
+                        $"A {obj.Type} cannot go into a {target.Type}. Bags take anything; decks and cards take cards and decks; a stack takes the same piece.");
             }
             return CommandResult.Success(events);
         }

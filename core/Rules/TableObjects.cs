@@ -128,7 +128,15 @@ namespace Core.Rules
         public TokenShape Shape { get; set; }
         /// <summary>Meters; null means the view's default.</summary>
         public float? Thickness { get; set; }
+        /// <summary>Identical pieces dropped on each other form one counted stack (TTS <c>Stackable</c>).</summary>
         public bool Stackable { get; set; }
+
+        /// <summary>
+        /// How many identical pieces this object is (G14, TTS <c>Number</c>): a stack of chips is one object. More than 1
+        /// only when <see cref="Stackable"/>.
+        /// </summary>
+        public int Count { get; set; } = 1;
+        public bool ShouldSerializeCount() => Count != 1;
     }
 
     public sealed class Tile : TableObject
@@ -136,7 +144,15 @@ namespace Core.Rules
         public string? Asset { get; set; }
         public TileShape Shape { get; set; }
         public float? Thickness { get; set; }
+        /// <summary>Identical pieces dropped on each other form one counted stack (TTS <c>Stackable</c>).</summary>
         public bool Stackable { get; set; }
+
+        /// <summary>
+        /// How many identical pieces this object is (G14, TTS <c>Number</c>): a stack of chips is one object. More than 1
+        /// only when <see cref="Stackable"/>.
+        /// </summary>
+        public int Count { get; set; } = 1;
+        public bool ShouldSerializeCount() => Count != 1;
     }
 
     public sealed class Die : TableObject

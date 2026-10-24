@@ -47,6 +47,13 @@ table = {
         {"id": "tile_square", "type": "Tile", "shape": "square", **at(0.05, 0.3)},
         {"id": "tile_hex", "type": "Tile", "shape": "hex", **at(0.12, 0.3)},
         {"id": "tile_circle", "type": "Tile", "shape": "circle", **at(0.19, 0.3)},
+        # Counted stacks (G14): drop the loose chip on the stack, drag one off, right-click to split.
+        {"id": "chips_gold", "type": "Token", "name": "Gold chip", "shape": "round", "stackable": True, "count": 10,
+         "tint": [0.95, 0.75, 0.2], **at(0.1, -0.28)},
+        {"id": "chip_gold", "type": "Token", "name": "Gold chip", "shape": "round", "stackable": True,
+         "tint": [0.95, 0.75, 0.2], **at(0.16, -0.28)},
+        {"id": "wounds", "type": "Tile", "name": "Wound", "shape": "hex", "stackable": True, "count": 4,
+         "tint": [0.75, 0.2, 0.2], **at(0.24, -0.28)},
     ] + [
         {"id": f"d{f}", "type": "Die", "faces": f, "value": f, **at(-0.3 + i * 0.05, -0.28)}
         for i, f in enumerate((4, 6, 8, 10, 12, 20))
@@ -56,7 +63,7 @@ table = {
         {"id": "bag_token_2", "type": "Token", "container": "bag", "tint": [0.2, 0.7, 0.3]},
         {"id": "bag_token_3", "type": "Token", "container": "bag", "tint": [0.2, 0.7, 0.3]},
         {"id": "coin_supply", "type": "InfiniteBag", "name": "Coins", **at(0.5, 0.3)},
-        {"id": "coin", "type": "Token", "container": "coin_supply", "tint": [0.95, 0.8, 0.2]},
+        {"id": "coin", "type": "Token", "name": "Coin", "container": "coin_supply", "stackable": True, "tint": [0.95, 0.8, 0.2]},
         {"id": "board", "type": "Board", "size": [0.3, 0.2], **at(0.45, -0.05)},
         {"id": "hero", "type": "Figure", "name": "Hero", "tint": [0.6, 0.75, 0.95], **at(0.3, -0.25)},
         {"id": "statue", "type": "Model", "asset": "placeholder_model", **at(0.4, -0.25)},

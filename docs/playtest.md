@@ -83,6 +83,7 @@ Everything below already passes automated tests on one machine (two processes, s
 - [ ] Seats: a friend clicks the other free colour and sits there; clicking yours is refused; Watch turns them into a spectator who can look but not touch, and they can sit again.
 - [ ] Sounds: picking up, dropping, shuffling, rolling, dealing feel right and are not too loud or repetitive; friends' actions are heard too.
 - [ ] Escape menu and settings in the built game: window modes and resolutions switch cleanly, VSync and frame limit feel right, interface size is readable on each friend's monitor, volume sliders work, settings are kept after restarting.
+- [ ] Chip stacks (sample table: gold chips and wound tiles at the front right): dropping a chip on the stack, dragging one off and lifting the whole stack feel like TTS; everyone sees the same count.
 - [ ] Chat: Enter, type, Enter: everyone sees it with your seat colour; `/roll 2d6` shows the same dice for everyone; the Log tab reads the same on every screen and never names a card someone could not see; typing never flips or moves anything.
 
 **After the session**

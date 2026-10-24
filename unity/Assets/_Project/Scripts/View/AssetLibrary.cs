@@ -71,6 +71,31 @@ namespace TableWorld.View
             return material;
         }
 
+        /// <summary>
+        /// The side of a counted stack (G14): <paramref name="color"/> with a thin dark groove at the bottom of the texture.
+        /// The renderer tiles it once per piece, so a stack of chips shows each chip's edge.
+        /// </summary>
+        public Material Grooved(Color color)
+        {
+            var key = $"grooved:{ColorUtility.ToHtmlStringRGBA(color)}";
+            if (!_materials.TryGetValue(key, out var material))
+            {
+                if (_groove == null)
+                {
+                    _groove = new Texture2D(1, 16, TextureFormat.RGBA32, false) { name = "Stack groove", wrapMode = TextureWrapMode.Repeat };
+                    for (var y = 0; y < 16; y++)
+                        _groove.SetPixel(0, y, y < 2 ? new Color(0.35f, 0.35f, 0.35f) : y == 15 ? new Color(1f, 1f, 1f) : new Color(0.9f, 0.9f, 0.9f));
+                    _groove.Apply();
+                }
+                material = NewMaterial(key, color, 0.3f);
+                material.SetTexture(BaseMap, _groove);
+                _materials[key] = material;
+            }
+            return material;
+        }
+
+        private Texture2D _groove;
+
         public Material Plain(Color color, float smoothness = 0.3f)
         {
             var key = $"plain:{ColorUtility.ToHtmlStringRGBA(color)}:{smoothness:F2}";

@@ -213,10 +213,12 @@ namespace Core.Rules
                     case Token token:
                         CheckOptionalAsset(token.Asset, $"{path}.asset", AssetType.Image);
                         CheckPositive(token.Thickness, $"{path}.thickness");
+                        CheckCount(obj, token.Count, token.Stackable, path);
                         break;
                     case Tile tile:
                         CheckOptionalAsset(tile.Asset, $"{path}.asset", AssetType.Image);
                         CheckPositive(tile.Thickness, $"{path}.thickness");
+                        CheckCount(obj, tile.Count, tile.Stackable, path);
                         break;
                     case Bag bag:
                         CheckOptionalAsset(bag.Asset, $"{path}.asset", AssetType.Model, AssetType.AssetBundle);
@@ -424,6 +426,14 @@ namespace Core.Rules
 
             private string? SeatSuggestion(string actual) =>
                 _seats.Count == 0 ? "Add the seat to players.seats first." : Suggest.OneOf(actual, _seats.Keys, "a seat id");
+
+            private void CheckCount(TableObject obj, int count, bool stackable, string path)
+            {
+                if (count < 1 || count > Stacks.MaxCount)
+                    Add($"{path}.count", ErrorCodes.InvalidValue, $"'{obj.Id}' has count {count}; a stack holds 1 to {Stacks.MaxCount}.");
+                else if (count > 1 && !stackable)
+                    Add($"{path}.count", ErrorCodes.InvalidValue, $"'{obj.Id}' has count {count} but is not stackable.", "Set stackable to true, or count to 1.");
+            }
 
             private void Add(string path, string code, string message, string? suggestion = null) =>
                 Errors.Add(new ValidationError(path, code, message, suggestion));

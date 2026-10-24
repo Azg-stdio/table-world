@@ -25,6 +25,9 @@ namespace TableWorld.View
         public const float DefaultAmbientIntensity = 0.3f;
         public static readonly Color DefaultTableLight = new Color(1f, 0.99f, 0.97f);
         public const float DefaultTableLightIntensity = 2.6f;
+        /// <summary>Low side lights for the pieces' vertical faces (degrees above the table, intensity each).</summary>
+        public const float SideLightElevation = 20f;
+        public const float SideLightIntensity = 0.45f;
 
         /// <summary>Rendering layer of game pieces and the felt (Unity's default layer, so every object is on it).</summary>
         public const uint PiecesLayers = 1u << 0;
@@ -202,6 +205,21 @@ namespace TableWorld.View
             _tableLight.shadowStrength = 0.8f;
             _tableLight.shadowNearPlane = 0.1f;
             SetLayers(_tableLight, PiecesLayers);
+
+            // The table light points straight down, so the sides of chips, dice, tiles and models got only the dim ambient
+            // and looked black. Two faint, low, shadowless lights from opposite corners light every side of a piece.
+            foreach (var yaw in new[] { 35f, 215f })
+            {
+                var sideGo = new GameObject("Piece Side Light");
+                sideGo.transform.SetParent(_room.transform, false);
+                sideGo.transform.rotation = Quaternion.Euler(SideLightElevation, yaw, 0f);
+                var side = sideGo.AddComponent<Light>();
+                side.type = LightType.Directional;
+                side.intensity = SideLightIntensity;
+                side.color = DefaultTableLight;
+                side.shadows = LightShadows.None;
+                SetLayers(side, PiecesLayers);
+            }
 
             // A faint warm fill so the far side of the table and the room are not black.
             var fillGo = new GameObject("Fill Light");

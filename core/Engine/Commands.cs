@@ -28,7 +28,7 @@ namespace Core.Engine
     }
 
     /// <summary>
-    /// Takes a card out of a deck (it becomes a <see cref="Card"/> object) or an object out of a bag.
+    /// Takes a card out of a deck (it becomes a <see cref="Card"/> object), an object out of a bag, or pieces off a stack (G14).
     /// Pick by <see cref="EntryId"/> (after a search), or by <see cref="Index"/> counted from the top (default 0), or from the bottom.
     /// </summary>
     public sealed class TakeCommand : Command
@@ -41,11 +41,13 @@ namespace Core.Engine
         public Vec3? Position { get; set; }
         /// <summary>Null keeps the container's rotation (a card taken from a face-down deck stays face down).</summary>
         public Vec3? Rotation { get; set; }
+        /// <summary>From a stack: how many pieces to take, as one smaller stack (default 1, fewer than the stack holds).</summary>
+        public int? Count { get; set; }
     }
 
     /// <summary>
     /// Drops an object into another: a card or deck onto a deck (joins it), a card onto a card (forms a deck),
-    /// anything into a bag. Inserted at the top unless <see cref="AtBottom"/>.
+    /// anything into a bag, a stackable piece onto the same kind of piece (the counts add up, G14). Inserted at the top unless <see cref="AtBottom"/>.
     /// </summary>
     public sealed class InsertCommand : Command
     {

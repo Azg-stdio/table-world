@@ -98,8 +98,8 @@ Containment: only `Bag` and `InfiniteBag` hold objects (via the child's `contain
 |---|---|
 | `Card` | `faceAsset`, `faceIndex`, `backAsset`, `backIndex`, `size` (`[w, h]` in m, default 0.0635 × 0.0889), `meta` (free-form, e.g. `{ "rank": 11, "suit": "hearts" }`) |
 | `Deck` | default `faceAsset`, `backAsset`, `backIndex`; `size`; `cards`: `[ { "id"?, "faceIndex", "name", "description", "gmNotes", "tags", "meta", "script", "faceAsset"?, "backAsset"?, "backIndex"? } ]` ordered **top first** (`cards[0]` is the card a draw takes; same order as TTS `DeckIDs`). Per-card asset fields override the deck's. A card without `id` gets `<deckId>-<n>` when it leaves the deck |
-| `Token` | `asset` (image), `shape` (`round` \| `square` \| `image`), `thickness` (m), `stackable` |
-| `Tile` | `asset`, `shape` (`square` \| `hex` \| `circle` \| `rounded`), `thickness`, `stackable` |
+| `Token` | `asset` (image), `shape` (`round` \| `square` \| `image`), `thickness` (m), `stackable`, `count` (pieces in the stack, 1–500, default 1; above 1 only when stackable) |
+| `Tile` | `asset`, `shape` (`square` \| `hex` \| `circle` \| `rounded`), `thickness`, `stackable`, `count` |
 | `Die` | `faces` (4, 6, 8, 10, 12, 20; default 6), `labels` (optional, one per face), `value` (1..faces, null before the first roll), `asset` (custom dice image) |
 | `Model` | `asset` (`model` or `assetBundle`), `diffuseAsset`, `collider` (`convex` \| `box` \| `mesh`), `kind` (`generic` \| `figurine` \| `dice` \| `coin` \| `board` \| `chip`), `material` (`plastic` \| `wood` \| `metal` \| `cardboard` \| `glass`) |
 | `Bag` / `InfiniteBag` | `asset` (optional model look); contents are the objects whose `container` is this id; `InfiniteBag` clones its template on take |
