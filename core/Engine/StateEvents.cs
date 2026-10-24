@@ -95,6 +95,14 @@ namespace Core.Engine
         }
     }
 
+    /// <summary>A notebook page was written, added or deleted (G25).</summary>
+    public sealed class NotebookChanged : StateEvent
+    {
+        public NotebookChanged() : base("")
+        {
+        }
+    }
+
     /// <summary>Drawings were added, erased or cleared (G28); the view redraws them.</summary>
     public sealed class DrawingsChanged : StateEvent
     {

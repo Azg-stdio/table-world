@@ -113,6 +113,10 @@ namespace Core.Engine
                     return $"laid out {ZoneName(engine, c.ZoneId)}";
                 case RandomizeZoneCommand c:
                     return $"randomized {ZoneName(engine, c.ZoneId)}";
+                case SetNoteTabCommand c:
+                    return c.Tab.Color == null ? $"wrote in the notebook ({c.Tab.Title})" : "wrote private notes";
+                case DeleteNoteTabCommand _:
+                    return "deleted a notebook page";
                 case AddDrawingCommand c:
                     return c.Drawing.Arrow ? "drew an arrow" : "drew on the table";
                 case EraseDrawingCommand _:

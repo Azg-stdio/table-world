@@ -54,6 +54,10 @@ namespace TableWorld.View.Hud
         private EscapeMenu _escape;
         private SaveLibrary _saves;
         private GizmoPanel _gizmo;
+        private NotebookPanel _notes;
+
+        /// <summary>The table's notebook (G25).</summary>
+        public NotebookPanel Notes => _notes;
 
         /// <summary>Exact position, turn and scale of one object (G28).</summary>
         public GizmoPanel Gizmo => _gizmo;
@@ -136,6 +140,7 @@ namespace TableWorld.View.Hud
             {
                 _saves = new SaveLibrary(_table);
                 _gizmo = new GizmoPanel(_root, _table, ShowStatus);
+                _notes = new NotebookPanel(_root, _table);
                 if (_interaction != null)
                     _interaction.GizmoRequested += _gizmo.Open;
                 if (_overlay != null)
@@ -273,6 +278,8 @@ namespace TableWorld.View.Hud
                 _players.Hide();
             else if (_savesPanel != null && _savesPanel.Visible)
                 CloseSaves();
+            else if (_notes != null && _notes.Visible)
+                _notes.Hide();
             else if (_help != null && _help.Visible)
                 _help.Hide();
             else
@@ -360,6 +367,7 @@ namespace TableWorld.View.Hud
             MenuKeys();
             _chat?.Update(TypingInUi() || (_interaction != null && _interaction.IgnoreDevices));
             _players?.Update();
+            _notes?.Update();
             if (_saves?.Tick(_escape.Settings.AutosaveMinutes) is { } autosaved)
                 ShowStatus($"Autosaved ({autosaved})", error: false);
             UpdatePresenceLabels();

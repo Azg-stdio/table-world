@@ -143,6 +143,18 @@ namespace Core.Engine
     {
     }
 
+    /// <summary>Writes a notebook page (G25): replaces the page with the same id, or adds it (an id is minted when empty).</summary>
+    public sealed class SetNoteTabCommand : Command
+    {
+        public NoteTab Tab { get; set; } = new NoteTab();
+    }
+
+    /// <summary>Deletes a notebook page (G25).</summary>
+    public sealed class DeleteNoteTabCommand : Command
+    {
+        public string TabId { get; set; } = "";
+    }
+
     /// <summary>Adds a line or arrow drawn on the table (G28). The engine gives it an id when it has none.</summary>
     public sealed class AddDrawingCommand : Command
     {

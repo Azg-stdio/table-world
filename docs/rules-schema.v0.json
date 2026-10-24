@@ -47,6 +47,12 @@
         "grid": {
           "$ref": "#/$defs/GridDef"
         },
+        "notebook": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/NoteTab"
+          }
+        },
         "drawings": {
           "type": "array",
           "items": {
@@ -1838,6 +1844,24 @@
         },
         "hexRow": {
           "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "NoteTab": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "body": {
+          "type": "string"
+        },
+        "color": {
+          "type": "string"
         }
       },
       "additionalProperties": false

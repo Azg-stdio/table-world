@@ -196,6 +196,8 @@ namespace Core.Engine
             SetPhysicsCommand c => SetPhysics(c),
             SetGridCommand c => SetGrid(c),
             AddDrawingCommand c => AddDrawing(c),
+            SetNoteTabCommand c => SetNoteTab(c),
+            DeleteNoteTabCommand c => DeleteNoteTab(c),
             EraseDrawingCommand c => EraseDrawing(c),
             ClearDrawingsCommand c => ClearDrawings(c),
             SetTurnOrderCommand c => SetTurnOrder(c),
@@ -492,6 +494,41 @@ namespace Core.Engine
             State.Grid = c.Grid;
             return CommandResult.Success(new List<StateEvent> { new TableSettingsChanged() });
         }
+
+        // ---- notebook (G25) -----------------------------------------------------------------------------------------
+
+        private CommandResult SetNoteTab(SetNoteTabCommand c)
+        {
+            var tab = c.Tab;
+            if (tab == null)
+                return CommandResult.Fail("tab", ErrorCodes.MissingField, "No page.");
+            if (TableValidator.CheckNoteTab(tab, "tab").FirstOrDefault() is { } bad)
+                return CommandResult.Fail(bad.Path, bad.Code, bad.Message);
+            var index = string.IsNullOrEmpty(tab.Id) ? -1 : State.Notebook.FindIndex(t => t.Id == tab.Id);
+            if (index >= 0)
+                State.Notebook[index] = tab;
+            else
+            {
+                if (State.Notebook.Count >= NoteTab.MaxTabs)
+                    return CommandResult.Fail("tab", ErrorCodes.LimitReached, $"The notebook holds at most {NoteTab.MaxTabs} pages.");
+                if (string.IsNullOrEmpty(tab.Id))
+                    for (var n = State.Notebook.Count + 1; ; n++)
+                        if (State.Notebook.All(t => t.Id != $"page-{n}"))
+                        {
+                            tab.Id = $"page-{n}";
+                            break;
+                        }
+                State.Notebook.Add(tab);
+            }
+            var result = CommandResult.Success(new List<StateEvent> { new NotebookChanged() });
+            result.CreatedId = tab.Id;
+            return result;
+        }
+
+        private CommandResult DeleteNoteTab(DeleteNoteTabCommand c) =>
+            State.Notebook.RemoveAll(t => t.Id == c.TabId) == 0
+                ? CommandResult.Fail("tabId", ErrorCodes.UnknownObject, $"There is no page '{c.TabId}'.")
+                : CommandResult.Success(new List<StateEvent> { new NotebookChanged() });
 
         // ---- drawings (G28) -----------------------------------------------------------------------------------------
 

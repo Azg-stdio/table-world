@@ -23,7 +23,8 @@ Status: **v0**, checked against the 6 local saves on 2026-10-22 (T1.3). The impo
 | `LuaScript`, `LuaScriptState`, `XmlUI` | `scripts.global`, saved state, UI (translated in T8.3) | `#include` already resolved in saves |
 | `ObjectStates[]` | `objects` + `zones` | recursive via `ContainedObjects` and `States` |
 | `VectorLines` | `drawings` | `points3` × the unit constant → `points`; `color` → `color`; `thickness` → `thickness`; `rotation`, `loop`, `square` kept in `ttsExtra` (none in the local mods) |
-| `TabStates`, `Notes`, `Decals`, `Grid`, `Turns` | notes, decals, `grid`, turn order | `Turns.TurnOrder`, `Turns.Enable` → `turn`. `Grid`: `Type` (0 box, 1 hex) → `shape`; `Lines` → `lines`; `Snapping` → `snapping` (verify TTS's values: off / lines / center / both); `xSize`, `ySize` × the unit constant → `sizeX`, `sizeZ`; `PosOffset` → offsets; `Color`, `Opacity`. Each object's `Grid` flag → `grid` (false opts out) |
+| `TabStates` | `notebook` | each tab: `title`, `body`; `color` "Grey" → no colour (everyone), another colour → that seat's colour; empty per-colour tabs can be dropped |
+| `Notes`, `Decals`, `Grid`, `Turns` | notes, decals, `grid`, turn order | `Turns.TurnOrder`, `Turns.Enable` → `turn`. `Grid`: `Type` (0 box, 1 hex) → `shape`; `Lines` → `lines`; `Snapping` → `snapping` (verify TTS's values: off / lines / center / both); `xSize`, `ySize` × the unit constant → `sizeX`, `sizeZ`; `PosOffset` → offsets; `Color`, `Opacity`. Each object's `Grid` flag → `grid` (false opts out) |
 
 ## Object types
 

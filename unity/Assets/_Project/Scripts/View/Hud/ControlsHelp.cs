@@ -85,6 +85,7 @@ namespace TableWorld.View.Hud
                 ("Tab + drag", "Measure"),
                 ("B", "Blindfold on or off (everyone is told)"),
                 ("F1 or ?", "This list"),
+                ("Notes (top bar)", "The table's notebook: shared pages, and private ones for your seat"),
                 ("Escape", "Close what is open; with nothing open, the menu (settings, leave, quit)"),
             }),
             ("Chat", new[]

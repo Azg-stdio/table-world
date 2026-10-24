@@ -19,6 +19,19 @@ namespace Core.Rules
             return v.Errors;
         }
 
+        /// <summary>Problems with a notebook page (G25): an id-safe length for title and text.</summary>
+        public static List<ValidationError> CheckNoteTab(NoteTab tab, string path)
+        {
+            var errors = new List<ValidationError>();
+            if ((tab.Title ?? "").Length > NoteTab.MaxTitle)
+                errors.Add(new ValidationError($"{path}.title", ErrorCodes.InvalidValue, $"A page title has at most {NoteTab.MaxTitle} characters."));
+            if ((tab.Body ?? "").Length > NoteTab.MaxBody)
+                errors.Add(new ValidationError($"{path}.body", ErrorCodes.InvalidValue, $"A page holds at most {NoteTab.MaxBody} characters."));
+            if (tab.Title == null || tab.Body == null)
+                errors.Add(new ValidationError(path, ErrorCodes.MissingField, "A page needs a title and a body (they may be empty)."));
+            return errors;
+        }
+
         /// <summary>Problems with a drawing (G28): 1 to <see cref="DrawingDef.MaxPoints"/> points on or near the table, a colour, a thickness.</summary>
         public static List<ValidationError> CheckDrawing(DrawingDef d, string path)
         {
@@ -92,6 +105,13 @@ namespace Core.Rules
                     CheckEnvironment(_state.Environment, "environment");
                 if (_state.Grid != null)
                     Errors.AddRange(CheckGrid(_state.Grid, "grid"));
+                var pageIds = new HashSet<string>();
+                for (var i = 0; i < _state.Notebook.Count; i++)
+                {
+                    Errors.AddRange(CheckNoteTab(_state.Notebook[i], $"notebook[{i}]"));
+                    if (!pageIds.Add(_state.Notebook[i].Id))
+                        Add($"notebook[{i}].id", ErrorCodes.DuplicateId, $"Two notebook pages are called '{_state.Notebook[i].Id}'.");
+                }
                 var drawingIds = new HashSet<string>();
                 for (var i = 0; i < _state.Drawings.Count; i++)
                 {

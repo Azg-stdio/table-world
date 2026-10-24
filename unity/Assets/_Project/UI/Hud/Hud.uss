@@ -1073,3 +1073,82 @@
     font-size: 20px;
     color: rgb(150, 148, 140);
 }
+
+/* Notebook (G25): pages on the left, the open page on the right. */
+.notes-panel {
+    width: 860px;
+}
+
+.notes-body {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-direction: row;
+    margin-bottom: 10px;
+}
+
+.notes-tabs-column {
+    width: 200px;
+    margin-right: 12px;
+}
+
+.notes-tabs {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin-bottom: 6px;
+}
+
+.notes-tab {
+    flex-shrink: 0;
+    margin: 1px 0;
+    padding: 4px 8px;
+    border-width: 0;
+    border-left-width: 3px;
+    border-color: rgba(0, 0, 0, 0);
+    border-radius: 3px;
+    background-color: rgba(255, 255, 255, 0.04);
+    color: rgb(220, 216, 206);
+    font-size: 14px;
+    -unity-text-align: middle-left;
+}
+
+.notes-tab:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.notes-tab--open {
+    border-color: rgb(242, 196, 82);
+    background-color: rgba(242, 196, 82, 0.18);
+    color: rgb(255, 252, 244);
+}
+
+.notes-tab--private {
+    -unity-font-style: italic;
+}
+
+.notes-editor {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.notes-title {
+    width: auto;
+    margin-bottom: 6px;
+}
+
+.notes-text {
+    flex-grow: 1;
+    flex-shrink: 1;
+    width: auto;
+    margin-bottom: 6px;
+}
+
+.notes-text .unity-base-text-field__input {
+    flex-grow: 1;
+    -unity-text-align: upper-left;
+    white-space: normal;
+}
+
+.notes-row {
+    flex-direction: row;
+    justify-content: space-between;
+}

@@ -106,6 +106,9 @@ namespace Core.Rules
         public PhysicsMode Physics { get; set; }
         /// <summary>The table grid (G28): lines and snapping; null means none. Only the host changes it.</summary>
         public GridDef? Grid { get; set; }
+        /// <summary>The notebook's pages (G25).</summary>
+        public List<NoteTab> Notebook { get; set; } = new List<NoteTab>();
+        public bool ShouldSerializeNotebook() => Notebook.Count > 0;
         /// <summary>Lines and arrows players drew on the table (G28).</summary>
         public List<DrawingDef> Drawings { get; set; } = new List<DrawingDef>();
         public bool ShouldSerializeDrawings() => Drawings.Count > 0;

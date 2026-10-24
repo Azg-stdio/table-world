@@ -98,6 +98,11 @@ table = {
         {"id": "tile_mix", "type": "RandomizeZone", "name": "Tile mixer",
          "transform": {"position": [0.12, 0.05, 0.3]}, "size": [0.22, 0.1, 0.08]},
     ],
+    # The notebook (G25): a page for everyone and the south seat's private page.
+    "notebook": [
+        {"id": "page-1", "title": "Read me", "body": "This is the sample table. Right-click anything to see what it can do;\nF1 lists every key."},
+        {"id": "page-2", "title": "South's notes", "body": "Only the red seat reads this page.", "color": "red"},
+    ],
     "players": {"seats": [
         {"id": "seat_south", "color": "red", "handZone": "hand_south"},
         {"id": "seat_north", "color": "blue", "handZone": "hand_north"},

@@ -1201,6 +1201,19 @@
    ]
   }
  ],
+ "notebook": [
+  {
+   "id": "page-1",
+   "title": "Read me",
+   "body": "This is the sample table. Right-click anything to see what it can do;\nF1 lists every key."
+  },
+  {
+   "id": "page-2",
+   "title": "South's notes",
+   "body": "Only the red seat reads this page.",
+   "color": "red"
+  }
+ ],
  "players": {
   "seats": [
    {
