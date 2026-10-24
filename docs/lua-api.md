@@ -102,7 +102,12 @@ elements by `rectAlignment` + `offsetXY` (y up) with `width` / `height` in pixel
 1920 × 1080 canvas; in layout groups `width` / `height` are the preferred size and `childForceExpand*` (default true)
 shares the rest. `visibility` (`Red|Blue|Host`) hides an element from other seats; `active` switches it.
 
-*To check against TTS:* Text's default alignment (upper left here), a clear Panel letting the pointer through (it does
+UI on objects: each active top-level element is drawn lying on the object at its `position` (x y z in UI pixels,
+100 per local TTS unit; z negative is up, x mirrored, so text reads upside down from the front unless rotated
+`0 0 180`, as TTS mods do), with its `rotation` and `scale`. Clicks on objects reach `onClick`; inputs on objects show
+their text but take no typing yet.
+
+*To check against TTS:* the object UI frame and its 100 pixels per unit, Text's default alignment (upper left here), a clear Panel letting the pointer through (it does
 here), the default colours of ProgressBar fills, how XmlUI scales with screen size (match 0.5 here). Not yet:
 `allowDragging`, show / hide animations, tooltips, `Defaults` changed after load.
 
@@ -125,6 +130,6 @@ Defined in the global script or any object script; colours are seat colours capi
 
 ## Not yet (T6.3)
 
-UI drawn on objects (`obj.UI` is kept and scripted, but drawn only on screen UI so far), `createInput`, `Turns`, `spawnObject`, physics casts,
+Typing into inputs drawn on objects, `createInput`, `Turns`, `spawnObject`, physics casts,
 `setInvisibleTo`, joints, music, collision events. The coverage of the local mods is measured by
 `tools/tts-analysis/lua_coverage.py` (T6.4).

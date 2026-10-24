@@ -137,6 +137,55 @@ end";
         }
 
         [UnityTest]
+        public IEnumerator ObjectUi_IsDrawnOnTheObject_AndClicked()
+        {
+            yield return SceneManager.LoadSceneAsync("Table");
+            yield return null;
+            var table = Object.FindAnyObjectByType<TableView>();
+            Object.FindAnyObjectByType<TableInteraction>().IgnoreDevices = true;
+            yield return new WaitForSeconds(0.3f);
+
+            var global = @"
+function onLoad()
+  getObjectFromGUID('board').UI.setXml([[
+<Button id=""hit"" onClick=""Global/hit"" width=""400"" height=""200"" position=""0 0 -30"" fontSize=""80"" color=""#C03030"" textColor=""#FFFFFF"">Hit</Button>
+<Text id=""gone"" active=""false"">x</Text>]])
+end
+function hit(player, value, id) broadcastToAll('hit ' .. value .. ' ' .. id) end";
+            var json = new JObject
+            {
+                ["schemaVersion"] = "0.1",
+                ["objects"] = JArray.Parse(@"[ { ""id"": ""board"", ""type"": ""Board"", ""locked"": true, ""transform"": { ""position"": [0, 0, 0] } } ]"),
+                ["players"] = JObject.Parse(@"{ ""seats"": [ { ""id"": ""south"", ""color"": ""red"" } ] }"),
+                ["scripts"] = new JObject { ["global"] = global },
+            };
+            Assert.IsTrue(table.Load(json.ToString(), null));
+            yield return new WaitForSeconds(0.2f);
+            var board = table.ViewOf("board");
+            var surfaces = board.GetComponentsInChildren<TableWorld.View.ScriptUi.ObjectUiSurface>();
+            Assert.AreEqual(1, surfaces.Length, "the inactive element gets no surface");
+            var surface = surfaces[0];
+            for (var wait = 0; wait < 120 && !surface.Ready; wait++)
+                yield return null;
+            Assert.IsTrue(surface.Ready, "the panel was laid out");
+            Assert.Greater(surface.transform.position.y, board.transform.position.y + 0.005f, "z -30 lifts it above the board");
+            var box = surface.GetComponent<BoxCollider>();
+            var width = box.bounds.size.x;
+            Assert.AreEqual(400 * TableWorld.View.ScriptUi.ObjectUiView.PixelToMetres, width, 0.001f, "400 UI pixels are 4 TTS units");
+
+            Assert.IsTrue(surface.TryUse(surface.transform.position, "-1"), "its centre is the button: " + surface.Describe(surface.transform.position));
+            Assert.IsFalse(surface.TryUse(surface.transform.position + Vector3.right * width, "-1"), "outside it nothing reacts");
+            yield return null;
+            var session = Object.FindAnyObjectByType<NetworkTableSession>();
+            Assert.IsTrue(session.Chat.Entries.Any(e => e.Text == "hit -1 hit"));
+
+            table.Execute(new Core.Engine.SetUiAttributesCommand { ObjectId = "board", ElementId = "hit", Attributes = { ["active"] = "False" } });
+            yield return null;
+            yield return null;
+            Assert.AreEqual(0, board.GetComponentsInChildren<TableWorld.View.ScriptUi.ObjectUiSurface>().Length, "hidden by the script");
+        }
+
+        [UnityTest]
         public IEnumerator ScriptButtons_AreDrawn_HitByThePointer_AndClicked()
         {
             yield return SceneManager.LoadSceneAsync("Table");

@@ -28,7 +28,8 @@ namespace TableWorld.View.ScriptUi
     /// </summary>
     public static class ScriptUiBuilder
     {
-        public const string PathKey = "script-ui-path";
+        /// <summary>Elements with an onClick handler (object UI finds them under the pointer by this class).</summary>
+        public const string ClickableClass = "script-ui-clickable";
 
         private static readonly Color DefaultText = new Color32(0x32, 0x32, 0x32, 0xFF);
 
@@ -38,6 +39,14 @@ namespace TableWorld.View.ScriptUi
             for (var i = 0; i < nodes.Count; i++)
                 if (Element(nodes[i], new List<int> { i }, null, context) is { } child)
                     container.Add(child);
+        }
+
+        /// <summary>Builds one top-level element (index <paramref name="index"/> of its tree) into <paramref name="container"/>.</summary>
+        public static void BuildOne(VisualElement container, UiNode node, int index, ScriptUiContext context)
+        {
+            container.Clear();
+            if (Element(node, new List<int> { index }, null, context) is { } e)
+                container.Add(e);
         }
 
         private static bool IsLayout(string tag) =>
@@ -118,6 +127,7 @@ namespace TableWorld.View.ScriptUi
             if (node.Get("onClick") != null && interactable)
             {
                 e.pickingMode = PickingMode.Position;
+                e.AddToClassList(ClickableClass);
                 e.RegisterCallback<PointerUpEvent>(evt =>
                 {
                     Raise(context, path, node, "onClick", evt.button == 1 ? "-2" : evt.button == 2 ? "-3" : "-1");

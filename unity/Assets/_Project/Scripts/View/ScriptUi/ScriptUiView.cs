@@ -84,8 +84,67 @@ namespace TableWorld.View.ScriptUi
 
         private void OnCommand(Command command, CommandResult result)
         {
-            if (result.Ok && result.Events.Any(e => e is ScriptUiChanged changed && changed.ObjectId == ""))
-                _dirty = true;
+            if (!result.Ok)
+                return;
+            foreach (var e in result.Events)
+                if (e is ScriptUiChanged changed)
+                {
+                    if (changed.ObjectId == "")
+                        _dirty = true;
+                    else
+                        _dirtyObjects.Add(changed.ObjectId);
+                }
+        }
+
+        // ---- UI on objects ------------------------------------------------------------------------------------------
+
+        private readonly HashSet<string> _dirtyObjects = new HashSet<string>();
+        /// <summary>The object views drawn with UI, so a view made again (taken out of a bag, rewound) is drawn again.</summary>
+        private readonly Dictionary<string, ObjectView> _drawnObjects = new Dictionary<string, ObjectView>();
+
+        private void RefreshObjects(TableState state, bool all)
+        {
+            if (state == null || _table == null)
+                return;
+            if (all)
+            {
+                _drawnObjects.Clear();
+                foreach (var obj in state.Objects)
+                    if (obj.ScriptUi.Count > 0)
+                        _dirtyObjects.Add(obj.Id);
+            }
+            // A view made again since it was drawn (or never drawn) needs its UI.
+            foreach (var pair in _drawnObjects.ToList())
+                if (_table.ViewOf(pair.Key) != pair.Value)
+                    _dirtyObjects.Add(pair.Key);
+            if (_dirtyObjects.Count == 0)
+                return;
+            foreach (var id in _dirtyObjects.ToList())
+            {
+                var view = _table.ViewOf(id);
+                if (view == null)
+                {
+                    _drawnObjects.Remove(id);
+                    _dirtyObjects.Remove(id);
+                    continue;
+                }
+                var objectId = id;
+                ObjectUiView.Refresh(view, new ScriptUiContext
+                {
+                    Texture = _context.Texture,
+                    ViewerColor = _drawnViewer,
+                    ViewerIsHost = _drawnHost,
+                    Raise = (path, evt, value) => _table?.Execute(new UiEventCommand
+                    {
+                        ObjectId = objectId, Path = path, Event = evt, Value = value, Actor = _table.LocalSeat,
+                    }),
+                });
+                if (view.Model.ScriptUi.Count > 0)
+                    _drawnObjects[id] = view;
+                else
+                    _drawnObjects.Remove(id);
+                _dirtyObjects.Remove(id);
+            }
         }
 
         private void LateUpdate()
@@ -93,15 +152,20 @@ namespace TableWorld.View.ScriptUi
             var state = _table != null ? _table.Engine?.State : null;
             var viewer = ViewerColor();
             var host = _table != null && _table.HostsTable;
-            if (state != _drawnState || viewer != _drawnViewer || host != _drawnHost)
+            var all = state != _drawnState || viewer != _drawnViewer || host != _drawnHost;
+            if (all)
                 _dirty = true;
-            if (!_dirty || _root == null)
+            if (_root == null)
                 return;
-            _dirty = false;
-            _drawnState = state;
-            _drawnViewer = viewer;
-            _drawnHost = host;
-            Rebuild(state);
+            if (_dirty)
+            {
+                _dirty = false;
+                _drawnState = state;
+                _drawnViewer = viewer;
+                _drawnHost = host;
+                Rebuild(state);
+            }
+            RefreshObjects(state, all);
         }
 
         private string ViewerColor()

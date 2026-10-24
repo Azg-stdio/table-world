@@ -351,6 +351,10 @@ namespace TableWorld.View
             // Left button on a script button: click it (M5).
             else if (mouse.leftButton.wasPressedThisFrame && Held == null && !overUi && _tool == Tool.Grab && !tab && HoveredButton != null)
                 ClickButton(HoveredButton, alt: false);
+            // Left button on a clickable part of a script's UI on an object (M5).
+            else if (mouse.leftButton.wasPressedThisFrame && Held == null && !overUi && _tool == Tool.Grab && !tab && UseObjectUi(hoverHit, "-1"))
+            {
+            }
             // Left button: grab, box select, or (with Tab) ping and measure.
             else if (mouse.leftButton.wasPressedThisFrame && Held == null && !overUi && (_tool == Tool.Grab || tab))
             {
@@ -434,6 +438,8 @@ namespace TableWorld.View
                 _rightOnButton = Held == null && !overUi && HoveredButton != null;
                 if (_rightOnButton)
                     ClickButton(HoveredButton, alt: true);
+                else if (Held == null && !overUi && UseObjectUi(hoverHit, "-2"))
+                    _rightOnButton = true;
                 else if (Held != null)
                 {
                     if (alt)
@@ -1587,6 +1593,11 @@ namespace TableWorld.View
             var parent = _table.ViewOf(snap.Parent);
             return parent != null ? parent.transform.TransformPoint(local) : local;
         }
+
+        /// <summary>A click on a script's UI drawn on an object (M5): true when an element there took it.</summary>
+        private bool UseObjectUi(RaycastHit hit, string button) =>
+            Hovered != null && hit.collider != null &&
+            hit.collider.GetComponent<TableWorld.View.ScriptUi.ObjectUiSurface>() is { } surface && surface.TryUse(hit.point, button);
 
         /// <summary>Clicks a script button (M5): the host's scripts run its function with this seat's colour.</summary>
         public void ClickButton(ScriptButtonView button, bool alt)
