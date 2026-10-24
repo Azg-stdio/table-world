@@ -38,6 +38,7 @@ IMPLEMENTED = {
     "Physics.cast", "Physics.getGravity", "onCollisionEnter", "onCollisionExit", "onObjectCollisionEnter",
     "onObjectCollisionExit", "registerCollisions", "unregisterCollisions",
     "spawnObject", "onObjectEnterContainer", "onObjectLeaveContainer", "onChat",
+    "createInput", "editInput", "removeInput", "clearInputs", "getInputs",
     # events
     "onLoad", "onObjectDrop", "onDrop", "onObjectEnterZone", "onObjectLeaveZone", "onObjectFlip", "onFlip",
     "onObjectRandomize", "onRandomize", "onPlayerTurn",

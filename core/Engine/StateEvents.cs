@@ -103,6 +103,14 @@ namespace Core.Engine
         }
     }
 
+    /// <summary>An object's script inputs changed (M5): made, edited or typed into.</summary>
+    public sealed class InputsChanged : StateEvent
+    {
+        public InputsChanged(string objectId) : base(objectId)
+        {
+        }
+    }
+
     /// <summary>An object's script buttons changed (M5); the view redraws them.</summary>
     public sealed class ButtonsChanged : StateEvent
     {

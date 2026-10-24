@@ -82,6 +82,9 @@ namespace TableWorld.View
         /// <summary>Sets the pointer from code (automated sessions without a mouse, with <see cref="IgnoreDevices"/>).</summary>
         public void OverridePointer(Vector3? point) => PointerOnTable = point;
         public ObjectView Hovered { get; private set; }
+        /// <summary>A script input on an object was clicked (M5): the HUD opens its editor at that screen point.</summary>
+        public event System.Action<ScriptInputView, Vector2> InputEditRequested;
+
         /// <summary>The script button under the pointer (M5), or null.</summary>
         public ScriptButtonView HoveredButton { get; private set; }
         private bool _rightOnButton;
@@ -351,6 +354,10 @@ namespace TableWorld.View
             // Left button on a script button: click it (M5).
             else if (mouse.leftButton.wasPressedThisFrame && Held == null && !overUi && _tool == Tool.Grab && !tab && HoveredButton != null)
                 ClickButton(HoveredButton, alt: false);
+            // Left button on a script input: type into it (M5).
+            else if (mouse.leftButton.wasPressedThisFrame && Held == null && !overUi && _tool == Tool.Grab && !tab && Hovered != null &&
+                     hoverHit.collider != null && hoverHit.collider.GetComponent<ScriptInputView>() is { } input)
+                InputEditRequested?.Invoke(input, pointer);
             // Left button on a clickable part of a script's UI on an object (M5).
             else if (mouse.leftButton.wasPressedThisFrame && Held == null && !overUi && _tool == Tool.Grab && !tab && UseObjectUi(hoverHit, "-1"))
             {
@@ -1592,6 +1599,13 @@ namespace TableWorld.View
             var local = snap.Transform.Position.ToUnity();
             var parent = _table.ViewOf(snap.Parent);
             return parent != null ? parent.transform.TransformPoint(local) : local;
+        }
+
+        /// <summary>Opens the editor of a script input, as a click on it does (also for tests and the CLI).</summary>
+        public void EditInput(ScriptInputView input)
+        {
+            if (input != null && _camera != null)
+                InputEditRequested?.Invoke(input, _camera.WorldToScreenPoint(input.transform.position));
         }
 
         /// <summary>A click on a script's UI drawn on an object (M5): true when an element there took it.</summary>

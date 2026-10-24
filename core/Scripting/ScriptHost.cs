@@ -71,6 +71,8 @@ namespace Core.Scripting
             // Buttons are made by the scripts' onLoad (as in TTS); the ones a save kept would double up.
             foreach (var withButtons in state.Objects.Where(o => o.Buttons.Count > 0).ToList())
                 Issue(new SetButtonsCommand { ObjectId = withButtons.Id });
+            foreach (var withInputs in state.Objects.Where(o => o.Inputs.Count > 0).ToList())
+                Issue(new SetInputsCommand { ObjectId = withInputs.Id });
             if (state.Scripts.TryGetValue(GlobalName, out var source) && !string.IsNullOrWhiteSpace(source))
                 _global = Compile(source, null, "Global");
             foreach (var obj in state.Objects.Where(o => !string.IsNullOrWhiteSpace(o.Script)))
@@ -105,6 +107,8 @@ namespace Core.Scripting
         {
             if (Engine.Find(id) is { Buttons: { Count: > 0 } })
                 Issue(new SetButtonsCommand { ObjectId = id });
+            if (Engine.Find(id) is { Inputs: { Count: > 0 } })
+                Issue(new SetInputsCommand { ObjectId = id });
             _objectScripts.Remove(id);
             foreach (var key in _proxies.Keys.Where(k => k.Item2 == id).ToList())
                 _proxies.Remove(key);
@@ -233,6 +237,9 @@ namespace Core.Scripting
                 case ClickButtonCommand click:
                     Click(click, who);
                     break;
+                case TypeInputCommand typed:
+                    Typed(typed, who);
+                    break;
                 case UiEventCommand ui:
                     UiUsed(ui, color);
                     break;
@@ -274,6 +281,29 @@ namespace Core.Scripting
                             EverywhereWith("onObjectLeaveScriptingZone", (s, p) => new[] { p(left.ZoneId), p(left.ObjectId) });
                         break;
                 }
+            }
+        }
+
+        /// <summary>
+        /// A player typed into an input: <c>input_function(obj, color, value, selected)</c> in the owner's script, as TTS
+        /// calls it. A string it returns becomes the input's text.
+        /// </summary>
+        private void Typed(TypeInputCommand typed, DynValue who)
+        {
+            if (!(Engine.Find(typed.ObjectId) is { } obj) || typed.Index >= obj.Inputs.Count)
+                return;
+            var input = obj.Inputs[typed.Index];
+            if (string.IsNullOrEmpty(input.InputFunction))
+                return;
+            var script = input.Owner == null ? _global : _objectScripts.TryGetValue(input.Owner, out var own) ? own : null;
+            if (script == null)
+                return;
+            var answer = CallIfDefined(script, input.InputFunction, Proxy(script, obj.Id), who, DynValue.NewString(typed.Value), DynValue.NewBoolean(typed.Selected));
+            if (answer is { Type: DataType.String } text && text.String != typed.Value && Engine.Find(typed.ObjectId) is { } still && typed.Index < still.Inputs.Count)
+            {
+                var inputs = still.Inputs.Select(CopyInput).ToList();
+                inputs[typed.Index].Value = text.String;
+                Issue(new SetInputsCommand { ObjectId = still.Id, Inputs = inputs });
             }
         }
 

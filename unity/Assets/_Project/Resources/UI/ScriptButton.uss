@@ -17,6 +17,11 @@
     margin: 0;
 }
 
+.script-input-placeholder {
+    color: rgb(150, 150, 150);
+    -unity-font-style: italic;
+}
+
 .script-button-shade {
     position: absolute;
     left: 0;

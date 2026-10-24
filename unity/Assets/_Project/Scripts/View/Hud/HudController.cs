@@ -21,6 +21,7 @@ namespace TableWorld.View.Hud
 
         [SerializeField] private TableView _table;
         private TableWorld.View.ScriptUi.ScriptUiView _scriptUi;
+        private InputEditor _inputEditor;
         [SerializeField] private TableInteraction _interaction;
         [SerializeField] private TableWorld.View.Net.NetworkTableSession _session;
         private Label _netStatus;
@@ -174,6 +175,11 @@ namespace TableWorld.View.Hud
             {
                 _table.CommandExecuted += OnCommand;
                 _table.Notice += OnNotice;
+                if (_interaction != null)
+                {
+                    _inputEditor = new InputEditor(_root, _table);
+                    _interaction.InputEditRequested += _inputEditor.Show;
+                }
                 // The scripts' own screen UI (M5), drawn under the HUD.
                 if (_scriptUi == null)
                     _scriptUi = TableWorld.View.ScriptUi.ScriptUiView.Create(_sharedPanelSettings, _table);
@@ -666,7 +672,8 @@ namespace TableWorld.View.Hud
             if (result.Ok && (command is MoveCommand || command is AddDrawingCommand || command is EraseDrawingCommand ||
                               command is DropCommand || command is PickUpCommand || command is PeekCommand || command is BlindfoldCommand ||
                               command is SetButtonsCommand || command is ClickButtonCommand || command is SetScriptUiCommand ||
-                              command is SetUiAttributesCommand || command is UiEventCommand))
+                              command is SetUiAttributesCommand || command is UiEventCommand || command is SetInputsCommand ||
+                              command is TypeInputCommand || command is SpawnCommand))
                 return;
             var name = command.GetType().Name.Replace("Command", "");
             _status.text = result.Ok ? (command is RollCommand ? RollText(result) : command is SetPhysicsCommand physics ? $"Physics: {PhysicsName(physics.Mode)}" : TurnText(command) ?? $"{name}: done")

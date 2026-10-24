@@ -242,6 +242,55 @@ end";
         }
 
         [UnityTest]
+        public IEnumerator ScriptInputs_AreDrawn_AndTypedIntoThroughTheEditor()
+        {
+            yield return SceneManager.LoadSceneAsync("Table");
+            yield return null;
+            var table = Object.FindAnyObjectByType<TableView>();
+            var interaction = Object.FindAnyObjectByType<TableInteraction>();
+            interaction.IgnoreDevices = true;
+            yield return new WaitForSeconds(0.3f);
+            var global = @"
+function onLoad()
+  getObjectFromGUID('board').createInput({ input_function = 'typed', label = 'Score', width = 1200, height = 400, font_size = 250, validation = 2 })
+end
+function typed(obj, color, value, selected)
+  if not selected then broadcastToAll(color .. ' set ' .. value) end
+end";
+            var json = new JObject
+            {
+                ["schemaVersion"] = "0.1",
+                ["objects"] = JArray.Parse(@"[ { ""id"": ""board"", ""type"": ""Board"", ""locked"": true } ]"),
+                ["players"] = JObject.Parse(@"{ ""seats"": [ { ""id"": ""south"", ""color"": ""red"" } ] }"),
+                ["scripts"] = new JObject { ["global"] = global },
+            };
+            Assert.IsTrue(table.Load(json.ToString(), null));
+            yield return null;
+            var input = table.ViewOf("board").GetComponentInChildren<ScriptInputView>();
+            Assert.IsNotNull(input, "the input is drawn on the board");
+
+            interaction.EditInput(input);
+            yield return null;
+            var hud = Object.FindAnyObjectByType<TableWorld.View.Hud.HudController>();
+            var editor = hud.GetComponent<UIDocument>().rootVisualElement.Q<TextField>("scriptInputEditor");
+            Assert.IsFalse(editor.ClassListContains("hidden"), "the editor opened");
+            editor.value = "4x";
+            Assert.AreEqual("", editor.value, "an integer input refuses letters");
+            editor.value = "42";
+            yield return null;
+            Assert.AreEqual("42", table.Engine.Find("board").Inputs[0].Value, "typing reaches the table as it happens");
+            // Keys go to the focused element; a click on the input focuses the editor (an unfocused Editor game view may not).
+            editor.Focus();
+            var focused = "" + editor.panel.focusController.focusedElement;
+            using (var enter = KeyDownEvent.GetPooled((char)10, KeyCode.Return, EventModifiers.None))
+                editor.SendEvent(enter);
+            yield return new WaitForSeconds(0.5f);
+            Assert.IsTrue(editor.ClassListContains("hidden"), "Enter closes it; focused: " + focused + " value " + editor.value);
+            var session = Object.FindAnyObjectByType<NetworkTableSession>();
+            Assert.IsTrue(session.Chat.Entries.Any(e => e.Text == "Red set 42"), "the function heard the finished value");
+        }
+
+        [UnityTest]
         public IEnumerator ScriptButtons_AreDrawn_HitByThePointer_AndClicked()
         {
             yield return SceneManager.LoadSceneAsync("Table");

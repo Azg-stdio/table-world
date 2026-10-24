@@ -113,6 +113,35 @@ namespace Core.Tests.Scripting
         }
 
         [Fact]
+        public void Inputs_AreMade_Typed_AndAnsweredByTheirFunction()
+        {
+            var (engine, host, said) = Load(@"
+                function typed(obj, color, value, selected)
+                  broadcastToAll(obj.getGUID() .. ' ' .. color .. ' ' .. value .. ' ' .. tostring(selected))
+                  if not selected then return string.upper(value) end
+                end
+                function onLoad()
+                  local d = getObjectFromGUID('d6')
+                  d.createInput({ input_function = 'typed', label = 'Name', value = 'x', width = 800, validation = 1, alignment = 3 })
+                  d.editInput({ index = 0, value = 'start' })
+                  local i = d.getInputs()[1]
+                  broadcastToAll(i.value .. ' ' .. i.label .. ' ' .. i.width .. ' ' .. i.input_function .. ' ' .. i.alignment)
+                end");
+            Assert.Equal("start Name 800 typed 3", said.Single());
+            void Type(string value, bool selected)
+            {
+                var c = new TypeInputCommand { ObjectId = "d6", Index = 0, Value = value, Selected = selected };
+                host.OnCommand(c, engine.Execute(c), "red");
+            }
+            Type("ana", true);
+            Assert.Equal("ana", engine.Find("d6")!.Inputs[0].Value);
+            Type("ana", false);
+            Assert.Equal(new[] { "d6 Red ana true", "d6 Red ana false" }, said.Skip(1));
+            Assert.Equal("ANA", engine.Find("d6")!.Inputs[0].Value);
+            Assert.False(engine.Execute(new TypeInputCommand { ObjectId = "d6", Index = 3, Value = "x" }).Ok);
+        }
+
+        [Fact]
         public void Engine_RefusesBadButtons_AndClicksOnMissingOnes()
         {
             var engine = EngineFixture.Create();

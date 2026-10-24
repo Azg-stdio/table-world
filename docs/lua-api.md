@@ -119,6 +119,14 @@ their text but take no typing yet.
 here), the default colours of ProgressBar fills, how XmlUI scales with screen size (match 0.5 here). Not yet:
 `allowDragging`, show / hide animations, tooltips, `Defaults` changed after load.
 
+### Inputs
+
+`createInput(params)`, `editInput(params)` (with `index`), `removeInput(index)`, `clearInputs()`, `getInputs()`: the
+button parameters plus `input_function`, `value`, `alignment` (1 auto, 2 left, 3 center, 4 right) and `validation`
+(2 integer, 3 decimal, 4 letters and digits). A player clicks the field to type in an editor that opens at the pointer;
+each change calls `input_function(obj, player_color, value, true)` and Enter (or clicking away) calls it with `false`.
+The text is table state, so everyone sees it; a string the function returns becomes the text.
+
 Zones (`getObjectFromGUID` of a zone): `getGUID()`, `getName()`, `getObjects()`, `getPosition()`, `hasTag(tag)`.
 
 ## Events
@@ -141,6 +149,6 @@ Defined in the global script or any object script; colours are seat colours capi
 
 ## Not yet (T6.3)
 
-Typing into inputs drawn on objects, `createInput`, `Turns`, `spawnObject`, physics casts,
+Typing into XmlUI `InputField`s drawn on objects, `Turns`, `spawnObject`, physics casts,
 `setInvisibleTo`, joints, music, collision events. The coverage of the local mods is measured by
 `tools/tts-analysis/lua_coverage.py` (T6.4).

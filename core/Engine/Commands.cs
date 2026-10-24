@@ -121,6 +121,25 @@ namespace Core.Engine
         public string? Value { get; set; }
     }
 
+    /// <summary>Replaces an object's script inputs (M5, TTS createInput / editInput). Host only.</summary>
+    public sealed class SetInputsCommand : Command, IHostCommand
+    {
+        public string ObjectId { get; set; } = "";
+        public List<InputDef> Inputs { get; set; } = new List<InputDef>();
+    }
+
+    /// <summary>
+    /// A player typed into a script input (M5): its text becomes <see cref="Value"/> for everyone, and the host's scripts
+    /// run its function. <see cref="Selected"/> is true while the player is still editing.
+    /// </summary>
+    public sealed class TypeInputCommand : Command
+    {
+        public string ObjectId { get; set; } = "";
+        public int Index { get; set; }
+        public string Value { get; set; } = "";
+        public bool Selected { get; set; }
+    }
+
     /// <summary>Replaces an object's script buttons (M5). Host only: the host's scripts are the only ones that make buttons.</summary>
     public sealed class SetButtonsCommand : Command, IHostCommand
     {

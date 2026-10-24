@@ -91,6 +91,10 @@ namespace Core.Rules
         public List<ButtonDef> Buttons { get; set; } = new List<ButtonDef>();
         public bool ShouldSerializeButtons() => Buttons.Count > 0;
 
+        /// <summary>Text fields scripts put on this object (M5, TTS <c>createInput</c>).</summary>
+        public List<InputDef> Inputs { get; set; } = new List<InputDef>();
+        public bool ShouldSerializeInputs() => Inputs.Count > 0;
+
         /// <summary>UI its script drew on it (M5, TTS object <c>UI.*</c>; ADR 0004).</summary>
         public List<UiNode> ScriptUi { get; set; } = new List<UiNode>();
         public bool ShouldSerializeScriptUi() => ScriptUi.Count > 0;

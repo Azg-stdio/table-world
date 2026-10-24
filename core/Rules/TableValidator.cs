@@ -44,6 +44,23 @@ namespace Core.Rules
             return errors;
         }
 
+        /// <summary>Problems with a script input (M5): the button checks, plus text length and option numbers.</summary>
+        public static List<ValidationError> CheckInput(InputDef input, string path)
+        {
+            var errors = CheckButton(new ButtonDef
+            {
+                Label = input.Label, Position = input.Position, Rotation = input.Rotation, Width = input.Width, Height = input.Height,
+                FontSize = input.FontSize, Color = input.Color, FontColor = input.FontColor,
+            }, path);
+            if ((input.Value ?? "").Length > InputDef.MaxLength)
+                errors.Add(new ValidationError($"{path}.value", ErrorCodes.InvalidValue, $"An input holds at most {InputDef.MaxLength} characters."));
+            if (input.Alignment < 1 || input.Alignment > 5)
+                errors.Add(new ValidationError($"{path}.alignment", ErrorCodes.InvalidValue, "alignment is 1 to 5."));
+            if (input.Validation < 1 || input.Validation > 6)
+                errors.Add(new ValidationError($"{path}.validation", ErrorCodes.InvalidValue, "validation is 1 to 6."));
+            return errors;
+        }
+
         /// <summary>Problems with a script button (M5): sizes in range, colours of 0–1 numbers, a short label.</summary>
         public static List<ValidationError> CheckButton(ButtonDef b, string path)
         {
@@ -264,6 +281,10 @@ namespace Core.Rules
                     Add($"{path}.buttons", ErrorCodes.LimitReached, $"An object holds at most {ButtonDef.MaxButtons} buttons.");
                 for (var i = 0; i < obj.Buttons.Count; i++)
                     Errors.AddRange(CheckButton(obj.Buttons[i], $"{path}.buttons[{i}]"));
+                if (obj.Inputs.Count > InputDef.MaxInputs)
+                    Add($"{path}.inputs", ErrorCodes.LimitReached, $"An object holds at most {InputDef.MaxInputs} inputs.");
+                for (var i = 0; i < obj.Inputs.Count; i++)
+                    Errors.AddRange(CheckInput(obj.Inputs[i], $"{path}.inputs[{i}]"));
 
                 if (obj.Container != null)
                 {

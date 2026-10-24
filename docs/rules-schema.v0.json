@@ -276,6 +276,12 @@
             "$ref": "#/$defs/ButtonDef"
           }
         },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InputDef"
+          }
+        },
         "scriptUi": {
           "type": "array",
           "items": {
@@ -399,6 +405,70 @@
       },
       "additionalProperties": false
     },
+    "InputDef": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "inputFunction": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "position": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "rotation": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "fontSize": {
+          "type": "number"
+        },
+        "color": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "fontColor": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "tooltip": {
+          "type": "string"
+        },
+        "alignment": {
+          "type": "integer"
+        },
+        "validation": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
     "UiNode": {
       "type": "object",
       "properties": {
@@ -505,6 +575,12 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/ButtonDef"
+          }
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InputDef"
           }
         },
         "scriptUi": {
@@ -668,6 +744,12 @@
             "$ref": "#/$defs/ButtonDef"
           }
         },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InputDef"
+          }
+        },
         "scriptUi": {
           "type": "array",
           "items": {
@@ -778,6 +860,12 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/ButtonDef"
+          }
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InputDef"
           }
         },
         "scriptUi": {
@@ -893,6 +981,12 @@
             "$ref": "#/$defs/ButtonDef"
           }
         },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InputDef"
+          }
+        },
         "scriptUi": {
           "type": "array",
           "items": {
@@ -999,6 +1093,12 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/ButtonDef"
+          }
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InputDef"
           }
         },
         "scriptUi": {
@@ -1126,6 +1226,12 @@
             "$ref": "#/$defs/ButtonDef"
           }
         },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InputDef"
+          }
+        },
         "scriptUi": {
           "type": "array",
           "items": {
@@ -1222,6 +1328,12 @@
             "$ref": "#/$defs/ButtonDef"
           }
         },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InputDef"
+          }
+        },
         "scriptUi": {
           "type": "array",
           "items": {
@@ -1316,6 +1428,12 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/ButtonDef"
+          }
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InputDef"
           }
         },
         "scriptUi": {
@@ -1422,6 +1540,12 @@
             "$ref": "#/$defs/ButtonDef"
           }
         },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InputDef"
+          }
+        },
         "scriptUi": {
           "type": "array",
           "items": {
@@ -1521,6 +1645,12 @@
             "$ref": "#/$defs/ButtonDef"
           }
         },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InputDef"
+          }
+        },
         "scriptUi": {
           "type": "array",
           "items": {
@@ -1615,6 +1745,12 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/ButtonDef"
+          }
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InputDef"
           }
         },
         "scriptUi": {
@@ -1724,6 +1860,12 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/ButtonDef"
+          }
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InputDef"
           }
         },
         "scriptUi": {

@@ -192,6 +192,8 @@ namespace Core.Engine
             DropCommand c => RequireOnTable(c.ObjectId, "objectId", out _, allowLocked: true) ?? CommandResult.Success(new List<StateEvent>()),
             PickUpCommand c => RequireOnTable(c.ObjectId, "objectId", out _, allowLocked: true) ?? CommandResult.Success(new List<StateEvent>()),
             SetButtonsCommand c => SetButtons(c),
+            SetInputsCommand c => SetInputs(c),
+            TypeInputCommand c => TypeInput(c),
             SetScriptUiCommand c => SetScriptUi(c),
             SpawnCommand c => Spawn(c),
             SetUiAttributesCommand c => SetUiAttributes(c),
@@ -587,6 +589,31 @@ namespace Core.Engine
                     return CommandResult.Fail(bad.Path, bad.Code, bad.Message);
             obj.Buttons = c.Buttons;
             return CommandResult.Success(new List<StateEvent> { new ButtonsChanged(obj.Id) });
+        }
+
+        private CommandResult SetInputs(SetInputsCommand c)
+        {
+            if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: true) is { } fail)
+                return fail;
+            if (c.Inputs.Count > InputDef.MaxInputs)
+                return CommandResult.Fail("inputs", ErrorCodes.LimitReached, $"An object holds at most {InputDef.MaxInputs} inputs.");
+            for (var i = 0; i < c.Inputs.Count; i++)
+                if (TableValidator.CheckInput(c.Inputs[i], $"inputs[{i}]").FirstOrDefault() is { } bad)
+                    return CommandResult.Fail(bad.Path, bad.Code, bad.Message);
+            obj.Inputs = c.Inputs;
+            return CommandResult.Success(new List<StateEvent> { new InputsChanged(obj.Id) });
+        }
+
+        private CommandResult TypeInput(TypeInputCommand c)
+        {
+            if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: true) is { } fail)
+                return fail;
+            if (c.Index < 0 || c.Index >= obj.Inputs.Count)
+                return CommandResult.Fail("index", ErrorCodes.InvalidValue, $"'{obj.Id}' has no input {c.Index}.");
+            if ((c.Value ?? "").Length > InputDef.MaxLength)
+                return CommandResult.Fail("value", ErrorCodes.InvalidValue, $"An input holds at most {InputDef.MaxLength} characters.");
+            obj.Inputs[c.Index].Value = c.Value ?? "";
+            return CommandResult.Success(new List<StateEvent> { new InputsChanged(obj.Id) });
         }
 
         private CommandResult ClickButton(ClickButtonCommand c)

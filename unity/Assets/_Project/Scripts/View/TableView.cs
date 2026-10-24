@@ -994,6 +994,10 @@ namespace TableWorld.View
                         if (ViewOf(buttons.ObjectId) is { } withButtons)
                             ScriptButtonsView.Refresh(withButtons);
                         break;
+                    case InputsChanged inputs:
+                        if (ViewOf(inputs.ObjectId) is { } withInputs)
+                            ScriptInputsView.Refresh(withInputs);
+                        break;
                     case TableSettingsChanged _:
                         foreach (var each in _views.Values)
                             if (each != null)

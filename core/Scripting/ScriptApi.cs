@@ -612,6 +612,58 @@ namespace Core.Scripting
                 return Do(new SetButtonsCommand { ObjectId = id, Buttons = buttons });
             });
             t["clearButtons"] = Fn((o, a) => o.Buttons.Count == 0 ? DynValue.True : Do(new SetButtonsCommand { ObjectId = id }));
+            t["createInput"] = Fn((o, a) =>
+            {
+                if (At(a, 0).Type != DataType.Table)
+                    return DynValue.False;
+                var inputs = o.Inputs.ToList();
+                inputs.Add(ReadInput(At(a, 0).Table, new InputDef()));
+                return Do(new SetInputsCommand { ObjectId = id, Inputs = inputs });
+            });
+            t["editInput"] = Fn((o, a) =>
+            {
+                if (At(a, 0).Type != DataType.Table)
+                    return DynValue.False;
+                var p = At(a, 0).Table;
+                var index = p.Get("index").Type == DataType.Number ? (int)p.Get("index").Number : 0;
+                if (index < 0 || index >= o.Inputs.Count)
+                    return DynValue.False;
+                var inputs = o.Inputs.ToList();
+                inputs[index] = ReadInput(p, CopyInput(inputs[index]));
+                return Do(new SetInputsCommand { ObjectId = id, Inputs = inputs });
+            });
+            t["removeInput"] = Fn((o, a) =>
+            {
+                var index = At(a, 0).Type == DataType.Number ? (int)At(a, 0).Number : -1;
+                if (index < 0 || index >= o.Inputs.Count)
+                    return DynValue.False;
+                var inputs = o.Inputs.ToList();
+                inputs.RemoveAt(index);
+                return Do(new SetInputsCommand { ObjectId = id, Inputs = inputs });
+            });
+            t["clearInputs"] = Fn((o, a) => o.Inputs.Count == 0 ? DynValue.True : Do(new SetInputsCommand { ObjectId = id }));
+            t["getInputs"] = Fn((o, a) =>
+            {
+                if (o.Inputs.Count == 0)
+                    return DynValue.Nil;
+                var list = new Table(script);
+                for (var i = 0; i < o.Inputs.Count; i++)
+                {
+                    var input = o.Inputs[i];
+                    var e = WriteButton(script, new ButtonDef
+                    {
+                        Label = input.Label, Click = input.InputFunction, Owner = input.Owner, Position = input.Position, Rotation = input.Rotation,
+                        Width = input.Width, Height = input.Height, FontSize = input.FontSize, Tooltip = input.Tooltip,
+                    }, i);
+                    e["input_function"] = input.InputFunction;
+                    e["click_function"] = DynValue.Nil;
+                    e["value"] = input.Value;
+                    e["alignment"] = input.Alignment;
+                    e["validation"] = input.Validation;
+                    list[i + 1] = e;
+                }
+                return DynValue.NewTable(list);
+            });
             t["getButtons"] = Fn((o, a) =>
             {
                 if (o.Buttons.Count == 0)
@@ -750,6 +802,42 @@ namespace Core.Scripting
             b.FontColor = ReadColor(p.Get("font_color")) ?? b.FontColor;
             if (p.Get("tooltip").Type != DataType.Nil)
                 b.Tooltip = p.Get("tooltip").CastToString();
+            return b;
+        }
+
+        private static InputDef CopyInput(InputDef b) => new InputDef
+        {
+            Label = b.Label, Value = b.Value, InputFunction = b.InputFunction, Owner = b.Owner, Position = b.Position, Rotation = b.Rotation,
+            Width = b.Width, Height = b.Height, FontSize = b.FontSize, Color = b.Color, FontColor = b.FontColor, Tooltip = b.Tooltip,
+            Alignment = b.Alignment, Validation = b.Validation,
+        };
+
+        /// <summary>Reads TTS input parameters over <paramref name="b"/>: the button ones, then value, input_function, alignment, validation.</summary>
+        private InputDef ReadInput(Table p, InputDef b)
+        {
+            var shape = ReadButton(null!, p, new ButtonDef
+            {
+                Label = b.Label, Owner = b.Owner, Position = b.Position, Rotation = b.Rotation, Width = b.Width, Height = b.Height,
+                FontSize = b.FontSize, Color = b.Color, FontColor = b.FontColor, Tooltip = b.Tooltip,
+            });
+            b.Label = shape.Label;
+            b.Owner = shape.Owner;
+            b.Position = shape.Position;
+            b.Rotation = shape.Rotation;
+            b.Width = shape.Width;
+            b.Height = shape.Height;
+            b.FontSize = shape.FontSize;
+            b.Color = shape.Color;
+            b.FontColor = shape.FontColor;
+            b.Tooltip = shape.Tooltip;
+            if (p.Get("input_function").Type == DataType.String)
+                b.InputFunction = p.Get("input_function").String;
+            if (p.Get("value").Type != DataType.Nil)
+                b.Value = p.Get("value").CastToString() ?? "";
+            if (p.Get("alignment").Type == DataType.Number)
+                b.Alignment = Math.Max(1, Math.Min(5, (int)p.Get("alignment").Number));
+            if (p.Get("validation").Type == DataType.Number)
+                b.Validation = Math.Max(1, Math.Min(6, (int)p.Get("validation").Number));
             return b;
         }
 
