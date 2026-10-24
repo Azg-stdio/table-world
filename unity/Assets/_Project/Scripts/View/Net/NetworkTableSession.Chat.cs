@@ -106,6 +106,15 @@ namespace TableWorld.View.Net
         }
 
 
+        /// <summary>Everyone is told when the host rewinds time (G26); alone, the log notes it.</summary>
+        private void OnRewound(double secondsAgo)
+        {
+            if (IsClient)
+                return;
+            var who = IsHost ? _roster.Of(SessionHost.HostId).Name : LocalName.Length > 0 ? LocalName : "You";
+            Announce($"{who} rewound the table to {TableWorld.View.Hud.TableOverlay.Ago(secondsAgo)}");
+        }
+
         // ---- game log ---------------------------------------------------------------------------------------------
 
         /// <summary>Alone at the table: log what this machine does, as the seat now playing.</summary>

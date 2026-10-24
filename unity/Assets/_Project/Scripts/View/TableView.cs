@@ -96,6 +96,8 @@ namespace TableWorld.View
             Replace(parsed.State);
             _undo.Clear();
             _redo.Clear();
+            Timeline.Clear();
+            Timeline.Record(TableJson.Serialize(Engine.State, indented: false), Time.unscaledTimeAsDouble);
             _loadedAt = Time.time;
             Loaded?.Invoke();
             return true;
@@ -152,6 +154,65 @@ namespace TableWorld.View
 
         /// <summary>Raised after a table is loaded (the HUD rebuilds its seats).</summary>
         public event Action Loaded;
+
+        // ---- rewind time (G26) ----------------------------------------------------------------------------------
+
+        /// <summary>The table every few seconds while it changes; the host (or a player alone) steps through it.</summary>
+        public Timeline Timeline { get; } = new Timeline();
+
+        private bool _timelineDirty;
+        private double _timelineCheckedAt;
+
+        /// <summary>Raised after a rewind or a step forward, with how long ago the restored table was saved (seconds).</summary>
+        public event Action<double> Rewound;
+
+        /// <summary>Who may rewind: the host, or a player alone. Clients follow the host's table.</summary>
+        public bool CanRewind => HostsTable && Engine != null;
+
+        /// <summary>Steps the whole table back to the previous saved moment. Online, everyone gets the rewound table.</summary>
+        public bool Rewind()
+        {
+            if (!CanRewind)
+                return false;
+            // Keep the present (when it changed since the last point), so Forward can come back to it.
+            if (_timelineDirty)
+                Timeline.Record(TableJson.Serialize(Engine.State, indented: false), Time.unscaledTimeAsDouble, force: true);
+            return Restore(Timeline.Back());
+        }
+
+        /// <summary>How long ago the moment <see cref="Rewind"/> would go back to was saved; null when there is none.</summary>
+        public double? RewindTarget(double now) => !CanRewind ? null : _timelineDirty ? Timeline.AgeOf(0, now) : Timeline.AgeOf(1, now);
+
+        /// <summary>Steps forward again after a rewind.</summary>
+        public bool Forward() => CanRewind && Restore(Timeline.Forward());
+
+        private bool Restore((string Json, double At)? point)
+        {
+            if (point == null)
+                return false;
+            Replace(TableJson.Parse(point.Value.Json).State);
+            _undo.Clear();
+            _redo.Clear();
+            _timelineDirty = false;
+            _loadedAt = Time.time;
+            Loaded?.Invoke();
+            Rewound?.Invoke(Time.unscaledTimeAsDouble - point.Value.At);
+            return true;
+        }
+
+        /// <summary>Saves a timeline point once the table changed and the interval passed (only where rewinding is possible).</summary>
+        private void RecordTimeline()
+        {
+            var now = Time.unscaledTimeAsDouble;
+            if (!_timelineDirty || !CanRewind || now - _timelineCheckedAt < 1.0)
+                return;
+            _timelineCheckedAt = now;
+            var newest = Timeline.AgeOf(0, now);
+            if (newest.HasValue && newest.Value < Timeline.IntervalSeconds)
+                return;
+            Timeline.Record(TableJson.Serialize(Engine.State, indented: false), now);
+            _timelineDirty = false;
+        }
 
         /// <summary>An object hit something hard enough to be heard (speed in m/s). Silent for a moment after a table loads.</summary>
         public event Action<ObjectView, float> Impacted;
@@ -245,6 +306,8 @@ namespace TableWorld.View
         public void ApplyRemote(Command command, CommandResult result)
         {
             Apply(result.Events);
+            if (result.Ok)
+                _timelineDirty = true;
             CommandExecuted?.Invoke(command, result);
         }
 
@@ -422,6 +485,8 @@ namespace TableWorld.View
                 Clear();
                 SpawnAll();
             }
+            if (result.Ok)
+                _timelineDirty = true;
             CommandExecuted?.Invoke(command, result);
             return result;
         }
@@ -477,6 +542,7 @@ namespace TableWorld.View
         {
             if (Engine == null)
                 return;
+            RecordTimeline();
             if (_presentedSeat != LocalSeat || _presentedHosting != HostsTable || _presentedAll != SeesEverything)
                 PresentHands();
             _scratch.Clear();

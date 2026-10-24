@@ -173,8 +173,27 @@ namespace TableWorld.View.Hud
             if (_table.MayChangeTable)
                 Row("Physics", new[] { (PhysicsMode.Full, "Full"), (PhysicsMode.SemiLock, "Semi-lock"), (PhysicsMode.Locked, "Locked") }
                     .Select(m => ((_table.PhysicsMode == m.Item1 ? "● " : "") + m.Item2, (Action)(() => Run(new SetPhysicsCommand { Mode = m.Item1 })))));
+            if (_table.CanRewind)
+            {
+                // Rewind time (G26): back to the previous saved moment, or forward again after rewinding.
+                var back = _table.RewindTarget(Time.unscaledTimeAsDouble);
+                var entries = new List<(string, Action)>();
+                if (back.HasValue)
+                    entries.Add(($"◀ {Ago(back.Value)}", () => _table.Rewind()));
+                if (_table.Timeline.CanGoForward)
+                    entries.Add(("Forward ▶", () => _table.Forward()));
+                if (entries.Count > 0)
+                    Row("Rewind", entries);
+            }
             Item("Save table (F5)", () => _table.Save(TableView.SavePath(TableView.QuickSaveName)));
             Item("Load table (F9)", () => _table.LoadFile(TableView.SavePath(TableView.QuickSaveName)));
+        }
+
+        /// <summary>"0:40 ago", "12:05 ago".</summary>
+        public static string Ago(double seconds)
+        {
+            var s = Mathf.Max(0, Mathf.RoundToInt((float)seconds));
+            return $"{s / 60}:{s % 60:00} ago";
         }
 
         /// <summary>Takes <paramref name="count"/> pieces off a stack and sets them down beside it (G14).</summary>

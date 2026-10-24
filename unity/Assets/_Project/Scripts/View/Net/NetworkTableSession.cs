@@ -81,6 +81,7 @@ namespace TableWorld.View.Net
             _table.Touched += Touch;
             _table.Loaded += OnTableLoaded;
             _table.CommandExecuted += OnLocalCommand;
+            _table.Rewound += OnRewound;
         }
 
         private void OnDisable()
@@ -90,6 +91,7 @@ namespace TableWorld.View.Net
             _table.Touched -= Touch;
             _table.Loaded -= OnTableLoaded;
             _table.CommandExecuted -= OnLocalCommand;
+            _table.Rewound -= OnRewound;
         }
 
         /// <summary>Starts hosting the current table on <paramref name="port"/> (all interfaces).</summary>

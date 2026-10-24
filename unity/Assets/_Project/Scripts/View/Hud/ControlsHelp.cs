@@ -75,6 +75,7 @@ namespace TableWorld.View.Hud
                 ("Ctrl + C / Ctrl + V", "Copy / paste"),
                 ("Delete", "Delete"),
                 ("Ctrl + Z / Ctrl + Y", "Undo / redo (playing alone)"),
+                ("Right click the table → Rewind", "Host: step the whole table back in time, and forward again"),
                 ("F5 / F9", "Quick save / quick load"),
                 ("Tab + click", "Ping"),
                 ("Tab + drag", "Measure"),

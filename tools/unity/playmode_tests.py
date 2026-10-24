@@ -130,6 +130,8 @@ def report(status):
 
 
 def main():
+    # Test names and messages carry symbols (●, ◀) a Windows console code page cannot print; never crash on them.
+    sys.stdout.reconfigure(errors="replace")
     args = sys.argv[1:]
     filter_text = args[args.index("--filter") + 1] if "--filter" in args else None
     timeout = float(args[args.index("--timeout") + 1]) if "--timeout" in args else 600
