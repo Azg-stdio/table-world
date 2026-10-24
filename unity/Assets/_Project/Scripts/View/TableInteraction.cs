@@ -163,7 +163,10 @@ namespace TableWorld.View
         public event Action<Vector3> Pinged;
 
         /// <summary>What the left button does (G28): grab (TTS's default), draw freehand, draw an arrow, or erase drawings.</summary>
-        public enum Tool { Grab, Draw, Arrow, Erase }
+        public enum Tool { Grab, Draw, Arrow, Erase, Gizmo }
+
+        /// <summary>The Gizmo tool clicked an object: the HUD opens its exact-position panel.</summary>
+        public event Action<ObjectView> GizmoRequested;
 
         private Tool _tool;
 
@@ -314,7 +317,15 @@ namespace TableWorld.View
             UpdateTooltip();
             UpdateLook(alt, shift);
 
-            if (_tool != Tool.Grab && !tab && Held == null)
+            if (_tool == Tool.Gizmo && !tab && Held == null)
+            {
+                if (mouse.leftButton.wasPressedThisFrame && !overUi && Hovered != null && !Hovered.HideFace)
+                {
+                    Selected = Hovered;
+                    GizmoRequested?.Invoke(Hovered);
+                }
+            }
+            else if (_tool != Tool.Grab && !tab && Held == null)
                 HandleDrawingTool(mouse.leftButton.wasPressedThisFrame && !overUi, mouse.leftButton.isPressed, surface && !overUi ? point : (Vector3?)null);
             // Left button on a card in the hand bar: pick that card up (it then follows the pointer like any grab).
             else if (mouse.leftButton.wasPressedThisFrame && Held == null && HandCardAt?.Invoke(pointer) is { } handCard && _table.ViewOf(handCard) is { } fromBar)

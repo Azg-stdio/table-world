@@ -1029,3 +1029,30 @@
     font-size: 13px;
     color: rgb(170, 168, 160);
 }
+
+/* Gizmo (G28): exact position, beside the tool bar. */
+.gizmo-panel {
+    position: absolute;
+    left: 90px;
+    top: 30%;
+    width: 300px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    background-color: rgb(18, 20, 26);
+}
+
+.gizmo-row {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.gizmo-label {
+    flex-grow: 1;
+    font-size: 14px;
+    color: rgb(220, 216, 206);
+}
+
+.gizmo-field {
+    width: 110px;
+}

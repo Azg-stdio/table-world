@@ -53,6 +53,10 @@ namespace TableWorld.View.Hud
         private ChatPanel _chat;
         private EscapeMenu _escape;
         private SaveLibrary _saves;
+        private GizmoPanel _gizmo;
+
+        /// <summary>Exact position, turn and scale of one object (G28).</summary>
+        public GizmoPanel Gizmo => _gizmo;
         private SavesPanel _savesPanel;
 
         /// <summary>Named saves and autosaves (G30).</summary>
@@ -117,7 +121,7 @@ namespace TableWorld.View.Hud
                 _help = new ControlsHelp(_root);
                 _interaction.Pinged += OnPing;
                 foreach (var (name, tool) in new[] { ("toolGrab", TableInteraction.Tool.Grab), ("toolDraw", TableInteraction.Tool.Draw),
-                             ("toolArrow", TableInteraction.Tool.Arrow), ("toolErase", TableInteraction.Tool.Erase) })
+                             ("toolArrow", TableInteraction.Tool.Arrow), ("toolErase", TableInteraction.Tool.Erase), ("toolGizmo", TableInteraction.Tool.Gizmo) })
                     _root.Q<Button>(name).clicked += () => SetTool(tool);
             }
             if (_table != null)
@@ -130,6 +134,11 @@ namespace TableWorld.View.Hud
             if (_table != null)
             {
                 _saves = new SaveLibrary(_table);
+                _gizmo = new GizmoPanel(_root, _table, ShowStatus);
+                if (_interaction != null)
+                    _interaction.GizmoRequested += _gizmo.Open;
+                if (_overlay != null)
+                    _overlay.GizmoRequested = _gizmo.Open;
                 _savesPanel = new SavesPanel(_root, _saves, () => _escape.Settings.AutosaveMinutes, ShowStatus, CloseSaves);
                 _escape.OpenSaves = _savesPanel.Show;
             }
@@ -242,14 +251,16 @@ namespace TableWorld.View.Hud
                 return;
             _interaction.ActiveTool = tool;
             foreach (var (name, t) in new[] { ("toolGrab", TableInteraction.Tool.Grab), ("toolDraw", TableInteraction.Tool.Draw),
-                         ("toolArrow", TableInteraction.Tool.Arrow), ("toolErase", TableInteraction.Tool.Erase) })
+                         ("toolArrow", TableInteraction.Tool.Arrow), ("toolErase", TableInteraction.Tool.Erase), ("toolGizmo", TableInteraction.Tool.Gizmo) })
                 _root.Q<Button>(name)?.EnableInClassList("tool-button--active", t == tool);
         }
 
         /// <summary>What Escape does (also called by tests).</summary>
         public void PressEscape()
         {
-            if (_interaction != null && _interaction.ActiveTool != TableInteraction.Tool.Grab)
+            if (_gizmo != null && _gizmo.Visible)
+                _gizmo.Hide();
+            else if (_interaction != null && _interaction.ActiveTool != TableInteraction.Tool.Grab)
                 SetTool(TableInteraction.Tool.Grab);
             else if (_overlay != null && _overlay.MenuOpen)
                 _overlay.CloseMenu();

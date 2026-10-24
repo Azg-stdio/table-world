@@ -69,6 +69,14 @@
                     <ui:Button name="settingsBack" class="hud-button" text="Back (Esc)" />
                 </ui:VisualElement>
             </ui:VisualElement>
+            <ui:VisualElement name="gizmoPanel" class="gizmo-panel hidden">
+                <ui:Label name="gizmoTitle" class="selection-title" />
+                <ui:VisualElement name="gizmoFields" />
+                <ui:VisualElement class="settings-buttons">
+                    <ui:Button name="gizmoApply" class="hud-button" text="Apply (Enter)" />
+                    <ui:Button name="gizmoClose" class="hud-button" text="Close" />
+                </ui:VisualElement>
+            </ui:VisualElement>
             <ui:VisualElement name="contextMenu" class="context-menu hidden" />
         </ui:VisualElement>
         <ui:VisualElement name="topBar" class="top-bar">
@@ -90,6 +98,7 @@
             <ui:Button name="toolDraw" class="tool-button" text="Draw" tooltip="Draw on the table in your colour" />
             <ui:Button name="toolArrow" class="tool-button" text="Arrow" tooltip="Drag to draw an arrow" />
             <ui:Button name="toolErase" class="tool-button" text="Erase" tooltip="Drag over drawings to erase them" />
+            <ui:Button name="toolGizmo" class="tool-button" text="Gizmo" tooltip="Click an object to place it exactly" />
         </ui:VisualElement>
         <ui:VisualElement name="gamePanel" class="game-panel hidden">
             <ui:Label name="gameLog" class="game-log" />

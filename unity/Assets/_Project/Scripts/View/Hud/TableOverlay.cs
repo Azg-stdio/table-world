@@ -71,6 +71,9 @@ namespace TableWorld.View.Hud
         }
 
         public bool MenuOpen => !_menu.ClassListContains(Hidden);
+
+        /// <summary>Opens the gizmo panel for an object (set by the HUD).</summary>
+        public Action<ObjectView> GizmoRequested { get; set; }
         public bool SearchOpen => !_search.ClassListContains(Hidden);
 
         /// <summary>Labels of the open menu's entries, in order (tests).</summary>
@@ -319,6 +322,8 @@ namespace TableWorld.View.Hud
 
             Section("Object");
             Item("Flip (F)", () => _interaction.Flip(view));
+            if (GizmoRequested != null)
+                Item("Exact position…", () => GizmoRequested(view));
             Item("Rotate 90° (E ×6)", () => _interaction.Rotate(view, 90f));
             Item(model.Locked ? "Unlock" : "Lock", () => _interaction.ToggleLock(view));
             Item("Copy (Ctrl+C)", () => _interaction.Copy(new[] { view }));
