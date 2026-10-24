@@ -989,3 +989,43 @@
     color: rgb(255, 252, 244);
     -unity-font-style: bold;
 }
+
+/* Save and load (G30). */
+.saves-new {
+    flex-shrink: 0;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.saves-name-field {
+    flex-grow: 1;
+    width: auto;
+    margin-right: 6px;
+}
+
+.saves-row {
+    flex-shrink: 0;
+    flex-direction: row;
+    align-items: center;
+    min-height: 40px;
+    padding: 3px 0;
+    border-bottom-width: 1px;
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+.saves-text {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.saves-name {
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: rgb(240, 236, 226);
+}
+
+.saves-detail {
+    font-size: 13px;
+    color: rgb(170, 168, 160);
+}

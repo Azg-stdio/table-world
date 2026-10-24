@@ -36,6 +36,9 @@ namespace TableWorld.View.Hud
         public bool SettingsOpen => !_settingsPanel.ClassListContains(Hidden);
         public bool QuitAsked => !_quitConfirm.ClassListContains(Hidden);
 
+        /// <summary>Opens the save and load page (the HUD owns it).</summary>
+        public Action OpenSaves { get; set; }
+
         /// <summary>Raised instead of quitting when set (tests).</summary>
         public Action QuitOverride { get; set; }
 
@@ -52,6 +55,11 @@ namespace TableWorld.View.Hud
             _leave = root.Q<Button>("escLeave");
             root.Q<Button>("escResume").clicked += Close;
             root.Q<Button>("escSettings").clicked += OpenSettings;
+            root.Q<Button>("escSaves").clicked += () =>
+            {
+                _menu.AddToClassList(Hidden);
+                OpenSaves?.Invoke();
+            };
             root.Q<Button>("escControls").clicked += () =>
             {
                 Close();
@@ -165,6 +173,9 @@ namespace TableWorld.View.Hud
             var s = Settings;
             Group("You");
             Text("Your name", s.PlayerName, "Player", v => s.PlayerName = v);
+
+            Group("Saving");
+            Choice("Autosave", GameSettings.AutosaveChoices, s.AutosaveMinutes, v => s.AutosaveMinutes = v, v => v == 0 ? "Off" : $"Every {v} minutes");
 
             Group("Sound");
             Slider("Master volume", 0f, 1f, s.MasterVolume, v => s.MasterVolume = v, Percent);

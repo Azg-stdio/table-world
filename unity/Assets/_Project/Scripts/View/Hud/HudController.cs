@@ -52,6 +52,12 @@ namespace TableWorld.View.Hud
         public ControlsHelp Help => _help;
         private ChatPanel _chat;
         private EscapeMenu _escape;
+        private SaveLibrary _saves;
+        private SavesPanel _savesPanel;
+
+        /// <summary>Named saves and autosaves (G30).</summary>
+        public SaveLibrary Saves => _saves;
+        public SavesPanel SavesPanel => _savesPanel;
         private PlayersPanel _players;
 
         /// <summary>Everyone at a hosted table, with the host's controls (G23).</summary>
@@ -121,6 +127,12 @@ namespace TableWorld.View.Hud
             }
             _escape = new EscapeMenu(_root, GameSettings.Load(GameSettings.DefaultPath), ApplySettings, _session, () => _help?.Show());
             ApplySettings(_escape.Settings);
+            if (_table != null)
+            {
+                _saves = new SaveLibrary(_table);
+                _savesPanel = new SavesPanel(_root, _saves, () => _escape.Settings.AutosaveMinutes, ShowStatus, CloseSaves);
+                _escape.OpenSaves = _savesPanel.Show;
+            }
 
             _root.Q<Button>("saveButton").clicked += Save;
             _netStatus = _root.Q<Label>("netStatus");
@@ -247,10 +259,19 @@ namespace TableWorld.View.Hud
                 _gamesPanel.AddToClassList(Hidden);
             else if (_players != null && _players.Visible)
                 _players.Hide();
+            else if (_savesPanel != null && _savesPanel.Visible)
+                CloseSaves();
             else if (_help != null && _help.Visible)
                 _help.Hide();
             else
                 _escape?.Back();
+        }
+
+        /// <summary>Back from the save page to the Escape menu.</summary>
+        private void CloseSaves()
+        {
+            _savesPanel.Hide();
+            _escape.Open();
         }
 
         private void ApplySettings(GameSettings settings)
@@ -327,6 +348,8 @@ namespace TableWorld.View.Hud
             MenuKeys();
             _chat?.Update(TypingInUi() || (_interaction != null && _interaction.IgnoreDevices));
             _players?.Update();
+            if (_saves?.Tick(_escape.Settings.AutosaveMinutes) is { } autosaved)
+                ShowStatus($"Autosaved ({autosaved})", error: false);
             UpdatePresenceLabels();
             if (_netStatus != null && _session != null)
                 _netStatus.text = _session.Status == "offline" ? "" : _session.Status;

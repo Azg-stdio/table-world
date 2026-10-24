@@ -161,6 +161,12 @@ namespace TableWorld.View
         public Timeline Timeline { get; } = new Timeline();
 
         private bool _timelineDirty;
+
+        /// <summary>Seconds since a table was loaded, rewound or received.</summary>
+        public float SecondsSinceLoad => Time.time - _loadedAt;
+
+        /// <summary>Counts every successful command (local or remote): autosave (G30) saves only when it moved.</summary>
+        public int Changes { get; private set; }
         private double _timelineCheckedAt;
 
         /// <summary>Raised after a rewind or a step forward, with how long ago the restored table was saved (seconds).</summary>
@@ -307,7 +313,10 @@ namespace TableWorld.View
         {
             Apply(result.Events);
             if (result.Ok)
+            {
                 _timelineDirty = true;
+                Changes++;
+            }
             CommandExecuted?.Invoke(command, result);
         }
 
@@ -518,7 +527,10 @@ namespace TableWorld.View
                 SpawnAll();
             }
             if (result.Ok)
+            {
                 _timelineDirty = true;
+                Changes++;
+            }
             CommandExecuted?.Invoke(command, result);
             return result;
         }

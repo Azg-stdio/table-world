@@ -36,6 +36,7 @@
             <ui:VisualElement name="escapePanel" class="escape-panel hidden">
                 <ui:Label class="help-title escape-title" text="Table World" />
                 <ui:Button name="escResume" class="hud-button escape-button" text="Resume" />
+                <ui:Button name="escSaves" class="hud-button escape-button" text="Save &amp; load" />
                 <ui:Button name="escSettings" class="hud-button escape-button" text="Settings" />
                 <ui:Button name="escControls" class="hud-button escape-button" text="Controls" />
                 <ui:Button name="escLeave" class="hud-button escape-button" text="Leave session" />
@@ -46,6 +47,18 @@
                         <ui:Button name="escQuitYes" class="hud-button escape-danger" text="Quit" />
                         <ui:Button name="escQuitNo" class="hud-button" text="Cancel" />
                     </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="savesPanel" class="help-panel settings-panel hidden">
+                <ui:Label class="help-title" text="Save &amp; load" />
+                <ui:VisualElement class="saves-new">
+                    <ui:TextField name="saveName" class="settings-text saves-name-field" />
+                    <ui:Button name="saveNamed" class="hud-button" text="Save" />
+                </ui:VisualElement>
+                <ui:ScrollView name="savesList" class="help-list" />
+                <ui:Label name="savesHint" class="settings-note" />
+                <ui:VisualElement class="settings-buttons">
+                    <ui:Button name="savesBack" class="hud-button" text="Back (Esc)" />
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="settingsPanel" class="help-panel settings-panel hidden">

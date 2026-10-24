@@ -26,6 +26,12 @@ namespace TableWorld.View.Settings
         /// <summary>The name other players see (G23); empty means "Player N".</summary>
         public string PlayerName { get; set; } = "";
 
+        public static readonly int[] AutosaveChoices = { 0, 5, 10, 15 };
+
+        /// <summary>Minutes between autosaves while the table changes (G30); 0 is off.</summary>
+        [Newtonsoft.Json.JsonProperty(DefaultValueHandling = Newtonsoft.Json.DefaultValueHandling.Include)]
+        public int AutosaveMinutes { get; set; } = 10;
+
         /// <summary>Everything the game plays, 0–1.</summary>
         public float MasterVolume { get; set; } = 1f;
         /// <summary>Table sounds (cards, dice, chips), 0–1, on top of the master volume.</summary>
@@ -68,6 +74,8 @@ namespace TableWorld.View.Settings
                 Width = Height = 0;
             if (Array.IndexOf(FrameLimits, FrameLimit) < 0)
                 FrameLimit = 0;
+            if (Array.IndexOf(AutosaveChoices, AutosaveMinutes) < 0)
+                AutosaveMinutes = 10;
             return this;
         }
 
