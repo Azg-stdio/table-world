@@ -77,6 +77,15 @@ namespace Core.Engine
         public string ObjectId { get; set; } = "";
     }
 
+    /// <summary>
+    /// A player let go of an object (TTS's drop): nothing changes (the move that follows is its own command), but table
+    /// scripts hear <c>onObjectDrop</c> (M5).
+    /// </summary>
+    public sealed class DropCommand : Command
+    {
+        public string ObjectId { get; set; } = "";
+    }
+
     /// <summary>A player put on or took off a blindfold (G15, TTS B): nothing changes; everyone is told.</summary>
     public sealed class BlindfoldCommand : Command
     {

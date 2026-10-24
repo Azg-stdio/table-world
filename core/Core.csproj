@@ -9,12 +9,16 @@
     <LangVersion>9.0</LangVersion>
     <AssemblyName>Core</AssemblyName>
     <RootNamespace>Core</RootNamespace>
+    <!-- Lists package dlls in ReferenceCopyLocalPaths, so CopyToUnity can pick MoonSharp's. -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <UnityPluginDir>$(MSBuildThisFileDirectory)..\unity\Assets\Plugins\Core\</UnityPluginDir>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- Unity provides the same assembly through com.unity.nuget.newtonsoft-json 3.2.2. Do not copy it to Plugins. -->
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <!-- Sandboxed Lua (M5, ADR 0003). Unity has no package for it: its dll is copied to Plugins with Core.dll. -->
+    <PackageReference Include="MoonSharp" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,11 +26,12 @@
   </ItemGroup>
 
   <!--
-    Unity consumes Core.dll from Assets/Plugins/Core/. Only Core.dll is copied; dependencies come from Unity packages.
+    Unity consumes Core.dll from Assets/Plugins/Core/. Core.dll and MoonSharp.Interpreter.dll are copied; Newtonsoft comes from a Unity package.
     Debug only, so Release/CI builds never overwrite the committed dll.
   -->
   <Target Name="CopyToUnity" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug' And Exists('$(MSBuildThisFileDirectory)..\unity\Assets')">
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(UnityPluginDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ReferenceCopyLocalPaths)" DestinationFolder="$(UnityPluginDir)" SkipUnchangedFiles="true" Condition="'%(Filename)' == 'MoonSharp.Interpreter'" />
   </Target>
 
 </Project>

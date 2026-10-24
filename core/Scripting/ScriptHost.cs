@@ -1,0 +1,334 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Core.Engine;
+using Core.Rules;
+using Core.Tts;
+using MoonSharp.Interpreter;
+
+namespace Core.Scripting
+{
+    /// <summary>
+    /// Runs a table's Lua (M5, ADR 0003) on the host only: the global script (<c>scripts["global"]</c>) and each object's
+    /// <see cref="TableObject.Script"/>, each in its own MoonSharp sandbox (no files, no OS, no loading code), every call on
+    /// a step budget so a runaway loop is stopped, and strings capped. Scripts read the table directly and change it only
+    /// through commands (<see cref="Execute"/>), so their changes are validated, logged and sent to every player like a
+    /// player's. Clients never run scripts. The API follows TTS names and units (docs/lua-api.md).
+    /// </summary>
+    public sealed partial class ScriptHost
+    {
+        public const string GlobalName = "global";
+        /// <summary>Instructions a script runs between checks, and at most per call (an event, a timer, a load).</summary>
+        public const int Slice = 10_000;
+        public const long MaxSteps = 2_000_000;
+        /// <summary>Longest string <c>string.rep</c> and concatenation helpers may build.</summary>
+        public const int MaxStringLength = 1_000_000;
+        /// <summary>Scripts reacting to commands their own commands caused stop this deep.</summary>
+        public const int MaxDepth = 4;
+
+        private readonly Func<TableEngine?> _engine;
+        private readonly Func<Command, CommandResult> _execute;
+        private readonly Dictionary<string, Script> _objectScripts = new Dictionary<string, Script>();
+        private Script? _global;
+        private int _depth;
+        private double _now;
+        private readonly List<Timer> _timers = new List<Timer>();
+        private int _nextTimer = 1;
+
+        /// <summary>Raised for <c>broadcastToAll</c> and friends: a line every player should read.</summary>
+        public event Action<string>? Broadcast;
+
+        /// <summary>Raised for <c>print</c> and for script errors (the host's log).</summary>
+        public event Action<string>? Log;
+
+        /// <summary>Commands the scripts issued (tests and the session's log).</summary>
+        public int CommandsIssued { get; private set; }
+
+        /// <param name="engine">The table as it is now (it changes when another table loads).</param>
+        /// <param name="execute">Runs a command as the host would (the host's route: executed, logged and broadcast).</param>
+        public ScriptHost(Func<TableEngine?> engine, Func<Command, CommandResult> execute)
+        {
+            _engine = engine;
+            _execute = execute;
+        }
+
+        private TableEngine Engine => _engine() ?? throw new InvalidOperationException("No table.");
+
+        /// <summary>
+        /// Loads every script of the current table and runs their top level and <c>onLoad</c> (global first, as TTS).
+        /// Earlier scripts and timers are dropped.
+        /// </summary>
+        public void Load(double now)
+        {
+            _now = now;
+            _objectScripts.Clear();
+            _timers.Clear();
+            _proxies.Clear();
+            _global = null;
+            var state = Engine.State;
+            if (state.Scripts.TryGetValue(GlobalName, out var source) && !string.IsNullOrWhiteSpace(source))
+                _global = Compile(source, null, "Global");
+            foreach (var obj in state.Objects.Where(o => !string.IsNullOrWhiteSpace(o.Script)))
+            {
+                var script = Compile(obj.Script!, obj.Id, obj.Name ?? obj.Id);
+                if (script != null)
+                    _objectScripts[obj.Id] = script;
+            }
+            if (_global != null)
+                CallIfDefined(_global, "onLoad");
+            foreach (var script in _objectScripts.Values.ToList())
+                CallIfDefined(script, "onLoad");
+        }
+
+        /// <summary>Scripts loaded right now (the global one counts).</summary>
+        public int ScriptCount => (_global != null ? 1 : 0) + _objectScripts.Count;
+
+        private Script? Compile(string source, string? selfId, string label)
+        {
+            var script = new Script(CoreModules.Preset_SoftSandbox);
+            script.Options.DebugPrint = text => Log?.Invoke($"[{label}] {text}");
+            InstallApi(script, selfId);
+            try
+            {
+                var chunk = script.LoadString(source, null, label);
+                return Run(script, chunk, label, Array.Empty<DynValue>()) ? script : null;
+            }
+            catch (InterpreterException e)
+            {
+                Log?.Invoke($"[{label}] does not load: {e.DecoratedMessage ?? e.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Runs <paramref name="function"/> as a coroutine that yields every <see cref="Slice"/> instructions, giving up
+        /// after <see cref="MaxSteps"/>; false (logged) when it failed or ran too long.
+        /// </summary>
+        private bool Run(Script script, DynValue function, string label, DynValue[] args) => RunFor(script, function, label, args, out _);
+
+        private bool RunFor(Script script, DynValue function, string label, DynValue[] args, out DynValue result)
+        {
+            result = DynValue.Nil;
+            if (_depth >= MaxDepth)
+            {
+                Log?.Invoke($"[{label}] skipped: scripts reacting to their own changes went {MaxDepth} deep.");
+                return false;
+            }
+            _depth++;
+            try
+            {
+                var thread = script.CreateCoroutine(function).Coroutine;
+                thread.AutoYieldCounter = Slice;
+                result = thread.Resume(args);
+                long steps = Slice;
+                while (thread.State == CoroutineState.ForceSuspended)
+                {
+                    steps += Slice;
+                    if (steps > MaxSteps)
+                    {
+                        Log?.Invoke($"[{label}] stopped: it ran more than {MaxSteps:N0} steps (an endless loop?).");
+                        return false;
+                    }
+                    result = thread.Resume();
+                }
+                return true;
+            }
+            catch (InterpreterException e)
+            {
+                Log?.Invoke($"[{label}] error: {e.DecoratedMessage ?? e.Message}");
+                return false;
+            }
+            catch (LimitException e)
+            {
+                Log?.Invoke($"[{label}] stopped: {e.Message}");
+                return false;
+            }
+            finally
+            {
+                _depth--;
+            }
+        }
+
+        private DynValue? CallIfDefined(Script script, string name, params DynValue[] args)
+        {
+            var function = script.Globals.Get(name);
+            if (function.Type != DataType.Function)
+                return null;
+            return RunFor(script, function, name, args, out var result) ? result : null;
+        }
+
+        /// <summary>Calls <paramref name="name"/> in the global script and every object script that defines it.</summary>
+        private void Everywhere(string name, params DynValue[] args)
+        {
+            if (_global != null)
+                CallIfDefined(_global, name, args);
+            foreach (var script in _objectScripts.Values.ToList())
+                CallIfDefined(script, name, args);
+        }
+
+        // ---- events -------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Tells the scripts what a command did (the host calls this after every executed command, the scripts' own too):
+        /// <c>onObjectDrop</c> / <c>onDrop</c>, <c>onObjectEnterZone</c> / <c>onObjectLeaveZone</c>, <c>onObjectFlip</c>,
+        /// <c>onObjectRandomize</c>, <c>onPlayerTurn</c>. <paramref name="color"/> is the acting seat's colour, or null.
+        /// </summary>
+        public void OnCommand(Command command, CommandResult result, string? color)
+        {
+            if (!result.Ok || ScriptCount == 0)
+                return;
+            var who = color == null ? DynValue.Nil : DynValue.NewString(Capital(color));
+            switch (command)
+            {
+                case DropCommand drop:
+                    ForObject("onObjectDrop", "onDrop", drop.ObjectId, who);
+                    break;
+                case FlipCommand flip:
+                    ForObject("onObjectFlip", "onFlip", flip.ObjectId, who);
+                    break;
+                case EndTurnCommand _:
+                case SetTurnOrderCommand { Enabled: true }:
+                    if (Engine.State.FreeTurns?.Current is { } seat && Engine.State.Players.Seats.FirstOrDefault(s => s.Id == seat) is { } current)
+                        Everywhere("onPlayerTurn", DynValue.NewString(Capital(current.Color)));
+                    break;
+            }
+            foreach (var e in result.Events)
+            {
+                switch (e)
+                {
+                    // TTS: onObjectRandomize(object, player_color), object first.
+                    case Shuffled shuffled:
+                        ForObject("onObjectRandomize", "onRandomize", shuffled.ObjectId, who, objectFirst: true);
+                        break;
+                    case DieRolled rolled:
+                        ForObject("onObjectRandomize", "onRandomize", rolled.ObjectId, who, objectFirst: true);
+                        break;
+                    case ZoneEntered entered when ProxyFor(entered.ZoneId) != null && ProxyFor(entered.ObjectId) != null:
+                        EverywhereWith("onObjectEnterZone", (s, p) => new[] { p(entered.ZoneId), p(entered.ObjectId) });
+                        break;
+                    case ZoneLeft left when Engine.State.Zones.Any(z => z.Id == left.ZoneId):
+                        EverywhereWith("onObjectLeaveZone", (s, p) => new[] { p(left.ZoneId), p(left.ObjectId) });
+                        break;
+                }
+            }
+        }
+
+        /// <summary>Global event with the object, and the object's own event on its script (TTS onObjectDrop / onDrop).</summary>
+        private void ForObject(string globalEvent, string selfEvent, string objectId, DynValue color, bool objectFirst = false)
+        {
+            EverywhereWith(globalEvent, (script, proxy) => objectFirst ? new[] { proxy(objectId), color } : new[] { color, proxy(objectId) });
+            if (_objectScripts.TryGetValue(objectId, out var own))
+                CallIfDefined(own, selfEvent, color);
+        }
+
+        /// <summary>Calls an event everywhere with arguments built per script (proxies belong to one script).</summary>
+        private void EverywhereWith(string name, Func<Script, Func<string, DynValue>, DynValue[]> args)
+        {
+            void Call(Script script)
+            {
+                var function = script.Globals.Get(name);
+                if (function.Type == DataType.Function)
+                    RunFor(script, function, name, args(script, id => Proxy(script, id)), out _);
+            }
+            if (_global != null)
+                Call(_global);
+            foreach (var script in _objectScripts.Values.ToList())
+                Call(script);
+        }
+
+        private object? ProxyFor(string id) =>
+            Engine.Find(id) as object ?? Engine.State.Zones.FirstOrDefault(z => z.Id == id);
+
+        /// <summary>Advances time: runs the <c>Wait</c> callbacks that are due (the host calls this every frame).</summary>
+        public void Tick(double now)
+        {
+            _now = now;
+            foreach (var timer in _timers.Where(t => t.Due <= now).OrderBy(t => t.Due).ToList())
+            {
+                if (!_timers.Contains(timer))
+                    continue;
+                if (timer.Condition != null)
+                {
+                    var ok = RunFor(timer.Script, timer.Condition, "Wait.condition", Array.Empty<DynValue>(), out var met);
+                    if (!ok || (!met.CastToBool() && (timer.Timeout <= 0 || now < timer.Timeout)))
+                    {
+                        timer.Due = now + 1.0 / 60.0;
+                        if (!ok)
+                            _timers.Remove(timer);
+                        continue;
+                    }
+                }
+                if (timer.Repetitions > 1)
+                {
+                    timer.Repetitions--;
+                    timer.Due = now + timer.Interval;
+                }
+                else
+                    _timers.Remove(timer);
+                Run(timer.Script, timer.Function, "Wait", Array.Empty<DynValue>());
+            }
+        }
+
+        private sealed class Timer
+        {
+            public int Id;
+            public Script Script = null!;
+            public DynValue Function = null!;
+            public DynValue? Condition;
+            public double Due;
+            public double Interval;
+            public int Repetitions = 1;
+            public double Timeout;
+        }
+
+        /// <summary>Thrown by the API when a script asks for too much (a giant string); stops that call.</summary>
+        private sealed class LimitException : Exception
+        {
+            public LimitException(string message) : base(message) { }
+        }
+
+        private static string Capital(string color) => color.Length == 0 ? color : char.ToUpperInvariant(color[0]) + color.Substring(1);
+
+        // ---- units: TTS units on the TTS table, our metres on ours ---------------------------------------------------
+
+        private static Table ToTts(Script script, Vec3 metres)
+        {
+            var t = new Table(script);
+            // Rounded, so a card at 0.3 m reads 10 and not 10.0000003.
+            var x = Math.Round(metres.X / TtsUnits.TtsUnitsToMeters, 4);
+            var y = Math.Round(metres.Y / TtsUnits.TtsUnitsToMeters + TtsUnits.TableSurfaceY, 4);
+            var z = Math.Round(metres.Z / TtsUnits.TtsUnitsToMeters, 4);
+            t["x"] = x; t["y"] = y; t["z"] = z;
+            t[1] = x; t[2] = y; t[3] = z;
+            return t;
+        }
+
+        private static Vec3? FromTts(DynValue value, bool isPosition)
+        {
+            if (value.Type != DataType.Table)
+                return null;
+            var t = value.Table;
+            double? Read(string key, int index)
+            {
+                var v = t.Get(key);
+                if (v.Type != DataType.Number)
+                    v = t.Get(index);
+                return v.Type == DataType.Number ? v.Number : (double?)null;
+            }
+            if (!(Read("x", 1) is { } x && Read("y", 2) is { } y && Read("z", 3) is { } z))
+                return null;
+            return isPosition
+                ? new Vec3((float)(x * TtsUnits.TtsUnitsToMeters), (float)((y - TtsUnits.TableSurfaceY) * TtsUnits.TtsUnitsToMeters), (float)(z * TtsUnits.TtsUnitsToMeters))
+                : new Vec3((float)x, (float)y, (float)z);
+        }
+
+        private static Table Vector(Script script, Vec3 v)
+        {
+            var t = new Table(script);
+            double x = Math.Round(v.X, 4), y = Math.Round(v.Y, 4), z = Math.Round(v.Z, 4);
+            t["x"] = x; t["y"] = y; t["z"] = z;
+            t[1] = x; t[2] = y; t[3] = z;
+            return t;
+        }
+    }
+}

@@ -189,6 +189,7 @@ namespace Core.Engine
             SearchCommand c => Search(c),
             PeekCommand c => RequireOnTable(c.ObjectId, "objectId", out _, allowLocked: true) ?? CommandResult.Success(new List<StateEvent>()),
             BlindfoldCommand _ => CommandResult.Success(new List<StateEvent>()),
+            DropCommand c => RequireOnTable(c.ObjectId, "objectId", out _, allowLocked: true) ?? CommandResult.Success(new List<StateEvent>()),
             DealCommand c => Deal(c),
             LockCommand c => Lock(c),
             GroupCommand c => Group(c),
