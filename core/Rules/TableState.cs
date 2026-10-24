@@ -35,6 +35,19 @@ namespace Core.Rules
         public static bool IsWebAddress(string? url) =>
             url != null && System.Uri.TryCreate(url, System.UriKind.Absolute, out var uri) && (uri.Scheme == System.Uri.UriSchemeHttp || uri.Scheme == System.Uri.UriSchemeHttps);
 
+        /// <summary>
+        /// Where to fetch <paramref name="url"/> from today. Steam retired the host most TTS saves name
+        /// (<c>cloud-3.steamusercontent.com</c>, 86 % of their addresses): it answers 403, and the same path is served by
+        /// <c>steamusercontent-a.akamaihd.net</c>, which TTS rewrites to as well. The original address stays the asset's
+        /// name (the TTS cache and ours are keyed by it); only the download goes elsewhere.
+        /// </summary>
+        public static string FetchAddress(string url)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(url ?? "",
+                @"^https?://(cloud-3\.steamusercontent\.com|steamusercontent-a\.akamaihd\.net)/(.*)$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            return match.Success ? "https://steamusercontent-a.akamaihd.net/" + match.Groups[2].Value : url ?? "";
+        }
+
         public const string BuiltinPrefix = "builtin:";
 
         [Newtonsoft.Json.JsonIgnore]

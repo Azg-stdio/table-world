@@ -130,14 +130,15 @@ namespace Core.Tts
         /// </summary>
         private void Settle()
         {
-            var flats = State.Objects.Where(o => o.Container == null && o.Locked).ToList();
+            // Flat pieces only, as pieces and as surfaces: their thickness is known. A model's is not (a 3 mm block between
+            // Pokémon Sinnoh's arena panels was taken for 1 cm, judged sunk, lifted 5 mm and tipped every card dropped there).
+            var flats = State.Objects.Where(o => o.Container == null && o.Locked && (o is Tile || o is Token || o is Card || o is Deck || o is Board)).ToList();
             float Thickness(TableObject o) => o switch
             {
                 Tile t => (t.Thickness ?? 0.003f) * Math.Max(1, t.Count),
                 Token t => (t.Thickness ?? 0.003f) * Math.Max(1, t.Count),
                 Card _ => 0.0003f,
                 Deck d => 0.0003f * Math.Max(1, d.Cards.Count),
-                Board _ => 0.01f,
                 _ => 0.01f,
             };
             (float X, float Z) Half(TableObject o)
@@ -285,6 +286,12 @@ namespace Core.Tts
             obj.Tags = (o["Tags"] as JArray)?.Select(t => (string?)t).Where(t => !string.IsNullOrEmpty(t)).Select(t => t!).ToList() ?? new List<string>();
             obj.Locked = (bool?)o["Locked"] ?? false;
             obj.Transform = Transform(o["Transform"] as JObject);
+            // TTS centres its blocks on their position; our builtin meshes stand on theirs (their base at y = 0).
+            if (obj is Model { Asset: "builtin_block_square" or "builtin_block_rectangle" })
+            {
+                var p = obj.Transform.Position;
+                obj.Transform.Position = new Vec3(p.X, p.Y - 0.5f * TtsUnits.TtsUnitsToMeters * Math.Abs(obj.Transform.Scale.Y), p.Z);
+            }
             obj.Snap = (bool?)o["Snap"] ?? true;
             obj.Tooltip = (bool?)o["Tooltip"] ?? true;
             obj.Hands = (bool?)o["Hands"] ?? true;
@@ -316,6 +323,9 @@ namespace Core.Tts
             if (!(o["ColorDiffuse"] is JObject c))
                 return null;
             var tint = new[] { (float?)c["r"] ?? 1f, (float?)c["g"] ?? 1f, (float?)c["b"] ?? 1f };
+            // Transparency counts: mods hide click and drop areas with alpha 0 and draw overlays see-through.
+            if ((float?)c["a"] is { } alpha && alpha < 0.999f)
+                tint = tint.Append(alpha).ToArray();
             return tint.Select(v => Math.Max(0f, Math.Min(1f, v))).ToArray();
         }
 
@@ -359,12 +369,13 @@ namespace Core.Tts
                     };
                     if ((float?)tile?["Thickness"] is { } thickness && thickness > 0f)
                         result.Thickness = thickness * TtsUnits.TtsUnitsToMeters;
-                    // With the image at hand, its proportions go into the size now (the game also learns them on load).
+                    // With the image at hand, its proportions go into the size now (the game also learns them on load). TTS keeps
+                    // the depth and scales the width by the image's aspect, also for tall images: Pokémon Sinnoh's portrait
+                    // panels sit edge to edge with their landscape neighbours only that way.
                     if (result.KeepAspect && (string?)image?["ImageURL"] is { } url && _imageSize?.Invoke(url) is { } pixels && pixels.Width > 0 && pixels.Height > 0)
                     {
-                        var aspect = (float)pixels.Width / pixels.Height;
                         var side = 2f * TtsUnits.TtsUnitsToMeters;
-                        result.Size = aspect >= 1f ? new Vec2(side * aspect, side) : new Vec2(side, side / aspect);
+                        result.Size = new Vec2(side * pixels.Width / pixels.Height, side);
                         result.KeepAspect = false;
                     }
                     return result;

@@ -39,6 +39,16 @@ namespace Core.Tests.Tts
         }
 
         [Fact]
+        public void RetiredSteamAddresses_AreFetchedFromTheNewHost()
+        {
+            Assert.Equal("https://steamusercontent-a.akamaihd.net/ugc/123/ABC/",
+                Core.Rules.Asset.FetchAddress("http://cloud-3.steamusercontent.com/ugc/123/ABC/"));
+            Assert.Equal("https://steamusercontent-a.akamaihd.net/ugc/9/X/",
+                Core.Rules.Asset.FetchAddress("http://steamusercontent-a.akamaihd.net/ugc/9/X/"));
+            Assert.Equal("https://pastebin.com/raw/abc", Core.Rules.Asset.FetchAddress("https://pastebin.com/raw/abc"));
+        }
+
+        [Fact]
         public async Task Downloads_Resume_RespectTheCap_AndReportFailures()
         {
             var folder = Path.Combine(Path.GetTempPath(), "tw-dl-" + Guid.NewGuid().ToString("N"));

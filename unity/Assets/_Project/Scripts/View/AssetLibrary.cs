@@ -340,7 +340,7 @@ namespace TableWorld.View
                 _downloading++;
                 Directory.CreateDirectory(UrlCacheFolder);
                 var part = target + ".part";
-                var request = new UnityEngine.Networking.UnityWebRequest(asset.Url, "GET",
+                var request = new UnityEngine.Networking.UnityWebRequest(Asset.FetchAddress(asset.Url), "GET",
                     new UnityEngine.Networking.DownloadHandlerFile(part) { removeFileOnAbort = true }, null) { timeout = 120 };
                 request.SendWebRequest().completed += _ =>
                 {
@@ -375,6 +375,8 @@ namespace TableWorld.View
         {
             WaitingDownloads.Clear();
             _downloading = 0;
+            WaitingDecodes.Clear();
+            _decodes = 0;
         }
 
         /// <summary>
@@ -400,11 +402,29 @@ namespace TableWorld.View
         /// <summary>Images still being decoded.</summary>
         public int Decoding => _decoding.Count;
 
+        /// <summary>
+        /// Images decoded at once. Each holds its full-size pixels until it is fitted (a 7151 × 3253 TTS panel is 93 MB),
+        /// and decoding a heavy table's hundreds of images all together ran the Editor out of memory.
+        /// </summary>
+        public const int MaxDecodes = 2;
+
+        private static readonly Queue<System.Action> WaitingDecodes = new Queue<System.Action>();
+        private static int _decodes;
+
         private void Decode(string path, string file)
         {
+            if (_decodes >= MaxDecodes)
+            {
+                WaitingDecodes.Enqueue(() => Decode(path, file));
+                return;
+            }
+            _decodes++;
             var request = UnityEngine.Networking.UnityWebRequestTexture.GetTexture(new System.Uri(file).AbsoluteUri, nonReadable: false);
             request.SendWebRequest().completed += _ =>
             {
+                _decodes--;
+                if (WaitingDecodes.Count > 0)
+                    WaitingDecodes.Dequeue()();
                 Texture2D texture = null;
                 if (request.result == UnityEngine.Networking.UnityWebRequest.Result.Success)
                     texture = UnityEngine.Networking.DownloadHandlerTexture.GetContent(request);
@@ -424,6 +444,38 @@ namespace TableWorld.View
                         Decoded?.Invoke(id);
             };
         }
+
+        /// <summary>
+        /// A see-through copy of <paramref name="source"/> at <paramref name="alpha"/> (a TTS tint with transparency),
+        /// shared by every piece drawn with the same material and alpha.
+        /// </summary>
+        public Material Translucent(Material source, float alpha)
+        {
+            if (source == null)
+                return null;
+            var key = (source, Mathf.Round(alpha * 100f) / 100f);
+            if (_translucent.TryGetValue(key, out var material) && material != null)
+                return material;
+            material = new Material(source) { name = source.name + " (alpha)" };
+            if (material.HasProperty(BaseColor))
+            {
+                var color = material.GetColor(BaseColor);
+                color.a = alpha;
+                material.SetColor(BaseColor, color);
+            }
+            material.SetFloat("_Surface", 1f);
+            material.SetFloat("_Blend", 0f);
+            material.SetOverrideTag("RenderType", "Transparent");
+            material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            material.SetFloat("_ZWrite", 0f);
+            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            _translucent[key] = material;
+            return material;
+        }
+
+        private readonly Dictionary<(Material, float), Material> _translucent = new Dictionary<(Material, float), Material>();
 
         private Material NewMaterial(string name, Color color, float smoothness)
         {

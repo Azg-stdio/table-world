@@ -37,6 +37,49 @@ namespace TableWorld.View.Meshes
         public static Mesh ImageHexPrism(float radius, float height) =>
             Cached($"ihex:{radius:F5}:{height:F5}", () => Prism(Polygon(radius, 6, 0f), height, turned: true));
 
+        /// <summary>
+        /// A cloth pouch tied at the neck (TTS's built-in bag): a profile turned about the vertical, <paramref name="radius"/>
+        /// at its belly, <paramref name="height"/> tall, centred on the origin. One submesh.
+        /// </summary>
+        public static Mesh Pouch(float radius, float height, int segments = 28) =>
+            Cached($"pouch:{radius:F5}:{height:F5}:{segments}", () =>
+            {
+                // (radius share, height share from the bottom): round bottom, belly, gathered neck, frilled mouth.
+                var profile = new[]
+                {
+                    new Vector2(0f, 0f), new Vector2(0.5f, 0f), new Vector2(0.82f, 0.06f), new Vector2(0.97f, 0.2f),
+                    new Vector2(1f, 0.38f), new Vector2(0.93f, 0.56f), new Vector2(0.72f, 0.7f), new Vector2(0.46f, 0.78f),
+                    new Vector2(0.42f, 0.84f), new Vector2(0.56f, 0.93f), new Vector2(0.6f, 1f), new Vector2(0f, 0.98f),
+                };
+                var vertices = new List<Vector3>();
+                var uvs = new List<Vector2>();
+                var tris = new List<int>();
+                for (var p = 0; p < profile.Length; p++)
+                    for (var s = 0; s <= segments; s++)
+                    {
+                        var a = s * Mathf.PI * 2f / segments;
+                        var r = profile[p].x * radius;
+                        vertices.Add(new Vector3(Mathf.Cos(a) * r, (profile[p].y - 0.5f) * height, Mathf.Sin(a) * r));
+                        uvs.Add(new Vector2((float)s / segments, profile[p].y));
+                    }
+                var ring = segments + 1;
+                for (var p = 0; p < profile.Length - 1; p++)
+                    for (var s = 0; s < segments; s++)
+                    {
+                        var a = p * ring + s;
+                        var b = a + ring;
+                        tris.AddRange(new[] { a, b, a + 1, a + 1, b, b + 1 });
+                    }
+                var mesh = new Mesh();
+                mesh.SetVertices(vertices);
+                mesh.SetUVs(0, uvs);
+                mesh.SetTriangles(tris, 0);
+                mesh.RecalculateNormals();
+                mesh.RecalculateBounds();
+                mesh.RecalculateTangents();
+                return mesh;
+            });
+
         private static Mesh Cached(string key, System.Func<Mesh> build)
         {
             if (!Cache.TryGetValue(key, out var mesh) || mesh == null)

@@ -24,6 +24,19 @@ namespace Core.Tests.Engine
         }
 
         [Fact]
+        public void ACardLyingJustUnderAThinZone_IsInIt_AsTtsCountsColliderOverlap()
+        {
+            // Pokémon Sinnoh: a 6 mm arena zone starts 0.9 mm above the centre of a card lying on the panel below it.
+            var engine = EngineFixture.Create();
+            engine.State.Zones.Add(new ScriptingZone { Id = "arena", Size = new Vec3(0.08f, 0.006f, 0.03f), Transform = new TableTransform { Position = new Vec3(0.6f, 0.0358f, 0f) } });
+            var move = engine.Execute(new MoveCommand { ObjectId = "loose", Position = new Vec3(0.6f, 0.0319f, 0f) });
+            Assert.True(move.Ok);
+            Assert.Contains("arena", engine.ZonesOf("loose"));
+            engine.Execute(new MoveCommand { ObjectId = "loose", Position = new Vec3(0.6f, 0.02f, 0f) });
+            Assert.DoesNotContain("arena", engine.ZonesOf("loose"));
+        }
+
+        [Fact]
         public void Geometry_RotateAndInverse_MatchUnityConventions()
         {
             // Quaternion.Euler(0, 90, 0) * forward == right in Unity.

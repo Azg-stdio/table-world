@@ -74,7 +74,7 @@ namespace Core.Tts
 
         private async Task<long> One(HttpClient client, string url, string target, CancellationToken cancel)
         {
-            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+            if (!Uri.TryCreate(Core.Rules.Asset.FetchAddress(url), UriKind.Absolute, out var uri) || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
                 throw new InvalidOperationException("not a web address");
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);
             var part = target + ".part";

@@ -73,6 +73,17 @@ namespace Core.Tests.Engine
         }
 
         [Fact]
+        public void CardsTakenOrDealt_AreTheirDecksSize()
+        {
+            var engine = EngineFixture.Create();
+            engine.Find("deck")!.Transform.Scale = new Vec3(1.5f, 1f, 1.5f);
+            var take = engine.Execute(new TakeCommand { ContainerId = "deck" });
+            Assert.Equal(1.5f, engine.Find(take.CreatedId!)!.Transform.Scale.X);
+            var deal = engine.Execute(new DealCommand { DeckId = "deck", Count = 1, Seats = { "seat_1" } });
+            Assert.Equal(1.5f, engine.Find(deal.Events.OfType<ObjectAdded>().Single().ObjectId)!.Transform.Scale.Z);
+        }
+
+        [Fact]
         public void SetPhysics_ChangesTheMode_IsSaved_AndRejectsUnknownModes()
         {
             var engine = EngineFixture.Create();

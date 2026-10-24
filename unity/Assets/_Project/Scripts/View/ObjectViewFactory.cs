@@ -129,7 +129,7 @@ namespace TableWorld.View
                     var thickness = (tile.Thickness ?? TileThickness) * tile.Count;
                     var area = tile.Size is { } tileSize ? new Vector2(tileSize.X, tileSize.Y) : new Vector2(TileSize, TileSize);
                     if (tile.KeepAspect)
-                        area = Proportioned(area, assets.Texture(tile.Asset));
+                        area = TileProportioned(area, assets.Texture(tile.Asset));
                     var mesh = tile.Shape switch
                     {
                         TileShape.Hex => MeshFactory.ImageHexPrism(area.y * 0.6f, thickness),
@@ -155,8 +155,9 @@ namespace TableWorld.View
                     break;
                 case Bag bag:
                 {
+                    // TTS's built-in bag: a cloth pouch tied at the neck.
                     var cloth = assets.Plain(model.Tint.ToColor(bag is InfiniteBag ? InfiniteBagCloth : BagCloth), 0.1f);
-                    SetPrism(view, MeshFactory.Cylinder(BagRadius, BagHeight, 24), cloth, cloth, cloth, 0.05f);
+                    SetModel(view, MeshFactory.Pouch(BagRadius, BagHeight), cloth, 0.05f);
                     break;
                 }
                 case Model bundled when assets.Bundle(bundled.Asset) is { } prefab:
@@ -220,14 +221,34 @@ namespace TableWorld.View
                 }
             }
             view.Body.isKinematic = view.Pinned || !view.Renderer.enabled || view.Held || view.Animating;
-            // A script hid the shape (the object holds UI): nothing is drawn, the rest stays.
-            view.Renderer.forceRenderingOff = model.MeshHidden || view.ZoneHidden;
+            // A script hid the shape (the object holds UI), or its tint is fully transparent (a TTS click or drop area):
+            // nothing is drawn, the rest stays. A partly transparent tint draws the piece see-through.
+            view.Renderer.forceRenderingOff = view.ShapeHidden || view.ZoneHidden;
+            if (model.Tint is { Length: > 3 } tinted && tinted[3] > ObjectView.InvisibleAlpha && tinted[3] < 0.999f)
+            {
+                var materials = view.Renderer.sharedMaterials;
+                for (var i = 0; i < materials.Length; i++)
+                    materials[i] = assets.Translucent(materials[i], tinted[3]);
+                view.Renderer.sharedMaterials = materials;
+            }
             ScriptButtonsView.Refresh(view);
             ScriptInputsView.Refresh(view);
         }
 
         /// <summary>
-        /// A base size given the image's proportions: the longer side grows, the shorter keeps the base (TTS tiles and
+        /// A TTS tile's size for its image: the depth stays and the width follows the image's proportions, wide or tall
+        /// (TTS rule; portrait panels then sit edge to edge with their neighbours as in TTS). Until the image is here the
+        /// tile stays square; it is reshaped when the image arrives.
+        /// </summary>
+        private static Vector2 TileProportioned(Vector2 area, Texture texture)
+        {
+            if (texture == null || texture.width <= 0 || texture.height <= 0)
+                return area;
+            return new Vector2(area.y * texture.width / texture.height, area.y);
+        }
+
+        /// <summary>
+        /// A base size given the image's proportions: the longer side grows, the shorter keeps the base (TTS image
         /// tokens). Until the image is here the piece stays square; it is reshaped when the image arrives.
         /// </summary>
         private static Vector2 Proportioned(Vector2 area, Texture texture)

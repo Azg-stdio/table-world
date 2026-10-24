@@ -51,6 +51,12 @@ namespace TableWorld.View
         /// </summary>
         internal bool PileHeld;
 
+        /// <summary>A tint at or below this alpha hides the shape (TTS mods draw click and drop areas that way).</summary>
+        public const float InvisibleAlpha = 0.02f;
+
+        /// <summary>The shape is not drawn: a script hid it, or its tint is fully transparent. Its UI, buttons and collider stay.</summary>
+        public bool ShapeHidden => Model.MeshHidden || Model.Tint is { Length: > 3 } tint && tint[3] <= InvisibleAlpha;
+
         /// <summary>True when physics must leave the object where it is: it is locked, the whole table is, or it rests in a pile.</summary>
         public bool Pinned => Model.Locked || TablePinned || PileHeld;
 
@@ -67,7 +73,7 @@ namespace TableWorld.View
         {
             ZoneHidden = hidden;
             foreach (var renderer in GetComponentsInChildren<Renderer>(true))
-                renderer.forceRenderingOff = hidden || renderer == Renderer && Model.MeshHidden;
+                renderer.forceRenderingOff = hidden || renderer == Renderer && ShapeHidden;
             // A notecard's printed face is a UI panel, not a renderer.
             var face = transform.Find(NotecardView.FaceName);
             if (face != null)

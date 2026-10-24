@@ -174,7 +174,7 @@ namespace Core.Engine
             var zones = new List<string>();
             foreach (var zone in State.Zones)
                 // An object that never joins hands (G39) is not in a hand zone even when it lies inside one.
-                if (Geometry.Contains(zone, obj.Transform.Position) && (obj.Hands || !(zone is HandZone)))
+                if (Geometry.Contains(zone, obj.Transform.Position, Geometry.HalfHeight(obj)) && (obj.Hands || !(zone is HandZone)))
                     zones.Add(zone.Id);
             return zones;
         }
@@ -968,6 +968,8 @@ namespace Core.Engine
                 Script = entry.Script,
                 TtsExtra = entry.TtsExtra,
             };
+            // A card is the deck's size (TTS mods scale whole decks: Pokémon Sinnoh's cards are 1.5).
+            card.Transform.Scale = deck.Transform.Scale;
             return card;
         }
 

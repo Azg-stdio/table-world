@@ -768,7 +768,10 @@ namespace Core.Scripting
                                 v = c.Table.Get(index);
                             return v.Type == DataType.Number ? Math.Max(0f, Math.Min(1f, (float)v.Number)) : 1f;
                         }
-                        return Do(new SetPropertiesCommand { ObjectId = id, Tint = new[] { Part("r", 1), Part("g", 2), Part("b", 3) } });
+                        // Alpha too: scripts fade pieces or hide them with a transparent tint.
+                        var alpha = Part("a", 4);
+                        var rgb = new[] { Part("r", 1), Part("g", 2), Part("b", 3) };
+                        return Do(new SetPropertiesCommand { ObjectId = id, Tint = alpha < 0.999f ? rgb.Append(alpha).ToArray() : rgb });
                     });
                 case "getScale":
                     return Fn((o, a) => DynValue.NewTable(Vector(script, o.Transform.Scale)));

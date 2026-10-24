@@ -38,6 +38,23 @@ namespace Core.Tests.Tts
     { ""GUID"": ""p00001"", ""Name"": ""Custom_PDF"", ""Nickname"": ""Rulebook"", ""LuaScript"": ""x = 1"" } ] }";
 
         [Fact]
+        public void StretchedTiles_KeepTheirDepth_AndTakeTheImagesProportionsInWidth()
+        {
+            // TTS: depth 2 units × scaleZ, width × the image's aspect, for tall images too (Pokémon Sinnoh's portrait
+            // panels sit edge to edge with their landscape neighbours only that way).
+            const string save = @"{ ""ObjectStates"": [
+                { ""GUID"": ""wide01"", ""Name"": ""Custom_Tile"", ""CustomImage"": { ""ImageURL"": ""http://x/wide.png"", ""CustomTile"": { ""Stretch"": true } } },
+                { ""GUID"": ""tall01"", ""Name"": ""Custom_Tile"", ""CustomImage"": { ""ImageURL"": ""http://x/tall.png"", ""CustomTile"": { ""Stretch"": true } } } ] }";
+            var state = TtsImporter.Import(save, url => url.Contains("wide") ? (2000, 1000) : (1000, 2000)).State;
+            var wide = ((Tile)state.Objects.Single(o => o.Id == "wide01")).Size!.Value;
+            var tall = ((Tile)state.Objects.Single(o => o.Id == "tall01")).Size!.Value;
+            Assert.Equal(0.12f, wide.X, 4);
+            Assert.Equal(0.06f, wide.Y, 4);
+            Assert.Equal(0.03f, tall.X, 4);
+            Assert.Equal(0.06f, tall.Y, 4);
+        }
+
+        [Fact]
         public void Save_BecomesAValidTable_WithGuidsScriptsUiAndAssets()
         {
             var result = TtsImporter.Import(Save);

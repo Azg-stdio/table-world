@@ -940,11 +940,26 @@ namespace TableWorld.View
                 {
                     var angle = i * Mathf.PI * 2f / spots;
                     var spot = TableGeometry.ClampToDropArea(start + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * radius);
-                    if (!TouchesOtherObject(view, spot, half, flat))
+                    if (!TouchesOtherObject(view, spot, half, flat) && !Covered(view, spot, half, flat))
                         return spot;
                 }
             }
-            return start;
+            // No free felt near it: flat on top of what lies under it after all.
+            return AboveSupports(view, flat);
+        }
+
+        /// <summary>
+        /// True when something hangs over the spot: felt under a raised board is no place for a card (Pokémon Sinnoh's
+        /// arena panels stand 3 cm over the table, and cards slid under them out of sight and out of the arena zone).
+        /// </summary>
+        private bool Covered(ObjectView view, Vector3 at, Vector3 half, Quaternion rotation)
+        {
+            var count = Physics.BoxCastNonAlloc(at, new Vector3(half.x, 0.0005f, half.z), Vector3.up, _supportHits, rotation, 1f,
+                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            for (var i = 0; i < count; i++)
+                if (_supportHits[i].rigidbody != view.Body && _supportHits[i].distance > 0f)
+                    return true;
+            return false;
         }
 
         private bool TouchesOtherObject(ObjectView view, Vector3 at, Vector3 half, Quaternion rotation)

@@ -33,8 +33,13 @@ namespace Core.Rules
             return new Vec3((float)x, (float)y, (float)z);
         }
 
-        /// <summary>True when the point lies inside the zone's box (size × scale, rotated with the zone). Snap points contain nothing.</summary>
-        public static bool Contains(Zone zone, Vec3 point)
+        /// <summary>
+        /// True when the point lies inside the zone's box (size × scale, rotated with the zone). Snap points contain nothing.
+        /// <paramref name="halfHeight"/> is the object's own half-height: TTS counts an object in a trigger when its collider
+        /// overlaps it, so a card lying on a panel counts for a thin zone that starts just above the card's centre
+        /// (Pokémon Sinnoh's arena zones).
+        /// </summary>
+        public static bool Contains(Zone zone, Vec3 point, float halfHeight = 0f)
         {
             if (zone is SnapPoint)
                 return false;
@@ -42,9 +47,29 @@ namespace Core.Rules
             var local = InverseRotate(t.Rotation, Subtract(point, t.Position));
             const float epsilon = 1e-5f;
             return Math.Abs(local.X) <= zone.Size.X * t.Scale.X / 2 + epsilon
-                && Math.Abs(local.Y) <= zone.Size.Y * t.Scale.Y / 2 + epsilon
+                && Math.Abs(local.Y) <= zone.Size.Y * t.Scale.Y / 2 + halfHeight + epsilon
                 && Math.Abs(local.Z) <= zone.Size.Z * t.Scale.Z / 2 + epsilon;
         }
+
+        /// <summary>Slack beyond an object's half-height for zone tests: TTS's physics keeps contact gaps of about this much.</summary>
+        public const float ZoneSlack = 0.0015f;
+
+        /// <summary>About half an object's height, for zone tests (thin pieces exactly, others roughly).</summary>
+        public static float HalfHeight(TableObject obj)
+        {
+            var height = obj switch
+            {
+                Card _ => CardThickness,
+                Deck deck => CardThickness * Math.Max(1, deck.Cards.Count),
+                Tile tile => (tile.Thickness ?? 0.003f) * Math.Max(1, tile.Count),
+                Token token => (token.Thickness ?? 0.003f) * Math.Max(1, token.Count),
+                _ => 0.02f,
+            };
+            return height * Math.Abs(obj.Transform.Scale.Y) / 2f + ZoneSlack;
+        }
+
+        /// <summary>A card's thickness (the view draws cards this thick).</summary>
+        public const float CardThickness = 0.0004f;
 
         /// <summary>
         /// The yaw of a card or tile that faces a zone's front (its −Z side, where a hand zone's owner sits): TTS draws
