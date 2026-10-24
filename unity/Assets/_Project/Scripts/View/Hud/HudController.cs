@@ -52,6 +52,10 @@ namespace TableWorld.View.Hud
         public ControlsHelp Help => _help;
         private ChatPanel _chat;
         private EscapeMenu _escape;
+        private PlayersPanel _players;
+
+        /// <summary>Everyone at a hosted table, with the host's controls (G23).</summary>
+        public PlayersPanel Players => _players;
         private PanelSettings _sharedPanelSettings;
 
         /// <summary>The Escape menu and settings (G13, G31).</summary>
@@ -108,7 +112,10 @@ namespace TableWorld.View.Hud
                 _interaction.Pinged += OnPing;
             }
             if (_table != null)
+            {
                 _chat = new ChatPanel(_root, _table, _session);
+                _players = new PlayersPanel(_root, _table, _session);
+            }
             _escape = new EscapeMenu(_root, GameSettings.Load(GameSettings.DefaultPath), ApplySettings, _session, () => _help?.Show());
             ApplySettings(_escape.Settings);
 
@@ -187,7 +194,7 @@ namespace TableWorld.View.Hud
                     continue;
                 }
                 var panel = RuntimePanelUtils.ScreenToPanel(_root.panel, new Vector2(screen.x, Screen.height - screen.y));
-                label.text = seat;
+                label.text = _session?.NameAtSeat(seat) ?? seat;
                 // The seat colour is runtime data (any colour a game picks), so it is set from code: the label is filled
                 // with it, and the text is dark or light, whichever reads on that colour.
                 var luminance = 0.2126f * color.r + 0.7152f * color.g + 0.0722f * color.b;
@@ -222,6 +229,8 @@ namespace TableWorld.View.Hud
                 _overlay.CloseSearch();
             else if (_gamesPanel != null && !_gamesPanel.ClassListContains(Hidden))
                 _gamesPanel.AddToClassList(Hidden);
+            else if (_players != null && _players.Visible)
+                _players.Hide();
             else if (_help != null && _help.Visible)
                 _help.Hide();
             else
@@ -232,6 +241,7 @@ namespace TableWorld.View.Hud
         {
             var camera = Camera.main != null ? Camera.main.GetComponent<TableCamera>() : null;
             settings.Apply(camera);
+            _session?.SetLocalName(settings.PlayerName);
             var panel = GetComponent<UIDocument>().panelSettings;
             if (panel != null && _sharedPanelSettings != null)
                 panel.referenceResolution = new Vector2Int(
@@ -282,7 +292,7 @@ namespace TableWorld.View.Hud
             if (_table == null || _table.Engine == null)
                 return;
             var seatsKey = $"{_table.LocalSeat}|{_table.Spectating}|{CurrentTurnSeat()}|{_table.Networked}|" +
-                           (_session != null ? string.Join(",", _session.Occupants.Select(o => o.Key + "=" + o.Value)) : "");
+                           (_session != null ? string.Join(",", _session.Occupants.Select(o => o.Key + "=" + o.Value + "=" + _session.NameOf(o.Value))) : "");
             if (_shownEngine != _table.Engine || seatsKey != _shownSeatsKey)
             {
                 _shownSeatsKey = seatsKey;
@@ -300,6 +310,7 @@ namespace TableWorld.View.Hud
             _handBar?.Update();
             MenuKeys();
             _chat?.Update(TypingInUi() || (_interaction != null && _interaction.IgnoreDevices));
+            _players?.Update();
             UpdatePresenceLabels();
             if (_netStatus != null && _session != null)
                 _netStatus.text = _session.Status == "offline" ? "" : _session.Status;
@@ -451,18 +462,20 @@ namespace TableWorld.View.Hud
                     chip.AddToClassList("seat-chip--local");
                 if (seat.Id == CurrentTurnSeat())
                     chip.AddToClassList("seat-chip--turn");
-                var sitter = occupants != null && occupants.TryGetValue(seat.Id, out var who) ? who : null;
+                var sitter = occupants != null && occupants.TryGetValue(seat.Id, out var occupant) ? occupant : null;
                 var takenByOther = sitter != null && seat.Id != local;
                 chip.AddToClassList(takenByOther ? "seat-chip--taken" : "seat-chip--free");
                 var swatch = new VisualElement { pickingMode = PickingMode.Ignore };
                 swatch.AddToClassList("seat-swatch");
                 swatch.AddToClassList("seat-swatch--" + seat.Color.ToLowerInvariant());
-                var suffix = seat.Id == local ? " (you)" : sitter == TableWorld.View.Net.NetworkTableSession.HostIdForUi ? " (host)" : takenByOther ? " (taken)" : "";
-                var name = new Label(seat.Id + suffix) { pickingMode = PickingMode.Ignore };
+                // Online, a seat shows who sits there by name (G23); free seats show the seat.
+                var who = sitter != null ? _session.NameOf(sitter) : null;
+                var suffix = seat.Id == local ? " (you)" : sitter == TableWorld.View.Net.NetworkTableSession.HostIdForUi ? " (host)" : takenByOther && who == null ? " (taken)" : "";
+                var name = new Label((who ?? seat.Id) + suffix) { pickingMode = PickingMode.Ignore, enableRichText = false };
                 name.AddToClassList("seat-name");
                 chip.Add(swatch);
                 chip.Add(name);
-                chip.tooltip = takenByOther ? "Someone sits here" : seat.Id == local ? "Your seat" : "Click to sit here";
+                chip.tooltip = takenByOther ? $"{who ?? "Someone"} sits at {seat.Id}" : seat.Id == local ? $"Your seat ({seat.Id})" : $"Click to sit at {seat.Id}";
                 var id = seat.Id;
                 if (!takenByOther && seat.Id != local)
                     chip.RegisterCallback<ClickEvent>(_ => SitAt(id));

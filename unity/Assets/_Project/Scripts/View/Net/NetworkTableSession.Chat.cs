@@ -32,7 +32,9 @@ namespace TableWorld.View.Net
                     SendTo(NetworkManager.ServerClientId, ChatRoom.SayMessage(text));
                 return;
             }
-            var entry = Room.Say(IsHost ? SessionHost.HostId : "local", _table.Spectating ? null : _table.LocalSeat, text, Time.realtimeSinceStartupAsDouble, out var reply);
+            var entry = Room.Say(IsHost ? SpeakerOf(SessionHost.HostId)
+                : new Speaker { Participant = "local", Seat = _table.LocalSeat, Name = LocalName.Length > 0 ? LocalName : _table.LocalSeat ?? "" },
+                text, Time.realtimeSinceStartupAsDouble, out var reply);
             Publish(entry);
             if (reply != null)
                 Chat.Add(new ChatEntry { Kind = ChatKind.Notice, Text = reply });
@@ -41,13 +43,33 @@ namespace TableWorld.View.Net
         /// <summary>A notice from the table to everyone (host or alone).</summary>
         private void Announce(string text) => Publish(Room.Notice(text));
 
+        /// <summary>Shows and sends an entry: to everyone, or a team line (G23) to that team only.</summary>
         private void Publish(ChatEntry entry)
         {
             if (entry == null)
                 return;
-            Chat.Add(entry);
-            if (IsHost)
-                Send(new Outgoing(null, ChatRoom.Message(new[] { entry })));
+            if (entry.Team == Team.None)
+            {
+                Chat.Add(entry);
+                if (IsHost)
+                    Send(new Outgoing(null, ChatRoom.Message(new[] { entry })));
+                return;
+            }
+            var message = ChatRoom.Message(new[] { entry });
+            foreach (var member in _roster.OnTeam(entry.Team))
+            {
+                if (member == SessionHost.HostId)
+                    Chat.Add(entry);
+                else if (ulong.TryParse(member, out var client))
+                    SendTo(client, message);
+            }
+        }
+
+        /// <summary>Who a participant is when they talk: the host's seating and roster, never what the client claims.</summary>
+        private Speaker SpeakerOf(string participant)
+        {
+            var info = _roster.Of(participant);
+            return new Speaker { Participant = participant, Seat = _seating.Seat(participant), Name = info.Name, Team = info.Team, Muted = info.Muted };
         }
 
         /// <summary>A new session starts a fresh chat (ids restart with each host).</summary>
@@ -60,7 +82,7 @@ namespace TableWorld.View.Net
         private void OnHostSay(ulong sender, JObject message)
         {
             var participant = sender.ToString();
-            var entry = Room.Say(participant, _seating.Seat(participant), (string)message["text"] ?? "", Time.realtimeSinceStartupAsDouble, out var reply);
+            var entry = Room.Say(SpeakerOf(participant), (string)message["text"] ?? "", Time.realtimeSinceStartupAsDouble, out var reply);
             Publish(entry);
             if (reply != null)
                 SendTo(sender, new JObject { ["kind"] = "chat_reply", ["text"] = reply });
@@ -83,8 +105,6 @@ namespace TableWorld.View.Net
             }
         }
 
-        /// <summary>How a participant is named in notices until players have names (G23): their seat, or a spectator.</summary>
-        private string Who(string participant) => _seating.Seat(participant) ?? (participant == SessionHost.HostId ? "The host" : "A spectator");
 
         // ---- game log ---------------------------------------------------------------------------------------------
 
@@ -93,16 +113,16 @@ namespace TableWorld.View.Net
         {
             if (IsHost || IsClient)
                 return;
-            Log(_table.Engine, command, result, _table.LocalSeat);
+            Log(_table.Engine, command, result, LocalName.Length > 0 ? LocalName : _table.LocalSeat);
         }
 
         private void OnHostExecuted(string origin, Command command, CommandResult result) =>
-            Log(_host.Game.Table, command, result, origin == SessionHost.HostId ? _table.SeatOverride ?? "The host" : _seating.Seat(origin) ?? "A spectator");
+            Log(_host.Game.Table, command, result, _roster.Of(origin).Name);
 
         private void OnClientOrdered(string origin, Command command, CommandResult result)
         {
             var seat = _occupants.FirstOrDefault(o => o.Value == origin).Key;
-            Log(_client.Confirmed.Table, command, result, seat ?? (origin == SessionHost.HostId ? "The host" : "A spectator"));
+            Log(_client.Confirmed.Table, command, result, NameOf(origin) ?? seat ?? (origin == SessionHost.HostId ? "The host" : "A spectator"));
         }
 
         private void Log(TableEngine engine, Command command, CommandResult result, string actor)

@@ -191,6 +191,12 @@ namespace TableWorld.View
         /// </summary>
         public bool HostsTable { get; set; } = true;
 
+        /// <summary>Game Master (G23): this machine sees every hand and hidden zone.</summary>
+        public bool SeesEverything { get; set; }
+
+        /// <summary>This machine may change host-only settings (physics, turns): the host, or a promoted player (G23).</summary>
+        public bool MayChangeTable { get; set; } = true;
+
         /// <summary>Raised with a sentence for the player, e.g. why the rules refused a gesture.</summary>
         public event Action<string> Notice;
 
@@ -263,6 +269,7 @@ namespace TableWorld.View
         public const float HandMotionRate = 22f;
         private string _presentedSeat;
         private bool _presentedHosting = true;
+        private bool _presentedAll;
         private readonly List<(HiddenZone Zone, GameObject Fog)> _fogs = new List<(HiddenZone, GameObject)>();
 
         /// <summary>
@@ -276,22 +283,23 @@ namespace TableWorld.View
             var viewer = LocalSeat;
             _presentedSeat = viewer;
             _presentedHosting = HostsTable;
+            _presentedAll = SeesEverything;
             foreach (var fog in _fogs)
                 if (fog.Fog != null)
-                    fog.Fog.SetActive(!fog.Zone.Reveals(viewer, HostsTable));
+                    fog.Fog.SetActive(!SeesEverything && !fog.Zone.Reveals(viewer, HostsTable));
             var hands = new Dictionary<HandZone, List<ObjectView>>();
             foreach (var view in _views.Values)
             {
                 if (view == null)
                     continue;
                 // Hidden zones (G17): what lies inside is not drawn for viewers the zone does not list.
-                var zoneHidden = !view.Held && Engine.HiddenZoneHiding(view.Id, viewer, HostsTable) != null;
+                var zoneHidden = !view.Held && !SeesEverything && Engine.HiddenZoneHiding(view.Id, viewer, HostsTable) != null;
                 if (zoneHidden != view.ZoneHidden)
                     view.SetZoneHidden(zoneHidden);
                 if (!(view.Model is Card))
                     continue;
                 var hand = view.Held ? null : HandZoneOf(view.Id);
-                var hide = hand != null && hand.Owner != viewer;
+                var hide = hand != null && hand.Owner != viewer && !SeesEverything;
                 if (hide != view.HideFace)
                 {
                     view.HideFace = hide;
@@ -469,7 +477,7 @@ namespace TableWorld.View
         {
             if (Engine == null)
                 return;
-            if (_presentedSeat != LocalSeat || _presentedHosting != HostsTable)
+            if (_presentedSeat != LocalSeat || _presentedHosting != HostsTable || _presentedAll != SeesEverything)
                 PresentHands();
             _scratch.Clear();
             _scratch.AddRange(_views.Values);

@@ -52,8 +52,19 @@ namespace TableWorld.View.Net
             _presenceKey = null;
         }
 
+        private bool _removedByHost;
+
         private void Update()
         {
+            if (_removedByHost)
+            {
+                _removedByHost = false;
+                Stop();
+                Status = "the host removed you from the table";
+                _table.Tell("The host removed you from the table.");
+                return;
+            }
+            DisconnectKicked();
             if (_network == null || !_network.IsListening || !Synced)
                 return;
             SendPresence();

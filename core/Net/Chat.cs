@@ -31,6 +31,8 @@ namespace Core.Net
         public string Text { get; set; } = "";
         /// <summary>Only for <see cref="ChatKind.Roll"/>: each die, in order.</summary>
         public List<int> Dice { get; set; } = new List<int>();
+        /// <summary>A team message (<c>/t</c>, G23): only that team receives it. <see cref="Team.None"/> for everyone.</summary>
+        public Team Team { get; set; }
 
         private static readonly string[] KindNames = { "say", "roll", "notice", "action" };
 
@@ -41,6 +43,8 @@ namespace Core.Net
                 json["seat"] = Seat;
             if (Dice.Count > 0)
                 json["dice"] = new JArray(Dice);
+            if (Team != Team.None)
+                json["team"] = Team.ToString();
             return json;
         }
 
@@ -59,6 +63,7 @@ namespace Core.Net
                 Seat = o["seat"]?.Type == JTokenType.String ? (string?)o["seat"] : null,
                 From = o["from"]?.Type == JTokenType.String ? (string)o["from"]! : "",
                 Text = ChatRoom.Clean((string)text!) ?? "",
+                Team = System.Enum.TryParse<Team>((string?)o["team"], out var team) ? team : Team.None,
             };
             if (o["dice"] is JArray dice)
                 entry.Dice.AddRange(dice.Where(d => d.Type == JTokenType.Integer).Take(DiceRoll.MaxDice).Select(d => (int)d));
@@ -119,7 +124,7 @@ namespace Core.Net
         public const int BurstLines = 6;
         public const double BurstSeconds = 4.0;
 
-        public const string HelpText = "Commands: /roll 2d6+1 rolls dice for everyone to see (also /r), /help shows this.";
+        public const string HelpText = "Commands: /roll 2d6+1 rolls dice for everyone to see (also /r), /t message talks to your team, /help shows this.";
 
         private readonly Func<int, int> _random;
         private readonly Dictionary<string, Queue<double>> _sent = new Dictionary<string, Queue<double>>();
@@ -134,16 +139,28 @@ namespace Core.Net
             _random = random;
         }
 
+        /// <summary>A line typed by <paramref name="participant"/> at <paramref name="seat"/>, shown under the seat's name.</summary>
+        public ChatEntry? Say(string participant, string? seat, string text, double now, out string? reply) =>
+            Say(new Speaker { Participant = participant, Seat = seat, Name = seat ?? "Spectator" }, text, now, out reply);
+
         /// <summary>
-        /// A line <paramref name="participant"/> typed. Returns the entry to broadcast, or null with a
-        /// <paramref name="reply"/> only the sender sees (help, a bad command, writing too fast); both null for an empty line.
+        /// A line <paramref name="who"/> typed. Returns the entry to send (to everyone, or to <see cref="ChatEntry.Team"/>
+        /// only), or null with a <paramref name="reply"/> only the sender sees (help, a bad command, writing too fast,
+        /// muted); both null for an empty line.
         /// </summary>
-        public ChatEntry? Say(string participant, string? seat, string text, double now, out string? reply)
+        public ChatEntry? Say(Speaker who, string text, double now, out string? reply)
         {
             reply = null;
+            var participant = who.Participant;
+            var seat = who.Seat;
             var clean = Clean(text);
             if (string.IsNullOrEmpty(clean))
                 return null;
+            if (who.Muted)
+            {
+                reply = "The host has muted you.";
+                return null;
+            }
             if (!_sent.TryGetValue(participant, out var times))
                 _sent[participant] = times = new Queue<double>();
             while (times.Count > 0 && now - times.Peek() > BurstSeconds)
@@ -155,7 +172,7 @@ namespace Core.Net
             }
             times.Enqueue(now);
 
-            var from = seat ?? "Spectator";
+            var from = string.IsNullOrEmpty(who.Name) ? seat ?? "Spectator" : who.Name;
             if (!clean!.StartsWith("/"))
                 return Add(new ChatEntry { Kind = ChatKind.Say, Seat = seat, From = from, Text = clean });
 
@@ -173,6 +190,16 @@ namespace Core.Net
                     }
                     var dice = roll!.Roll(_random);
                     return Add(new ChatEntry { Kind = ChatKind.Roll, Seat = seat, From = from, Text = roll.Describe(dice), Dice = dice });
+                case "/t":
+                case "/team":
+                    if (who.Team == Team.None)
+                    {
+                        reply = "You are not on a team. The host puts players on teams.";
+                        return null;
+                    }
+                    if (argument.Length == 0)
+                        return null;
+                    return Add(new ChatEntry { Kind = ChatKind.Say, Seat = seat, From = from, Text = argument, Team = who.Team });
                 case "/help":
                 case "/?":
                     reply = HelpText;
@@ -200,8 +227,12 @@ namespace Core.Net
         public static JObject Message(IEnumerable<ChatEntry> entries) =>
             new JObject { ["kind"] = "chat", ["entries"] = new JArray(entries.Select(e => e.ToJson())) };
 
-        /// <summary>What a player who just joined receives: the last <see cref="HistorySize"/> lines.</summary>
-        public JObject History() => Message(Log.Entries.Skip(Math.Max(0, Log.Entries.Count - HistorySize)));
+        /// <summary>What a player who just joined receives: the last <see cref="HistorySize"/> lines, team lines of their team only.</summary>
+        public JObject History(Team team = Team.None)
+        {
+            var visible = Log.Entries.Where(e => e.Team == Team.None || e.Team == team).ToList();
+            return Message(visible.Skip(Math.Max(0, visible.Count - HistorySize)));
+        }
 
         /// <summary>A client's request to say something.</summary>
         public static JObject SayMessage(string text) => new JObject { ["kind"] = "say", ["text"] = text };
@@ -230,6 +261,16 @@ namespace Core.Net
             var clean = builder.ToString().Trim();
             return clean.Length == 0 ? null : clean;
         }
+    }
+
+    /// <summary>Who is talking: the host fills this in from its seating and roster, never from what a client claims.</summary>
+    public sealed class Speaker
+    {
+        public string Participant { get; set; } = "";
+        public string? Seat { get; set; }
+        public string Name { get; set; } = "";
+        public Team Team { get; set; }
+        public bool Muted { get; set; }
     }
 
     /// <summary>A dice expression for <c>/roll</c>: <c>NdM</c> with an optional <c>+K</c> or <c>-K</c> (<c>d20</c>, <c>3d6+2</c>).</summary>

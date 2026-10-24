@@ -155,7 +155,7 @@ namespace TableWorld.View.Hud
             ZoneEntries(_menuWorldPoint);
             Item("Undo (Ctrl+Z)", () => _table.Undo());
             Item("Redo (Ctrl+Y)", () => _table.Redo());
-            if (_table.HostsTable && !_table.Engine.State.HasRules)
+            if (_table.MayChangeTable && !_table.Engine.State.HasRules)
             {
                 // Free-play turns (G22). A rules game runs its own turns.
                 var turns = _table.Engine.State.FreeTurns;
@@ -170,7 +170,7 @@ namespace TableWorld.View.Hud
                 if (on)
                     Item(skip ? "● Skip empty hands" : "Skip empty hands", () => Run(new SetTurnOrderCommand { Reverse = turns.Reverse, SkipEmptyHands = !skip }));
             }
-            if (_table.HostsTable)
+            if (_table.MayChangeTable)
                 Row("Physics", new[] { (PhysicsMode.Full, "Full"), (PhysicsMode.SemiLock, "Semi-lock"), (PhysicsMode.Locked, "Locked") }
                     .Select(m => ((_table.PhysicsMode == m.Item1 ? "● " : "") + m.Item2, (Action)(() => Run(new SetPhysicsCommand { Mode = m.Item1 })))));
             Item("Save table (F5)", () => _table.Save(TableView.SavePath(TableView.QuickSaveName)));

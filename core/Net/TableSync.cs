@@ -75,6 +75,9 @@ namespace Core.Net
         /// <summary>Clients watching without a seat (G10): the host refuses their commands.</summary>
         public HashSet<string> Watching { get; } = new HashSet<string>();
 
+        /// <summary>Besides the host, who may run host-only commands (promoted players, G23). Null: nobody else.</summary>
+        public Func<string, bool>? MayHost { get; set; }
+
         /// <summary>When set, snapshots carry its manifest and <c>asset_request</c> messages are answered (T3.4).</summary>
         public AssetHost? Assets { get; set; }
 
@@ -130,7 +133,7 @@ namespace Core.Net
                 var watching = CommandResult.Fail("", ErrorCodes.NotYourSeat, "You are watching; pick a seat to play.", "Click a seat.");
                 return (watching, new Outgoing(origin, Rejection(origin, clientSeq, watching.Error!)));
             }
-            if (command is IHostCommand && origin != HostId)
+            if (command is IHostCommand && origin != HostId && !(MayHost?.Invoke(origin) ?? false))
             {
                 var hostOnly = CommandResult.Fail("", ErrorCodes.HostOnly, "Only the host can change that.", "Ask the host.");
                 return (hostOnly, new Outgoing(origin, Rejection(origin, clientSeq, hostOnly.Error!)));
@@ -187,6 +190,9 @@ namespace Core.Net
         public GameEngine? Confirmed { get; private set; }
         public GameEngine? Predicted { get; private set; }
         public bool Synced => Confirmed != null;
+
+        /// <summary>The host promoted this client (G23): it may send host-only commands.</summary>
+        public bool MayHost { get; set; }
         public int PendingCount => _pending.Count;
         public int Resyncs { get; private set; }
         public int Rebuilds { get; private set; }
@@ -219,7 +225,7 @@ namespace Core.Net
         {
             if (Predicted == null)
                 throw new InvalidOperationException("Not synced yet: wait for the host's snapshot.");
-            if (command is IHostCommand)
+            if (command is IHostCommand && !MayHost)
                 return (CommandResult.Fail("", ErrorCodes.HostOnly, "Only the host can change that.", "Ask the host."), null);
             var result = Predicted.Execute(command);
             if (!result.Ok)

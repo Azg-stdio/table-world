@@ -163,6 +163,9 @@ namespace TableWorld.View.Hud
         {
             _settingsList.Clear();
             var s = Settings;
+            Group("You");
+            Text("Your name", s.PlayerName, "Player", v => s.PlayerName = v);
+
             Group("Sound");
             Slider("Master volume", 0f, 1f, s.MasterVolume, v => s.MasterVolume = v, Percent);
             Slider("Table sounds", 0f, 1f, s.TableVolume, v => s.TableVolume = v, Percent);
@@ -234,6 +237,30 @@ namespace TableWorld.View.Hud
             });
             row.Add(slider);
             row.Add(shown);
+        }
+
+        /// <summary>A text setting, applied when the field loses focus or Enter is pressed.</summary>
+        private void Text(string name, string value, string placeholder, Action<string> set)
+        {
+            var row = Row(name);
+            var field = new TextField { value = value, maxLength = Core.Net.PlayerInfo.MaxNameLength };
+            field.textEdition.placeholder = placeholder;
+            field.AddToClassList("settings-text");
+            void Commit()
+            {
+                if (field.value != value)
+                {
+                    value = field.value;
+                    Change(_ => set(value));
+                }
+            }
+            field.RegisterCallback<FocusOutEvent>(_ => Commit());
+            field.RegisterCallback<KeyDownEvent>(e =>
+            {
+                if (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter)
+                    Commit();
+            });
+            row.Add(field);
         }
 
         /// <summary>A setting with a few values, stepped with ‹ and › (no drop-down to restyle).</summary>

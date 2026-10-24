@@ -23,6 +23,9 @@ namespace TableWorld.View.Settings
         public const float MinUiScale = 0.75f;
         public const float MaxUiScale = 1.5f;
 
+        /// <summary>The name other players see (G23); empty means "Player N".</summary>
+        public string PlayerName { get; set; } = "";
+
         /// <summary>Everything the game plays, 0–1.</summary>
         public float MasterVolume { get; set; } = 1f;
         /// <summary>Table sounds (cards, dice, chips), 0–1, on top of the master volume.</summary>
@@ -50,6 +53,7 @@ namespace TableWorld.View.Settings
         /// <summary>Puts every value in range.</summary>
         public GameSettings Clamped()
         {
+            PlayerName = Core.Net.PlayerInfo.CleanName(PlayerName) ?? "";
             MasterVolume = Clamp(MasterVolume, 0f, 1f, 1f);
             TableVolume = Clamp(TableVolume, 0f, 1f, 0.8f);
             OrbitSensitivity = Clamp(OrbitSensitivity, MinScale, MaxScale, 1f);

@@ -888,3 +888,72 @@
     flex-direction: row;
     justify-content: space-between;
 }
+
+.settings-text {
+    width: 286px;
+    margin: 0;
+}
+
+.settings-text .unity-base-text-field__input {
+    min-height: 24px;
+    padding: 2px 6px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    background-color: rgb(36, 40, 48);
+    color: rgb(240, 236, 226);
+    font-size: 15px;
+}
+
+/* Players (G23): one row per participant; the host's buttons on the right. */
+.players-panel {
+    width: 760px;
+}
+
+.player-row {
+    flex-shrink: 0;
+    flex-direction: row;
+    align-items: center;
+    min-height: 34px;
+    padding: 2px 4px;
+    border-bottom-width: 1px;
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+.player-name {
+    width: 170px;
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: rgb(240, 236, 226);
+}
+
+.player-badges {
+    flex-grow: 1;
+    flex-shrink: 1;
+    font-size: 13px;
+    color: rgb(170, 168, 160);
+    white-space: normal;
+}
+
+.player-actions {
+    flex-direction: row;
+    flex-shrink: 0;
+}
+
+.player-action {
+    margin-left: 4px;
+    padding: 2px 8px;
+    font-size: 13px;
+}
+
+.player-danger {
+    background-color: rgb(150, 52, 46);
+}
+
+.player-danger:hover {
+    background-color: rgb(182, 66, 58);
+}
+
+.seat-swatch--none {
+    background-color: rgba(255, 255, 255, 0.15);
+}
