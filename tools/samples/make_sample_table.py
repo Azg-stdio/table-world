@@ -31,6 +31,9 @@ table = {
         {"id": "std_back", "type": "image", "path": "builtin:standard_back"},
         {"id": "placeholder_model", "type": "model", "path": "builtin:placeholder"},
         {"id": "d6_template", "type": "image", "path": "builtin:d6_template"},
+        {"id": "pawn_model", "type": "model", "path": "builtin:pawn"},
+        {"id": "block_model", "type": "model", "path": "builtin:block_square"},
+        {"id": "checker_model", "type": "model", "path": "builtin:checker"},
     ],
     "objects": [
         {"id": "deck_main", "type": "Deck", "name": "Standard deck", "faceAsset": "std_deck", "backAsset": "std_back",
@@ -48,6 +51,10 @@ table = {
         {"id": "tile_square", "type": "Tile", "shape": "square", **at(0.05, 0.3)},
         {"id": "tile_hex", "type": "Tile", "shape": "hex", **at(0.12, 0.3)},
         {"id": "tile_circle", "type": "Tile", "shape": "circle", **at(0.19, 0.3)},
+        # Built-in pieces (G38): a pawn, a block and a checker, as TTS has them without files.
+        {"id": "pawn_red", "type": "Model", "name": "Red pawn", "asset": "pawn_model", "tint": [0.8, 0.15, 0.15], **at(0.6, -0.3)},
+        {"id": "block", "type": "Model", "name": "Block", "asset": "block_model", "tint": [0.25, 0.45, 0.85], **at(0.66, -0.3)},
+        {"id": "checker", "type": "Model", "name": "Checker", "asset": "checker_model", "kind": "chip", "tint": [0.1, 0.1, 0.1], **at(0.72, -0.3)},
         # A notecard (G27): its name is the title, its description the text printed on it.
         {"id": "house_rules", "type": "Notecard", "name": "House rules",
          "description": "Draw two at the start of your turn.\nJokers are wild.\nThe loser shuffles.", **at(0.5, 0.15)},

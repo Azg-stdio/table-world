@@ -165,8 +165,11 @@ namespace TableWorld.View
         public Mesh Mesh(string assetId)
         {
             var asset = Find(assetId);
-            if (asset == null || asset.Type != AssetType.Model || asset.IsBuiltin)
+            if (asset == null || asset.Type != AssetType.Model)
                 return null;
+            // TTS's primitive pieces are built in (G38); builtin:placeholder stays the grey box.
+            if (asset.IsBuiltin)
+                return Builtin.BuiltinModels.Get(asset.Path.Substring(BuiltinPrefix.Length));
             if (_meshesByPath.TryGetValue(asset.Path, out var cached))
                 return cached;
             Mesh mesh = null;

@@ -36,6 +36,50 @@ namespace TableWorld.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator BuiltinPieces_HaveTheirOwnMeshes_AndStandOnTheTable()
+        {
+            yield return SceneManager.LoadSceneAsync("Table");
+            yield return null;
+            var table = Object.FindAnyObjectByType<TableView>();
+            Object.FindAnyObjectByType<TableInteraction>().IgnoreDevices = true;
+            yield return new WaitForSeconds(2f);
+            foreach (var (id, mesh, height) in new[] { ("pawn_red", "model:builtin:pawn", 0.034f), ("block", "model:builtin:block_square", 0.03f), ("checker", "model:builtin:checker", 0.0075f) })
+            {
+                var view = table.ViewOf(id);
+                Assert.AreEqual(mesh, view.Filter.sharedMesh.name, id);
+                Assert.AreEqual(height, view.Filter.sharedMesh.bounds.size.y, 0.001f, id);
+                Assert.AreEqual(0f, view.transform.position.y, 0.004f, $"{id} rests on the table");
+                Assert.Greater(OutwardShare(view.Filter.sharedMesh), 0.95f, $"{id} faces outward (not inside out)");
+            }
+        }
+
+        /// <summary>
+        /// Share of the side's area whose triangles, wound clockwise as Unity draws front faces, face away from the
+        /// piece's vertical axis. An inside-out mesh scores near 0.
+        /// </summary>
+        public static float OutwardShare(Mesh mesh)
+        {
+            var v = mesh.vertices;
+            var t = mesh.triangles;
+            var centre = mesh.bounds.center;
+            float outward = 0f, total = 0f;
+            for (var i = 0; i < t.Length; i += 3)
+            {
+                var a = v[t[i]]; var b = v[t[i + 1]]; var c = v[t[i + 2]];
+                var normal = Vector3.Cross(b - a, c - a);
+                var area = normal.magnitude;
+                var radial = (a + b + c) / 3f - centre;
+                radial.y = 0f;
+                if (area < 1e-12f || radial.sqrMagnitude < 1e-10f || Mathf.Abs(normal.normalized.y) > 0.9f)
+                    continue;
+                total += area;
+                if (Vector3.Dot(normal, radial) > 0f)
+                    outward += area;
+            }
+            return total > 0f ? outward / total : 1f;
+        }
+
+        [UnityTest]
         public IEnumerator ObjModel_LoadsFromThePackage_AndRestsOnTheTable()
         {
             yield return SceneManager.LoadSceneAsync("Table");
@@ -58,6 +102,7 @@ namespace TableWorld.Tests.PlayMode
             StringAssert.StartsWith("model:", pawn.Filter.sharedMesh.name, "drawn with its own mesh");
             Assert.AreEqual(0.034f, pawn.Filter.sharedMesh.bounds.size.y, 0.001f);
             Assert.IsInstanceOf<MeshCollider>(pawn.Collider);
+            Assert.Greater(OutwardShare(pawn.Filter.sharedMesh), 0.95f, "an OBJ wound as OBJ expects comes out facing outward");
             Assert.AreEqual(0f, pawn.transform.position.y, 0.003f, "it stands on the table, base down");
             Assert.Less(Vector3.Angle(pawn.transform.up, Vector3.up), 5f, "and stays upright");
             Assert.AreNotEqual(pawn.Filter.sharedMesh, table.ViewOf("p2").Filter.sharedMesh, "a missing file shows the placeholder");

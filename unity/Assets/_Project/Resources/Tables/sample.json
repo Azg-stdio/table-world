@@ -22,6 +22,21 @@
    "id": "d6_template",
    "type": "image",
    "path": "builtin:d6_template"
+  },
+  {
+   "id": "pawn_model",
+   "type": "model",
+   "path": "builtin:pawn"
+  },
+  {
+   "id": "block_model",
+   "type": "model",
+   "path": "builtin:block_square"
+  },
+  {
+   "id": "checker_model",
+   "type": "model",
+   "path": "builtin:checker"
   }
  ],
  "objects": [
@@ -691,6 +706,61 @@
      0.19,
      0,
      0.3
+    ]
+   }
+  },
+  {
+   "id": "pawn_red",
+   "type": "Model",
+   "name": "Red pawn",
+   "asset": "pawn_model",
+   "tint": [
+    0.8,
+    0.15,
+    0.15
+   ],
+   "transform": {
+    "position": [
+     0.6,
+     0,
+     -0.3
+    ]
+   }
+  },
+  {
+   "id": "block",
+   "type": "Model",
+   "name": "Block",
+   "asset": "block_model",
+   "tint": [
+    0.25,
+    0.45,
+    0.85
+   ],
+   "transform": {
+    "position": [
+     0.66,
+     0,
+     -0.3
+    ]
+   }
+  },
+  {
+   "id": "checker",
+   "type": "Model",
+   "name": "Checker",
+   "asset": "checker_model",
+   "kind": "chip",
+   "tint": [
+    0.1,
+    0.1,
+    0.1
+   ],
+   "transform": {
+    "position": [
+     0.72,
+     0,
+     -0.3
     ]
    }
   },
