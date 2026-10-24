@@ -30,6 +30,7 @@ namespace TableWorld.View
             Prefabs.Clear();
             Remapped.Clear();
             Reported.Clear();
+            Pending.Clear();
         }
 
         /// <summary>
@@ -62,6 +63,7 @@ namespace TableWorld.View
                 {
                     Loaded[key] = bundle;
                     prefab = bundle.LoadAllAssets<GameObject>().FirstOrDefault(g => g.transform.parent == null);
+                    ResolvePending();
                 }
             }
             catch (System.Exception e)
@@ -90,8 +92,40 @@ namespace TableWorld.View
             foreach (var mesh in copy.GetComponentsInChildren<MeshCollider>(true))
                 mesh.convex = true;
             foreach (var renderer in copy.GetComponentsInChildren<Renderer>(true))
+            {
+                // Materials can live in another bundle (TTS mods split models and materials): until that bundle loads
+                // they are missing and would draw magenta, so the renderer waits hidden and is finished when it arrives.
+                if (renderer.sharedMaterials.Any(m => m == null))
+                {
+                    renderer.enabled = false;
+                    Pending.Add(renderer);
+                    continue;
+                }
                 renderer.sharedMaterials = renderer.sharedMaterials.Select(Remap).ToArray();
+            }
             return copy;
+        }
+
+        /// <summary>Renderers waiting for materials that live in a bundle not loaded yet.</summary>
+        private static readonly List<Renderer> Pending = new List<Renderer>();
+
+        /// <summary>A bundle arrived: renderers whose materials it holds are remapped and shown.</summary>
+        private static void ResolvePending()
+        {
+            for (var i = Pending.Count - 1; i >= 0; i--)
+            {
+                var renderer = Pending[i];
+                if (renderer == null)
+                {
+                    Pending.RemoveAt(i);
+                    continue;
+                }
+                if (renderer.sharedMaterials.Any(m => m == null))
+                    continue;
+                renderer.sharedMaterials = renderer.sharedMaterials.Select(Remap).ToArray();
+                renderer.enabled = true;
+                Pending.RemoveAt(i);
+            }
         }
 
         private static readonly int BaseMap = Shader.PropertyToID("_BaseMap");

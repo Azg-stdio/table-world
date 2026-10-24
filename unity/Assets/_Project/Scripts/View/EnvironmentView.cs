@@ -114,8 +114,8 @@ namespace TableWorld.View
             // Light: the room preset, then the game's overrides.
             var lighting = env.Lighting;
             RenderSettings.ambientMode = AmbientMode.Flat;
-            // The default sky's reflections tint an indoor room blue-grey; indoors there is no sky to reflect.
-            RenderSettings.reflectionIntensity = gameNight ? 0.15f : 1f;
+            // Indoors, shiny and metal pieces reflect the room (its probe), not the default sky, which tints them cyan.
+            RenderSettings.reflectionIntensity = 1f;
             RenderSettings.ambientLight = ToColor(lighting.AmbientColor, DefaultAmbient) * (lighting.AmbientIntensity ?? (gameNight ? DefaultAmbientIntensity : 1f));
             if (_lamp != null)
             {
@@ -134,10 +134,42 @@ namespace TableWorld.View
             DressTable(env.Table);
         }
 
+        /// <summary>
+        /// Captures the room for reflections once it stands. A capture in the first frames after a scene loads can come
+        /// out empty (the renderer is not ready), which leaves metal reflecting the default sky in cyan: it is taken
+        /// again a little later.
+        /// </summary>
+        private static System.Collections.IEnumerator RenderWhenBuilt(ReflectionProbe probe)
+        {
+            foreach (var wait in new[] { 0f, 0.5f, 2f })
+            {
+                if (wait > 0f)
+                    yield return new WaitForSeconds(wait);
+                else
+                    yield return null;
+                if (probe == null)
+                    yield break;
+                probe.RenderProbe();
+            }
+        }
+
         private void BuildGameNight(Color wall, Color floor)
         {
             _room = new GameObject("Room (game night)");
             _room.transform.SetParent(transform, false);
+            // What metal and glossy pieces reflect: the room itself, captured once it is built (and again when it changes).
+            var probe = new GameObject("Room Reflections").AddComponent<ReflectionProbe>();
+            probe.transform.SetParent(_room.transform, false);
+            probe.transform.localPosition = new Vector3(0f, 0.4f, 0f);
+            probe.mode = UnityEngine.Rendering.ReflectionProbeMode.Realtime;
+            probe.refreshMode = UnityEngine.Rendering.ReflectionProbeRefreshMode.ViaScripting;
+            probe.timeSlicingMode = UnityEngine.Rendering.ReflectionProbeTimeSlicingMode.NoTimeSlicing;
+            probe.resolution = 128;
+            probe.size = new Vector3(RoomHalfSize.x * 2f, CeilingY - FloorY, RoomHalfSize.z * 2f) * 1.05f;
+            probe.center = new Vector3(0f, (CeilingY + FloorY) / 2f - probe.transform.localPosition.y, 0f);
+            probe.clearFlags = UnityEngine.Rendering.ReflectionProbeClearFlags.SolidColor;
+            probe.backgroundColor = wall * 0.5f;
+            StartCoroutine(RenderWhenBuilt(probe));
             var h = RoomHalfSize;
             var wallHeight = CeilingY - FloorY;
             var wallMid = (CeilingY + FloorY) / 2f;

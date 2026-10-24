@@ -17,4 +17,4 @@
 | Date | Simulation | Result |
 |---|---|---|
 | 2026-10-22 | 5 bundles, URP remap (Editor) | 0 magenta pixels |
-| — | T5.5 | — |
+| 2026-10-24 | T5.5 bundles (Editor, Play mode): 20 bundles of the local TTS cache spread over its size range, one table (`tools/unity-probes/MeasureBundles.cs`) | 19 of 20 shown (the 20th holds only materials, so it keeps the placeholder), 10.8 MB of files load in 1.2 s, +70 MB allocated, 128 renderers, 0 materials left un-remapped, 0 magenta by eye. Found and fixed: materials that live in another bundle (Chimera table) wait hidden until that bundle loads; metal reflected the default sky in cyan, so the room now has a reflection probe captured once it stands. glTF half waits for T5.1 |
