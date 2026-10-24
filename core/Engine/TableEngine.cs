@@ -207,6 +207,7 @@ namespace Core.Engine
             SetPhysicsCommand c => SetPhysics(c),
             SetGridCommand c => SetGrid(c),
             MoveZoneCommand c => MoveZone(c),
+            SetMusicCommand c => SetMusic(c),
             AddDrawingCommand c => AddDrawing(c),
             SetNoteTabCommand c => SetNoteTab(c),
             DeleteNoteTabCommand c => DeleteNoteTab(c),
@@ -497,6 +498,19 @@ namespace Core.Engine
                 return CommandResult.Fail("mode", ErrorCodes.InvalidValue, $"Unknown physics mode {(int)c.Mode}.", "Use full, semiLock or locked.");
             State.Physics = c.Mode;
             return CommandResult.Success(new List<StateEvent> { new TableSettingsChanged() });
+        }
+
+        private CommandResult SetMusic(SetMusicCommand c)
+        {
+            if (c.Music is { } music)
+            {
+                if (music.Index < -1 || music.Index >= music.Playlist.Count)
+                    return CommandResult.Fail("music.index", ErrorCodes.IndexOutOfRange, $"Track {music.Index} is not in a playlist of {music.Playlist.Count}.");
+                if (music.Playlist.Concat(music.Current == null ? Enumerable.Empty<MusicTrack>() : new[] { music.Current }).FirstOrDefault(t => !Asset.IsWebAddress(t.Url)) is { } bad)
+                    return CommandResult.Fail("music", ErrorCodes.InvalidValue, $"'{bad.Url}' is not a web address.", "Tracks are http(s) addresses of audio files.");
+            }
+            State.Music = c.Music?.Clone();
+            return CommandResult.Success(new List<StateEvent> { new MusicChanged() });
         }
 
         private CommandResult MoveZone(MoveZoneCommand c)

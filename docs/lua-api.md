@@ -43,7 +43,7 @@ API returns are Vectors and Colors.
 | `Player[color]`, `Player.Red`, `Player.getPlayers()`, `Player.getAvailableColors()` | players: `color`, `steam_name`, `seated`, `getHandObjects()`, `broadcast(text)`, `print(text)`; camera calls (`lookAt`) are accepted without effect |
 | `getNotebookTabs()`, `addNotebookTab({title, body, color})`, `editNotebookTab({index, title, body, color})`, `removeNotebookTab(index)` | the notebook (G25); colour "Grey" is everyone's page |
 | `log(...)`, `JSON.encode_pretty(table)` | host log; JSON |
-| `MusicPlayer.*` | accepted without effect (music, G27, is not scripted yet); `player_status` is "Stop" |
+| `MusicPlayer.*` | the table's music (G27): `play`, `pause`, `skip`/`back`, `getPlaylist`/`setPlaylist`, `getCurrentAudioclip`/`setCurrentAudioclip` (`{url, title}`), members `player_status` ("Ready", "Play", "Pause"), `playlist_index`/`playlistIndex`, `repeat_track`, `shuffle`, `loaded`; every machine plays it, the host moves to the next track |
 | `Physics.cast({ origin, direction, type, size, orientation, max_distance })` | the host's physics: `type` 1 ray, 2 sphere, 3 box; with no distance or direction, what overlaps the shape. Returns `{ hit_object, point, normal, distance }`, nearest first, objects only |
 
 ## Objects

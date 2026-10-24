@@ -165,7 +165,7 @@ namespace Core.Tests.Scripting
                 getObjectFromGUID('d6').AssetBundle.playLoopingEffect(0)");
             Assert.Equal("2 4 5 {4, 6, 8} 1.96 3.92", said[0]);
             Assert.Equal("Red ff0000 true", said[1]);
-            Assert.Equal("true Stop", said[2]);
+            Assert.Equal("true Ready", said[2]);
         }
 
         [Fact]
@@ -298,6 +298,40 @@ namespace Core.Tests.Scripting
                 Wait.condition(function() broadcastToAll('settled') end, function() return d.resting end)");
             host.Tick(0.02);
             Assert.Equal(new[] { "boolean true false nil", "settled" }, said);
+        }
+
+        [Fact]
+        public void MusicPlayer_LoadsPlaysAndPauses_TheTablesMusic()
+        {
+            // Pokemon Sinnoh's Music Box: a playlist from a cartridge, a random track, play; events set a clip directly.
+            var (engine, _, said) = Load(@"
+                MusicPlayer:setPlaylist({ { url = 'https://x/a.mp3', title = 'A' }, { url = 'https://x/b.mp3', title = 'B' } })
+                MusicPlayer.shuffle = true
+                MusicPlayer.playlistIndex = 1
+                MusicPlayer:play()
+                broadcastToAll(MusicPlayer.player_status .. ' ' .. MusicPlayer:getCurrentAudioclip().title .. ' ' .. #MusicPlayer:getPlaylist())
+                MusicPlayer:setCurrentAudioclip({ url = 'https://x/event.mp3', title = 'Event' })
+                MusicPlayer.repeat_track = true
+                MusicPlayer:pause()
+                broadcastToAll(MusicPlayer.player_status .. ' ' .. MusicPlayer.playlist_index)");
+            Assert.Equal(new[] { "Play B 2", "Pause -1" }, said);
+            var music = engine.State.Music!;
+            Assert.Equal("https://x/event.mp3", music.Current!.Url);
+            Assert.True(music.Repeat && music.Shuffle && !music.Playing);
+        }
+
+        [Fact]
+        public void Music_MovesOn_RepeatingShufflingOrInOrder()
+        {
+            var music = new MusicState { Playlist = { new MusicTrack { Url = "https://x/1" }, new MusicTrack { Url = "https://x/2" } }, Index = 1, Current = new MusicTrack { Url = "https://x/2" } };
+            var next = music.Next(new System.Random(1));
+            Assert.Equal(0, next.Index);
+            Assert.Equal(music.Starts + 1, next.Starts);
+            music.Repeat = true;
+            Assert.Equal(1, music.Next(new System.Random(1)).Index);
+            music.Repeat = false;
+            music.Shuffle = true;
+            Assert.Equal(0, music.Next(new System.Random(1)).Index);
         }
 
         [Fact]

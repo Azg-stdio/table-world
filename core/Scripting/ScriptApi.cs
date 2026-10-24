@@ -193,18 +193,7 @@ namespace Core.Scripting
             g["Physics"] = PhysicsApi(script);
             g["Turns"] = TurnsApi(script);
             g["Grid"] = GridApi(script);
-            // Music (G27) is not played by scripts yet: the player's calls are accepted, without effect.
-            var music = new Table(script);
-            foreach (var call in new[] { "setPlaylist", "play", "pause", "skipForward", "skipBack", "setCurrentAudioclip" })
-                music[call] = Fn(_ => DynValue.True);
-            music["getPlaylist"] = Fn(_ => DynValue.NewTable(new Table(script)));
-            music["getCurrentAudioclip"] = Fn(_ => DynValue.Nil);
-            music["player_status"] = "Stop";
-            music["playlist_index"] = 0;
-            music["loaded"] = false;
-            music["repeat_track"] = false;
-            music["shuffle"] = false;
-            g["MusicPlayer"] = music;
+            g["MusicPlayer"] = MusicApi(script);
             g["log"] = Fn(args =>
             {
                 Log?.Invoke("[log] " + string.Join(" ", args.GetArray().Select(a => a.ToPrintString())));
@@ -1136,6 +1125,143 @@ namespace Core.Scripting
                     default: return DynValue.Nil;
                 }
                 Issue(new SetGridCommand { Grid = grid });
+                return DynValue.Nil;
+            });
+            t.MetaTable = meta;
+            return DynValue.NewTable(t);
+        }
+
+        /// <summary>
+        /// TTS's <c>MusicPlayer</c> (G27) over the table's music: <c>play</c>, <c>pause</c>, <c>skip</c>/<c>back</c>,
+        /// <c>getPlaylist</c>/<c>setPlaylist</c>, <c>getCurrentAudioclip</c>/<c>setCurrentAudioclip</c> (clips are
+        /// <c>{url, title}</c>), and the members <c>player_status</c>, <c>playlist_index</c> (also <c>playlistIndex</c>),
+        /// <c>repeat_track</c>, <c>shuffle</c>, <c>loaded</c>. Changes go through the host's <c>SetMusic</c>.
+        /// </summary>
+        private DynValue MusicApi(Script script)
+        {
+            var t = new Table(script);
+            MusicState Copy() => Engine.State.Music?.Clone() ?? new MusicState();
+            DynValue Set(MusicState music) => DynValue.NewBoolean(Issue(new SetMusicCommand { Music = music }));
+            // MusicPlayer.play() and MusicPlayer:play() both work: a colon passes the player first.
+            DynValue At(CallbackArguments a, int i)
+            {
+                var k = a.Count > 0 && a[0].Type == DataType.Table && a[0].Table == t ? i + 1 : i;
+                return a.Count > k ? a[k] : DynValue.Nil;
+            }
+            DynValue Callback(Func<CallbackArguments, DynValue> body) => DynValue.NewCallback((_, a) => body(a));
+            Table Clip(MusicTrack track)
+            {
+                var clip = new Table(script);
+                clip["url"] = track.Url;
+                clip["title"] = track.Title;
+                return clip;
+            }
+            MusicTrack? ReadClip(DynValue value) =>
+                value.Type == DataType.Table && value.Table.Get("url").CastToString() is { } url && Rules.Asset.IsWebAddress(url)
+                    ? new MusicTrack { Url = url, Title = value.Table.Get("title").CastToString() ?? "" }
+                    : null;
+            MusicState Load(MusicState music, int index)
+            {
+                music.Index = index;
+                music.Current = music.Playlist[index].Clone();
+                music.Starts++;
+                return music;
+            }
+            var random = new Random();
+
+            t["play"] = Callback(a =>
+            {
+                var music = Copy();
+                if (music.Current == null && music.Playlist.Count > 0)
+                    Load(music, 0);
+                if (music.Current == null)
+                    return DynValue.False;
+                music.Playing = true;
+                return Set(music);
+            });
+            t["pause"] = Callback(a =>
+            {
+                var music = Copy();
+                music.Playing = false;
+                return Set(music);
+            });
+            DynValue Skip(int step)
+            {
+                var music = Copy();
+                if (music.Playlist.Count == 0)
+                    return DynValue.False;
+                var repeat = music.Repeat;
+                music.Repeat = false;
+                var next = music.Next(random, step);
+                next.Repeat = repeat;
+                return Set(next);
+            }
+            t["skip"] = Callback(a => Skip(1));
+            t["skipForward"] = t["skip"];
+            t["back"] = Callback(a => Skip(-1));
+            t["skipBack"] = t["back"];
+            t["getPlaylist"] = Callback(a =>
+            {
+                var list = new Table(script);
+                var music = Engine.State.Music;
+                for (var i = 0; music != null && i < music.Playlist.Count; i++)
+                    list[i + 1] = Clip(music.Playlist[i]);
+                return DynValue.NewTable(list);
+            });
+            t["setPlaylist"] = Callback(a =>
+            {
+                var music = Copy();
+                var given = At(a, 0);
+                music.Playlist = given.Type == DataType.Table
+                    ? given.Table.Values.Select(ReadClip).Where(c => c != null).Select(c => c!).ToList()
+                    : new List<MusicTrack>();
+                music.Index = music.Current == null ? -1 : music.Playlist.FindIndex(c => c.Url == music.Current.Url);
+                return Set(music);
+            });
+            t["getCurrentAudioclip"] = Callback(a => Engine.State.Music?.Current is { } current ? DynValue.NewTable(Clip(current)) : DynValue.Nil);
+            t["setCurrentAudioclip"] = Callback(a =>
+            {
+                if (!(ReadClip(At(a, 0)) is { } clip))
+                    return DynValue.False;
+                var music = Copy();
+                music.Current = clip;
+                music.Index = music.Playlist.FindIndex(c => c.Url == clip.Url);
+                music.Playing = true;
+                music.Starts++;
+                return Set(music);
+            });
+            var meta = new Table(script);
+            meta["__index"] = DynValue.NewCallback((_, a) =>
+            {
+                var music = Engine.State.Music;
+                switch (a.Count > 1 ? a[1].CastToString() : null)
+                {
+                    case "player_status": return DynValue.NewString(music?.Current == null ? "Ready" : music.Playing ? "Play" : "Pause");
+                    case "playlist_index": case "playlistIndex": return DynValue.NewNumber(music?.Index ?? -1);
+                    case "repeat_track": return DynValue.NewBoolean(music?.Repeat ?? false);
+                    case "shuffle": return DynValue.NewBoolean(music?.Shuffle ?? false);
+                    case "loaded": return DynValue.NewBoolean(music?.Current != null);
+                    default: return DynValue.Nil;
+                }
+            });
+            meta["__newindex"] = DynValue.NewCallback((_, a) =>
+            {
+                var key = a.Count > 1 ? a[1].CastToString() : null;
+                var value = a.Count > 2 ? a[2] : DynValue.Nil;
+                var music = Copy();
+                switch (key)
+                {
+                    case "repeat_track": music.Repeat = value.CastToBool(); break;
+                    case "shuffle": music.Shuffle = value.CastToBool(); break;
+                    case "playlist_index": case "playlistIndex":
+                        var index = (int)(value.CastToNumber() ?? -1);
+                        if (index < 0 || index >= music.Playlist.Count)
+                            return DynValue.Nil;
+                        Load(music, index);
+                        break;
+                    default: return DynValue.Nil;
+                }
+                Set(music);
                 return DynValue.Nil;
             });
             t.MetaTable = meta;

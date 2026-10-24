@@ -268,6 +268,12 @@ namespace Core.Engine
         public string? Seat { get; set; }
     }
 
+    /// <summary>Sets the table's music (G27): playlist, track, playing; null removes it. Host only.</summary>
+    public sealed class SetMusicCommand : Command, IHostCommand
+    {
+        public MusicState? Music { get; set; }
+    }
+
     /// <summary>Sets the table grid (G28): lines, snapping, shape and size; null removes it. Host only.</summary>
     public sealed class SetGridCommand : Command, IHostCommand
     {

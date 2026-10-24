@@ -180,6 +180,7 @@ namespace TableWorld.View.Hud
             Group("Sound");
             Slider("Master volume", 0f, 1f, s.MasterVolume, v => s.MasterVolume = v, Percent);
             Slider("Table sounds", 0f, 1f, s.TableVolume, v => s.TableVolume = v, Percent);
+            Slider("Music", 0f, 1f, s.MusicVolume, v => s.MusicVolume = v, Percent);
 
             Group("Camera and mouse");
             Slider("Orbit sensitivity", GameSettings.MinScale, GameSettings.MaxScale, s.OrbitSensitivity, v => s.OrbitSensitivity = v, Times);

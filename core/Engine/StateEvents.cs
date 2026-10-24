@@ -95,6 +95,12 @@ namespace Core.Engine
         }
     }
 
+    /// <summary>The table's music changed (a track, playing or paused, the playlist).</summary>
+    public sealed class MusicChanged : StateEvent
+    {
+        public MusicChanged() : base("") { }
+    }
+
     /// <summary>A zone moved, turned or changed size; <see cref="StateEvent.ObjectId"/> is the zone's id.</summary>
     public sealed class ZoneChanged : StateEvent
     {

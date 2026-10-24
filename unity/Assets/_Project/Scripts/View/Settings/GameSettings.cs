@@ -36,6 +36,8 @@ namespace TableWorld.View.Settings
         public float MasterVolume { get; set; } = 1f;
         /// <summary>Table sounds (cards, dice, chips), 0–1, on top of the master volume.</summary>
         public float TableVolume { get; set; } = 0.8f;
+        /// <summary>The table's music (TTS Music Player), 0–1, on top of the master volume.</summary>
+        public float MusicVolume { get; set; } = 0.5f;
 
         /// <summary>Multipliers on the camera's speeds: orbit with the mouse, wheel zoom, and keyboard pan.</summary>
         public float OrbitSensitivity { get; set; } = 1f;
@@ -62,6 +64,7 @@ namespace TableWorld.View.Settings
             PlayerName = Core.Net.PlayerInfo.CleanName(PlayerName) ?? "";
             MasterVolume = Clamp(MasterVolume, 0f, 1f, 1f);
             TableVolume = Clamp(TableVolume, 0f, 1f, 0.8f);
+            MusicVolume = Clamp(MusicVolume, 0f, 1f, 0.5f);
             OrbitSensitivity = Clamp(OrbitSensitivity, MinScale, MaxScale, 1f);
             ZoomSpeed = Clamp(ZoomSpeed, MinScale, MaxScale, 1f);
             PanSpeed = Clamp(PanSpeed, MinScale, MaxScale, 1f);
@@ -117,6 +120,7 @@ namespace TableWorld.View.Settings
         {
             AudioListener.volume = MasterVolume;
             TableSounds.Volume = TableVolume;
+            MusicPlayerView.Volume = MusicVolume;
             if (tableCamera != null)
             {
                 tableCamera.OrbitScale = OrbitSensitivity;

@@ -134,6 +134,8 @@ namespace Core.Rules
         public PhysicsMode Physics { get; set; }
         /// <summary>The table grid (G28): lines and snapping; null means none. Only the host changes it.</summary>
         public GridDef? Grid { get; set; }
+        /// <summary>The table's music (G27, TTS Music Player); null means none. Only the host changes it.</summary>
+        public MusicState? Music { get; set; }
         /// <summary>The notebook's pages (G25).</summary>
         public List<NoteTab> Notebook { get; set; } = new List<NoteTab>();
         public bool ShouldSerializeNotebook() => Notebook.Count > 0;

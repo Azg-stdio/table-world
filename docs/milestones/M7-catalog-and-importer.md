@@ -15,3 +15,4 @@ Design reference: [../tts-mapping.md](../tts-mapping.md).
 | T8.5 | Catalog: official / original / community layers, authorship declaration, report and takedown; Steam Workshop via Steamworks.NET | M | T0.6 | Publish and retrieve a test mod | todo |
 | T8.6 ⚗ | Analyze 20–30 varied mods with `analyze_mods.py`; revalidate priorities | S | — | `docs/data/` updated; priorities adjusted | todo |
 | T8.7 **human** | Legal review before publishing the catalog | — | T8.5 | Sign-off recorded | todo |
+| T8.8 | `Custom_PDF` (rulebooks on the table; 7 in Pokémon Sinnoh): a paper-sized piece showing its page, next/previous page and open-in-a-window, rendered by a PDF library compatible with Unity 6.6 (PDFium-based, permissive licence; evaluate first). Today a grey placeholder | M | T8.1 | Sinnoh's rulebooks read page by page in the Editor and a build | todo |

@@ -47,6 +47,9 @@
         "grid": {
           "$ref": "#/$defs/GridDef"
         },
+        "music": {
+          "$ref": "#/$defs/MusicState"
+        },
         "notebook": {
           "type": "array",
           "items": {
@@ -2495,6 +2498,48 @@
         },
         "hexRow": {
           "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MusicState": {
+      "type": "object",
+      "properties": {
+        "playlist": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MusicTrack"
+          }
+        },
+        "current": {
+          "$ref": "#/$defs/MusicTrack"
+        },
+        "index": {
+          "type": "integer"
+        },
+        "playing": {
+          "type": "boolean"
+        },
+        "repeat": {
+          "type": "boolean"
+        },
+        "shuffle": {
+          "type": "boolean"
+        },
+        "starts": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MusicTrack": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
         }
       },
       "additionalProperties": false

@@ -70,6 +70,9 @@ namespace TableWorld.View
 
         private void Start()
         {
+            // The table's music (G27) plays on every machine.
+            if (GetComponent<MusicPlayerView>() == null)
+                gameObject.AddComponent<MusicPlayerView>();
             if (string.IsNullOrEmpty(_tableResource))
                 return;
             var text = Resources.Load<TextAsset>(_tableResource);

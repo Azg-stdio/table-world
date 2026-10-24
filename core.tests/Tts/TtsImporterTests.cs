@@ -38,6 +38,20 @@ namespace Core.Tests.Tts
     { ""GUID"": ""p00001"", ""Name"": ""Custom_PDF"", ""Nickname"": ""Rulebook"", ""LuaScript"": ""x = 1"" } ] }";
 
         [Fact]
+        public void MusicPlayer_BecomesTheTablesMusic_NotPlaying()
+        {
+            const string save = @"{ ""MusicPlayer"": { ""RepeatSong"": true, ""PlaylistEntry"": 1, ""CurrentAudioTitle"": ""Death"", ""CurrentAudioURL"": ""http://cloud-3.steamusercontent.com/ugc/2/B/"",
+                ""AudioLibrary"": [ { ""Item1"": ""http://cloud-3.steamusercontent.com/ugc/1/A/"", ""Item2"": ""Awakening"" }, { ""Item1"": ""http://cloud-3.steamusercontent.com/ugc/2/B/"", ""Item2"": ""Death"" } ] },
+                ""ObjectStates"": [] }";
+            var music = TtsImporter.Import(save).State.Music!;
+            Assert.Equal(new[] { "Awakening", "Death" }, music.Playlist.Select(t => t.Title));
+            Assert.Equal("Death", music.Current!.Title);
+            Assert.Equal(1, music.Index);
+            Assert.True(music.Repeat);
+            Assert.False(music.Playing);
+        }
+
+        [Fact]
         public void StretchedTiles_KeepTheirDepth_AndTakeTheImagesProportionsInWidth()
         {
             // TTS: depth 2 units × scaleZ, width × the image's aspect, for tall images too (Pokémon Sinnoh's portrait

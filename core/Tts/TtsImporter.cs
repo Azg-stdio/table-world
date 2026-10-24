@@ -77,6 +77,7 @@ namespace Core.Tts
                 if (snap is JObject point)
                     State.Zones.Add(Snap(point, parent: null));
             Notebook(save["TabStates"] as JObject);
+            Music(save["MusicPlayer"] as JObject);
             foreach (var o in save["ObjectStates"] as JArray ?? new JArray())
                 if (o is JObject obj)
                     Convert(obj, container: null);
@@ -85,6 +86,25 @@ namespace Core.Tts
             Settle();
             Table((string?)save["Table"]);
             return _result;
+        }
+
+        /// <summary>
+        /// TTS's Music Player: <c>AudioLibrary</c> (<c>Item1</c> address, <c>Item2</c> title) is the playlist, the current
+        /// clip and <c>PlaylistEntry</c> the track loaded, <c>RepeatSong</c> the repeat. Nothing plays on load, as in TTS.
+        /// </summary>
+        private void Music(JObject? player)
+        {
+            if (player == null)
+                return;
+            var music = new MusicState { Repeat = (bool?)player["RepeatSong"] ?? false };
+            foreach (var entry in player["AudioLibrary"] as JArray ?? new JArray())
+                if ((string?)entry["Item1"] is { } url && Rules.Asset.IsWebAddress(url))
+                    music.Playlist.Add(new MusicTrack { Url = url, Title = (string?)entry["Item2"] ?? "" });
+            if ((string?)player["CurrentAudioURL"] is { } current && Rules.Asset.IsWebAddress(current))
+                music.Current = new MusicTrack { Url = current, Title = (string?)player["CurrentAudioTitle"] ?? "" };
+            music.Index = music.Current == null ? -1 : music.Playlist.FindIndex(t => t.Url == music.Current.Url);
+            if (music.Playlist.Count > 0 || music.Current != null)
+                State.Music = music;
         }
 
         /// <summary>
