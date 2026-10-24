@@ -716,6 +716,61 @@ namespace TableWorld.View
                 return;
             var halfHeight = Held.Renderer.bounds.extents.y;
             _target = TableGeometry.ClampToDropArea(surfacePoint) + Vector3.up * (HoldHeight + halfHeight);
+            TrackShake(surfacePoint);
+        }
+
+        // ---- shaking a held deck or bag shuffles it (G32) --------------------------------------------------------
+
+        /// <summary>Direction changes needed within <see cref="ShakeWindow"/> seconds for a shake.</summary>
+        public const int ShakeReversals = 4;
+        public const float ShakeWindow = 1.2f;
+        /// <summary>A sideways move shorter than this is a tremble, not a shake.</summary>
+        public const float ShakeStroke = 0.03f;
+        public const float ShakeCooldown = 1.5f;
+
+        private readonly List<float> _shakeTurns = new List<float>();
+        private Vector3 _shakeAnchor;
+        private Vector3 _shakeDirection;
+        private float _lastShake = float.NegativeInfinity;
+        private ObjectView _shaking;
+
+        /// <summary>Raised when a shake shuffled what is held (the HUD says so).</summary>
+        public event Action<ObjectView> Shaken;
+
+        private void TrackShake(Vector3 point)
+        {
+            var held = Held;
+            if (held == null || _held.Count != 1 || !(held.Model is Deck { Cards: { Count: > 1 } } || held.Model is Bag && !(held.Model is InfiniteBag)))
+            {
+                _shaking = null;
+                return;
+            }
+            var now = Time.unscaledTime;
+            if (_shaking != held)
+            {
+                _shaking = held;
+                _shakeAnchor = point;
+                _shakeDirection = Vector3.zero;
+                _shakeTurns.Clear();
+            }
+            var move = point - _shakeAnchor;
+            move.y = 0f;
+            if (move.magnitude < ShakeStroke)
+                return;
+            var direction = move.normalized;
+            // A stroke back against the previous one is a reversal.
+            if (_shakeDirection != Vector3.zero && Vector3.Dot(direction, _shakeDirection) < -0.5f)
+                _shakeTurns.Add(now);
+            _shakeDirection = direction;
+            _shakeAnchor = point;
+            _shakeTurns.RemoveAll(t => now - t > ShakeWindow);
+            if (_shakeTurns.Count >= ShakeReversals && now - _lastShake > ShakeCooldown)
+            {
+                _lastShake = now;
+                _shakeTurns.Clear();
+                if (_table.Execute(new ShuffleCommand { ObjectId = held.Id, Actor = _table.LocalSeat }).Ok)
+                    Shaken?.Invoke(held);
+            }
         }
 
         /// <summary>Tap down (RMB while holding): the held objects sink to the table while true.</summary>

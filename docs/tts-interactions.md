@@ -153,7 +153,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G29 | Tables and environment | table types, backgrounds, lighting tool | one table | P3 |
 | G30 | Saving | named saves, autosave, save objects to a chest | ✅ Escape → Save & load: type a name and Save; each save lists its name, game and time, Load or Delete (asked twice); a save remembers its image folder, so it loads with its pictures whatever is open; autosave every 5/10/15 minutes (Settings, default 10) while the table changes, rotating through 3 slots; F5/F9 quick save stays; only the host saves and loads (2026-10-23). Saving objects to a chest is M7 (catalog) | P2 |
 | G31 | Settings | rebindable keys, mouse sensitivity, volume, graphics | 🟡 master and table-sound volume, orbit / zoom / pan speed, invert orbit, window mode, resolution, VSync, frame limit, antialiasing (off, FXAA, SMAA), interface size; applied as they change, saved per machine in `settings.json` in the user data folder, clamped on load (2026-10-23). Rebindable keys deferred (Miguel, 2026-10-23): no mod needs them (mods only use the numpad scripting buttons, M5); they need a binding layer under the direct key reads | P3 |
-| G32 | Shaking a held bag or deck shuffles it | verify | no | P3 |
+| G32 | Shaking a held bag or deck shuffles it | verify | ✅ four quick strokes back and forth within 1.2 s while holding a deck or bag shuffles it once (then 1.5 s before another); slow moves never do (2026-10-23). TTS's exact feel to verify | P3 |
 | G33 | Protocol-level hidden information | hands and hidden zones are not sent to players who cannot see them | every client receives the whole table | P2 |
 | G34 | First person and physics characters | P toggles first person; characters (M6) | ⏭ M6 | — |
 
