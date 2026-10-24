@@ -392,6 +392,10 @@ namespace TableWorld.View.Hud
                 SetClockCommand c => _table.Engine.Find(c.ObjectId) is Clock clock
                     ? $"{NameOf(c.ObjectId)}: {(clock.Mode == ClockMode.Clock ? "clock" : clock.Running ? "running" : clock.Mode == ClockMode.Timer && clock.Seconds <= 0f ? "time's up" : "stopped")}"
                     : null,
+                SetGridCommand { Grid: null } => "Grid: none",
+                SetGridCommand c => $"Grid: {(c.Grid.Shape == GridShape.Hex ? "hexes" : "squares")} of {c.Grid.SizeX * 100f:0.#} cm" +
+                                     (c.Grid.Snapping != GridSnapping.Off ? $", snapping to {c.Grid.Snapping.ToString().ToLowerInvariant()}" : "") +
+                                     (c.Grid.Lines ? "" : ", lines hidden"),
                 SetTurnOrderCommand { Enabled: false } => "Turns: off",
                 SetTurnOrderCommand c => $"Turns: on{(c.Reverse ? ", reversed" : "")}{(c.SkipEmptyHands ? ", skipping empty hands" : "")} · {turns?.Current}'s turn",
                 EndTurnCommand _ => $"{turns?.Current}'s turn",

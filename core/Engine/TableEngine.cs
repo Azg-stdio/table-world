@@ -191,6 +191,7 @@ namespace Core.Engine
             GroupCommand c => Group(c),
             RollCommand c => Roll(c),
             SetPhysicsCommand c => SetPhysics(c),
+            SetGridCommand c => SetGrid(c),
             SetTurnOrderCommand c => SetTurnOrder(c),
             EndTurnCommand c => EndTurn(c),
             ScaleCommand c => Scale(c),
@@ -475,6 +476,14 @@ namespace Core.Engine
             if (!System.Enum.IsDefined(typeof(PhysicsMode), c.Mode))
                 return CommandResult.Fail("mode", ErrorCodes.InvalidValue, $"Unknown physics mode {(int)c.Mode}.", "Use full, semiLock or locked.");
             State.Physics = c.Mode;
+            return CommandResult.Success(new List<StateEvent> { new TableSettingsChanged() });
+        }
+
+        private CommandResult SetGrid(SetGridCommand c)
+        {
+            if (c.Grid != null && TableValidator.CheckGrid(c.Grid, "grid").FirstOrDefault() is { } bad)
+                return CommandResult.Fail(bad.Path, bad.Code, bad.Message);
+            State.Grid = c.Grid;
             return CommandResult.Success(new List<StateEvent> { new TableSettingsChanged() });
         }
 

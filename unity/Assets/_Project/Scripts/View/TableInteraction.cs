@@ -673,12 +673,24 @@ namespace TableWorld.View
                 if (NearestSnapPoint(view.transform.position) is { } snap)
                 {
                     var p = SnapWorldPosition(snap);
+                    // The body too: a released kinematic body otherwise keeps its own pose.
                     view.transform.position = new Vector3(p.x, view.transform.position.y, p.z);
+                    view.Body.position = view.transform.position;
                     if (snap.RotationSnap)
                     {
                         var e = view.transform.eulerAngles;
                         view.transform.rotation = Quaternion.Euler(e.x, snap.Transform.Rotation.Y, e.z);
+                        view.Body.rotation = view.transform.rotation;
                     }
+                    velocity = Vector3.zero;
+                }
+                else if (_table.Engine.State.Grid is { Snapping: not GridSnapping.Off } grid && view.Model.Grid)
+                {
+                    // Grid snapping (G28): the drop lands on the nearest cell centre or corner.
+                    var (x, z) = grid.Snap(view.transform.position.x, view.transform.position.z);
+                    var snapped = new Vector3(x, view.transform.position.y, z);
+                    view.transform.position = snapped;
+                    view.Body.position = snapped;
                     velocity = Vector3.zero;
                 }
             }

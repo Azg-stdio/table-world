@@ -68,6 +68,8 @@ namespace Core.Rules
         /// <summary>Objects per row (or column); 0 fits as many as the zone is wide.</summary>
         public int MaxPerRow { get; set; }
         /// <summary>Gap between objects, meters.</summary>
+        // [DefaultValue]: table JSON skips defaults, and a spacing of 0 must survive a save.
+        [System.ComponentModel.DefaultValue(0.01f)]
         public float Spacing { get; set; } = 0.01f;
         public LayoutFacing Facing { get; set; }
         public bool ManualOnly { get; set; }

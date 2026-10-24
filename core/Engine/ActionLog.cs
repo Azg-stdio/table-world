@@ -109,6 +109,11 @@ namespace Core.Engine
                     return $"laid out {ZoneName(engine, c.ZoneId)}";
                 case RandomizeZoneCommand c:
                     return $"randomized {ZoneName(engine, c.ZoneId)}";
+                case SetGridCommand { Grid: null }:
+                    return "removed the grid";
+                case SetGridCommand c:
+                    return $"set a {c.Grid!.Shape.ToString().ToLowerInvariant()} grid of {c.Grid.SizeX * 100f:0.#} cm" +
+                           (c.Grid.Snapping != GridSnapping.Off ? $", snapping to {c.Grid.Snapping.ToString().ToLowerInvariant()}" : "");
                 case StartGameCommand _:
                     return "started the game";
                 case PerformActionCommand c:

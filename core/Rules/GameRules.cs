@@ -8,6 +8,7 @@ namespace Core.Rules
         public string Id { get; set; } = "";
         public string Name { get; set; } = "";
         public string? Description { get; set; }
+        [System.ComponentModel.DefaultValue(1)]
         public int MinPlayers { get; set; } = 1;
         public int MaxPlayers { get; set; } = 8;
     }

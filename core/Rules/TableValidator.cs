@@ -19,6 +19,28 @@ namespace Core.Rules
             return v.Errors;
         }
 
+        /// <summary>Problems with a grid (G28): sizes in range, a colour of three or four 0–1 numbers, opacity 0–1, known enums.</summary>
+        public static List<ValidationError> CheckGrid(GridDef grid, string path)
+        {
+            var errors = new List<ValidationError>();
+            void Size(float value, string field)
+            {
+                if (!(value >= GridDef.MinSize && value <= GridDef.MaxSize))
+                    errors.Add(new ValidationError($"{path}.{field}", ErrorCodes.InvalidValue, $"{field} is {value} m; use {GridDef.MinSize} to {GridDef.MaxSize}."));
+            }
+            Size(grid.SizeX, "sizeX");
+            Size(grid.SizeZ, "sizeZ");
+            if (!(System.Math.Abs(grid.OffsetX) <= 10f && System.Math.Abs(grid.OffsetZ) <= 10f))
+                errors.Add(new ValidationError($"{path}.offsetX", ErrorCodes.InvalidValue, "The grid offset is more than 10 m."));
+            if (!(grid.Opacity >= 0f && grid.Opacity <= 1f))
+                errors.Add(new ValidationError($"{path}.opacity", ErrorCodes.InvalidValue, $"opacity is {grid.Opacity}; use 0 to 1."));
+            if (grid.Color == null || grid.Color.Length < 3 || grid.Color.Length > 4 || grid.Color.Any(c => !(c >= 0f && c <= 1f)))
+                errors.Add(new ValidationError($"{path}.color", ErrorCodes.InvalidValue, "color is three or four numbers from 0 to 1."));
+            if (!System.Enum.IsDefined(typeof(GridShape), grid.Shape) || !System.Enum.IsDefined(typeof(GridSnapping), grid.Snapping))
+                errors.Add(new ValidationError(path, ErrorCodes.InvalidValue, "Unknown grid shape or snapping."));
+            return errors;
+        }
+
         private sealed class Run
         {
             public readonly List<ValidationError> Errors = new List<ValidationError>();
@@ -53,6 +75,8 @@ namespace Core.Rules
                     CheckSeat(_state.Players.Seats[i], $"players.seats[{i}]");
                 if (_state.Environment != null)
                     CheckEnvironment(_state.Environment, "environment");
+                if (_state.Grid != null)
+                    Errors.AddRange(CheckGrid(_state.Grid, "grid"));
                 RulesValidator.Validate(_state, Errors);
             }
 

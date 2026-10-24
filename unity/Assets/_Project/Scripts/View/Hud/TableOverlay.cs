@@ -171,6 +171,8 @@ namespace TableWorld.View.Hud
                     Item(skip ? "● Skip empty hands" : "Skip empty hands", () => Run(new SetTurnOrderCommand { Reverse = turns.Reverse, SkipEmptyHands = !skip }));
             }
             if (_table.MayChangeTable)
+                GridEntries();
+            if (_table.MayChangeTable)
                 Row("Physics", new[] { (PhysicsMode.Full, "Full"), (PhysicsMode.SemiLock, "Semi-lock"), (PhysicsMode.Locked, "Locked") }
                     .Select(m => ((_table.PhysicsMode == m.Item1 ? "● " : "") + m.Item2, (Action)(() => Run(new SetPhysicsCommand { Mode = m.Item1 })))));
             if (_table.CanRewind)
@@ -188,6 +190,38 @@ namespace TableWorld.View.Hud
             Item("Save table (F5)", () => _table.Save(TableView.SavePath(TableView.QuickSaveName)));
             Item("Load table (F9)", () => _table.LoadFile(TableView.SavePath(TableView.QuickSaveName)));
         }
+
+        /// <summary>Grid rows (G28): shape (or none), snapping, cell size, lines. Each choice keeps the other settings.</summary>
+        private void GridEntries()
+        {
+            var grid = _table.Engine.State.Grid;
+            GridDef With(System.Action<GridDef> change)
+            {
+                var copy = grid == null ? new GridDef() : Copy(grid);
+                change(copy);
+                return copy;
+            }
+            string Mark(bool on) => on ? "● " : "";
+            Row("Grid", new[]
+            {
+                (Mark(grid == null) + "None", (Action)(() => Run(new SetGridCommand { Grid = null }))),
+                (Mark(grid?.Shape == GridShape.Square) + "Squares", (Action)(() => Run(new SetGridCommand { Grid = With(g => g.Shape = GridShape.Square) }))),
+                (Mark(grid?.Shape == GridShape.Hex) + "Hexes", (Action)(() => Run(new SetGridCommand { Grid = With(g => { g.Shape = GridShape.Hex; g.SizeZ = g.SizeX * 1.1547f; }) }))),
+            });
+            if (grid == null)
+                return;
+            Row("Snap", new[] { GridSnapping.Off, GridSnapping.Centers, GridSnapping.Corners, GridSnapping.Both }
+                .Select(s => (Mark(grid.Snapping == s) + s, (Action)(() => Run(new SetGridCommand { Grid = With(g => g.Snapping = s) })))));
+            Row("Cell", new[] { 0.025f, 0.04f, 0.05f, 0.075f }.Select(size => (Mark(Mathf.Abs(grid.SizeX - size) < 0.0005f) + $"{size * 100f:0.#} cm",
+                (Action)(() => Run(new SetGridCommand { Grid = With(g => { g.SizeX = size; g.SizeZ = g.Shape == GridShape.Hex ? size * 1.1547f : size; }) })))));
+            Item(grid.Lines ? "Grid lines: hide" : "Grid lines: show", () => Run(new SetGridCommand { Grid = With(g => g.Lines = !g.Lines) }));
+        }
+
+        private static GridDef Copy(GridDef g) => new GridDef
+        {
+            Shape = g.Shape, Lines = g.Lines, Snapping = g.Snapping, SizeX = g.SizeX, SizeZ = g.SizeZ,
+            OffsetX = g.OffsetX, OffsetZ = g.OffsetZ, Color = (float[])g.Color.Clone(), Opacity = g.Opacity,
+        };
 
         /// <summary>"0:40 ago", "12:05 ago".</summary>
         public static string Ago(double seconds)

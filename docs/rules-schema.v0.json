@@ -44,6 +44,9 @@
             "locked"
           ]
         },
+        "grid": {
+          "$ref": "#/$defs/GridDef"
+        },
         "game": {
           "$ref": "#/$defs/GameInfo"
         },
@@ -204,6 +207,9 @@
         "container": {
           "type": "string"
         },
+        "grid": {
+          "type": "boolean"
+        },
         "tint": {
           "type": "array",
           "items": {
@@ -313,6 +319,9 @@
         },
         "container": {
           "type": "string"
+        },
+        "grid": {
+          "type": "boolean"
         },
         "tint": {
           "type": "array",
@@ -439,6 +448,9 @@
         "container": {
           "type": "string"
         },
+        "grid": {
+          "type": "boolean"
+        },
         "tint": {
           "type": "array",
           "items": {
@@ -514,6 +526,9 @@
         },
         "container": {
           "type": "string"
+        },
+        "grid": {
+          "type": "boolean"
         },
         "tint": {
           "type": "array",
@@ -592,6 +607,9 @@
         "container": {
           "type": "string"
         },
+        "grid": {
+          "type": "boolean"
+        },
         "tint": {
           "type": "array",
           "items": {
@@ -663,6 +681,9 @@
         },
         "container": {
           "type": "string"
+        },
+        "grid": {
+          "type": "boolean"
         },
         "tint": {
           "type": "array",
@@ -753,6 +774,9 @@
         "container": {
           "type": "string"
         },
+        "grid": {
+          "type": "boolean"
+        },
         "tint": {
           "type": "array",
           "items": {
@@ -813,6 +837,9 @@
         "container": {
           "type": "string"
         },
+        "grid": {
+          "type": "boolean"
+        },
         "tint": {
           "type": "array",
           "items": {
@@ -872,6 +899,9 @@
         },
         "container": {
           "type": "string"
+        },
+        "grid": {
+          "type": "boolean"
         },
         "tint": {
           "type": "array",
@@ -941,6 +971,9 @@
         "container": {
           "type": "string"
         },
+        "grid": {
+          "type": "boolean"
+        },
         "tint": {
           "type": "array",
           "items": {
@@ -1004,6 +1037,9 @@
         "container": {
           "type": "string"
         },
+        "grid": {
+          "type": "boolean"
+        },
         "tint": {
           "type": "array",
           "items": {
@@ -1063,6 +1099,9 @@
         },
         "container": {
           "type": "string"
+        },
+        "grid": {
+          "type": "boolean"
         },
         "tint": {
           "type": "array",
@@ -1527,6 +1566,53 @@
         },
         "count": {
           "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "GridDef": {
+      "type": "object",
+      "properties": {
+        "shape": {
+          "enum": [
+            "square",
+            "hex"
+          ]
+        },
+        "lines": {
+          "type": "boolean"
+        },
+        "snapping": {
+          "enum": [
+            "off",
+            "centers",
+            "corners",
+            "both"
+          ]
+        },
+        "sizeX": {
+          "type": "number"
+        },
+        "sizeZ": {
+          "type": "number"
+        },
+        "offsetX": {
+          "type": "number"
+        },
+        "offsetZ": {
+          "type": "number"
+        },
+        "color": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "opacity": {
+          "type": "number"
+        },
+        "hexRow": {
+          "type": "number"
         }
       },
       "additionalProperties": false

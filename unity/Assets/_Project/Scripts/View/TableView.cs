@@ -316,7 +316,23 @@ namespace TableWorld.View
             foreach (var obj in Engine.State.Objects.Where(o => o.Container == null))
                 Spawn(obj);
             SpawnZones();
+            RefreshGrid();
             PresentHands();
+        }
+
+        private GameObject _grid;
+
+        /// <summary>The grid's lines (G28), redrawn when the table or its grid changes.</summary>
+        public GameObject GridLines => _grid;
+
+        private void RefreshGrid()
+        {
+            if (_grid != null)
+            {
+                _grid.SetActive(false);
+                Destroy(_grid);
+            }
+            _grid = GridView.Build(Engine?.State.Grid, transform);
         }
 
         // ---- hands (TTS style) ------------------------------------------------------------------------------------
@@ -938,6 +954,7 @@ namespace TableWorld.View
                         foreach (var each in _views.Values)
                             if (each != null)
                                 ApplyPhysicsMode(each);
+                        RefreshGrid();
                         break;
                     case DieRolled rolled:
                         if (ViewOf(rolled.ObjectId) is { } die && isActiveAndEnabled)

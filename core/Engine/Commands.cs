@@ -128,6 +128,12 @@ namespace Core.Engine
     {
     }
 
+    /// <summary>Sets the table grid (G28): lines, snapping, shape and size; null removes it. Host only.</summary>
+    public sealed class SetGridCommand : Command, IHostCommand
+    {
+        public GridDef? Grid { get; set; }
+    }
+
     /// <summary>Arranges the unlocked objects in a <see cref="LayoutZone"/> in its grid (G18, TTS "Lay out").</summary>
     public sealed class ArrangeZoneCommand : Command
     {

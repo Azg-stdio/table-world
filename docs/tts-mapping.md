@@ -22,7 +22,7 @@ Status: **v0**, checked against the 6 local saves on 2026-10-22 (T1.3). The impo
 | `SnapPoints[]` (global) | `SnapPoint` zones | `Position`, `Rotation`, `Rotation_snap` |
 | `LuaScript`, `LuaScriptState`, `XmlUI` | `scripts.global`, saved state, UI (translated in T8.3) | `#include` already resolved in saves |
 | `ObjectStates[]` | `objects` + `zones` | recursive via `ContainedObjects` and `States` |
-| `TabStates`, `Notes`, `Decals`, `Grid`, `Turns` | notes, decals, grid settings, turn order | `Turns.TurnOrder`, `Turns.Enable` → `turn` |
+| `TabStates`, `Notes`, `Decals`, `Grid`, `Turns` | notes, decals, `grid`, turn order | `Turns.TurnOrder`, `Turns.Enable` → `turn`. `Grid`: `Type` (0 box, 1 hex) → `shape`; `Lines` → `lines`; `Snapping` → `snapping` (verify TTS's values: off / lines / center / both); `xSize`, `ySize` × the unit constant → `sizeX`, `sizeZ`; `PosOffset` → offsets; `Color`, `Opacity`. Each object's `Grid` flag → `grid` (false opts out) |
 
 ## Object types
 

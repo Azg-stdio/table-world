@@ -104,6 +104,8 @@ namespace Core.Rules
         public FreeTurns? FreeTurns { get; set; }
         /// <summary>How objects are simulated (G19). Saved with the table; only the host changes it.</summary>
         public PhysicsMode Physics { get; set; }
+        /// <summary>The table grid (G28): lines and snapping; null means none. Only the host changes it.</summary>
+        public GridDef? Grid { get; set; }
 
         // ---- rules (docs/rules-schema.md); all optional: a table without them is free play ----
 
