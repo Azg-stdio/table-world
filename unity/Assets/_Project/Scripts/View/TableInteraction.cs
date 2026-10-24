@@ -793,6 +793,14 @@ namespace TableWorld.View
             else
                 foreach (var view in group)
                     ReleaseOne(view, joinBelow: false, _velocity, Vector3.zero);
+            // Table scripts hear the drop (onObjectDrop, M5) once the release is done (it changes nothing by itself), with
+            // the object's pose where it was let go; one that joined a deck or stack is gone and has no drop.
+            foreach (var view in group)
+                if (view != null && _table.Engine.Find(view.Id) != null && !view.InHand)
+                {
+                    _table.ReportPose(view);
+                    _table.Execute(new DropCommand { ObjectId = view.Id, Actor = _table.LocalSeat });
+                }
         }
 
         /// <summary>Alt + right click while holding: drop the last object added to the group, or the bottom card of a held deck.</summary>
@@ -822,9 +830,6 @@ namespace TableWorld.View
             view.Held = false;
             SetHeldLayer(view, false);
             _table.NotifyTouched(view.Id);
-            // Table scripts hear the drop (onObjectDrop, M5); it changes nothing by itself.
-            if (joinBelow)
-                _table.Execute(new DropCommand { ObjectId = view.Id, Actor = _table.LocalSeat });
             // Into your own hand (over the hand bar, or over your hand zone): straight into its slot, no fall.
             if (view.Model is Card && HandOfLocalSeat() is { } ownHand)
             {
