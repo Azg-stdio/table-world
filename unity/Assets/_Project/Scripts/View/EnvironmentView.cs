@@ -92,7 +92,53 @@ namespace TableWorld.View
                 DressTable(look);
         }
 
-        private void Start() => Apply();
+        private void Start()
+        {
+            EnsureLook();
+            Apply();
+        }
+
+        private GameObject _look;
+
+        public const string LookProfilePath = "Look/LookProfile";
+
+        /// <summary>The look: neutral tone curve, a little more exposure and saturation (shared with the Editor's asset).</summary>
+        public static void FillLook(VolumeProfile profile)
+        {
+            if (!profile.TryGet<Tonemapping>(out var tone))
+                tone = profile.Add<Tonemapping>(true);
+            tone.mode.Override(TonemappingMode.Neutral);
+            if (!profile.TryGet<ColorAdjustments>(out var adjust))
+                adjust = profile.Add<ColorAdjustments>(true);
+            adjust.postExposure.Override(0.3f);
+            adjust.saturation.Override(12f);
+        }
+
+        /// <summary>
+        /// Tone mapping for the whole view: under the table light, white cards, boards and papers went past full white
+        /// and lost all shading. A neutral tone curve keeps their highlights; a little exposure and saturation keep the
+        /// table as bright and colourful as before. Built here, so no scene asset is edited.
+        /// </summary>
+        private void EnsureLook()
+        {
+            if (_look != null)
+                return;
+            _look = new GameObject("Look");
+            _look.transform.SetParent(transform, false);
+            var volume = _look.AddComponent<Volume>();
+            volume.isGlobal = true;
+            // The project's profile (Resources/Look/LookProfile, made by Apply Project Settings) keeps a build from
+            // stripping the tone mapping; built here only if it is missing.
+            var profile = Resources.Load<VolumeProfile>(LookProfilePath);
+            if (profile == null)
+            {
+                profile = ScriptableObject.CreateInstance<VolumeProfile>();
+                FillLook(profile);
+            }
+            volume.sharedProfile = profile;
+            if (_camera != null)
+                _camera.GetUniversalAdditionalCameraData().renderPostProcessing = true;
+        }
 
         /// <summary>Builds the room and dresses the table for the loaded table's environment.</summary>
         public void Apply()

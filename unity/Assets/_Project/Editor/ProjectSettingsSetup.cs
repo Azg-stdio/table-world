@@ -46,9 +46,33 @@ namespace TableWorld.Editor
             serialized.ApplyModifiedProperties();
         }
 
+        /// <summary>
+        /// The view's tone mapping as an asset in Resources, so builds keep its shader variants (URP strips the
+        /// post-processing a build does not reference). Idempotent.
+        /// </summary>
+        public static void CreateLookProfile()
+        {
+            const string folder = "Assets/_Project/Resources/Look";
+            var path = folder + "/LookProfile.asset";
+            var profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
+            if (profile == null)
+            {
+                System.IO.Directory.CreateDirectory(folder);
+                profile = ScriptableObject.CreateInstance<VolumeProfile>();
+                AssetDatabase.CreateAsset(profile, path);
+            }
+            TableWorld.View.EnvironmentView.FillLook(profile);
+            foreach (var component in profile.components)
+                if (!AssetDatabase.IsSubAsset(component))
+                    AssetDatabase.AddObjectToAsset(component, profile);
+            EditorUtility.SetDirty(profile);
+            AssetDatabase.SaveAssets();
+        }
+
         [MenuItem("Table World/Apply Project Settings")]
         public static void Apply()
         {
+            CreateLookProfile();
             Physics.defaultContactOffset = ContactOffset;
             Physics.defaultSolverIterations = SolverIterations;
             Physics.defaultSolverVelocityIterations = SolverVelocityIterations;
