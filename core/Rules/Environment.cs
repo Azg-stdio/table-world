@@ -30,6 +30,21 @@ namespace Core.Rules
     /// <summary>How the table itself looks.</summary>
     public sealed class TableLookDef
     {
+        /// <summary>Default playing surface, metres (width × depth).</summary>
+        public static readonly Vec2 DefaultSize = new Vec2(1.6f, 1.0f);
+
+        /// <summary>
+        /// Playing surface in metres; null is <see cref="DefaultSize"/>. TTS games lay out far more than our default
+        /// (Pokémon spans ±2.3 m, Gloomhaven ±4.4 m), so imported tables say how much room they need.
+        /// </summary>
+        public Vec2? Size { get; set; }
+        /// <summary>No table at all (TTS <c>Table_None</c>): the game brings its own surface as objects.</summary>
+        public bool Hidden { get; set; }
+        /// <summary>
+        /// With no table, how far below 0 (metres) a piece may sit before it counts as fallen off and is put back.
+        /// Null: a little below the surface, as with a table.
+        /// </summary>
+        public float? LowestY { get; set; }
         public float[]? FeltColor { get; set; }
         /// <summary>Image asset stretched over the playing surface (TTS <c>Table_Custom</c> + <c>TableURL</c>).</summary>
         public string? FeltAsset { get; set; }

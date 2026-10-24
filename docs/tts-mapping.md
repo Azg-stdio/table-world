@@ -16,7 +16,7 @@ Status: **v0**, checked against the 6 local saves on 2026-10-22 (T1.3). The impo
 | TTS field | Ours | Notes |
 |---|---|---|
 | `SaveName`, `GameMode`, `VersionNumber` | `game.name`, metadata | — |
-| `Table`, `TableURL` | table preset | `Table_None`, `Table_RectangleGlass`, etc. → nearest preset; custom URL → image on default table |
+| `Table`, `TableURL` | `environment.table` | The table is sized to the layout (98 % of the pieces in play, plus 15 cm; never below our 1.6 × 1.0 m), because TTS tables are far bigger than ours: Pokémon spreads ±2.3 m, Gloomhaven ±4.4 m. `Table_None` → `hidden` (no table of ours; the game's own models are the surface), the median height of the pieces in play becomes our table height, and `lowestY` is 30 cm under the lowest piece. Table images (`TableURL`) not mapped yet |
 | `Sky`, `SkyURL`, `Lighting` | ambience | M6, ignored before |
 | `Hands.HandTransforms[]` | `HandZone` per `Color` | `Hands.Enable`, `Hands.DisableUnused` |
 | `SnapPoints[]` (global) | `SnapPoint` zones | `Position`, `Rotation`, `Rotation_snap` |
@@ -40,7 +40,7 @@ TTS `Name` → our `type`. Prefix `Custom_` means the mesh/image comes from a UR
 | `Notecard` | `Notecard` | `Nickname` → `name` (the title), `Description` → `description` (the text) |
 | `Custom_Dice` | `Die` | `CustomImage.CustomDice.Type` (0 d4, 1 d6, 2 d8, 3 d10, 4 d12, 5 d20); `ImageURL` → `asset`. The d6 image is the TTS template: a square, top third unused, then two rows of three cells `2 4 5` / `1 3 6`, the 1 and 6 printed upside down (checked against a local mod's die, 2026-10-23; `builtin:d6_template` is a sample). Templates for other dice are not mapped yet (no local mod uses them): they draw with the builtin atlas layout |
 | `BlockSquare`, `BlockRectangle`, `Checker_*`, `Chess_Pawn` | `Model` with `builtin:block_square`, `builtin:block_rectangle`, `builtin:checker` (kind chip), `builtin:pawn`; `ColorDiffuse` → `tint` |
-| `Custom_Model` | `Model` | `CustomMesh.MeshURL` (OBJ; loaded by `ObjMesh`, X mirrored into Unity's axes as TTS does), `DiffuseURL`, `NormalURL`, `ColliderURL`, `Convex`, `MaterialIndex` (0 plastic, 1 wood, 2 metal, 3 cardboard, 4 glass), `TypeIndex` (0 generic, 1 figurine, 2 dice, 3 coin, 4 board, 5 chip, 6 bag, 7 infinite bag), `CastShadows` |
+| `Custom_Model` | `Model` | `CustomMesh.MeshURL` (OBJ in TTS units: the mesh asset gets `meshScale` 0.03; loaded by `ObjMesh`, X mirrored into Unity's axes as TTS does), `DiffuseURL`, `NormalURL`, `ColliderURL`, `Convex`, `MaterialIndex` (0 plastic, 1 wood, 2 metal, 3 cardboard, 4 glass), `TypeIndex` (0 generic, 1 figurine, 2 dice, 3 coin, 4 board, 5 chip, 6 bag, 7 infinite bag), `CastShadows` |
 | `Custom_Model_Bag`, `Custom_Model_Infinite_Bag` | `Bag` / `InfiniteBag` with a `Model` look | as `Custom_Model` + `ContainedObjects` |
 | `Custom_Assetbundle` | `Model` (source = bundle) | `CustomAssetbundle.AssetbundleURL`, `AssetbundleSecondaryURL`, `MaterialIndex`, `TypeIndex`, `LoopingEffectIndex`, `TriggerEffectIndex`; load via ADR 0001 remap or placeholder |
 | `Custom_Assetbundle_Bag`, `Custom_Assetbundle_Infinite_Bag` | `Bag` / `InfiniteBag` with a bundle look | as above + `ContainedObjects` |

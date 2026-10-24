@@ -89,6 +89,39 @@ namespace Core.Tests.Tts
             Assert.Equal("images/httpcloud3steamusercontentcomugc2FACE.png", face.Path);
         }
 
+        [Fact]
+        public void Package_ListsSaves_CopiesCachedAssets_AndListsTheRest()
+        {
+            var tts = Path.Combine(Path.GetTempPath(), "tw-tts-" + Guid.NewGuid().ToString("N"));
+            var package = Path.Combine(Path.GetTempPath(), "tw-pkg-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                Directory.CreateDirectory(Path.Combine(tts, "Mods", "Workshop"));
+                Directory.CreateDirectory(Path.Combine(tts, "Mods", "Images"));
+                File.WriteAllText(Path.Combine(tts, "Mods", "Workshop", "123.json"), Save);
+                File.WriteAllText(Path.Combine(tts, "Mods", "Workshop", "WorkshopFileInfos.json"), "[]");
+                // TTS cached the card faces as a .jpg; the package keeps them under the name the table uses.
+                File.WriteAllBytes(Path.Combine(tts, "Mods", "Images", "httpcloud3steamusercontentcomugc2FACE.jpg"), new byte[] { 1, 2, 3 });
+
+                var saves = TtsPackage.Find(tts);
+                Assert.Equal("Sample", saves.Single().Name);
+                var report = TtsPackage.Write(saves[0].File, tts, package);
+                Assert.Equal(1, report.Copied);
+                Assert.True(report.Missing.Count > 3);
+                Assert.True(File.Exists(Path.Combine(package, "images", "httpcloud3steamusercontentcomugc2FACE.png")));
+                var parsed = TableJson.Parse(File.ReadAllText(report.TableFile));
+                Assert.True(parsed.Ok, string.Join("; ", parsed.Errors));
+                Assert.Contains("Not in the cache yet: http://x/tile.jpg", File.ReadAllText(Path.Combine(package, "import-notes.txt")));
+                Assert.Equal("Sample (TTS)", TtsPackage.FolderName("Sample"));
+                Assert.Equal("ab (TTS)", TtsPackage.FolderName("a:b?"));
+            }
+            finally
+            {
+                if (Directory.Exists(tts)) Directory.Delete(tts, true);
+                if (Directory.Exists(package)) Directory.Delete(package, true);
+            }
+        }
+
         /// <summary>The Tabletop Simulator saves on this machine (TW_TTS_DIR) import into valid tables. Never in the repository.</summary>
         [Fact]
         public void LocalMods_ImportIntoValidTables()

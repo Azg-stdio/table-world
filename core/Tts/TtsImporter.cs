@@ -75,7 +75,55 @@ namespace Core.Tts
                     Convert(obj, container: null);
             foreach (var seat in State.Players.Seats)
                 seat.HandZone = State.Zones.OfType<HandZone>().FirstOrDefault(z => z.Owner == seat.Id)?.Id;
+            Table((string?)save["Table"]);
             return _result;
+        }
+
+        /// <summary>
+        /// The table the game needs: big enough for its layout (TTS tables are far larger than our default, and games
+        /// spread across them), or none for <c>Table_None</c>, where the game's own models are the surface.
+        /// </summary>
+        private void Table(string? ttsTable)
+        {
+            var onTable = State.Objects.Where(o => o.Container == null).Select(o => o.Transform.Position)
+                .Concat(State.Zones.OfType<HandZone>().Select(z => z.Transform.Position)).ToList();
+            var look = new TableLookDef();
+            if (onTable.Count > 0)
+            {
+                // Most of the layout: the outermost few pieces are often parked far away on purpose.
+                float Extent(Func<Vec3, float> axis)
+                {
+                    var values = onTable.Select(p => Math.Abs(axis(p))).OrderBy(v => v).ToList();
+                    return values[(int)((values.Count - 1) * 0.98)];
+                }
+                const float margin = 0.15f;
+                var width = Math.Max(TableLookDef.DefaultSize.X, 2f * Extent(p => p.X) + margin);
+                var depth = Math.Max(TableLookDef.DefaultSize.Y, 2f * Extent(p => p.Z) + margin);
+                if (width > TableLookDef.DefaultSize.X || depth > TableLookDef.DefaultSize.Y)
+                    look.Size = new Vec2(Math.Min(30f, width), Math.Min(30f, depth));
+            }
+            if (ttsTable == "Table_None")
+            {
+                // No TTS table, so no 0.96 to measure from: the level most pieces rest at becomes our table height.
+                look.Hidden = true;
+                var shift = onTable.Count > 0 ? onTable.Select(p => p.Y).OrderBy(y => y).ElementAt(onTable.Count / 2) : 0f;
+                Lower(shift);
+                var lowest = onTable.Count > 0 ? onTable.Min(p => p.Y) - shift : 0f;
+                look.LowestY = Math.Min(-0.05f, lowest - 0.3f);
+            }
+            if (look.Size != null || look.Hidden)
+                State.Environment = new EnvironmentDef { Table = look };
+        }
+
+        /// <summary>Moves the whole table down by <paramref name="by"/> metres (objects and zones on the table; attached ones follow their parent).</summary>
+        private void Lower(float by)
+        {
+            if (Math.Abs(by) < 1e-6f)
+                return;
+            foreach (var obj in State.Objects.Where(o => o.Container == null))
+                obj.Transform.Position = new Vec3(obj.Transform.Position.X, obj.Transform.Position.Y - by, obj.Transform.Position.Z);
+            foreach (var zone in State.Zones.Where(z => z.Parent == null))
+                zone.Transform.Position = new Vec3(zone.Transform.Position.X, zone.Transform.Position.Y - by, zone.Transform.Position.Z);
         }
 
         // ---- ids and assets -----------------------------------------------------------------------------------------
@@ -115,7 +163,12 @@ namespace Core.Tts
             var asset = new ImportedAsset { Id = id, Url = url, Type = type, CacheKey = key, Path = $"{folder}/{key}{extension}" };
             _assetsByKey[lookup] = asset;
             _result.Assets.Add(asset);
-            State.Assets.Add(new Asset { Id = id, Type = type, Path = asset.Path, Columns = Math.Max(1, columns), Rows = Math.Max(1, rows) });
+            State.Assets.Add(new Asset
+            {
+                Id = id, Type = type, Path = asset.Path, Columns = Math.Max(1, columns), Rows = Math.Max(1, rows),
+                // TTS meshes are in TTS units.
+                MeshScale = type == AssetType.Model ? TtsUnits.TtsUnitsToMeters : 1f,
+            });
             return id;
         }
 

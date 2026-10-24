@@ -170,6 +170,8 @@ namespace Core.Rules
                     CheckEnvironment(_state.Environment, "environment");
                 if (_state.Grid != null)
                     Errors.AddRange(CheckGrid(_state.Grid, "grid"));
+                if (_state.Environment?.Table.Size is { } tableSize && !(tableSize.X >= 0.3f && tableSize.X <= 30f && tableSize.Y >= 0.3f && tableSize.Y <= 30f))
+                    Add("environment.table.size", ErrorCodes.InvalidValue, "The table is 0.3 to 30 m on each side.");
                 Errors.AddRange(CheckUi(_state.ScriptUi, "scriptUi"));
                 for (var i = 0; i < _state.Zones.Count; i++)
                     Errors.AddRange(CheckUi(_state.Zones[i].ScriptUi, $"zones[{i}].scriptUi"));

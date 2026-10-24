@@ -105,6 +105,8 @@ namespace TableWorld.View
 
         private void Replace(TableState state)
         {
+            // The table's size decides drop limits and what counts as fallen off: set before anything is placed.
+            TableGeometry.Use(state.Environment);
             Clear();
             var seed = _seed != 0 ? (ulong)_seed : (ulong)DateTime.UtcNow.Ticks;
             Game = new GameEngine(state, seed);

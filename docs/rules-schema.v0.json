@@ -151,6 +151,9 @@
         },
         "rows": {
           "type": "integer"
+        },
+        "meshScale": {
+          "type": "number"
         }
       },
       "additionalProperties": false
@@ -2337,6 +2340,20 @@
     "TableLookDef": {
       "type": "object",
       "properties": {
+        "size": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "hidden": {
+          "type": "boolean"
+        },
+        "lowestY": {
+          "type": "number"
+        },
         "feltColor": {
           "type": "array",
           "items": {

@@ -217,7 +217,8 @@ namespace TableWorld.View.ScriptUi
 
             Builds++;
             _context ??= new ScriptUiContext();
-            _context.Texture = id => _table?.Assets?.Texture(id);
+            // TTS UI names images by display name; imported tables keep them as ui_<name>.
+            _context.Texture = id => _table?.Assets?.Texture(id) ?? _table?.Assets?.Texture(Core.Tts.TtsImporter.UiAssetId(id));
             _context.ViewerColor = _drawnViewer;
             _context.ViewerIsHost = _drawnHost;
             _context.Raise = (path, evt, value) => _table?.Execute(new UiEventCommand

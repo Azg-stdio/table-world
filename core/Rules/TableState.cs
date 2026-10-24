@@ -19,6 +19,12 @@ namespace Core.Rules
         /// <summary>Sprite-sheet grid for images: cells are row-major, index 0 top-left (TTS <c>NumWidth</c> × <c>NumHeight</c>).</summary>
         public int Columns { get; set; } = 1;
         public int Rows { get; set; } = 1;
+        /// <summary>
+        /// Models: metres per unit of the file. Our models are in metres (1); TTS meshes are in TTS units (0.03), so the
+        /// importer sets that.
+        /// </summary>
+        [System.ComponentModel.DefaultValue(1f)]
+        public float MeshScale { get; set; } = 1f;
 
         public const string BuiltinPrefix = "builtin:";
 

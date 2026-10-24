@@ -208,7 +208,9 @@ namespace TableWorld.View
                 default:
                 {
                     var grey = assets.Plain(model.Tint.ToColor(Placeholder));
-                    SetPrism(view, MeshFactory.Box(Vector3.one * ModelPlaceholderSize), grey, grey, grey, 0.02f);
+                    // A stand-in stays a small box in the world whatever the object's scale (a TTS mat at scale 45 is not a 1.4 m cube).
+                    var unscale = 1f / Mathf.Max(0.01f, Mathf.Abs(model.Transform.Scale.X));
+                    SetPrism(view, MeshFactory.Box(Vector3.one * ModelPlaceholderSize * unscale), grey, grey, grey, 0.02f);
                     break;
                 }
             }

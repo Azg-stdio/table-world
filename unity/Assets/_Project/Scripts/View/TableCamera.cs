@@ -72,6 +72,13 @@ namespace TableWorld.View
         public float PanScale { get; set; } = 1f;
         public bool InvertOrbitY { get; set; }
 
+        /// <summary>Lets the camera reach all of a table of this size (big TTS tables need more than the default).</summary>
+        public void FitTable(Vector2 size)
+        {
+            _pivotExtents = new Vector2(Mathf.Max(1.2f, size.x / 2f + 0.4f), Mathf.Max(0.9f, size.y / 2f + 0.4f));
+            _maxDistance = Mathf.Max(4f, Mathf.Max(size.x, size.y) * 1.3f);
+        }
+
         public void Configure(Vector3 pivot, float yaw, float pitch, float distance, Vector2 pivotExtents)
         {
             _pivot = pivot;

@@ -744,8 +744,64 @@ namespace TableWorld.View.Hud
                 button.AddToClassList("menu-item");
                 list.Add(button);
             }
+            ListTtsSaves(list);
             _gamesPanel.Q<Label>("gamesHint").text = $"Your own games: put a .json file, or a folder with table.json and its images, in {GameLibrary.UserFolder}";
             _gamesPanel.RemoveFromClassList(Hidden);
+        }
+
+        private bool _importing;
+
+        /// <summary>
+        /// Tabletop Simulator saves on this computer (M7): importing one makes it a game in the list above, with the
+        /// files the TTS cache holds. Only the player's own files are read; nothing is downloaded or shared.
+        /// </summary>
+        private void ListTtsSaves(ScrollView list)
+        {
+            var folder = Core.Tts.TtsPackage.DefaultFolder;
+            if (!System.IO.Directory.Exists(folder))
+                return;
+            var saves = Core.Tts.TtsPackage.Find(folder);
+            if (saves.Count == 0)
+                return;
+            var title = new Label("Import from Tabletop Simulator");
+            title.AddToClassList("selection-title");
+            list.Add(title);
+            foreach (var save in saves)
+            {
+                var button = new Button(() => ImportTts(save, folder)) { text = save.Name };
+                button.AddToClassList("menu-item");
+                list.Add(button);
+            }
+        }
+
+        private async void ImportTts(Core.Tts.TtsPackage.Save save, string ttsFolder)
+        {
+            if (_importing)
+                return;
+            _importing = true;
+            ShowStatus($"Importing {save.Name}…", error: false);
+            var target = System.IO.Path.Combine(GameLibrary.UserFolder, Core.Tts.TtsPackage.FolderName(save.Name));
+            try
+            {
+                // Big saves and their files take seconds: off the main thread, back here to report.
+                var report = await System.Threading.Tasks.Task.Run(() => Core.Tts.TtsPackage.Write(save.File, ttsFolder, target));
+                var missing = report.Missing.Count > 0 ? $"; {report.Missing.Count} files not in the TTS cache (they show as placeholders)" : "";
+                ShowStatus($"Imported {save.Name}: {report.Objects} objects, {report.Copied} files{missing}. It is in Games.", error: false);
+                if (!_gamesPanel.ClassListContains(Hidden))
+                {
+                    _gamesPanel.AddToClassList(Hidden);
+                    ToggleGames();
+                }
+            }
+            catch (System.Exception e)
+            {
+                ShowStatus($"Could not import {save.Name}: {e.Message}", error: true);
+                Debug.LogException(e);
+            }
+            finally
+            {
+                _importing = false;
+            }
         }
 
         private void OpenGame(GameLibrary.Entry entry)

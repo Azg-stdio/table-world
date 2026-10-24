@@ -145,8 +145,8 @@ namespace TableWorld.View
             if (Renderer != null)
             {
                 var lowest = Base != null ? Mathf.Min(Renderer.bounds.min.y, Base.bounds.min.y) : Renderer.bounds.min.y;
-                if (lowest < 0f)
-                    transform.position += Vector3.up * -lowest;
+                if (lowest < TableGeometry.Floor)
+                    transform.position += Vector3.up * (TableGeometry.Floor - lowest);
             }
             if (Body != null && !Body.isKinematic)
             {

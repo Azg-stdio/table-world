@@ -39,7 +39,8 @@ namespace TableWorld.View
         public static readonly Color DefaultWood = new Color(0.36f, 0.22f, 0.12f);
 
         /// <summary>Room size around the table centre: the camera reaches 4 m, so it never leaves the room.</summary>
-        public static readonly Vector3 RoomHalfSize = new Vector3(5f, 0f, 4.5f);
+        /// <summary>The room grows with a big table, keeping walls a few steps away from it.</summary>
+        public static Vector3 RoomHalfSize => new Vector3(Mathf.Max(5f, TableGeometry.Size.x / 2f + 2.5f), 0f, Mathf.Max(4.5f, TableGeometry.Size.y / 2f + 2.5f));
         public const float FloorY = -0.76f;
         public const float CeilingY = 2.4f;
         public const float LampHeight = 1.05f;
@@ -52,6 +53,7 @@ namespace TableWorld.View
         private GameObject _room;
         private Light _lamp;
         private Light _tableLight;
+        private readonly System.Collections.Generic.List<Light> _extraTableLights = new System.Collections.Generic.List<Light>();
         private Shader _lit;
 
         public Light Lamp => _lamp;
@@ -103,6 +105,7 @@ namespace TableWorld.View
             _lamp = null;
             _tableLight = null;
 
+            FitTable();
             var wall = ToColor(env.WallColor, DefaultWall);
             var floor = ToColor(env.FloorColor, DefaultFloor);
             var gameNight = env.Room == RoomPreset.GameNight && env.RoomAsset == null;
@@ -126,6 +129,11 @@ namespace TableWorld.View
             {
                 _tableLight.color = ToColor(lighting.TableLightColor, DefaultTableLight);
                 _tableLight.intensity = lighting.TableLightIntensity ?? DefaultTableLightIntensity;
+                foreach (var extra in _extraTableLights)
+                {
+                    extra.color = _tableLight.color;
+                    extra.intensity = _tableLight.intensity;
+                }
             }
             // Without a room the old directional light keeps the table readable.
             if (_sun != null)
@@ -181,14 +189,15 @@ namespace TableWorld.View
             Quad("Wall East", new Vector3(h.x, wallMid, 0f), Quaternion.Euler(0f, 90f, 0f), new Vector2(h.z * 2f, wallHeight), wall, 0.1f);
             Quad("Wall West", new Vector3(-h.x, wallMid, 0f), Quaternion.Euler(0f, -90f, 0f), new Vector2(h.z * 2f, wallHeight), wall, 0.1f);
             // A dark rug under the table grounds it.
-            Quad("Rug", new Vector3(0f, FloorY + 0.003f, 0f), Quaternion.Euler(90f, 0f, 0f), new Vector2(TableGeometry.Size.x + 1.4f, TableGeometry.Size.y + 1.2f), new Color(0.25f, 0.08f, 0.07f), 0f);
+            if (!TableGeometry.Hidden)
+                Quad("Rug", new Vector3(0f, FloorY + 0.003f, 0f), Quaternion.Euler(90f, 0f, 0f), new Vector2(TableGeometry.Size.x + 1.4f, TableGeometry.Size.y + 1.2f), new Color(0.25f, 0.08f, 0.07f), 0f);
 
             // Table legs, under the corners.
             var legTop = -TableGeometry.Thickness;
             var legHeight = legTop - FloorY;
             var lx = TableGeometry.Size.x / 2f - 0.08f;
             var lz = TableGeometry.Size.y / 2f - 0.08f;
-            foreach (var (x, z) in new[] { (lx, lz), (-lx, lz), (lx, -lz), (-lx, -lz) })
+            foreach (var (x, z) in TableGeometry.Hidden ? new (float, float)[0] : new[] { (lx, lz), (-lx, lz), (lx, -lz), (-lx, -lz) })
                 Box("Leg", new Vector3(x, legTop - legHeight / 2f, z), new Vector3(0.07f, legHeight, 0.07f), DefaultWood * 0.8f, 0.3f);
 
             // The lamp: a shade over the table and a warm spot that lights the whole table and casts soft shadows.
@@ -238,6 +247,32 @@ namespace TableWorld.View
             _tableLight.shadowNearPlane = 0.1f;
             SetLayers(_tableLight, PiecesLayers);
 
+            // A big table (an imported TTS game) gets more of the same light, one about every 1.6 m, without shadows
+            // (the centre light keeps them): one lamp lights about 1.8 m around it.
+            _extraTableLights.Clear();
+            var size = TableGeometry.Size;
+            var columns = Mathf.Max(1, Mathf.CeilToInt(size.x / 1.6f));
+            var rows = Mathf.Max(1, Mathf.CeilToInt(size.y / 1.6f));
+            for (var cx = 0; cx < columns; cx++)
+                for (var cz = 0; cz < rows; cz++)
+                {
+                    var x = (cx + 0.5f) * size.x / columns - size.x / 2f;
+                    var z = (cz + 0.5f) * size.y / rows - size.y / 2f;
+                    if (columns * rows == 1 || Mathf.Abs(x) < 0.5f && Mathf.Abs(z) < 0.5f)
+                        continue;
+                    var extraGo = new GameObject("Table Light (more)");
+                    extraGo.transform.SetParent(_room.transform, false);
+                    extraGo.transform.SetPositionAndRotation(new Vector3(x, LampHeight, z), Quaternion.Euler(90f, 0f, 0f));
+                    var extra = extraGo.AddComponent<Light>();
+                    extra.type = LightType.Spot;
+                    extra.spotAngle = 120f;
+                    extra.innerSpotAngle = 80f;
+                    extra.range = 4f;
+                    extra.shadows = LightShadows.None;
+                    SetLayers(extra, PiecesLayers);
+                    _extraTableLights.Add(extra);
+                }
+
             // The table light points straight down, so the sides of chips, dice, tiles and models got only the dim ambient
             // and looked black. Two faint, low, shadowless lights from opposite corners light every side of a piece.
             foreach (var yaw in new[] { 35f, 215f })
@@ -267,6 +302,48 @@ namespace TableWorld.View
         }
 
         /// <summary>Felt colour or image, wood colour; per-instance materials so the shared material assets stay untouched.</summary>
+        /// <summary>
+        /// Shapes the scene's table to the loaded table's size (felt and rims; the legs and rug follow in the room), or
+        /// hides it when the game brings its own surface; the camera's reach follows.
+        /// </summary>
+        private void FitTable()
+        {
+            if (_tableRoot != null)
+            {
+                _tableRoot.gameObject.SetActive(!TableGeometry.Hidden);
+                var size = TableGeometry.Size;
+                var thickness = TableGeometry.Thickness;
+                var rimWidth = TableGeometry.RimWidth;
+                var halfX = size.x / 2f + rimWidth / 2f;
+                var halfZ = size.y / 2f + rimWidth / 2f;
+                var rimY = TableGeometry.RimHeight / 2f - thickness / 2f;
+                var rimHeight = TableGeometry.RimHeight + thickness;
+                foreach (Transform part in _tableRoot)
+                {
+                    switch (part.name)
+                    {
+                        case "Surface":
+                            part.localPosition = new Vector3(0f, -thickness / 2f, 0f);
+                            part.localScale = new Vector3(size.x, thickness, size.y);
+                            break;
+                        case "RimNorth":
+                        case "RimSouth":
+                            part.localPosition = new Vector3(0f, rimY, part.name == "RimNorth" ? halfZ : -halfZ);
+                            part.localScale = new Vector3(size.x + 2f * rimWidth, rimHeight, rimWidth);
+                            break;
+                        case "RimEast":
+                        case "RimWest":
+                            part.localPosition = new Vector3(part.name == "RimEast" ? halfX : -halfX, rimY, 0f);
+                            part.localScale = new Vector3(rimWidth, rimHeight, size.y);
+                            break;
+                    }
+                }
+            }
+            var camera = _camera != null ? _camera.GetComponent<TableCamera>() : null;
+            if (camera != null)
+                camera.FitTable(TableGeometry.Size);
+        }
+
         private void DressTable(TableLookDef look)
         {
             if (_tableRoot == null)

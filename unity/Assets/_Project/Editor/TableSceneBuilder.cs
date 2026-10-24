@@ -21,7 +21,7 @@ namespace TableWorld.Editor
         public const string MaterialsFolder = "Assets/_Project/Art/Materials";
 
         /// <summary>Playing surface in metres (<see cref="TableWorld.View.TableGeometry"/>). The top of the table is Y = 0, as in core.</summary>
-        public static readonly Vector2 TableSize = TableWorld.View.TableGeometry.Size;
+        public static readonly Vector2 TableSize = TableWorld.View.TableGeometry.DefaultSize;
         public const float TableThickness = TableWorld.View.TableGeometry.Thickness;
         public const float RimHeight = TableWorld.View.TableGeometry.RimHeight;
         public const float RimWidth = TableWorld.View.TableGeometry.RimWidth;

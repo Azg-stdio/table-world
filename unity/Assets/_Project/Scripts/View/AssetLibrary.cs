@@ -216,7 +216,7 @@ namespace TableWorld.View
                 if (!asset.Path.EndsWith(".obj", System.StringComparison.OrdinalIgnoreCase))
                     Debug.LogWarning($"[AssetLibrary] '{asset.Path}': only OBJ models load for now; showing a placeholder.");
                 else if (Core.Models.ObjMesh.Parse(System.Text.Encoding.UTF8.GetString(bytes), out var error) is { } data)
-                    mesh = ToMesh(data, asset.Path);
+                    mesh = ToMesh(data, asset.Path, asset.MeshScale);
                 else
                     Debug.LogWarning($"[AssetLibrary] '{asset.Path}' is not a usable OBJ model: {error}");
             }
@@ -227,12 +227,12 @@ namespace TableWorld.View
             return mesh;
         }
 
-        private static Mesh ToMesh(Core.Models.MeshData data, string name)
+        private static Mesh ToMesh(Core.Models.MeshData data, string name, float scale)
         {
             var mesh = new Mesh { name = "model:" + name };
             if (data.Positions.Count > 65000)
                 mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-            mesh.SetVertices(data.Positions.ConvertAll(p => new Vector3(p.X, p.Y, p.Z)));
+            mesh.SetVertices(data.Positions.ConvertAll(p => new Vector3(p.X, p.Y, p.Z) * scale));
             mesh.SetUVs(0, data.Uvs.ConvertAll(u => new Vector2(u.X, u.Y)));
             mesh.SetTriangles(data.Triangles, 0);
             if (data.Normals.Count == data.Positions.Count)
