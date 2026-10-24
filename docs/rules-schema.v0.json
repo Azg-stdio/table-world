@@ -234,6 +234,9 @@
             "type": "string"
           }
         },
+        "meshHidden": {
+          "type": "boolean"
+        },
         "locked": {
           "type": "boolean"
         },
@@ -535,6 +538,9 @@
             "type": "string"
           }
         },
+        "meshHidden": {
+          "type": "boolean"
+        },
         "locked": {
           "type": "boolean"
         },
@@ -702,6 +708,9 @@
             "type": "string"
           }
         },
+        "meshHidden": {
+          "type": "boolean"
+        },
         "locked": {
           "type": "boolean"
         },
@@ -819,6 +828,9 @@
           "items": {
             "type": "string"
           }
+        },
+        "meshHidden": {
+          "type": "boolean"
         },
         "locked": {
           "type": "boolean"
@@ -950,6 +962,9 @@
             "type": "string"
           }
         },
+        "meshHidden": {
+          "type": "boolean"
+        },
         "locked": {
           "type": "boolean"
         },
@@ -1063,6 +1078,9 @@
           "items": {
             "type": "string"
           }
+        },
+        "meshHidden": {
+          "type": "boolean"
         },
         "locked": {
           "type": "boolean"
@@ -1195,6 +1213,9 @@
             "type": "string"
           }
         },
+        "meshHidden": {
+          "type": "boolean"
+        },
         "locked": {
           "type": "boolean"
         },
@@ -1297,6 +1318,9 @@
             "type": "string"
           }
         },
+        "meshHidden": {
+          "type": "boolean"
+        },
         "locked": {
           "type": "boolean"
         },
@@ -1398,6 +1422,9 @@
           "items": {
             "type": "string"
           }
+        },
+        "meshHidden": {
+          "type": "boolean"
         },
         "locked": {
           "type": "boolean"
@@ -1509,6 +1536,9 @@
             "type": "string"
           }
         },
+        "meshHidden": {
+          "type": "boolean"
+        },
         "locked": {
           "type": "boolean"
         },
@@ -1614,6 +1644,9 @@
             "type": "string"
           }
         },
+        "meshHidden": {
+          "type": "boolean"
+        },
         "locked": {
           "type": "boolean"
         },
@@ -1715,6 +1748,9 @@
           "items": {
             "type": "string"
           }
+        },
+        "meshHidden": {
+          "type": "boolean"
         },
         "locked": {
           "type": "boolean"
@@ -1830,6 +1866,9 @@
           "items": {
             "type": "string"
           }
+        },
+        "meshHidden": {
+          "type": "boolean"
         },
         "locked": {
           "type": "boolean"

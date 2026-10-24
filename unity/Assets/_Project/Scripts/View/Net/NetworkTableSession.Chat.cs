@@ -151,7 +151,8 @@ namespace TableWorld.View.Net
 
         private void Log(TableEngine engine, Command command, CommandResult result, string actor)
         {
-            if (engine == null)
+            // What scripts do is theirs to announce (they print to chat); TTS logs none of it either.
+            if (engine == null || command.ByScript)
                 return;
             foreach (var (rules, text) in ActionLog.Describe(engine, command, result, actor, _table.Spectating ? null : _table.LocalSeat))
                 Chat.Add(new ChatEntry { Kind = rules ? ChatKind.Notice : ChatKind.Action, Text = text });

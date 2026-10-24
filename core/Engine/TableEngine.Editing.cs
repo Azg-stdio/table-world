@@ -332,6 +332,7 @@ namespace Core.Engine
             if (c.Snap.HasValue) obj.Snap = c.Snap.Value;
             if (c.Grid.HasValue) obj.Grid = c.Grid.Value;
             if (c.Tooltip.HasValue) obj.Tooltip = c.Tooltip.Value;
+            if (c.MeshHidden.HasValue) obj.MeshHidden = c.MeshHidden.Value;
             if (c.HideWhenFaceDown.HasValue) obj.HideWhenFaceDown = c.HideWhenFaceDown.Value;
             if (c.Tags != null && (c.Tags.Count > 200 || c.Tags.Any(t => string.IsNullOrEmpty(t) || t.Length > 200)))
                 return CommandResult.Fail("tags", ErrorCodes.InvalidValue, "Tags are up to 200 words of up to 200 characters.");

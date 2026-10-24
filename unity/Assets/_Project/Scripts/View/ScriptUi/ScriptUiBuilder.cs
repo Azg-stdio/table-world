@@ -214,7 +214,10 @@ namespace TableWorld.View.ScriptUi
             var height = Size(node.Get("height")) ?? Length.Percent(100);
             e.style.width = width;
             e.style.height = height;
+            // offsetXY and a nested element's position (XmlUI's local position, x right, y up) both move it.
             var offset = Vector(node.Get("offsetXY"), 2) ?? new[] { 0f, 0f };
+            if (Vector(node.Get("position"), 2) is { } local)
+                offset = new[] { offset[0] + local[0], offset[1] + local[1] };
             var alignment = node.Get("rectAlignment") ?? "MiddleCenter";
             float tx = 0f, ty = 0f;
             if (alignment.EndsWith("Left", StringComparison.Ordinal))

@@ -184,6 +184,7 @@ namespace Core.Scripting
             g["UI"] = UiApi(script, null);
             g["Player"] = PlayerApi(script);
             g["Physics"] = PhysicsApi(script);
+            g["Turns"] = TurnsApi(script);
             // Music (G27) is not played by scripts yet: the player's calls are accepted, without effect.
             var music = new Table(script);
             foreach (var call in new[] { "setPlaylist", "play", "pause", "skipForward", "skipBack", "setCurrentAudioclip" })
@@ -342,7 +343,8 @@ namespace Core.Scripting
             if (zone != null)
             {
                 t["getName"] = DynValue.NewCallback((_, a) => Str(zone.Name));
-                t["type"] = "Scripting";
+                t["type"] = TtsTag(zone);
+                t["tag"] = TtsTag(zone);
                 t["getObjects"] = DynValue.NewCallback((_, a) => List(script, Engine.ObjectsIn(id).Select(o => o.Id)));
                 t["getPosition"] = DynValue.NewCallback((_, a) => DynValue.NewTable(ToTts(script, zone.Transform.Position)));
                 t["hasTag"] = DynValue.NewCallback((_, a) => DynValue.NewBoolean(zone.Tags.Contains(Arg(a, 0) ?? "")));
@@ -377,6 +379,8 @@ namespace Core.Scripting
 
             // The methods come from the metatable, made when a script first uses them.
             t["type"] = obj!.Type;
+            // TTS's category of the object, which scripts test (obj.tag == "Card", zone.tag == "Scripting").
+            t["tag"] = TtsTag(obj);
             t["script_state"] = DynValue.Nil;
             t.MetaTable = ProxyMethods(script);
             var proxy = DynValue.NewTable(t);
@@ -867,8 +871,19 @@ namespace Core.Scripting
                     return DynValue.NewCallback((_, a) =>
                     {
                         var component = new Table(script);
-                        component["get"] = DynValue.NewCallback((__, b) => DynValue.Nil);
-                        component["set"] = DynValue.NewCallback((__, b) => DynValue.False);
+                        var name = Arg(a, 0) ?? "";
+                        // The renderer's "enabled" shows or hides the object's shape; other components are not scripted.
+                        var renderer = name.EndsWith("Renderer", StringComparison.Ordinal);
+                        int At2(CallbackArguments b) => b.Count > 0 && b[0].Type == DataType.Table && b[0].Table == component ? 1 : 0;
+                        component["get"] = DynValue.NewCallback((__, b) =>
+                            renderer && b.Count > At2(b) && b[At2(b)].CastToString() == "enabled" && Engine.Find(id) is { } live ? DynValue.NewBoolean(!live.MeshHidden) : DynValue.Nil);
+                        component["set"] = DynValue.NewCallback((__, b) =>
+                        {
+                            var i = At2(b);
+                            if (!renderer || b.Count < i + 2 || b[i].CastToString() != "enabled")
+                                return DynValue.False;
+                            return Do(new SetPropertiesCommand { ObjectId = id, MeshHidden = !b[i + 1].CastToBool() });
+                        });
                         component["getVars"] = DynValue.NewCallback((__, b) => DynValue.NewTable(new Table(script)));
                         return DynValue.NewTable(component);
                     });
@@ -927,6 +942,16 @@ namespace Core.Scripting
                         break;
                     case "Custom_Tile": json["type"] = "Tile"; break;
                     case "Custom_Board": json["type"] = "Board"; break;
+                    case "Card":
+                    case "CardCustom":
+                        // A blank card; scripts give it its face and back with setCustomObject.
+                        json["type"] = "Card";
+                        json["faceAsset"] = "builtin_standard_deck";
+                        json["faceIndex"] = 0;
+                        json["backAsset"] = "builtin_standard_back";
+                        assets.Add(new Asset { Id = "builtin_standard_deck", Type = AssetType.Image, Path = Asset.BuiltinPrefix + "standard_deck", Columns = 10, Rows = 7 });
+                        assets.Add(new Asset { Id = "builtin_standard_back", Type = AssetType.Image, Path = Asset.BuiltinPrefix + "standard_back" });
+                        break;
                     case "Custom_Model":
                         json["type"] = "Model";
                         json["asset"] = "builtin_placeholder";
@@ -990,6 +1015,111 @@ namespace Core.Scripting
             };
             added.Add(asset);
             return asset;
+        }
+
+        /// <summary>TTS's <c>tag</c> for an object or zone.</summary>
+        private static string TtsTag(object thing) => thing switch
+        {
+            Card _ => "Card",
+            Deck _ => "Deck",
+            InfiniteBag _ => "Infinite",
+            Bag _ => "Bag",
+            Die _ => "Dice",
+            Tile _ => "Tile",
+            Board _ => "Board",
+            Figure _ => "Figurine",
+            Counter _ => "Counter",
+            Clock _ => "Clock",
+            Notecard _ => "Notecard",
+            ScriptingZone _ => "Scripting",
+            HandZone _ => "Hand",
+            HiddenZone _ => "Fog",
+            LayoutZone _ => "Layout",
+            RandomizeZone _ => "Randomize",
+            _ => "Generic",
+        };
+
+        /// <summary>
+        /// TTS's <c>Turns</c>: <c>enable</c>, <c>order</c>, <c>turn_color</c>, <c>reverse_order</c>,
+        /// <c>skip_empty_hands</c> read the table's free-play turns and setting them changes them (<c>SetTurnOrder</c>);
+        /// <c>getNextTurnColor()</c> / <c>getPreviousTurnColor()</c>.
+        /// </summary>
+        private DynValue TurnsApi(Script script)
+        {
+            var t = new Table(script);
+            string? ColorOf(string? seat) => seat == null ? null : Engine.State.Players.Seats.FirstOrDefault(s => s.Id == seat)?.Color is { } c ? Capital(c) : null;
+            string? SeatOf(string? color) => color == null ? null : Engine.State.Players.Seats.FirstOrDefault(s => string.Equals(s.Color, color, StringComparison.OrdinalIgnoreCase))?.Id;
+            FreeTurns Current() => Engine.State.FreeTurns ?? new FreeTurns();
+            List<string> Order(FreeTurns turns) => turns.Seats.Count > 0 ? turns.Seats : Engine.State.Players.Seats.Select(s => s.Id).ToList();
+            void Set(Action<SetTurnOrderCommand> change)
+            {
+                var turns = Current();
+                var command = new SetTurnOrderCommand
+                {
+                    Enabled = turns.Enabled, Seats = Order(turns).ToList(), Reverse = turns.Reverse, SkipEmptyHands = turns.SkipEmptyHands, First = turns.Current,
+                };
+                change(command);
+                Issue(command);
+            }
+            string? Step(int by)
+            {
+                var turns = Current();
+                var order = Order(turns);
+                if (order.Count == 0)
+                    return null;
+                var at = Math.Max(0, order.IndexOf(turns.Current ?? order[0]));
+                var direction = turns.Reverse ? -by : by;
+                return ColorOf(order[((at + direction) % order.Count + order.Count) % order.Count]);
+            }
+            t["getNextTurnColor"] = DynValue.NewCallback((_, a) => Step(1) is { } c ? DynValue.NewString(c) : DynValue.Nil);
+            t["getPreviousTurnColor"] = DynValue.NewCallback((_, a) => Step(-1) is { } c ? DynValue.NewString(c) : DynValue.Nil);
+            var meta = new Table(script);
+            meta["__index"] = DynValue.NewCallback((_, a) =>
+            {
+                var turns = Current();
+                switch (a.Count > 1 ? a[1].CastToString() : null)
+                {
+                    case "enable": return DynValue.NewBoolean(turns.Enabled);
+                    case "reverse_order": return DynValue.NewBoolean(turns.Reverse);
+                    case "skip_empty_hands": return DynValue.NewBoolean(turns.SkipEmptyHands);
+                    case "turn_color": return ColorOf(turns.Current) is { } c ? DynValue.NewString(c) : DynValue.NewString("");
+                    case "type": return DynValue.NewNumber(turns.Seats.Count > 0 ? 2 : 1);
+                    case "pass_turns": return DynValue.True;
+                    case "disable_interactations": return DynValue.False;
+                    case "order":
+                        var list = new Table(script);
+                        var i = 1;
+                        foreach (var seat in Order(turns))
+                            if (ColorOf(seat) is { } color)
+                                list[i++] = color;
+                        return DynValue.NewTable(list);
+                    default: return DynValue.Nil;
+                }
+            });
+            meta["__newindex"] = DynValue.NewCallback((_, a) =>
+            {
+                var key = a.Count > 1 ? a[1].CastToString() : null;
+                var value = a.Count > 2 ? a[2] : DynValue.Nil;
+                switch (key)
+                {
+                    case "enable": Set(c => c.Enabled = value.CastToBool()); break;
+                    case "reverse_order": Set(c => c.Reverse = value.CastToBool()); break;
+                    case "skip_empty_hands": Set(c => c.SkipEmptyHands = value.CastToBool()); break;
+                    case "turn_color": Set(c => c.First = SeatOf(value.CastToString())); break;
+                    case "order" when value.Type == DataType.Table:
+                        var seats = value.Table.Values.Select(v => SeatOf(v.CastToString())).Where(s => s != null).Select(s => s!).ToList();
+                        Set(c =>
+                        {
+                            c.Seats = seats;
+                            if (c.First == null || !seats.Contains(c.First))
+                                c.First = seats.FirstOrDefault();
+                        });
+                        break;
+                }
+                return DynValue.Nil;
+            });
+            t.MetaTable = meta;
+            return DynValue.NewTable(t);
         }
 
         /// <summary>A Lua list of strings (or one string) as a list.</summary>

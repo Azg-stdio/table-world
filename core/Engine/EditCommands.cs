@@ -124,6 +124,7 @@ namespace Core.Engine
         public bool? Hands { get; set; }
         public bool? HideWhenFaceDown { get; set; }
         public bool? Tooltip { get; set; }
+        public bool? MeshHidden { get; set; }
         /// <summary>Replaces the object's Lua (TTS <c>setLuaScript</c>); the host reloads that script. Empty removes it.</summary>
         public string? Script { get; set; }
         /// <summary>Replaces the tags.</summary>

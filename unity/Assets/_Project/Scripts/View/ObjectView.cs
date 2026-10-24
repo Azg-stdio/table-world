@@ -61,7 +61,7 @@ namespace TableWorld.View
         {
             ZoneHidden = hidden;
             foreach (var renderer in GetComponentsInChildren<Renderer>(true))
-                renderer.forceRenderingOff = hidden;
+                renderer.forceRenderingOff = hidden || renderer == Renderer && Model.MeshHidden;
             // A notecard's printed face is a UI panel, not a renderer.
             var face = transform.Find(NotecardView.FaceName);
             if (face != null)

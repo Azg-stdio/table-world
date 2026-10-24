@@ -220,6 +220,8 @@ namespace TableWorld.View
                 }
             }
             view.Body.isKinematic = view.Pinned || !view.Renderer.enabled || view.Held || view.Animating;
+            // A script hid the shape (the object holds UI): nothing is drawn, the rest stays.
+            view.Renderer.forceRenderingOff = model.MeshHidden || view.ZoneHidden;
             ScriptButtonsView.Refresh(view);
             ScriptInputsView.Refresh(view);
         }

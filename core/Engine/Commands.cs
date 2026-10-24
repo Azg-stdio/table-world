@@ -12,8 +12,10 @@ namespace Core.Engine
         /// <summary>Seat id of the player issuing the command, or null for the host/system.</summary>
         public string? Actor { get; set; }
 
-        /// <summary>Issued by a table script on this machine (M5): the player did not ask for it, so it is not announced to them.</summary>
-        [Newtonsoft.Json.JsonIgnore]
+        /// <summary>
+        /// Issued by a table script (M5): no player asked for it, so it is not announced in the log or the status line.
+        /// Travels with the command, so clients leave it out of their log too.
+        /// </summary>
         public bool ByScript { get; set; }
     }
 

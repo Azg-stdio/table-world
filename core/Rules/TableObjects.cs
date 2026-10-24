@@ -41,6 +41,11 @@ namespace Core.Rules
         /// </summary>
         public List<string> InvisibleTo { get; set; } = new List<string>();
         public bool ShouldSerializeInvisibleTo() => InvisibleTo.Count > 0;
+        /// <summary>
+        /// The object's own shape is not drawn, while its UI, buttons and collider stay (TTS scripts do this with
+        /// <c>getComponent("MeshRenderer").set("enabled", false)</c> to use an object as a UI holder).
+        /// </summary>
+        public bool MeshHidden { get; set; }
         public bool Locked { get; set; }
         public TableTransform Transform { get; set; } = new TableTransform();
         public bool ShouldSerializeTransform() => !Transform.IsDefault;

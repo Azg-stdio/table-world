@@ -68,7 +68,9 @@ namespace TableWorld.View.ScriptUi
 
     /// <summary>
     /// Draws an object's script UI on it. TTS's object UI frame lies on the object's top, its z pointing down into the
-    /// object (so <c>position="0 0 -10"</c> lifts an element) and its x mirrored; 100 UI pixels make one local TTS unit.
+    /// object (so <c>position="0 0 -10"</c> lifts an element), reading upright from the object's front (-z, where a
+    /// seat faces an unturned object: Riftbound's playmat menus have no rotation, Gloomhaven turns the UI of objects
+    /// at 180° with <c>rotation="0 0 180"</c>); 100 UI pixels make one local TTS unit.
     /// Inputs on objects show their text but take no typing yet.
     /// </summary>
     public static class ObjectUiView
@@ -77,7 +79,7 @@ namespace TableWorld.View.ScriptUi
         /// <summary>One UI pixel in metres before the object's scale: a hundredth of a TTS unit.</summary>
         public const float PixelToMetres = 0.01f * Core.Tts.TtsUnits.TtsUnitsToMeters;
         /// <summary>TTS's object UI frame in the object's local frame.</summary>
-        private static readonly Quaternion Frame = Quaternion.Euler(0f, 180f, 0f) * Quaternion.Euler(90f, 0f, 0f);
+        private static readonly Quaternion Frame = Quaternion.Euler(90f, 0f, 0f);
 
         private static PanelSettings _panel;
         private static StyleSheet _style;
