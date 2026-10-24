@@ -95,6 +95,14 @@ namespace Core.Engine
         }
     }
 
+    /// <summary>Script UI changed (M5): the global UI when <see cref="StateEvent.ObjectId"/> is empty, else that object's.</summary>
+    public sealed class ScriptUiChanged : StateEvent
+    {
+        public ScriptUiChanged(string? objectId) : base(objectId ?? "")
+        {
+        }
+    }
+
     /// <summary>An object's script buttons changed (M5); the view redraws them.</summary>
     public sealed class ButtonsChanged : StateEvent
     {

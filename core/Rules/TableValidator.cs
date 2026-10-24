@@ -19,6 +19,31 @@ namespace Core.Rules
             return v.Errors;
         }
 
+        /// <summary>Problems with a script UI tree (M5): its size, element names and value lengths.</summary>
+        public static List<ValidationError> CheckUi(List<UiNode> nodes, string path)
+        {
+            var errors = new List<ValidationError>();
+            if (UiNode.Count(nodes) > UiNode.MaxNodes)
+            {
+                errors.Add(new ValidationError(path, ErrorCodes.LimitReached, $"A script UI has at most {UiNode.MaxNodes} elements."));
+                return errors;
+            }
+            void Walk(List<UiNode> level, string at)
+            {
+                for (var i = 0; i < level.Count; i++)
+                {
+                    var node = level[i];
+                    if (string.IsNullOrWhiteSpace(node.Tag))
+                        errors.Add(new ValidationError($"{at}[{i}].tag", ErrorCodes.InvalidValue, "A UI element needs a tag."));
+                    if (node.Attributes.Values.Any(v => v == null || v.Length > UiNode.MaxValueLength) || (node.Value?.Length ?? 0) > UiNode.MaxValueLength)
+                        errors.Add(new ValidationError($"{at}[{i}]", ErrorCodes.InvalidValue, $"A UI value has at most {UiNode.MaxValueLength} characters."));
+                    Walk(node.Children, $"{at}[{i}].children");
+                }
+            }
+            Walk(nodes, path);
+            return errors;
+        }
+
         /// <summary>Problems with a script button (M5): sizes in range, colours of 0–1 numbers, a short label.</summary>
         public static List<ValidationError> CheckButton(ButtonDef b, string path)
         {
@@ -128,6 +153,7 @@ namespace Core.Rules
                     CheckEnvironment(_state.Environment, "environment");
                 if (_state.Grid != null)
                     Errors.AddRange(CheckGrid(_state.Grid, "grid"));
+                Errors.AddRange(CheckUi(_state.ScriptUi, "scriptUi"));
                 var pageIds = new HashSet<string>();
                 for (var i = 0; i < _state.Notebook.Count; i++)
                 {
@@ -233,6 +259,11 @@ namespace Core.Rules
             {
                 CheckTransform(obj.Transform, $"{path}.transform");
                 CheckTint(obj.Tint, $"{path}.tint");
+                Errors.AddRange(CheckUi(obj.ScriptUi, $"{path}.scriptUi"));
+                if (obj.Buttons.Count > ButtonDef.MaxButtons)
+                    Add($"{path}.buttons", ErrorCodes.LimitReached, $"An object holds at most {ButtonDef.MaxButtons} buttons.");
+                for (var i = 0; i < obj.Buttons.Count; i++)
+                    Errors.AddRange(CheckButton(obj.Buttons[i], $"{path}.buttons[{i}]"));
 
                 if (obj.Container != null)
                 {

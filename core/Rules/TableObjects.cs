@@ -85,6 +85,10 @@ namespace Core.Rules
         public List<ButtonDef> Buttons { get; set; } = new List<ButtonDef>();
         public bool ShouldSerializeButtons() => Buttons.Count > 0;
 
+        /// <summary>UI its script drew on it (M5, TTS object <c>UI.*</c>; ADR 0004).</summary>
+        public List<UiNode> ScriptUi { get; set; } = new List<UiNode>();
+        public bool ShouldSerializeScriptUi() => ScriptUi.Count > 0;
+
         /// <summary>TTS fields we carry but do not interpret yet (interaction flags, AltLookAngle, ...). Free-form.</summary>
         public JObject? TtsExtra { get; set; }
 

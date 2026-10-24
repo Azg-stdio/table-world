@@ -114,6 +114,9 @@ namespace Core.Engine
                 case RandomizeZoneCommand c:
                     return $"randomized {ZoneName(engine, c.ZoneId)}";
                 case SetButtonsCommand _:
+                case SetScriptUiCommand _:
+                case SetUiAttributesCommand _:
+                case UiEventCommand _:
                 case ClickButtonCommand _:
                     return null;
                 case SetNoteTabCommand c:

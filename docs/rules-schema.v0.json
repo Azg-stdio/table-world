@@ -53,6 +53,12 @@
             "$ref": "#/$defs/NoteTab"
           }
         },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
+          }
+        },
         "drawings": {
           "type": "array",
           "items": {
@@ -264,6 +270,12 @@
             "$ref": "#/$defs/ButtonDef"
           }
         },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
+          }
+        },
         "ttsExtra": {
           "type": "object"
         },
@@ -381,6 +393,36 @@
       },
       "additionalProperties": false
     },
+    "UiNode": {
+      "type": "object",
+      "properties": {
+        "tag": {
+          "type": "string"
+        },
+        "attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "value": {
+          "type": "string"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
+          }
+        },
+        "id": {
+          "type": "string"
+        },
+        "active": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
     "Deck": {
       "type": "object",
       "properties": {
@@ -451,6 +493,12 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/ButtonDef"
+          }
+        },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
           }
         },
         "ttsExtra": {
@@ -602,6 +650,12 @@
             "$ref": "#/$defs/ButtonDef"
           }
         },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
+          }
+        },
         "ttsExtra": {
           "type": "object"
         },
@@ -700,6 +754,12 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/ButtonDef"
+          }
+        },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
           }
         },
         "ttsExtra": {
@@ -803,6 +863,12 @@
             "$ref": "#/$defs/ButtonDef"
           }
         },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
+          }
+        },
         "ttsExtra": {
           "type": "object"
         },
@@ -897,6 +963,12 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/ButtonDef"
+          }
+        },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
           }
         },
         "ttsExtra": {
@@ -1012,6 +1084,12 @@
             "$ref": "#/$defs/ButtonDef"
           }
         },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
+          }
+        },
         "ttsExtra": {
           "type": "object"
         },
@@ -1096,6 +1174,12 @@
             "$ref": "#/$defs/ButtonDef"
           }
         },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
+          }
+        },
         "ttsExtra": {
           "type": "object"
         },
@@ -1178,6 +1262,12 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/ButtonDef"
+          }
+        },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
           }
         },
         "ttsExtra": {
@@ -1272,6 +1362,12 @@
             "$ref": "#/$defs/ButtonDef"
           }
         },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
+          }
+        },
         "ttsExtra": {
           "type": "object"
         },
@@ -1359,6 +1455,12 @@
             "$ref": "#/$defs/ButtonDef"
           }
         },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
+          }
+        },
         "ttsExtra": {
           "type": "object"
         },
@@ -1441,6 +1543,12 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/ButtonDef"
+          }
+        },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
           }
         },
         "ttsExtra": {
@@ -1538,6 +1646,12 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/ButtonDef"
+          }
+        },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
           }
         },
         "ttsExtra": {

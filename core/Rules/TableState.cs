@@ -109,6 +109,10 @@ namespace Core.Rules
         /// <summary>The notebook's pages (G25).</summary>
         public List<NoteTab> Notebook { get; set; } = new List<NoteTab>();
         public bool ShouldSerializeNotebook() => Notebook.Count > 0;
+
+        /// <summary>The global script's screen UI (M5, TTS <c>UI.*</c>; ADR 0004).</summary>
+        public List<UiNode> ScriptUi { get; set; } = new List<UiNode>();
+        public bool ShouldSerializeScriptUi() => ScriptUi.Count > 0;
         /// <summary>Lines and arrows players drew on the table (G28).</summary>
         public List<DrawingDef> Drawings { get; set; } = new List<DrawingDef>();
         public bool ShouldSerializeDrawings() => Drawings.Count > 0;

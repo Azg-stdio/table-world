@@ -86,6 +86,41 @@ namespace Core.Engine
         public string ObjectId { get; set; } = "";
     }
 
+    /// <summary>Replaces a script UI tree (M5, TTS <c>UI.setXml</c>): the global one, or <see cref="ObjectId"/>'s. Host only.</summary>
+    public sealed class SetScriptUiCommand : Command, IHostCommand
+    {
+        public string? ObjectId { get; set; }
+        public List<UiNode> Nodes { get; set; } = new List<UiNode>();
+    }
+
+    /// <summary>
+    /// Changes one script UI element (M5, TTS <c>UI.setAttribute</c> / <c>setAttributes</c> / <c>setValue</c>): each
+    /// attribute is set, or removed when null; <see cref="Value"/> replaces its text when <see cref="SetValue"/>. Host only.
+    /// </summary>
+    public sealed class SetUiAttributesCommand : Command, IHostCommand
+    {
+        public string? ObjectId { get; set; }
+        public string ElementId { get; set; } = "";
+        public Dictionary<string, string?> Attributes { get; set; } = new Dictionary<string, string?>();
+        public bool SetValue { get; set; }
+        public string? Value { get; set; }
+    }
+
+    /// <summary>
+    /// A player used a script UI element (M5): clicked it, changed or finished editing it. Nothing changes; the host's
+    /// scripts run the element's handler. <see cref="Path"/> finds the element (child indices from the top), since many
+    /// clickable elements have no id.
+    /// </summary>
+    public sealed class UiEventCommand : Command
+    {
+        public string? ObjectId { get; set; }
+        public List<int> Path { get; set; } = new List<int>();
+        /// <summary><c>onClick</c>, <c>onValueChanged</c> or <c>onEndEdit</c>.</summary>
+        public string Event { get; set; } = "onClick";
+        /// <summary>The new value (inputs, toggles, sliders, dropdowns); for clicks the mouse button, TTS style ("-1" left, "-2" right).</summary>
+        public string? Value { get; set; }
+    }
+
     /// <summary>Replaces an object's script buttons (M5). Host only: the host's scripts are the only ones that make buttons.</summary>
     public sealed class SetButtonsCommand : Command, IHostCommand
     {

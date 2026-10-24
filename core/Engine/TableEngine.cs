@@ -192,6 +192,9 @@ namespace Core.Engine
             DropCommand c => RequireOnTable(c.ObjectId, "objectId", out _, allowLocked: true) ?? CommandResult.Success(new List<StateEvent>()),
             PickUpCommand c => RequireOnTable(c.ObjectId, "objectId", out _, allowLocked: true) ?? CommandResult.Success(new List<StateEvent>()),
             SetButtonsCommand c => SetButtons(c),
+            SetScriptUiCommand c => SetScriptUi(c),
+            SetUiAttributesCommand c => SetUiAttributes(c),
+            UiEventCommand c => UiEvent(c),
             ClickButtonCommand c => ClickButton(c),
             DealCommand c => Deal(c),
             LockCommand c => Lock(c),
@@ -497,6 +500,77 @@ namespace Core.Engine
                 return CommandResult.Fail(bad.Path, bad.Code, bad.Message);
             State.Grid = c.Grid;
             return CommandResult.Success(new List<StateEvent> { new TableSettingsChanged() });
+        }
+
+        // ---- script UI (M5, ADR 0004) ------------------------------------------------------------------------------
+
+        /// <summary>The global UI (no object) or an object's; null with <paramref name="fail"/> when the object is not there.</summary>
+        private List<UiNode>? UiOf(string? objectId, out TableObject? owner, out CommandResult? fail)
+        {
+            owner = null;
+            fail = null;
+            if (objectId == null)
+                return State.ScriptUi;
+            fail = RequireOnTable(objectId, "objectId", out var obj, allowLocked: true);
+            owner = obj;
+            return fail == null ? obj!.ScriptUi : null;
+        }
+
+        private CommandResult SetScriptUi(SetScriptUiCommand c)
+        {
+            if (!(UiOf(c.ObjectId, out var owner, out var fail) is { }))
+                return fail!;
+            if (TableValidator.CheckUi(c.Nodes, "nodes").FirstOrDefault() is { } bad)
+                return CommandResult.Fail(bad.Path, bad.Code, bad.Message);
+            if (owner != null)
+                owner.ScriptUi = c.Nodes;
+            else
+                State.ScriptUi = c.Nodes;
+            return CommandResult.Success(new List<StateEvent> { new ScriptUiChanged(c.ObjectId) });
+        }
+
+        private CommandResult SetUiAttributes(SetUiAttributesCommand c)
+        {
+            if (!(UiOf(c.ObjectId, out _, out var fail) is { } nodes))
+                return fail!;
+            if (!(UiNode.Find(nodes, c.ElementId) is { } node))
+                return CommandResult.Fail("elementId", ErrorCodes.InvalidValue, $"No UI element has the id '{c.ElementId}'.");
+            if (c.Attributes.Values.Any(v => v != null && v.Length > UiNode.MaxValueLength) || (c.Value?.Length ?? 0) > UiNode.MaxValueLength)
+                return CommandResult.Fail("attributes", ErrorCodes.InvalidValue, $"A UI value has at most {UiNode.MaxValueLength} characters.");
+            foreach (var pair in c.Attributes)
+            {
+                if (pair.Value == null)
+                    node.Attributes.Remove(pair.Key);
+                else
+                    node.Attributes[pair.Key] = UiNode.Normalize(pair.Key, pair.Value);
+            }
+            if (c.SetValue)
+                node.Value = c.Value;
+            return CommandResult.Success(new List<StateEvent> { new ScriptUiChanged(c.ObjectId) });
+        }
+
+        private CommandResult UiEvent(UiEventCommand c)
+        {
+            if (!(UiOf(c.ObjectId, out _, out var fail) is { } nodes))
+                return fail!;
+            return UiAt(nodes, c.Path) is { } node && node.Get(c.Event) != null
+                ? CommandResult.Success(new List<StateEvent>())
+                : CommandResult.Fail("path", ErrorCodes.InvalidValue, $"No UI element there handles {c.Event}.");
+        }
+
+        /// <summary>The element at a path of child indices, or null.</summary>
+        public static UiNode? UiAt(List<UiNode> nodes, IReadOnlyList<int> path)
+        {
+            UiNode? node = null;
+            var level = nodes;
+            foreach (var i in path)
+            {
+                if (i < 0 || i >= level.Count)
+                    return null;
+                node = level[i];
+                level = node.Children;
+            }
+            return node;
         }
 
         // ---- script buttons (M5) ------------------------------------------------------------------------------------

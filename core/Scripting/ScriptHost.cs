@@ -232,6 +232,9 @@ namespace Core.Scripting
                 case ClickButtonCommand click:
                     Click(click, who);
                     break;
+                case UiEventCommand ui:
+                    UiUsed(ui, color);
+                    break;
                 case EndTurnCommand _:
                 case SetTurnOrderCommand { Enabled: true }:
                     if (Engine.State.FreeTurns?.Current is { } seat && Engine.State.Players.Seats.FirstOrDefault(s => s.Id == seat) is { } current)
