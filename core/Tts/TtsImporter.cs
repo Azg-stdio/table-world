@@ -534,7 +534,7 @@ namespace Core.Tts
             return new Card
             {
                 FaceAsset = look.Face, FaceIndex = look.FaceIndex, BackAsset = look.Back, BackIndex = look.BackIndex,
-                Size = look.Sideways ? new Vec2(Rules.Card.DefaultSize.Y, Rules.Card.DefaultSize.X) : (Vec2?)null,
+                Size = look.Sideways ? new Vec2(TtsUnits.CardSize.Y, TtsUnits.CardSize.X) : TtsUnits.CardSize,
             };
         }
 
@@ -552,8 +552,7 @@ namespace Core.Tts
                     deck.FaceAsset = look.Face;
                     deck.BackAsset = look.Back;
                     deck.BackIndex = look.BackIndex;
-                    if (look.Sideways)
-                        deck.Size = new Vec2(Rules.Card.DefaultSize.Y, Rules.Card.DefaultSize.X);
+                    deck.Size = look.Sideways ? new Vec2(TtsUnits.CardSize.Y, TtsUnits.CardSize.X) : TtsUnits.CardSize;
                 }
                 deck.Cards.Add(new DeckCard
                 {

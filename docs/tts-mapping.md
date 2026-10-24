@@ -107,5 +107,5 @@ Re-run `python -I tools/tts-analysis/analyze_mods.py` after adding mods to refre
 |---|---|
 | Deck order | **Resolved (T1.3):** `DeckIDs[0]` is the top |
 | Table surface height | **Resolved (T1.3):** 0.96 units on default tables |
-| Card base size in TTS units → `TtsUnitsToMeters` | **Bounded (T1.3):** ≤ 2.97 units wide; exact `getBounds()` in T8.1 |
+| Card base size in TTS units → `TtsUnitsToMeters` | **Bounded:** ≤ 1.93 units wide (Pokémon Sinnoh's unlocked decks at scale 1.5 lie 2.894 apart, and TTS saves positions after physics), ≤ 3.2 long. Imported cards use 1.92 × 2.69 units (`TtsUnits.CardSize`, poker proportions); an exact `getBounds()` from TTS would settle it |
 | `RotationValues` on dice, `Custom_Dice` value ↔ rotation | d6 settled (G21, above); other dice open → T8.1 |

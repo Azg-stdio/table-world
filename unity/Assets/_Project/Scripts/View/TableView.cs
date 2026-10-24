@@ -677,8 +677,25 @@ namespace TableWorld.View
                 QueryTriggerInteraction.Ignore);
             for (var i = 0; i < count; i++)
                 if (_sunkHits[i] != box && _sunkHits[i].GetComponentInParent<ObjectView>() is { } other && other != view && !other.Held && !other.InHand
-                    && !other.Animating && IsThin(other) && (!other.Body.isKinematic || other.PileHeld))
+                    && !other.Animating && IsThin(other) && (!other.Body.isKinematic || other.PileHeld) && Piled(box.bounds, other.Collider.bounds))
                     yield return other;
+        }
+
+        /// <summary>A pile is pieces on top of each other: their footprints share at least this share of the smaller one.</summary>
+        public const float PileOverlap = 0.4f;
+
+        /// <summary>
+        /// True when two footprints overlap enough to be a pile, not neighbours that touch (decks laid side by side by a TTS
+        /// mod may overlap by a few millimetres; stacking them lifted whole decks onto each other).
+        /// </summary>
+        private static bool Piled(Bounds a, Bounds b)
+        {
+            var x = Mathf.Min(a.max.x, b.max.x) - Mathf.Max(a.min.x, b.min.x);
+            var z = Mathf.Min(a.max.z, b.max.z) - Mathf.Max(a.min.z, b.min.z);
+            if (x <= 0f || z <= 0f)
+                return false;
+            var smaller = Mathf.Min(a.size.x * a.size.z, b.size.x * b.size.z);
+            return smaller > 0f && x * z >= PileOverlap * smaller;
         }
 
         /// <summary>

@@ -994,6 +994,8 @@ namespace Core.Scripting
                         json["faceAsset"] = "builtin_standard_deck";
                         json["faceIndex"] = 0;
                         json["backAsset"] = "builtin_standard_back";
+                        // A TTS card's size, like the cards of imported tables.
+                        json["size"] = new Newtonsoft.Json.Linq.JArray(Core.Tts.TtsUnits.CardSize.X, Core.Tts.TtsUnits.CardSize.Y);
                         assets.Add(new Asset { Id = "builtin_standard_deck", Type = AssetType.Image, Path = Asset.BuiltinPrefix + "standard_deck", Columns = 10, Rows = 7 });
                         assets.Add(new Asset { Id = "builtin_standard_back", Type = AssetType.Image, Path = Asset.BuiltinPrefix + "standard_back" });
                         break;
