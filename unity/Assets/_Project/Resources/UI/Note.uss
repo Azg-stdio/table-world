@@ -1,0 +1,22 @@
+/* A notecard's face (G27): title and text printed on paper. World-space panel, built in NotecardView. */
+.note {
+    flex-grow: 1;
+    padding: 18px 22px;
+    background-color: rgb(250, 246, 232);
+}
+
+.note-title {
+    margin-bottom: 8px;
+    font-size: 30px;
+    -unity-font-style: bold;
+    color: rgb(30, 30, 34);
+    white-space: normal;
+}
+
+.note-body {
+    flex-shrink: 1;
+    font-size: 22px;
+    color: rgb(50, 48, 46);
+    white-space: normal;
+    overflow: hidden;
+}

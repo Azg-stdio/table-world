@@ -695,6 +695,19 @@
    }
   },
   {
+   "id": "house_rules",
+   "type": "Notecard",
+   "name": "House rules",
+   "description": "Draw two at the start of your turn.\nJokers are wild.\nThe loser shuffles.",
+   "transform": {
+    "position": [
+     0.5,
+     0,
+     0.15
+    ]
+   }
+  },
+  {
    "id": "event_die",
    "type": "Die",
    "name": "Event die",

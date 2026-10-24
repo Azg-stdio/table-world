@@ -30,6 +30,7 @@ namespace Core.Rules
                 Rules.Figure _ => new Vec2(Figure, Figure),
                 Rules.Counter _ => Counter,
                 Rules.Clock _ => Clock,
+                Rules.Notecard _ => Rules.Notecard.Size,
                 _ => new Vec2(Model, Model),
             };
             var scale = obj.Transform.Scale;

@@ -259,11 +259,20 @@ namespace Core.Rules
     }
 
     /// <summary>Registry of the JSON <c>type</c> values for objects.</summary>
+    /// <summary>
+    /// A note lying on the table (TTS <c>Notecard</c>, G27): <see cref="TableObject.Name"/> is its title and
+    /// <see cref="TableObject.Description"/> its text, both printed on it. Players edit them like any name and description.
+    /// </summary>
+    public sealed class Notecard : TableObject
+    {
+        public static readonly Vec2 Size = new Vec2(0.11f, 0.075f);
+    }
+
     public static class TableObjectTypes
     {
         public static readonly IReadOnlyDictionary<string, Type> ByName = Build(
             typeof(Card), typeof(Deck), typeof(Token), typeof(Tile), typeof(Die),
-            typeof(Model), typeof(Bag), typeof(InfiniteBag), typeof(Board), typeof(Figure), typeof(Counter), typeof(Clock));
+            typeof(Model), typeof(Bag), typeof(InfiniteBag), typeof(Board), typeof(Figure), typeof(Counter), typeof(Clock), typeof(Notecard));
 
         internal static IReadOnlyDictionary<string, Type> Build(params Type[] types)
         {

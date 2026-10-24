@@ -165,6 +165,16 @@ namespace TableWorld.View
                     SetPrism(view, MeshFactory.Box(size), readout.Material, case_, case_, 0.06f);
                     break;
                 }
+                case Notecard _:
+                {
+                    // Paper with its title and text printed on top (G27).
+                    var size = Notecard.Size.ToUnity();
+                    const float thickness = 0.0015f;
+                    var paper = assets.Plain(model.Tint.ToColor(new Color(0.98f, 0.96f, 0.9f)), 0.1f);
+                    SetPrism(view, MeshFactory.Box(new Vector3(size.x, thickness, size.y)), paper, paper, paper, 0.004f);
+                    NotecardView.Refresh(view, size, thickness);
+                    break;
+                }
                 case Figure figure:
                 {
                     var height = figure.Height ?? FigureDefaultHeight;

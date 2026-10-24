@@ -177,6 +177,9 @@
         },
         {
           "$ref": "#/$defs/Clock"
+        },
+        {
+          "$ref": "#/$defs/Notecard"
         }
       ]
     },
@@ -1142,6 +1145,66 @@
         },
         "running": {
           "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "Notecard": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "Notecard"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "gmNotes": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "container": {
+          "type": "string"
+        },
+        "grid": {
+          "type": "boolean"
+        },
+        "tint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "states": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/TableObject"
+          }
+        },
+        "script": {
+          "type": "string"
+        },
+        "ttsExtra": {
+          "type": "object"
         }
       },
       "additionalProperties": false,

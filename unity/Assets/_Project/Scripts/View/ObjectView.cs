@@ -62,6 +62,10 @@ namespace TableWorld.View
             ZoneHidden = hidden;
             foreach (var renderer in GetComponentsInChildren<Renderer>(true))
                 renderer.forceRenderingOff = hidden;
+            // A notecard's printed face is a UI panel, not a renderer.
+            var face = transform.Find(NotecardView.FaceName);
+            if (face != null)
+                face.gameObject.SetActive(!hidden);
         }
 
         /// <summary>Set by <see cref="TableView"/>: called when this object hits something hard enough to be heard.</summary>

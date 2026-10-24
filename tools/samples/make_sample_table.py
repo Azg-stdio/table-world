@@ -48,6 +48,9 @@ table = {
         {"id": "tile_square", "type": "Tile", "shape": "square", **at(0.05, 0.3)},
         {"id": "tile_hex", "type": "Tile", "shape": "hex", **at(0.12, 0.3)},
         {"id": "tile_circle", "type": "Tile", "shape": "circle", **at(0.19, 0.3)},
+        # A notecard (G27): its name is the title, its description the text printed on it.
+        {"id": "house_rules", "type": "Notecard", "name": "House rules",
+         "description": "Draw two at the start of your turn.\nJokers are wild.\nThe loser shuffles.", **at(0.5, 0.15)},
         # A custom die (G21): its image follows the TTS d6 template, and its faces have names.
         {"id": "event_die", "type": "Die", "name": "Event die", "faces": 6, "asset": "d6_template", "value": 2,
          "labels": ["Draw a card", "Move 2", "Swap seats", "Move 4", "Roll again", "Lose a turn"], **at(0.02, -0.28)},
