@@ -252,7 +252,18 @@ namespace Core.Engine
             if (c.Description != null) obj.Description = c.Description.Length == 0 ? null : c.Description;
             if (c.Tint != null) obj.Tint = c.Tint;
             if (c.ClearTint) obj.Tint = null;
-            return CommandResult.Success(new List<StateEvent> { new ObjectUpdated(obj.Id) });
+            if (c.Snap.HasValue) obj.Snap = c.Snap.Value;
+            if (c.Grid.HasValue) obj.Grid = c.Grid.Value;
+            if (c.Tooltip.HasValue) obj.Tooltip = c.Tooltip.Value;
+            if (c.HideWhenFaceDown.HasValue) obj.HideWhenFaceDown = c.HideWhenFaceDown.Value;
+            var events = new List<StateEvent> { new ObjectUpdated(obj.Id) };
+            if (c.Hands.HasValue && c.Hands.Value != obj.Hands)
+            {
+                obj.Hands = c.Hands.Value;
+                // Joining or leaving a hand changes which zones the object counts as in.
+                RefreshZones(new[] { obj }, events);
+            }
+            return CommandResult.Success(events);
         }
 
         private CommandResult? RequireDeck(string id, string field, out Deck deck)

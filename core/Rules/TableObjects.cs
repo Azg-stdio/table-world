@@ -42,6 +42,14 @@ namespace Core.Rules
         /// <summary>Id of the Bag/InfiniteBag holding this object, or null when it is on the table.</summary>
         public string? Container { get; set; }
 
+        /// <summary>False: the object ignores snap points when dropped (TTS <c>Snap</c>, G16).</summary>
+        [System.ComponentModel.DefaultValue(true)]
+        public bool Snap { get; set; } = true;
+
+        /// <summary>False: hovering the object shows no name or description (TTS <c>Tooltip</c>, G16).</summary>
+        [System.ComponentModel.DefaultValue(true)]
+        public bool Tooltip { get; set; } = true;
+
         /// <summary>False: the object never joins a hand; dropped in a hand zone it just lies there (TTS <c>Hands</c>, G39).</summary>
         [System.ComponentModel.DefaultValue(true)]
         public bool Hands { get; set; } = true;

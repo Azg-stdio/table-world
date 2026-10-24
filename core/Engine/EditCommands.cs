@@ -90,5 +90,11 @@ namespace Core.Engine
         public string? Description { get; set; }
         public float[]? Tint { get; set; }
         public bool ClearTint { get; set; }
+        /// <summary>The per-object toggles (G16); null leaves each as it is.</summary>
+        public bool? Snap { get; set; }
+        public bool? Grid { get; set; }
+        public bool? Hands { get; set; }
+        public bool? HideWhenFaceDown { get; set; }
+        public bool? Tooltip { get; set; }
     }
 }

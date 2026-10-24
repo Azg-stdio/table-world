@@ -39,5 +39,36 @@ namespace TableWorld.Tests.PlayMode
             table.Execute(new MoveCommand { ObjectId = "token_red", Position = new Vec3(0.1f, 0f, -0.42f) });
             Assert.IsFalse(table.Engine.ZonesOf("token_red").Contains("hand_south"));
         }
+
+        [UnityTest]
+        public IEnumerator MenuToggles_TurnFlagsOffAndOn_AndSnapOffIgnoresSnapPoints()
+        {
+            yield return SceneManager.LoadSceneAsync("Table");
+            yield return null;
+            var table = Object.FindAnyObjectByType<TableView>();
+            var interaction = Object.FindAnyObjectByType<TableInteraction>();
+            interaction.IgnoreDevices = true;
+            var overlay = Object.FindAnyObjectByType<HudController>().Overlay;
+            yield return new WaitForSeconds(0.3f);
+
+            overlay.OpenMenu(table.ViewOf("ten_diamonds"), Vector2.zero);
+            Assert.IsTrue(overlay.Choose("● Tooltip"));
+            Assert.IsFalse(table.Engine.Find("ten_diamonds").Tooltip);
+            overlay.OpenMenu(table.ViewOf("ten_diamonds"), Vector2.zero);
+            Assert.IsTrue(overlay.Choose("○ Tooltip"), "the entry shows it is off and turns it back on");
+            Assert.IsTrue(table.Engine.Find("ten_diamonds").Tooltip);
+
+            overlay.OpenMenu(table.ViewOf("ten_diamonds"), Vector2.zero);
+            Assert.IsTrue(overlay.Choose("● Snap to points"));
+            // The discard snap point is at (-0.05, 0.1): with snapping off the card lands where it is dropped.
+            Assert.IsTrue(interaction.Grab(table.ViewOf("ten_diamonds"), moveContainer: false));
+            yield return null;
+            interaction.DragTo(new Vector3(-0.035f, 0f, 0.112f));
+            yield return new WaitForSeconds(0.2f);
+            interaction.Release();
+            yield return new WaitForSeconds(1f);
+            var p = table.Engine.Find("ten_diamonds").Transform.Position;
+            Assert.Greater(Mathf.Abs(p.X + 0.05f) + Mathf.Abs(p.Z - 0.1f), 0.004f, $"not snapped, at {p}");
+        }
     }
 }

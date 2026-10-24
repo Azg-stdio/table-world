@@ -216,6 +216,12 @@
         "container": {
           "type": "string"
         },
+        "snap": {
+          "type": "boolean"
+        },
+        "tooltip": {
+          "type": "boolean"
+        },
         "hands": {
           "type": "boolean"
         },
@@ -334,6 +340,12 @@
         },
         "container": {
           "type": "string"
+        },
+        "snap": {
+          "type": "boolean"
+        },
+        "tooltip": {
+          "type": "boolean"
         },
         "hands": {
           "type": "boolean"
@@ -469,6 +481,12 @@
         "container": {
           "type": "string"
         },
+        "snap": {
+          "type": "boolean"
+        },
+        "tooltip": {
+          "type": "boolean"
+        },
         "hands": {
           "type": "boolean"
         },
@@ -553,6 +571,12 @@
         },
         "container": {
           "type": "string"
+        },
+        "snap": {
+          "type": "boolean"
+        },
+        "tooltip": {
+          "type": "boolean"
         },
         "hands": {
           "type": "boolean"
@@ -640,6 +664,12 @@
         "container": {
           "type": "string"
         },
+        "snap": {
+          "type": "boolean"
+        },
+        "tooltip": {
+          "type": "boolean"
+        },
         "hands": {
           "type": "boolean"
         },
@@ -720,6 +750,12 @@
         },
         "container": {
           "type": "string"
+        },
+        "snap": {
+          "type": "boolean"
+        },
+        "tooltip": {
+          "type": "boolean"
         },
         "hands": {
           "type": "boolean"
@@ -819,6 +855,12 @@
         "container": {
           "type": "string"
         },
+        "snap": {
+          "type": "boolean"
+        },
+        "tooltip": {
+          "type": "boolean"
+        },
         "hands": {
           "type": "boolean"
         },
@@ -888,6 +930,12 @@
         "container": {
           "type": "string"
         },
+        "snap": {
+          "type": "boolean"
+        },
+        "tooltip": {
+          "type": "boolean"
+        },
         "hands": {
           "type": "boolean"
         },
@@ -956,6 +1004,12 @@
         },
         "container": {
           "type": "string"
+        },
+        "snap": {
+          "type": "boolean"
+        },
+        "tooltip": {
+          "type": "boolean"
         },
         "hands": {
           "type": "boolean"
@@ -1034,6 +1088,12 @@
         "container": {
           "type": "string"
         },
+        "snap": {
+          "type": "boolean"
+        },
+        "tooltip": {
+          "type": "boolean"
+        },
         "hands": {
           "type": "boolean"
         },
@@ -1106,6 +1166,12 @@
         "container": {
           "type": "string"
         },
+        "snap": {
+          "type": "boolean"
+        },
+        "tooltip": {
+          "type": "boolean"
+        },
         "hands": {
           "type": "boolean"
         },
@@ -1174,6 +1240,12 @@
         },
         "container": {
           "type": "string"
+        },
+        "snap": {
+          "type": "boolean"
+        },
+        "tooltip": {
+          "type": "boolean"
         },
         "hands": {
           "type": "boolean"
@@ -1256,6 +1328,12 @@
         },
         "container": {
           "type": "string"
+        },
+        "snap": {
+          "type": "boolean"
+        },
+        "tooltip": {
+          "type": "boolean"
         },
         "hands": {
           "type": "boolean"

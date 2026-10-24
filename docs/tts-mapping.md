@@ -78,7 +78,8 @@ TTS `Name` → our `type`. Prefix `Custom_` means the mesh/image comes from a UR
 | `HideWhenFaceDown` | `hideWhenFaceDown` (omit when it matches the default: true for cards, false otherwise) |
 | `Grid` | `grid` (false: ignores grid snapping) |
 | `SidewaysCard` | the card's (or deck's) `size` with width and height swapped: a landscape card |
-| `Sticky`, `Tooltip`, `Snap`, `IgnoreFoW`, `MeasureMovement`, `DragSelectable`, `Autoraise` | interaction flags, kept verbatim in `ttsFlags` until we need them |
+| `Snap`, `Tooltip` | `snap`, `tooltip` (false: ignores snap points / shows no hover text) |
+| `Sticky`, `IgnoreFoW`, `MeasureMovement`, `DragSelectable`, `Autoraise` | interaction flags, kept verbatim in `ttsFlags` until we need them |
 | `AltLookAngle`, `Number` (except a token or tile stack's count), `Text`, `Bag.Order` | kept in `ttsExtra` |
 
 ## Sprite sheets

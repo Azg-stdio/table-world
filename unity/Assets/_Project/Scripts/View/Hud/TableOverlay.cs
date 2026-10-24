@@ -239,6 +239,20 @@ namespace TableWorld.View.Hud
             return $"{s / 60}:{s % 60:00} ago";
         }
 
+        /// <summary>The per-object toggles (G16, TTS's Toggles submenu): ● marks the ones on.</summary>
+        private void Toggles(ObjectView view)
+        {
+            var m = view.Model;
+            string Mark(bool on, string text) => (on ? "● " : "○ ") + text;
+            Section("Toggles");
+            Item(Mark(m.Snap, "Snap to points"), () => Run(new SetPropertiesCommand { ObjectId = m.Id, Snap = !m.Snap }));
+            Item(Mark(m.Grid, "Snap to grid"), () => Run(new SetPropertiesCommand { ObjectId = m.Id, Grid = !m.Grid }));
+            Item(Mark(m.Tooltip, "Tooltip"), () => Run(new SetPropertiesCommand { ObjectId = m.Id, Tooltip = !m.Tooltip }));
+            Item(Mark(m.Hands, "Can go in hands"), () => Run(new SetPropertiesCommand { ObjectId = m.Id, Hands = !m.Hands }));
+            var hides = m.HideWhenFaceDown ?? m is Card;
+            Item(Mark(hides, "Hide name when face down"), () => Run(new SetPropertiesCommand { ObjectId = m.Id, HideWhenFaceDown = !hides }));
+        }
+
         /// <summary>Takes <paramref name="count"/> pieces off a stack and sets them down beside it (G14).</summary>
         private void TakeFromStack(ObjectView view, int count)
         {
@@ -330,6 +344,7 @@ namespace TableWorld.View.Hud
             Item("Duplicate", () => Run(new CloneCommand { ObjectId = model.Id }));
             Row("Scale", new[] { ("−", (Action)(() => _interaction.Scale(new[] { view }, 1f / TableInteraction.ScaleStep))), ("+", (Action)(() => _interaction.Scale(new[] { view }, TableInteraction.ScaleStep))) });
             Swatches(view);
+            Toggles(view);
             Rename(view);
             Item("Delete (Del)", () => _interaction.Delete(new[] { view }));
         }
@@ -604,7 +619,8 @@ namespace TableWorld.View.Hud
         {
             var view = _interaction.TooltipView;
             var seconds = _interaction.TooltipSeconds;
-            var show = view != null && seconds >= TooltipNameSeconds && _interaction.Held == null && _interaction.Looking == null && !MenuOpen;
+            var show = view != null && seconds >= TooltipNameSeconds && _interaction.Held == null && _interaction.Looking == null && !MenuOpen
+                       && view.Model.Tooltip;
             var text = view == null ? null : TooltipText(view, _table.Engine);
             if (show && seconds >= TooltipDescriptionSeconds && !string.IsNullOrEmpty(view.Model.Description) && !view.Model.NameHidden)
                 text = $"{text}\n{view.Model.Description}";

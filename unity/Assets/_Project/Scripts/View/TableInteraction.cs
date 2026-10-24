@@ -1459,8 +1459,8 @@ namespace TableWorld.View
             var bestDistance = SnapRadius;
             foreach (var snap in _table.Engine.State.Zones.OfType<SnapPoint>())
             {
-                // An object never snaps to a point it carries itself.
-                if (dropped != null && snap.Parent == dropped.Id)
+                // An object never snaps to a point it carries itself, nor at all when its snapping is off (G16).
+                if (dropped != null && (snap.Parent == dropped.Id || !dropped.Model.Snap))
                     continue;
                 var p = SnapWorldPosition(snap);
                 var distance = Vector2.Distance(new Vector2(position.x, position.z), new Vector2(p.x, p.z));

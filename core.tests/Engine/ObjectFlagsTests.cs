@@ -46,5 +46,25 @@ namespace Core.Tests.Engine
             Assert.True(die.NameHidden);
             Assert.Equal("a d6", ActionLog.NameFor(engine, "d6", "seat_1"));
         }
+
+        [Fact]
+        public void Toggles_SetEachFlag_AndHandsMovesTheObjectInOrOutOfTheHand()
+        {
+            var engine = EngineFixture.Create();
+            engine.Ok(new MoveCommand { ObjectId = "loose", Position = new Vec3(0f, 0.05f, -0.5f) });
+            Assert.Contains("hand_1", engine.ZonesOf("loose"));
+            var off = engine.Ok(new SetPropertiesCommand { ObjectId = "loose", Hands = false, Snap = false, Tooltip = false, Grid = false, HideWhenFaceDown = false });
+            var loose = engine.Find("loose")!;
+            Assert.False(loose.Hands || loose.Snap || loose.Tooltip || loose.Grid);
+            Assert.False(loose.HideWhenFaceDown);
+            Assert.DoesNotContain("hand_1", engine.ZonesOf("loose"));
+            Assert.Contains(off.Events, e => e is ZoneLeft l && l.ZoneId == "hand_1");
+            engine.Ok(new SetPropertiesCommand { ObjectId = "loose", Hands = true });
+            Assert.Contains("hand_1", engine.ZonesOf("loose"));
+            var json = TableJson.Serialize(engine.State);
+            Assert.Contains(@"""snap"": false", json);
+            Assert.Contains(@"""tooltip"": false", json);
+            engine.AssertValid();
+        }
     }
 }
