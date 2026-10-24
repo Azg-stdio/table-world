@@ -1056,3 +1056,20 @@
 .gizmo-field {
     width: 110px;
 }
+
+/* Blindfold (G15): the whole screen goes dark except the chat and the top bar. */
+.blindfold {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(4, 4, 6);
+}
+
+.blindfold-text {
+    font-size: 20px;
+    color: rgb(150, 148, 140);
+}

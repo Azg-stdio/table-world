@@ -45,7 +45,7 @@ namespace TableWorld.View.Hud
             ("Looking", new[]
             {
                 ("Hold Alt", "Close-up of what is under the pointer (wheel zooms, Q / E turns)"),
-                ("Hold Alt + Shift", "Peek at the underside"),
+                ("Hold Alt + Shift", "Peek at the underside (others are told when you peek at something face down)"),
                 ("Hover", "Name, then description"),
             }),
             ("Cards, decks, bags, dice", new[]
@@ -82,6 +82,7 @@ namespace TableWorld.View.Hud
                 ("F5 / F9", "Quick save / quick load"),
                 ("Tab + click", "Ping"),
                 ("Tab + drag", "Measure"),
+                ("B", "Blindfold on or off (everyone is told)"),
                 ("F1 or ?", "This list"),
                 ("Escape", "Close what is open; with nothing open, the menu (settings, leave, quit)"),
             }),

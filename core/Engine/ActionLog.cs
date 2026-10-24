@@ -39,6 +39,10 @@ namespace Core.Engine
                     return $"flipped {Name(c.ObjectId)}";
                 case ShuffleCommand c:
                     return $"shuffled {Name(c.ObjectId)}";
+                case PeekCommand c:
+                    return $"peeked at {Name(c.ObjectId)}";
+                case BlindfoldCommand c:
+                    return c.On ? "put on a blindfold" : "took off the blindfold";
                 case SearchCommand c:
                     return $"searched {Name(c.ContainerId)}";
                 case RollCommand _:

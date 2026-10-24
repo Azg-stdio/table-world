@@ -496,6 +496,8 @@ namespace TableWorld.View
                 _tableCamera?.ResetView();
             if (keyboard.zKey.wasPressedThisFrame && point is { } zoomAt)
                 _tableCamera?.ToggleQuickZoom(zoomAt);
+            if (keyboard.bKey.wasPressedThisFrame)
+                ToggleBlindfold();
             if (keyboard.pKey.wasPressedThisFrame)
                 _tableCamera?.ToggleTopDown();
             if (keyboard.deleteKey.wasPressedThisFrame)
@@ -1372,9 +1374,28 @@ namespace TableWorld.View
         /// <summary>Alt (look) / Alt + Shift (peek) without devices: shows or hides the close-up.</summary>
         public void Look(ObjectView view, bool peek)
         {
+            var wasPeekingAt = _peeking ? _looking : null;
             _looking = view;
             _peeking = view != null && peek;
+            // Peeking at what is face down (or under someone's hand) is announced to everyone (G15), once per peek.
+            if (_peeking && view != wasPeekingAt && (!view.Model.IsFaceUp || view.HideFace) && !_table.Spectating)
+                _table.Execute(new PeekCommand { ObjectId = view.Id, Actor = _table.LocalSeat });
             LookChanged?.Invoke(view, _peeking);
+        }
+
+        /// <summary>True while this player wears a blindfold (G15): the screen is dark, and everyone was told.</summary>
+        public bool Blindfolded { get; private set; }
+
+        /// <summary>Raised when the blindfold goes on or off (the HUD darkens the screen).</summary>
+        public event Action<bool> BlindfoldChanged;
+
+        /// <summary>B: puts the blindfold on or takes it off.</summary>
+        public void ToggleBlindfold()
+        {
+            Blindfolded = !Blindfolded;
+            if (!_table.Spectating)
+                _table.Execute(new BlindfoldCommand { On = Blindfolded, Actor = _table.LocalSeat });
+            BlindfoldChanged?.Invoke(Blindfolded);
         }
 
         private void UpdateTooltip()

@@ -68,6 +68,21 @@ namespace Core.Engine
         public string ObjectId { get; set; } = "";
     }
 
+    /// <summary>
+    /// Someone peeked at the hidden side of an object (G15, TTS Alt + Shift): nothing changes, but everyone is told, as
+    /// TTS announces peeks.
+    /// </summary>
+    public sealed class PeekCommand : Command
+    {
+        public string ObjectId { get; set; } = "";
+    }
+
+    /// <summary>A player put on or took off a blindfold (G15, TTS B): nothing changes; everyone is told.</summary>
+    public sealed class BlindfoldCommand : Command
+    {
+        public bool On { get; set; } = true;
+    }
+
     /// <summary>Looks through a deck or bag without changing it; the contents come back in the result.</summary>
     public sealed class SearchCommand : Command
     {

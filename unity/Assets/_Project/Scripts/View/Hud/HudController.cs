@@ -120,6 +120,7 @@ namespace TableWorld.View.Hud
                 _handBar = new HandBar(_root, _table, _interaction);
                 _help = new ControlsHelp(_root);
                 _interaction.Pinged += OnPing;
+                _interaction.BlindfoldChanged += on => _root.Q("blindfold").EnableInClassList(Hidden, !on);
                 foreach (var (name, tool) in new[] { ("toolGrab", TableInteraction.Tool.Grab), ("toolDraw", TableInteraction.Tool.Draw),
                              ("toolArrow", TableInteraction.Tool.Arrow), ("toolErase", TableInteraction.Tool.Erase), ("toolGizmo", TableInteraction.Tool.Gizmo) })
                     _root.Q<Button>(name).clicked += () => SetTool(tool);

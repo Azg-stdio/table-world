@@ -8,6 +8,7 @@ using TableWorld.View.Hud;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using UnityEngine.UIElements;
 
 namespace TableWorld.Tests.PlayMode
 {
@@ -69,6 +70,37 @@ namespace TableWorld.Tests.PlayMode
             yield return new WaitForSeconds(1f);
             var p = table.Engine.Find("ten_diamonds").Transform.Position;
             Assert.Greater(Mathf.Abs(p.X + 0.05f) + Mathf.Abs(p.Z - 0.1f), 0.004f, $"not snapped, at {p}");
+        }
+
+        [UnityTest]
+        public IEnumerator PeekIsAnnounced_AndTheBlindfoldDarkensTheScreen()
+        {
+            yield return SceneManager.LoadSceneAsync("Table");
+            yield return null;
+            var table = Object.FindAnyObjectByType<TableView>();
+            var interaction = Object.FindAnyObjectByType<TableInteraction>();
+            interaction.IgnoreDevices = true;
+            var hud = Object.FindAnyObjectByType<HudController>();
+            var session = Object.FindAnyObjectByType<TableWorld.View.Net.NetworkTableSession>();
+            yield return new WaitForSeconds(0.3f);
+
+            interaction.Look(table.ViewOf("ace_spades"), peek: true);
+            interaction.Look(null, false);
+            Assert.IsFalse(session.Chat.Entries.Any(e => e.Text.Contains("peeked")), "peeking at a face-up card is nothing to tell");
+            table.Execute(new FlipCommand { ObjectId = "ace_spades" });
+            yield return new WaitForSeconds(0.5f);
+            interaction.Look(table.ViewOf("ace_spades"), peek: true);
+            interaction.Look(table.ViewOf("ace_spades"), peek: true);
+            interaction.Look(null, false);
+            Assert.AreEqual(1, session.Chat.Entries.Count(e => e.Text.Contains("peeked at a card")), "one peek, one notice");
+
+            var blindfold = hud.GetComponent<UIDocument>().rootVisualElement.Q("blindfold");
+            interaction.ToggleBlindfold();
+            Assert.IsTrue(interaction.Blindfolded);
+            Assert.IsFalse(blindfold.ClassListContains("hidden"));
+            Assert.IsTrue(session.Chat.Entries.Any(e => e.Text.Contains("put on a blindfold")));
+            interaction.ToggleBlindfold();
+            Assert.IsTrue(blindfold.ClassListContains("hidden"));
         }
     }
 }
