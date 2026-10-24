@@ -152,7 +152,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G28 | Table tools | grid overlay and snapping, drawing, line/arrow, 3D text, decals, gizmo (precise move/rotate/scale), flick, joints | ping and measure only | P2 |
 | G29 | Tables and environment | table types, backgrounds, lighting tool | one table | P3 |
 | G30 | Saving | named saves, autosave, save objects to a chest | one quick save | P2 |
-| G31 | Settings | rebindable keys, mouse sensitivity, volume, graphics | 🟡 master and table-sound volume, orbit / zoom / pan speed, invert orbit, window mode, resolution, VSync, frame limit, antialiasing (off, FXAA, SMAA), interface size; applied as they change, saved per machine in `settings.json` in the user data folder, clamped on load (2026-10-23). Rebindable keys still to do (needs a binding layer under the direct key reads) | P2 (with G13) |
+| G31 | Settings | rebindable keys, mouse sensitivity, volume, graphics | 🟡 master and table-sound volume, orbit / zoom / pan speed, invert orbit, window mode, resolution, VSync, frame limit, antialiasing (off, FXAA, SMAA), interface size; applied as they change, saved per machine in `settings.json` in the user data folder, clamped on load (2026-10-23). Rebindable keys deferred (Miguel, 2026-10-23): no mod needs them (mods only use the numpad scripting buttons, M5); they need a binding layer under the direct key reads | P3 |
 | G32 | Shaking a held bag or deck shuffles it | verify | no | P3 |
 | G33 | Protocol-level hidden information | hands and hidden zones are not sent to players who cannot see them | every client receives the whole table | P2 |
 | G34 | First person and physics characters | P toggles first person; characters (M6) | ⏭ M6 | — |
