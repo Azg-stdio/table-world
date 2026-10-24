@@ -101,7 +101,7 @@ namespace Core.Scripting
                 if (identifier == null || !named.TryGetValue(identifier, out var timerId))
                     return DynValue.False;
                 named.Remove(identifier);
-                return DynValue.NewBoolean(_timers.RemoveAll(t => t.Id == timerId) > 0);
+                return DynValue.NewBoolean(StopTimers(t => t.Id == timerId) > 0);
             });
             g["Timer"] = timers;
             g["getObjectsWithTag"] = Fn(args =>
@@ -156,12 +156,12 @@ namespace Core.Scripting
             wait["stop"] = Fn(args =>
             {
                 var id = args.Count > 0 && args[0].Type == DataType.Number ? (int)args[0].Number : -1;
-                _timers.RemoveAll(t => t.Id == id);
+                StopTimers(t => t.Id == id);
                 return DynValue.Nil;
             });
             wait["stopAll"] = Fn(args =>
             {
-                _timers.RemoveAll(t => t.Script == script);
+                StopTimers(t => t.Script == script);
                 return DynValue.Nil;
             });
             g["Wait"] = wait;
@@ -180,11 +180,19 @@ namespace Core.Scripting
             });
             global["getTable"] = global["getVar"];
             global["setTable"] = global["setVar"];
+            // TTS's older capitalised name, still used by mods.
+            global["Call"] = global["call"];
             g["Global"] = global;
             g["UI"] = UiApi(script, null);
+            // Global.UI is the screen UI; in the Global script self is Global (self.UI, self.call).
+            global["UI"] = g["UI"];
+            global["getGUID"] = Fn(args => DynValue.NewString("-1"));
+            if (selfId == null)
+                g["self"] = global;
             g["Player"] = PlayerApi(script);
             g["Physics"] = PhysicsApi(script);
             g["Turns"] = TurnsApi(script);
+            g["Grid"] = GridApi(script);
             // Music (G27) is not played by scripts yet: the player's calls are accepted, without effect.
             var music = new Table(script);
             foreach (var call in new[] { "setPlaylist", "play", "pause", "skipForward", "skipBack", "setCurrentAudioclip" })
@@ -356,6 +364,17 @@ namespace Core.Scripting
                     return DynValue.NewTable(tags);
                 });
                 t["getRotation"] = DynValue.NewCallback((_, a) => DynValue.NewTable(Vector(script, zone.Transform.Rotation)));
+                // Scripts move their triggers (to follow a board, to park them); the host's command moves the zone.
+                DynValue MoveZone(Vec3? position, Vec3? rotation, Vec3? size) =>
+                    DynValue.NewBoolean(Issue(new MoveZoneCommand { ZoneId = id, Position = position, Rotation = rotation, Size = size }));
+                t["setPosition"] = DynValue.NewCallback((_, a) => FromTts(At(a, 0), true) is { } p ? MoveZone(p, null, null) : DynValue.False);
+                t["setPositionSmooth"] = t["setPosition"];
+                t["setRotation"] = DynValue.NewCallback((_, a) => FromTts(At(a, 0), false) is { } r ? MoveZone(null, r, null) : DynValue.False);
+                t["setRotationSmooth"] = t["setRotation"];
+                t["setScale"] = DynValue.NewCallback((_, a) => FromTts(At(a, 0), false) is { } s
+                    ? MoveZone(null, null, new Vec3(Math.Abs(s.X) * TtsUnitsToMeters, Math.Abs(s.Y) * TtsUnitsToMeters, Math.Abs(s.Z) * TtsUnitsToMeters))
+                    : DynValue.False);
+                t["destruct"] = DynValue.False;
                 // A trigger's scale is its box in TTS units.
                 t["getScale"] = DynValue.NewCallback((_, a) => DynValue.NewTable(Vector(script,
                     new Vec3(zone.Size.X / TtsUnitsToMeters, zone.Size.Y / TtsUnitsToMeters, zone.Size.Z / TtsUnitsToMeters))));
@@ -401,6 +420,9 @@ namespace Core.Scripting
                 var t = args[0].Table;
                 if (!(t.RawGet("guid") is { Type: DataType.String } guid))
                     return DynValue.Nil;
+                // TTS member variables (obj.resting, obj.is_face_down) are read each time, never kept on the proxy.
+                if (LiveProperty(script, guid.String, args[1].String) is { } property)
+                    return property;
                 var method = ObjectMethod(script, guid.String, t, args[1].String);
                 if (!method.IsNil())
                     t.Set(args[1], method);
@@ -411,6 +433,39 @@ namespace Core.Scripting
         }
 
         private readonly Dictionary<Script, Table> _proxyMethods = new Dictionary<Script, Table>();
+
+        /// <summary>Objects a player is holding, by their colour (picked up and not yet dropped).</summary>
+        private readonly Dictionary<string, string> _heldBy = new Dictionary<string, string>();
+
+        /// <summary>
+        /// The TTS member variables the local mods read, as they are now; null for a name that is not one. Physics runs
+        /// on the view, so an object rests unless a player holds it, and nothing is ever still spawning or loading here
+        /// (a spawn is done when the command returns). Scripts poll these in <c>Wait.condition</c> every frame.
+        /// </summary>
+        private DynValue? LiveProperty(Script script, string id, string name)
+        {
+            switch (name)
+            {
+                case "resting": case "is_face_down": case "spawning": case "loading_custom": case "interactable":
+                case "held_by_color": case "tooltip": case "mass":
+                    break;
+                default:
+                    return null;
+            }
+            if (!(Engine.Find(id) is { } live))
+                return DynValue.Nil;
+            return name switch
+            {
+                "resting" => DynValue.NewBoolean(!_heldBy.ContainsKey(id)),
+                "is_face_down" => DynValue.NewBoolean(!live.IsFaceUp),
+                "spawning" => DynValue.False,
+                "loading_custom" => DynValue.False,
+                "interactable" => DynValue.True,
+                "held_by_color" => _heldBy.TryGetValue(id, out var color) ? DynValue.NewString(color) : DynValue.Nil,
+                "tooltip" => DynValue.NewBoolean(live.Tooltip),
+                _ => DynValue.NewNumber(1),
+            };
+        }
 
         /// <summary>
         /// The method <paramref name="name"/> of the object proxy <paramref name="t"/> (object <paramref name="id"/>), or nil.
@@ -544,9 +599,7 @@ namespace Core.Scripting
                     return Fn((o, a) => DynValue.NewBoolean(o.Locked));
                 case "setLock":
                     return Fn((o, a) => Do(new LockCommand { ObjectId = id, Locked = At(a, 0).CastToBool() }));
-                case "is_face_down":
-                    return Fn((o, a) => DynValue.NewBoolean(!o.IsFaceUp));
-                case "destruct":
+                case "destruct": case "destroyObject":
                     return Fn((o, a) => Do(new DeleteCommand { ObjectId = id }));
                 case "getValue":
                     return Fn((o, a) => o switch
@@ -1015,6 +1068,75 @@ namespace Core.Scripting
             };
             added.Add(asset);
             return asset;
+        }
+
+        /// <summary>
+        /// TTS's <c>Grid</c>: <c>type</c> (1 squares, 2 and 3 hexes), <c>show_lines</c>, <c>snapping</c> (1 off, 2 lines,
+        /// 3 centres, 4 both), <c>sizeX</c>/<c>sizeY</c> and <c>offsetX</c>/<c>offsetY</c> in TTS units, <c>color</c>,
+        /// <c>opacity</c>. Reading gives the table's grid; setting a field sets the grid (<c>SetGrid</c>), turning it on.
+        /// </summary>
+        private DynValue GridApi(Script script)
+        {
+            var t = new Table(script);
+            GridDef Current() => Engine.State.Grid ?? new GridDef { Lines = false };
+            var meta = new Table(script);
+            meta["__index"] = DynValue.NewCallback((_, a) =>
+            {
+                var grid = Engine.State.Grid;
+                var g = Current();
+                switch (a.Count > 1 ? a[1].CastToString() : null)
+                {
+                    case "type": return DynValue.NewNumber(g.Shape == GridShape.Hex ? 2 : 1);
+                    case "show_lines": return DynValue.NewBoolean(grid != null && g.Lines);
+                    case "snapping": return DynValue.NewNumber(grid == null ? 1 : g.Snapping switch { GridSnapping.Corners => 2, GridSnapping.Centers => 3, GridSnapping.Both => 4, _ => 1 });
+                    case "sizeX": return DynValue.NewNumber(g.SizeX / TtsUnitsToMeters);
+                    case "sizeY": return DynValue.NewNumber(g.SizeZ / TtsUnitsToMeters);
+                    case "offsetX": return DynValue.NewNumber(g.OffsetX / TtsUnitsToMeters);
+                    case "offsetY": return DynValue.NewNumber(g.OffsetZ / TtsUnitsToMeters);
+                    case "opacity": return DynValue.NewNumber(g.Opacity);
+                    case "thick_lines": return DynValue.False;
+                    case "color":
+                        var c = new Table(script);
+                        c["r"] = g.Color[0]; c["g"] = g.Color[1]; c["b"] = g.Color[2];
+                        c[1] = g.Color[0]; c[2] = g.Color[1]; c[3] = g.Color[2];
+                        return DynValue.NewTable(c);
+                    default: return DynValue.Nil;
+                }
+            });
+            meta["__newindex"] = DynValue.NewCallback((_, a) =>
+            {
+                var key = a.Count > 1 ? a[1].CastToString() : null;
+                var value = a.Count > 2 ? a[2] : DynValue.Nil;
+                var g = Current();
+                var grid = new GridDef
+                {
+                    Shape = g.Shape, Lines = g.Lines, Snapping = g.Snapping, SizeX = g.SizeX, SizeZ = g.SizeZ,
+                    OffsetX = g.OffsetX, OffsetZ = g.OffsetZ, Color = (float[])g.Color.Clone(), Opacity = g.Opacity,
+                };
+                float Units(float min, float max) => Math.Max(min, Math.Min(max, (float)value.CastToNumber().GetValueOrDefault() * TtsUnitsToMeters));
+                switch (key)
+                {
+                    case "type": grid.Shape = value.CastToNumber() is { } type && type >= 2 ? GridShape.Hex : GridShape.Square; break;
+                    case "show_lines": grid.Lines = value.CastToBool(); break;
+                    case "snapping":
+                        grid.Snapping = (int)(value.CastToNumber() ?? 1) switch { 2 => GridSnapping.Corners, 3 => GridSnapping.Centers, 4 => GridSnapping.Both, _ => GridSnapping.Off };
+                        break;
+                    case "sizeX": grid.SizeX = Units(GridDef.MinSize, GridDef.MaxSize); break;
+                    case "sizeY": grid.SizeZ = Units(GridDef.MinSize, GridDef.MaxSize); break;
+                    case "offsetX": grid.OffsetX = Units(-100f, 100f); break;
+                    case "offsetY": grid.OffsetZ = Units(-100f, 100f); break;
+                    case "opacity": grid.Opacity = Math.Max(0f, Math.Min(1f, (float)(value.CastToNumber() ?? 1))); break;
+                    case "color" when value.Type == DataType.Table:
+                        float Channel(string name, int index) => (float)((value.Table.Get(name).CastToNumber() ?? value.Table.Get(index).CastToNumber()) ?? 0);
+                        grid.Color = new[] { Channel("r", 1), Channel("g", 2), Channel("b", 3) };
+                        break;
+                    default: return DynValue.Nil;
+                }
+                Issue(new SetGridCommand { Grid = grid });
+                return DynValue.Nil;
+            });
+            t.MetaTable = meta;
+            return DynValue.NewTable(t);
         }
 
         /// <summary>TTS's <c>tag</c> for an object or zone.</summary>

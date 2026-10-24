@@ -1018,6 +1018,9 @@ namespace TableWorld.View
                     case DrawingsChanged _:
                         RefreshDrawings();
                         break;
+                    case ZoneChanged moved:
+                        RespawnZone(moved.ObjectId);
+                        break;
                     case ButtonsChanged buttons:
                         if (ViewOf(buttons.ObjectId) is { } withButtons)
                             ScriptButtonsView.Refresh(withButtons);
@@ -1163,8 +1166,28 @@ namespace TableWorld.View
 
         private void SpawnZones()
         {
-            var seats = Engine.State.Players.Seats;
             foreach (var zone in Engine.State.Zones)
+                SpawnZone(zone);
+        }
+
+        /// <summary>Draws a zone again where it is now (a script moved or resized it).</summary>
+        private void RespawnZone(string id)
+        {
+            var name = $" {id}";
+            foreach (var old in _zoneViews.Where(v => v != null && v.name.EndsWith(name, StringComparison.Ordinal)).ToList())
+            {
+                _zoneViews.Remove(old);
+                _fogs.RemoveAll(f => f.Item2 != null && f.Item2.transform.IsChildOf(old.transform));
+                old.SetActive(false);
+                Destroy(old);
+            }
+            if (Engine.State.Zones.FirstOrDefault(z => z.Id == id) is { } zone)
+                SpawnZone(zone);
+        }
+
+        private void SpawnZone(Zone zone)
+        {
+            var seats = Engine.State.Players.Seats;
             {
                 // A hand is drawn in its owner's colour, a hidden zone's fog in the colour of the first seat that sees into it.
                 var owner = zone switch
@@ -1176,7 +1199,7 @@ namespace TableWorld.View
                 var parent = ViewOf(zone.Parent)?.transform ?? (_objectsRoot != null ? _objectsRoot : transform);
                 var view = ZoneViewFactory.Create(zone, ZoneViewFactory.SeatColor(owner?.Color), Assets, parent);
                 if (view == null)
-                    continue;
+                    return;
                 _zoneViews.Add(view);
                 if (zone is HiddenZone hiddenZone && view.transform.Find(ZoneViewFactory.FogName) is { } fog)
                     _fogs.Add((hiddenZone, fog.gameObject));

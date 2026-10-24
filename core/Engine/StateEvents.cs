@@ -95,6 +95,14 @@ namespace Core.Engine
         }
     }
 
+    /// <summary>A zone moved, turned or changed size; <see cref="StateEvent.ObjectId"/> is the zone's id.</summary>
+    public sealed class ZoneChanged : StateEvent
+    {
+        public ZoneChanged(string zoneId) : base(zoneId)
+        {
+        }
+    }
+
     /// <summary>Script UI changed (M5): the global UI when <see cref="StateEvent.ObjectId"/> is empty, else that object's.</summary>
     public sealed class ScriptUiChanged : StateEvent
     {

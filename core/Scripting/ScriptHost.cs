@@ -33,6 +33,15 @@ namespace Core.Scripting
         private int _depth;
         private double _now;
         private readonly List<Timer> _timers = new List<Timer>();
+
+        /// <summary>Stops the timers that match (a tick in progress skips them); how many there were.</summary>
+        private int StopTimers(Predicate<Timer> match)
+        {
+            foreach (var timer in _timers)
+                if (match(timer))
+                    timer.Done = true;
+            return _timers.RemoveAll(match);
+        }
         private int _nextTimer = 1;
 
         /// <summary>Raised for <c>broadcastToAll</c> and friends: a line every player should read.</summary>
@@ -292,6 +301,15 @@ namespace Core.Scripting
             var who = color == null ? DynValue.Nil : DynValue.NewString(Capital(color));
             switch (command)
             {
+                case PickUpCommand held when color != null:
+                    _heldBy[held.ObjectId] = Capital(color);
+                    break;
+                case DropCommand dropped:
+                    _heldBy.Remove(dropped.ObjectId);
+                    break;
+            }
+            switch (command)
+            {
                 case DropCommand drop:
                     ForObject("onObjectDrop", "onDrop", drop.ObjectId, who);
                     break;
@@ -385,7 +403,7 @@ namespace Core.Scripting
             if (!_objectScripts.TryGetValue(id, out var script))
                 return;
             _objectScripts.Remove(id);
-            _timers.RemoveAll(t => t.Script == script);
+            StopTimers(t => t.Script == script);
             _coroutines.RemoveAll(c => c.Script == script);
             foreach (var key in _proxies.Keys.Where(k => k.Item1 == script).ToList())
                 _proxies.Remove(key);
@@ -480,9 +498,12 @@ namespace Core.Scripting
         {
             _now = now;
             ResumeCoroutines();
+            // Hundreds of Wait.condition timers can be polling at once (a mod waiting on every piece): finished timers are
+            // marked and removed together, not searched for one by one.
+            var finished = false;
             foreach (var timer in _timers.Where(t => t.Due <= now).OrderBy(t => t.Due).ToList())
             {
-                if (!_timers.Contains(timer))
+                if (timer.Done)
                     continue;
                 if (timer.Condition != null)
                 {
@@ -491,7 +512,7 @@ namespace Core.Scripting
                     {
                         timer.Due = now + 1.0 / 60.0;
                         if (!ok)
-                            _timers.Remove(timer);
+                            finished = timer.Done = true;
                         continue;
                     }
                 }
@@ -501,9 +522,11 @@ namespace Core.Scripting
                     timer.Due = now + timer.Interval;
                 }
                 else
-                    _timers.Remove(timer);
+                    finished = timer.Done = true;
                 Run(timer.Script, timer.Function, "Wait", timer.Arguments ?? Array.Empty<DynValue>());
             }
+            if (finished)
+                _timers.RemoveAll(t => t.Done);
         }
 
         private readonly List<(Script Script, MoonSharp.Interpreter.Coroutine Thread, string Label)> _coroutines = new List<(Script, MoonSharp.Interpreter.Coroutine, string)>();
@@ -568,6 +591,8 @@ namespace Core.Scripting
             public Script Script = null!;
             public DynValue Function = null!;
             public DynValue? Condition;
+            /// <summary>Ran its last time or was stopped; removed from the list at the end of the tick.</summary>
+            public bool Done;
             public DynValue[]? Arguments;
             public double Due;
             public double Interval;

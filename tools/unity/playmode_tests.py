@@ -96,7 +96,8 @@ def run(filter_text, timeout):
         status = result(cli("command", "test", "status"))
         state = status.get("status")
         elapsed = time.time() - started
-        active = active or played or state not in ("completed", None)
+        # Play mode alone is no proof: the status can still show the previous run as completed while ours starts.
+        active = active or state not in ("completed", None)
         if state == "completed" and (active or json.dumps(status, sort_keys=True) != previous):
             return status
         if not played:

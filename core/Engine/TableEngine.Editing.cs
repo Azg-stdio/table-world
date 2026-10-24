@@ -42,8 +42,6 @@ namespace Core.Engine
 
         private CommandResult Spawn(SpawnCommand c)
         {
-            // Read and check the object inside a table made of this table's assets and it alone.
-            var assets = State.Assets.Concat(c.Assets.Where(a => State.Assets.All(x => x.Id != a.Id))).ToList();
             Newtonsoft.Json.Linq.JObject obj;
             try
             {
@@ -53,6 +51,12 @@ namespace Core.Engine
             {
                 return CommandResult.Fail("objectJson", ErrorCodes.InvalidJson, e.Message);
             }
+            // Read and check the object inside a table made of it and the assets it names. (With every asset of the table
+            // a TTS card importer spawning 54 cards took 4 s: each spawn wrote and read back thousands of assets.)
+            var named = new HashSet<string>(obj.Descendants().OfType<Newtonsoft.Json.Linq.JValue>()
+                .Where(v => v.Type == Newtonsoft.Json.Linq.JTokenType.String).Select(v => (string)v!));
+            var known = new HashSet<string>(State.Assets.Select(a => a.Id));
+            var assets = State.Assets.Concat(c.Assets.Where(a => !known.Contains(a.Id))).Where(a => named.Contains(a.Id)).ToList();
             obj.Remove("container");
             obj["id"] = "spawned";
             var document = Newtonsoft.Json.Linq.JObject.Parse(TableJson.Serialize(new TableState { Assets = assets }, indented: false));
@@ -63,7 +67,7 @@ namespace Core.Engine
                 var first = parsed.Errors.First();
                 return CommandResult.Fail(first.Path, first.Code, first.Message);
             }
-            foreach (var asset in c.Assets.Where(a => State.Assets.All(x => x.Id != a.Id)))
+            foreach (var asset in c.Assets.Where(a => known.Add(a.Id)))
                 State.Assets.Add(asset);
             var spawned = parsed.State!.Objects.Single();
             spawned.Id = Mint(spawned.Type.ToLowerInvariant());

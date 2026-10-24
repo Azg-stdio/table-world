@@ -246,5 +246,74 @@ namespace Core.Tests.Scripting
                 broadcastToAll(JSON.encode_pretty({1}) .. ' ' .. tostring(getObjectFromGUID('d6').isSmoothMoving()))");
             Assert.Equal("[1] false", said.Single());
         }
+
+        [Fact]
+        public void Global_HasUiAndCall_AndIsSelfInTheGlobalScript()
+        {
+            var (engine, _, said) = Load(@"
+                function double(t) return t.n * 2 end
+                function onLoad()
+                    self.UI.setXml('<Panel id=""p"" active=""false""/>')
+                    Global.UI.setAttribute('p', 'active', 'true')
+                    broadcastToAll(Global.Call('double', { n = 3 }) .. ' ' .. self.getGUID() .. ' ' .. tostring(Global.UI.getAttribute('p', 'active')))
+                end");
+            Assert.Equal("6 -1 True", said.Single());
+            Assert.True(engine.State.ScriptUi.Single().Active);
+        }
+
+        [Fact]
+        public void Turns_AreReadAndSet()
+        {
+            var (engine, _, said) = Load(@"
+                Turns.enable = true
+                Turns.order = { 'Blue', 'Red' }
+                Turns.turn_color = 'Red'
+                broadcastToAll(tostring(Turns.enable) .. ' ' .. Turns.turn_color .. ' ' .. Turns.order[1] .. ' next ' .. Turns.getNextTurnColor())");
+            Assert.Equal("true Red Blue next Blue", said.Single());
+            Assert.Equal(new[] { "seat_2", "seat_1" }, engine.State.FreeTurns!.Seats);
+        }
+
+        [Fact]
+        public void Grid_IsSetFieldByField_InTtsUnits()
+        {
+            var (engine, _, said) = Load(@"
+                Grid.type = 2
+                Grid.sizeX = 2
+                Grid.snapping = 3
+                Grid.show_lines = true
+                broadcastToAll(Grid.type .. ' ' .. Grid.sizeX .. ' ' .. Grid.snapping)");
+            Assert.Equal("2 2 3", said.Single());
+            var grid = engine.State.Grid!;
+            Assert.Equal(GridShape.Hex, grid.Shape);
+            Assert.Equal(0.06f, grid.SizeX, 4);
+            Assert.Equal(GridSnapping.Centers, grid.Snapping);
+        }
+
+        [Fact]
+        public void MemberVariables_AreReadLive_AndRestingWaitsEnd()
+        {
+            var (_, host, said) = Load(@"
+                local d = getObjectFromGUID('d6')
+                broadcastToAll(type(d.is_face_down) .. ' ' .. tostring(d.resting) .. ' ' .. tostring(d.spawning) .. ' ' .. tostring(d.held_by_color))
+                Wait.condition(function() broadcastToAll('settled') end, function() return d.resting end)");
+            host.Tick(0.02);
+            Assert.Equal(new[] { "boolean true false nil", "settled" }, said);
+        }
+
+        [Fact]
+        public void Zones_AreMovedByScripts_AndObjectsAreDestroyedEitherWay()
+        {
+            var (engine, _, said) = Load(@"
+                local hand = getObjectFromGUID('hand_1')
+                hand.setPosition({ 10, 1.96, 0 })
+                hand.setScale({ 20, 4, 5 })
+                getObjectFromGUID('d6').destroyObject()
+                broadcastToAll(hand.getPosition().x .. ' ' .. tostring(getObjectFromGUID('d6') == nil))");
+            Assert.Equal("10 true", said.Single());
+            var zone = engine.State.Zones.Single(z => z.Id == "hand_1");
+            Assert.Equal(0.3f, zone.Transform.Position.X, 4);
+            Assert.Equal(0.03f, zone.Transform.Position.Y, 4);
+            Assert.Equal(0.6f, zone.Size.X, 4);
+        }
     }
 }

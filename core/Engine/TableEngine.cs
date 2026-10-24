@@ -206,6 +206,7 @@ namespace Core.Engine
             RollCommand c => Roll(c),
             SetPhysicsCommand c => SetPhysics(c),
             SetGridCommand c => SetGrid(c),
+            MoveZoneCommand c => MoveZone(c),
             AddDrawingCommand c => AddDrawing(c),
             SetNoteTabCommand c => SetNoteTab(c),
             DeleteNoteTabCommand c => DeleteNoteTab(c),
@@ -496,6 +497,24 @@ namespace Core.Engine
                 return CommandResult.Fail("mode", ErrorCodes.InvalidValue, $"Unknown physics mode {(int)c.Mode}.", "Use full, semiLock or locked.");
             State.Physics = c.Mode;
             return CommandResult.Success(new List<StateEvent> { new TableSettingsChanged() });
+        }
+
+        private CommandResult MoveZone(MoveZoneCommand c)
+        {
+            if (!(State.Zones.FirstOrDefault(z => z.Id == c.ZoneId) is { } zone))
+                return CommandResult.Fail("zoneId", ErrorCodes.UnknownZone, $"No zone '{c.ZoneId}'.");
+            if (c.Size is { } size && (size.X <= 0f || size.Y <= 0f || size.Z <= 0f))
+                return CommandResult.Fail("size", ErrorCodes.InvalidValue, "A zone's size must be positive.");
+            if (c.Position is { } position)
+                zone.Transform.Position = position;
+            if (c.Rotation is { } rotation)
+                zone.Transform.Rotation = rotation;
+            if (c.Size is { } newSize)
+                zone.Size = newSize;
+            var events = new List<StateEvent> { new ZoneChanged(zone.Id) };
+            if (zone.ScriptUi.Count > 0)
+                events.Add(new ScriptUiChanged(zone.Id));
+            return CommandResult.Success(events);
         }
 
         private CommandResult SetGrid(SetGridCommand c)

@@ -38,22 +38,32 @@ namespace Core.Tests.Scripting
             var said = new List<string>();
             ScriptHost? host = null;
             var now = 0.0;
+            // Script commands timed by kind: the engine's share of a slow interaction (OnCommand is the scripts' reaction).
+            var commandTime = new Dictionary<string, double>();
             host = new ScriptHost(() => engine, c =>
             {
+                var watch = System.Diagnostics.Stopwatch.StartNew();
                 var r = engine.Execute(c);
+                var key = "engine " + c.GetType().Name;
+                commandTime[key] = (commandTime.TryGetValue(key, out var ms) ? ms : 0) + watch.Elapsed.TotalMilliseconds;
                 host!.OnCommand(c, r, null);
                 return r;
             });
             host.Log += log.Add;
             host.Broadcast += said.Add;
+            // Where script time goes, so a slow interaction names the function that took it.
+            host.Profile = new Dictionary<string, double>();
+            var loading = System.Diagnostics.Stopwatch.StartNew();
             host.Load(now);
             void Run(double seconds)
             {
                 for (var end = now + seconds; now < end; now += 1.0 / 60)
                     host.Tick(now);
             }
+            var loaded = loading.Elapsed.TotalSeconds;
             Run(3);
-            var report = new List<string> { $"{save.Name}: {engine.State.Objects.Count} objects, {host.ScriptCount} scripts, playing as {color}; load said {said.Count} lines, {log.Count(Problem)} problems" };
+            var report = new List<string> { $"{save.Name}: {engine.State.Objects.Count} objects, {host.ScriptCount} scripts, playing as {color}; load said {said.Count} lines, {log.Count(Problem)} problems; " +
+                                            $"load {loaded:0.0} s, first 3 s of timers {loading.Elapsed.TotalSeconds - loaded:0.0} s" };
             report.AddRange(log.Where(Problem).Take(10).Select(l => "    load: " + l));
 
             var pressed = new HashSet<string>();
@@ -67,9 +77,15 @@ namespace Core.Tests.Scripting
                     var saidBefore = said.Count;
                     var objectsBefore = engine.State.Objects.Count;
                     var before = TableJson.Hash(engine.State);
+                    var profiled = new Dictionary<string, double>(host.Profile);
+                    foreach (var pair in commandTime)
+                        profiled[pair.Key] = pair.Value;
+                    var watch = System.Diagnostics.Stopwatch.StartNew();
                     var result = engine.Execute(command);
                     host.OnCommand(command, result, color);
+                    var reaction = watch.Elapsed.TotalSeconds;
                     Run(3);
+                    var total = watch.Elapsed.TotalSeconds;
                     var problems = log.Skip(logBefore).Where(Problem).ToList();
                     var lines = said.Skip(saidBefore).ToList();
                     var changed = TableJson.Hash(engine.State) != before;
@@ -77,8 +93,13 @@ namespace Core.Tests.Scripting
                     report.Add($"  [{(problems.Count > 0 ? "ERR" : result.Ok ? (changed || lines.Count > 0 ? "ok " : "-- ") : "REF")}] {label}" +
                                (result.Ok ? "" : $" refused: {result.Error?.Message}") +
                                (delta != 0 ? $"; {delta:+#;-#} objects" : "") + (changed ? "; table changed" : "") +
-                               (lines.Count > 0 ? "; said: " + string.Join(" | ", lines.Take(3)).Replace("\n", " ") : ""));
+                               (lines.Count > 0 ? "; said: " + string.Join(" | ", lines.Take(3)).Replace("\n", " ") : "") +
+                               // A click whose scripts take long freezes the game for everyone (the host runs them).
+                               (total > 1 ? $"; SLOW {reaction:0.0} s to react, {total:0.0} s with 3 s of timers" : ""));
                     report.AddRange(problems.Distinct().Take(4).Select(p => "        " + p));
+                    if (total > 1)
+                        report.AddRange(host.Profile.Concat(commandTime).Select(p => (p.Key, Ms: p.Value - (profiled.TryGetValue(p.Key, out var was) ? was : 0)))
+                            .OrderByDescending(p => p.Ms).Take(5).Select(p => $"        {p.Ms / 1000:0.0} s in {p.Key}"));
                 }
             }
             report.Add($"after: {engine.State.Objects.Count} objects; {pressed.Count} interactions pressed");

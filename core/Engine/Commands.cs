@@ -274,6 +274,16 @@ namespace Core.Engine
         public GridDef? Grid { get; set; }
     }
 
+    /// <summary>Moves, turns or resizes a zone (TTS scripts: <c>zone.setPosition</c>, <c>setRotation</c>, <c>setScale</c>). Host only.</summary>
+    public sealed class MoveZoneCommand : Command, IHostCommand
+    {
+        public string ZoneId { get; set; } = "";
+        public Vec3? Position { get; set; }
+        public Vec3? Rotation { get; set; }
+        /// <summary>The zone's box, metres.</summary>
+        public Vec3? Size { get; set; }
+    }
+
     /// <summary>Arranges the unlocked objects in a <see cref="LayoutZone"/> in its grid (G18, TTS "Lay out").</summary>
     public sealed class ArrangeZoneCommand : Command
     {
