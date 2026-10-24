@@ -662,6 +662,8 @@ namespace TableWorld.View
             _velocity = Vector3.zero;
             _spin = Vector3.zero;
             Hold(view, Vector3.zero);
+            // Table scripts hear the pick up (onObjectPickUp, M5); it changes nothing by itself.
+            _table.Execute(new PickUpCommand { ObjectId = view.Id, Actor = _table.LocalSeat });
             return true;
         }
 

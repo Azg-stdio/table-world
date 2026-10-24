@@ -256,6 +256,7 @@ namespace Core.Engine
             if (c.Grid.HasValue) obj.Grid = c.Grid.Value;
             if (c.Tooltip.HasValue) obj.Tooltip = c.Tooltip.Value;
             if (c.HideWhenFaceDown.HasValue) obj.HideWhenFaceDown = c.HideWhenFaceDown.Value;
+            if (c.Script != null) obj.Script = c.Script.Length == 0 ? null : c.Script;
             var events = new List<StateEvent> { new ObjectUpdated(obj.Id) };
             if (c.Hands.HasValue && c.Hands.Value != obj.Hands)
             {

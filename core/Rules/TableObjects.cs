@@ -78,6 +78,9 @@ namespace Core.Rules
         /// <summary>Optional per-object Lua (M5).</summary>
         public string? Script { get; set; }
 
+        /// <summary>What the object's script saved with <c>onSave</c> (TTS <c>script_state</c>); given back to its <c>onLoad</c>.</summary>
+        public string? ScriptState { get; set; }
+
         /// <summary>TTS fields we carry but do not interpret yet (interaction flags, AltLookAngle, ...). Free-form.</summary>
         public JObject? TtsExtra { get; set; }
 

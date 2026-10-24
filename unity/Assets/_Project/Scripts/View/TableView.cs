@@ -482,8 +482,12 @@ namespace TableWorld.View
         /// Writes the table to <paramref name="path"/> as core JSON after recording every live physics pose, so the file
         /// matches what is on screen. Returns the state hash written.
         /// </summary>
+        /// <summary>Raised before the table is written to a save (the host's scripts store their onSave state, M5).</summary>
+        public event Action Saving;
+
         public string Save(string path)
         {
+            Saving?.Invoke();
             foreach (var view in _views.Values.ToList())
                 if (view != null && !view.Held && !view.Animating)
                     ReportPose(view);

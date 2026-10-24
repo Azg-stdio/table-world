@@ -22,6 +22,13 @@ IMPLEMENTED = {
     "getPosition", "setPosition", "setPositionSmooth", "getRotation", "setRotation", "setRotationSmooth", "flip", "shuffle",
     "randomize", "roll", "lock", "unlock", "setLock", "getLock", "is_face_down", "getValue", "setValue", "getQuantity",
     "getObjects", "takeObject", "putObject", "destruct", "call", "getVar", "setVar", "getLuaScript",
+    "setLuaScript", "getTable", "setTable", "getColorTint", "setColorTint", "getScale", "setScale", "getBounds",
+    "getBoundsNormalized", "getZones", "positionToWorld", "positionToLocal", "playLoopingEffect", "playTriggerEffect",
+    "setVelocity", "getVelocity", "addForce", "addTorque", "highlightOn", "highlightOff", "startLuaCoroutine",
+    "destroyObject", "getSeatedPlayers", "onSave", "onObjectPickUp", "onPickUp",
+    "isSmoothMoving", "reload", "setState", "getStates", "getCustomObject", "log", "JSON.encode_pretty", "Global.getTable",
+    "Global.setTable", "getNotebookTabs", "addNotebookTab", "editNotebookTab", "removeNotebookTab",
+    "onObjectEnterScriptingZone", "onObjectLeaveScriptingZone",
     # events
     "onLoad", "onObjectDrop", "onDrop", "onObjectEnterZone", "onObjectLeaveZone", "onObjectFlip", "onFlip",
     "onObjectRandomize", "onRandomize", "onPlayerTurn",

@@ -183,6 +183,83 @@ namespace Core.Tests.Scripting
         }
 
         [Fact]
+        public void SaveAndLoad_KeepScriptState()
+        {
+            var h = new Harness(@"
+count = 0
+function onLoad(saved) if saved ~= '' then count = tonumber(saved) end broadcastToAll('count ' .. count) end
+function onSave() return tostring(count + 5) end",
+                ("d6", @"
+function onSave() return 'die state' end
+function onLoad(s) broadcastToAll('die got ' .. s) end"));
+            Assert.Contains("count 0", h.Said);
+            h.Host.Save();
+            Assert.Equal("5", h.Engine.State.GlobalScriptState);
+            Assert.Equal("die state", h.Engine.Find("d6")!.ScriptState);
+            var json = TableJson.Serialize(h.Engine.State);
+            Assert.Contains("globalScriptState", json);
+            h.Said.Clear();
+            h.Host.Load(0);
+            Assert.Contains("count 5", h.Said);
+            Assert.Contains("die got die state", h.Said);
+        }
+
+        [Fact]
+        public void Coroutines_RunAFrameAtATime()
+        {
+            var h = new Harness(@"
+                function steps()
+                  for i = 1, 3 do broadcastToAll('step ' .. i) coroutine.yield(0) end
+                  return 1
+                end
+                function onLoad() startLuaCoroutine(Global, 'steps') end");
+            Assert.Empty(h.Said);
+            h.Host.Tick(0.1);
+            h.Host.Tick(0.2);
+            Assert.Equal(new[] { "step 1", "step 2" }, h.Said);
+            h.Host.Tick(0.3);
+            h.Host.Tick(0.4);
+            Assert.Equal(3, h.Said.Count);
+            Assert.Equal(0, h.Host.CoroutineCount);
+        }
+
+        [Fact]
+        public void SetLuaScript_ReplacesAndReloadsAnObjectsScript()
+        {
+            var h = new Harness(@"function onLoad() getObjectFromGUID('d6').setLuaScript('function onLoad() broadcastToAll(""new script loaded"") end') end");
+            Assert.Contains("new script loaded", h.Said);
+            Assert.Contains("new script loaded", h.Engine.Find("d6")!.Script);
+            Assert.Equal(2, h.Host.ScriptCount);
+        }
+
+        [Fact]
+        public void TintScaleBoundsZonesAndLocalPositions()
+        {
+            var h = new Harness(@"
+                local card = getObjectFromGUID('loose')
+                card.setColorTint({r = 1, g = 0, b = 0})
+                card.setScale({2, 2, 2})
+                local b = card.getBounds()
+                broadcastToAll(card.getColorTint().g .. ' ' .. card.getScale().x .. ' ' .. b.size.x)
+                card.setPosition({0, 1, -16.6667})
+                broadcastToAll(#card.getZones() .. ' zone')
+                local w = card.positionToWorld({1, 0, 0})
+                broadcastToAll(string.format('%.2f', w.x - card.getPosition().x))
+                card.playLoopingEffect(1)");
+            Assert.Equal("0 2 4.2333", h.Said[0]);
+            Assert.Equal("1 zone", h.Said[1]);
+            Assert.Equal("2.00", h.Said[2]); // one local unit across, scaled twice
+        }
+
+        [Fact]
+        public void PickUp_IsHeard()
+        {
+            var h = new Harness("function onObjectPickUp(color, obj) broadcastToAll(color .. ' took ' .. obj.getGUID()) end");
+            h.Run(new PickUpCommand { ObjectId = "d6", Actor = "seat_1" });
+            Assert.Equal("Red took d6", h.Said.Single());
+        }
+
+        [Fact]
         public void Json_RoundTrips()
         {
             var h = new Harness("local t = JSON.decode('{\"a\": [1, 2, 3]}') broadcastToAll(#t.a .. ' ' .. JSON.encode({x = 1}))");

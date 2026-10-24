@@ -656,7 +656,7 @@ namespace TableWorld.View.Hud
         {
             // Moves and strokes are too frequent for the status line (strokes are in the game log).
             if (result.Ok && (command is MoveCommand || command is AddDrawingCommand || command is EraseDrawingCommand ||
-                              command is DropCommand || command is PeekCommand || command is BlindfoldCommand))
+                              command is DropCommand || command is PickUpCommand || command is PeekCommand || command is BlindfoldCommand))
                 return;
             var name = command.GetType().Name.Replace("Command", "");
             _status.text = result.Ok ? (command is RollCommand ? RollText(result) : command is SetPhysicsCommand physics ? $"Physics: {PhysicsName(physics.Mode)}" : TurnText(command) ?? $"{name}: done")

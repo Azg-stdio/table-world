@@ -64,6 +64,7 @@ namespace Core.Scripting
             _objectScripts.Clear();
             _timers.Clear();
             _proxies.Clear();
+            _coroutines.Clear();
             _global = null;
             var state = Engine.State;
             if (state.Scripts.TryGetValue(GlobalName, out var source) && !string.IsNullOrWhiteSpace(source))
@@ -74,10 +75,41 @@ namespace Core.Scripting
                 if (script != null)
                     _objectScripts[obj.Id] = script;
             }
+            // onLoad gets what onSave saved (TTS script_state), or an empty string.
             if (_global != null)
-                CallIfDefined(_global, "onLoad");
-            foreach (var script in _objectScripts.Values.ToList())
-                CallIfDefined(script, "onLoad");
+                CallIfDefined(_global, "onLoad", DynValue.NewString(state.GlobalScriptState ?? ""));
+            foreach (var pair in _objectScripts.ToList())
+                CallIfDefined(pair.Value, "onLoad", DynValue.NewString(Engine.Find(pair.Key)?.ScriptState ?? ""));
+        }
+
+        /// <summary>
+        /// Before the table is saved: asks every script's <c>onSave</c> for its state string and keeps it with the table
+        /// (TTS <c>script_state</c>), so a loaded save resumes where it was. Host data: no command, nobody else needs it.
+        /// </summary>
+        public void Save()
+        {
+            var state = Engine.State;
+            if (_global != null && CallIfDefined(_global, "onSave") is { Type: DataType.String } global)
+                state.GlobalScriptState = global.String;
+            foreach (var pair in _objectScripts.ToList())
+                if (CallIfDefined(pair.Value, "onSave") is { Type: DataType.String } saved && Engine.Find(pair.Key) is { } obj)
+                    obj.ScriptState = saved.String;
+        }
+
+        /// <summary>Recompiles one object's script after <c>setLuaScript</c> (or a player edit) and runs its onLoad.</summary>
+        private void ReloadObject(string id)
+        {
+            _objectScripts.Remove(id);
+            foreach (var key in _proxies.Keys.Where(k => k.Item2 == id).ToList())
+                _proxies.Remove(key);
+            var obj = Engine.Find(id);
+            if (obj == null || string.IsNullOrWhiteSpace(obj.Script))
+                return;
+            var script = Compile(obj.Script!, id, obj.Name ?? id);
+            if (script == null)
+                return;
+            _objectScripts[id] = script;
+            CallIfDefined(script, "onLoad", DynValue.NewString(obj.ScriptState ?? ""));
         }
 
         /// <summary>Scripts loaded right now (the global one counts).</summary>
@@ -183,6 +215,12 @@ namespace Core.Scripting
                 case DropCommand drop:
                     ForObject("onObjectDrop", "onDrop", drop.ObjectId, who);
                     break;
+                case PickUpCommand pick:
+                    ForObject("onObjectPickUp", "onPickUp", pick.ObjectId, who);
+                    break;
+                case SetPropertiesCommand { Script: { } } edit:
+                    ReloadObject(edit.ObjectId);
+                    break;
                 case FlipCommand flip:
                     ForObject("onObjectFlip", "onFlip", flip.ObjectId, who);
                     break;
@@ -205,9 +243,14 @@ namespace Core.Scripting
                         break;
                     case ZoneEntered entered when ProxyFor(entered.ZoneId) != null && ProxyFor(entered.ObjectId) != null:
                         EverywhereWith("onObjectEnterZone", (s, p) => new[] { p(entered.ZoneId), p(entered.ObjectId) });
+                        // Older TTS scripts use the scripting-zone names for the same thing.
+                        if (Engine.State.Zones.FirstOrDefault(z => z.Id == entered.ZoneId) is ScriptingZone)
+                            EverywhereWith("onObjectEnterScriptingZone", (s, p) => new[] { p(entered.ZoneId), p(entered.ObjectId) });
                         break;
                     case ZoneLeft left when Engine.State.Zones.Any(z => z.Id == left.ZoneId):
                         EverywhereWith("onObjectLeaveZone", (s, p) => new[] { p(left.ZoneId), p(left.ObjectId) });
+                        if (Engine.State.Zones.FirstOrDefault(z => z.Id == left.ZoneId) is ScriptingZone)
+                            EverywhereWith("onObjectLeaveScriptingZone", (s, p) => new[] { p(left.ZoneId), p(left.ObjectId) });
                         break;
                 }
             }
@@ -239,10 +282,11 @@ namespace Core.Scripting
         private object? ProxyFor(string id) =>
             Engine.Find(id) as object ?? Engine.State.Zones.FirstOrDefault(z => z.Id == id);
 
-        /// <summary>Advances time: runs the <c>Wait</c> callbacks that are due (the host calls this every frame).</summary>
+        /// <summary>Advances time: runs the <c>Wait</c> callbacks that are due and every running coroutine's next frame (the host calls this every frame).</summary>
         public void Tick(double now)
         {
             _now = now;
+            ResumeCoroutines();
             foreach (var timer in _timers.Where(t => t.Due <= now).OrderBy(t => t.Due).ToList())
             {
                 if (!_timers.Contains(timer))
@@ -268,6 +312,57 @@ namespace Core.Scripting
                 Run(timer.Script, timer.Function, "Wait", Array.Empty<DynValue>());
             }
         }
+
+        private readonly List<(Script Script, MoonSharp.Interpreter.Coroutine Thread, string Label)> _coroutines = new List<(Script, MoonSharp.Interpreter.Coroutine, string)>();
+
+        /// <summary>
+        /// TTS <c>startLuaCoroutine(owner, "name")</c>: runs the function a frame at a time; each <c>coroutine.yield(0)</c>
+        /// waits for the next frame. Each frame's slice is on the step budget; a coroutine that never yields is stopped.
+        /// </summary>
+        private bool StartCoroutine(Script script, string name)
+        {
+            var function = script.Globals.Get(name);
+            if (function.Type != DataType.Function)
+                return false;
+            var thread = script.CreateCoroutine(function).Coroutine;
+            _coroutines.Add((script, thread, name));
+            return true;
+        }
+
+        private void ResumeCoroutines()
+        {
+            foreach (var (script, thread, label) in _coroutines.ToList())
+            {
+                _coroutines.RemoveAll(c => c.Thread == thread);
+                if (thread.State == CoroutineState.Dead)
+                    continue;
+                try
+                {
+                    thread.AutoYieldCounter = Slice;
+                    thread.Resume();
+                    long steps = Slice;
+                    while (thread.State == CoroutineState.ForceSuspended)
+                    {
+                        steps += Slice;
+                        if (steps > MaxSteps)
+                        {
+                            Log?.Invoke($"[{label}] stopped: a coroutine ran more than {MaxSteps:N0} steps in one frame.");
+                            break;
+                        }
+                        thread.Resume();
+                    }
+                    if (thread.State == CoroutineState.Suspended)
+                        _coroutines.Add((script, thread, label));
+                }
+                catch (InterpreterException e)
+                {
+                    Log?.Invoke($"[{label}] error: {e.DecoratedMessage ?? e.Message}");
+                }
+            }
+        }
+
+        /// <summary>Coroutines still running (tests).</summary>
+        public int CoroutineCount => _coroutines.Count;
 
         private sealed class Timer
         {

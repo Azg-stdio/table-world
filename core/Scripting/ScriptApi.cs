@@ -35,6 +35,26 @@ namespace Core.Scripting
                 g["self"] = Proxy(script, selfId);
 
             g["getObjectFromGUID"] = Fn(args => Proxy(script, args.Count > 0 ? args[0].CastToString() : null));
+            g["startLuaCoroutine"] = Fn(args =>
+            {
+                // startLuaCoroutine(owner, "name"): owner is Global or an object; its script runs the function.
+                var owner = args.Count > 0 && args[0].Type == DataType.Table ? args[0].Table.Get("guid").CastToString() : null;
+                var target = owner != null && _objectScripts.TryGetValue(owner, out var s) ? s : _global ?? script;
+                return DynValue.NewBoolean(StartCoroutine(target, args.Count > 1 ? args[1].CastToString() ?? "" : ""));
+            });
+            g["destroyObject"] = Fn(args =>
+            {
+                var target = args.Count > 0 && args[0].Type == DataType.Table ? args[0].Table.Get("guid").CastToString() : null;
+                return target == null ? DynValue.False : DynValue.NewBoolean(Issue(new DeleteCommand { ObjectId = target }));
+            });
+            g["getSeatedPlayers"] = Fn(args =>
+            {
+                var colors = new Table(script);
+                var i = 1;
+                foreach (var seat in Engine.State.Players.Seats)
+                    colors[i++] = Capital(seat.Color);
+                return DynValue.NewTable(colors);
+            });
             g["getObjects"] = Fn(args => List(script, Engine.State.Objects.Where(o => o.Container == null).Select(o => o.Id)));
             g["getAllObjects"] = g["getObjects"];
             g["getObjectsWithTag"] = Fn(args =>
@@ -111,7 +131,71 @@ namespace Core.Scripting
                     _global.Globals[name] = Copy(args[i + 1], _global);
                 return DynValue.Nil;
             });
+            global["getTable"] = global["getVar"];
+            global["setTable"] = global["setVar"];
             g["Global"] = global;
+            g["log"] = Fn(args =>
+            {
+                Log?.Invoke("[log] " + string.Join(" ", args.GetArray().Select(a => a.ToPrintString())));
+                return DynValue.Nil;
+            });
+            json["encode_pretty"] = json["encode"];
+
+            // The notebook (G25): TTS getNotebookTabs / addNotebookTab / editNotebookTab / removeNotebookTab.
+            g["getNotebookTabs"] = Fn(args =>
+            {
+                var tabs = new Table(script);
+                var i = 1;
+                foreach (var page in Engine.State.Notebook)
+                {
+                    var tab = new Table(script);
+                    tab["index"] = i - 1;
+                    tab["title"] = page.Title;
+                    tab["body"] = page.Body;
+                    tab["color"] = page.Color == null ? "Grey" : Capital(page.Color);
+                    tabs[i++] = tab;
+                }
+                return DynValue.NewTable(tabs);
+            });
+            NoteTab? TabFrom(DynValue value, NoteTab? existing)
+            {
+                if (value.Type != DataType.Table)
+                    return null;
+                var p = value.Table;
+                var color = p.Get("color").CastToString() ?? existing?.Color ?? "Grey";
+                return new NoteTab
+                {
+                    Id = existing?.Id ?? "",
+                    Title = p.Get("title").CastToString() ?? existing?.Title ?? "",
+                    Body = p.Get("body").CastToString() ?? existing?.Body ?? "",
+                    Color = string.Equals(color, "Grey", StringComparison.OrdinalIgnoreCase) ? null : color.ToLowerInvariant(),
+                };
+            }
+            g["addNotebookTab"] = Fn(args =>
+            {
+                var tab = args.Count > 0 ? TabFrom(args[0], null) : null;
+                if (tab == null)
+                    return DynValue.NewNumber(-1);
+                var result = _execute(new SetNoteTabCommand { Tab = tab });
+                Count(result);
+                return DynValue.NewNumber(result.Ok ? Engine.State.Notebook.FindIndex(t => t.Id == result.CreatedId) : -1);
+            });
+            g["editNotebookTab"] = Fn(args =>
+            {
+                var index = args.Count > 0 && args[0].Type == DataType.Table && args[0].Table.Get("index").Type == DataType.Number
+                    ? (int)args[0].Table.Get("index").Number : -1;
+                if (index < 0 || index >= Engine.State.Notebook.Count)
+                    return DynValue.False;
+                var tab = TabFrom(args[0], Engine.State.Notebook[index]);
+                return tab == null ? DynValue.False : DynValue.NewBoolean(Issue(new SetNoteTabCommand { Tab = tab }));
+            });
+            g["removeNotebookTab"] = Fn(args =>
+            {
+                var index = args.Count > 0 && args[0].Type == DataType.Number ? (int)args[0].Number : -1;
+                return index < 0 || index >= Engine.State.Notebook.Count
+                    ? DynValue.False
+                    : DynValue.NewBoolean(Issue(new DeleteNoteTabCommand { TabId = Engine.State.Notebook[index].Id }));
+            });
         }
 
         private DynValue Schedule(Script script, CallbackArguments args, bool seconds)
@@ -314,10 +398,113 @@ namespace Core.Scripting
                 return DynValue.Nil;
             });
             t["getLuaScript"] = Fn((o, a) => Str(o.Script));
+            t["isSmoothMoving"] = DynValue.NewCallback((_, a) => DynValue.False);
+            t["reload"] = Fn((o, a) => Proxy(script, id));
+            t["setState"] = Fn((o, a) =>
+            {
+                // TTS returns the object in its new state, which has its own GUID.
+                if (At(a, 0).Type != DataType.Number)
+                    return DynValue.Nil;
+                var result = _execute(new SetStateCommand { ObjectId = id, State = ((int)At(a, 0).Number).ToString() });
+                Count(result);
+                var added = result.Ok ? result.Events.OfType<ObjectAdded>().FirstOrDefault()?.ObjectId : null;
+                return added != null ? Proxy(script, added) : DynValue.Nil;
+            });
+            t["getStates"] = Fn((o, a) =>
+            {
+                var states = new Table(script);
+                var i = 1;
+                foreach (var pair in o.States.OrderBy(p => p.Key))
+                    states[i++] = Entry(script, pair.Value.Name, pair.Value.Id, int.TryParse(pair.Key, out var n) ? n : 0);
+                return DynValue.NewTable(states);
+            });
+            t["getCustomObject"] = Fn((o, a) =>
+            {
+                // The TTS custom fields that map to ours (image, mesh), as asset paths.
+                var custom = new Table(script);
+                string? Path(string? assetId) => assetId == null ? null : Engine.State.Assets.FirstOrDefault(x => x.Id == assetId)?.Path;
+                switch (o)
+                {
+                    case Card c: custom["face"] = Path(c.FaceAsset); custom["back"] = Path(c.BackAsset); break;
+                    case Token tk: custom["image"] = Path(tk.Asset); break;
+                    case Tile tl: custom["image"] = Path(tl.Asset); break;
+                    case Model m: custom["mesh"] = Path(m.Asset); custom["diffuse"] = Path(m.DiffuseAsset); break;
+                    case Die d: custom["image"] = Path(d.Asset); break;
+                }
+                return DynValue.NewTable(custom);
+            });
+            t["setLuaScript"] = Fn((o, a) => Do(new SetPropertiesCommand { ObjectId = id, Script = Arg(a, 0) ?? "" }));
+            t["script_state"] = DynValue.Nil;
+            // getTable / setTable: TTS's way to move a table between scripts (copied, like getVar).
+            t["getTable"] = t["getVar"];
+            t["setTable"] = t["setVar"];
+            t["getColorTint"] = Fn((o, a) =>
+            {
+                var c = o.Tint ?? new[] { 1f, 1f, 1f };
+                var tint = new Table(script);
+                tint["r"] = c[0]; tint["g"] = c[1]; tint["b"] = c[2]; tint["a"] = c.Length > 3 ? c[3] : 1f;
+                tint[1] = c[0]; tint[2] = c[1]; tint[3] = c[2];
+                return DynValue.NewTable(tint);
+            });
+            t["setColorTint"] = Fn((o, a) =>
+            {
+                var c = At(a, 0);
+                if (c.Type != DataType.Table)
+                    return DynValue.False;
+                float Part(string key, int index)
+                {
+                    var v = c.Table.Get(key);
+                    if (v.Type != DataType.Number)
+                        v = c.Table.Get(index);
+                    return v.Type == DataType.Number ? Math.Max(0f, Math.Min(1f, (float)v.Number)) : 1f;
+                }
+                return Do(new SetPropertiesCommand { ObjectId = id, Tint = new[] { Part("r", 1), Part("g", 2), Part("b", 3) } });
+            });
+            t["getScale"] = Fn((o, a) => DynValue.NewTable(Vector(script, o.Transform.Scale)));
+            t["setScale"] = Fn((o, a) =>
+            {
+                // Our objects scale uniformly: the x of the requested scale decides.
+                var wanted = FromTts(At(a, 0), false);
+                var current = o.Transform.Scale.X;
+                return wanted is { } w && w.X > 0 && current > 0 ? Do(new ScaleCommand { ObjectId = id, Factor = w.X / current }) : DynValue.False;
+            });
+            t["getBounds"] = Fn((o, a) => DynValue.NewTable(Bounds(script, o)));
+            t["getBoundsNormalized"] = t["getBounds"];
+            t["getZones"] = Fn((o, a) => List(script, Engine.ZonesOf(id)));
+            t["positionToWorld"] = Fn((o, a) => FromTts(At(a, 0), false) is { } local
+                ? DynValue.NewTable(ToTts(script, Geometry.Add(o.Transform.Position, Geometry.Rotate(o.Transform.Rotation,
+                    new Vec3(local.X * TtsUnitsToMeters * o.Transform.Scale.X, local.Y * TtsUnitsToMeters * o.Transform.Scale.Y, local.Z * TtsUnitsToMeters * o.Transform.Scale.Z)))))
+                : DynValue.Nil);
+            t["positionToLocal"] = Fn((o, a) =>
+            {
+                if (!(FromTts(At(a, 0), true) is { } world))
+                    return DynValue.Nil;
+                var local = Geometry.InverseRotate(o.Transform.Rotation, Geometry.Subtract(world, o.Transform.Position));
+                var s = o.Transform.Scale;
+                return DynValue.NewTable(Vector(script, new Vec3(local.X / TtsUnitsToMeters / s.X, local.Y / TtsUnitsToMeters / s.Y, local.Z / TtsUnitsToMeters / s.Z)));
+            });
+            // Effects of TTS asset bundles (M4) and physics velocity are not simulated here: the calls are accepted and do nothing.
+            foreach (var noOp in new[] { "playLoopingEffect", "playTriggerEffect", "setVelocity", "addForce", "addTorque", "highlightOn", "highlightOff" })
+                t[noOp] = DynValue.NewCallback((_, a) => DynValue.Nil);
+            t["getVelocity"] = DynValue.NewCallback((_, a) => DynValue.NewTable(Vector(script, new Vec3(0f, 0f, 0f))));
 
             var proxy = DynValue.NewTable(t);
             _proxies[(script, id)] = proxy;
             return proxy;
+        }
+
+        private const float TtsUnitsToMeters = Core.Tts.TtsUnits.TtsUnitsToMeters;
+
+        /// <summary>TTS getBounds: { center, size, offset } in TTS units, from the object's footprint.</summary>
+        private static Table Bounds(Script script, TableObject o)
+        {
+            var size = Footprint.Of(o);
+            var height = o is Card || o is Deck ? 0.01f : Math.Min(size.X, size.Y);
+            var bounds = new Table(script);
+            bounds["center"] = ToTts(script, o.Transform.Position);
+            bounds["size"] = Vector(script, new Vec3(size.X / TtsUnitsToMeters, height / TtsUnitsToMeters, size.Y / TtsUnitsToMeters));
+            bounds["offset"] = Vector(script, new Vec3(0f, 0f, 0f));
+            return bounds;
         }
 
         private static DynValue Entry(Script script, string? name, string? guid, int index)

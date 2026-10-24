@@ -127,6 +127,8 @@ namespace Core.Rules
         public List<WinCondition> WinConditions { get; set; } = new List<WinCondition>();
         /// <summary>Declarative UI panels (T4.6).</summary>
         public UiDef? Ui { get; set; }
+        /// <summary>What the global script saved with <c>onSave</c> (TTS <c>LuaScriptState</c>), given back to its <c>onLoad</c>.</summary>
+        public string? GlobalScriptState { get; set; }
         /// <summary>Lua sources by name (M5); carried as-is.</summary>
         public Dictionary<string, string> Scripts { get; set; } = new Dictionary<string, string>();
 

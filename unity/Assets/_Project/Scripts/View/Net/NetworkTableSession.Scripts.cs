@@ -35,6 +35,13 @@ namespace TableWorld.View.Net
             _scripts.Load(Time.unscaledTimeAsDouble);
         }
 
+        /// <summary>Before a save: the scripts' onSave state goes into the table (TTS script_state).</summary>
+        private void SaveScripts()
+        {
+            if (_scripts != null && !IsClient && _scripts.ScriptCount > 0)
+                _scripts.Save();
+        }
+
         private void TickScripts()
         {
             if (_scripts != null && !IsClient && _scripts.ScriptCount > 0)

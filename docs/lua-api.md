@@ -27,7 +27,12 @@ logged on the host and never stop the game.
 | `Wait.frames(fn, frames)` | calls `fn` after that many frames (1/60 s each) |
 | `Wait.condition(fn, condition[, timeout])` | calls `fn` once `condition()` is true (checked every frame) |
 | `Wait.stop(id)`, `Wait.stopAll()` | cancels |
-| `Global.call(name, value)`, `Global.getVar(name)`, `Global.setVar(name, value)` | the global script's functions and variables; only plain values (numbers, strings, booleans, tables of them) cross between scripts |
+| `Global.call(name, value)`, `Global.getVar(name)`, `Global.setVar(name, value)`, `Global.getTable`, `Global.setTable` | the global script's functions and variables; only plain values (numbers, strings, booleans, tables of them) cross between scripts |
+| `startLuaCoroutine(owner, name)` | runs the owner's function a frame at a time (`coroutine.yield(0)` waits a frame) |
+| `destroyObject(obj)` | `Delete` |
+| `getSeatedPlayers()` | the seats' colours |
+| `getNotebookTabs()`, `addNotebookTab({title, body, color})`, `editNotebookTab({index, title, body, color})`, `removeNotebookTab(index)` | the notebook (G25); colour "Grey" is everyone's page |
+| `log(...)`, `JSON.encode_pretty(table)` | host log; JSON |
 
 ## Objects
 
@@ -51,7 +56,17 @@ logged on the host and never stop the game.
 | `putObject(obj)` | puts another object into this one (`Insert`) |
 | `destruct()` | `Delete` |
 | `call(name, value)`, `getVar(name)`, `setVar(name, value)` | that object's script |
-| `getLuaScript()` | its script's source |
+| `getLuaScript()`, `setLuaScript(source)` | its script; setting it reloads that script (`SetProperties`) |
+| `getTable(name)`, `setTable(name, table)` | that object's script tables (copied) |
+| `getColorTint()`, `setColorTint(color)` | tint (`SetProperties`) |
+| `getScale()`, `setScale(scale)` | uniform scale from x (`Scale`) |
+| `getBounds()`, `getBoundsNormalized()` | `{ center, size, offset }` from the footprint |
+| `getZones()` | zones it lies in |
+| `positionToWorld(local)`, `positionToLocal(world)` | between its local axes and the table, TTS units |
+| `setState(n)`, `getStates()` | switches state and returns the object in its new state (`SetState`) |
+| `getCustomObject()` | its image or mesh paths |
+| `isSmoothMoving()`, `reload()` | false; itself |
+| `playLoopingEffect`, `playTriggerEffect`, `setVelocity`, `getVelocity`, `addForce`, `addTorque`, `highlightOn`, `highlightOff` | accepted, no effect yet (asset-bundle effects come with M4; physics is not script-driven) |
 
 Zones (`getObjectFromGUID` of a zone): `getGUID()`, `getName()`, `getObjects()`, `getPosition()`, `hasTag(tag)`.
 
@@ -61,15 +76,17 @@ Defined in the global script or any object script; colours are seat colours capi
 
 | Event | When |
 |---|---|
-| `onLoad()` | after the table loads (global first, then objects) |
+| `onLoad(saved)` | after the table loads (global first, then objects); `saved` is what `onSave` returned last time, or "" |
+| `onSave()` | before the table is saved: return a string to keep (TTS `script_state`) |
+| `onObjectPickUp(color, obj)`; own `onPickUp(color)` | a player picked it up |
 | `onObjectDrop(color, obj)`; in the object's script `onDrop(color)` | a player let go of the object |
-| `onObjectEnterZone(zone, obj)`, `onObjectLeaveZone(zone, obj)` | an object entered or left a zone |
+| `onObjectEnterZone(zone, obj)`, `onObjectLeaveZone(zone, obj)` | an object entered or left a zone (also `onObjectEnterScriptingZone` / `onObjectLeaveScriptingZone` for scripting zones) |
 | `onObjectFlip(color, obj)`; own `onFlip(color)` | flipped |
 | `onObjectRandomize(obj, color)`; own `onRandomize(color)` | shuffled or rolled |
 | `onPlayerTurn(color)` | free-play turns moved to that seat |
 
 ## Not yet (T6.3)
 
-`UI.*` and XmlUI, `createButton` / `editButton` / inputs, `Player[color]`, `Turns`, `script_state` and `onSave`,
-`spawnObject`, physics casts, `setInvisibleTo`, highlights, joints, music. The coverage of the local mods is measured by
+`UI.*` and XmlUI, `createButton` / `editButton` / inputs, `Player[color]`, `Turns`, `spawnObject`, physics casts,
+`setInvisibleTo`, joints, music, collision events. The coverage of the local mods is measured by
 `tools/tts-analysis/lua_coverage.py` (T6.4).

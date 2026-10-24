@@ -105,6 +105,9 @@
         "ui": {
           "$ref": "#/$defs/UiDef"
         },
+        "globalScriptState": {
+          "type": "string"
+        },
         "scripts": {
           "type": "object",
           "additionalProperties": {
@@ -252,6 +255,9 @@
         "script": {
           "type": "string"
         },
+        "scriptState": {
+          "type": "string"
+        },
         "ttsExtra": {
           "type": "object"
         },
@@ -375,6 +381,9 @@
           }
         },
         "script": {
+          "type": "string"
+        },
+        "scriptState": {
           "type": "string"
         },
         "ttsExtra": {
@@ -517,6 +526,9 @@
         "script": {
           "type": "string"
         },
+        "scriptState": {
+          "type": "string"
+        },
         "ttsExtra": {
           "type": "object"
         },
@@ -606,6 +618,9 @@
           }
         },
         "script": {
+          "type": "string"
+        },
+        "scriptState": {
           "type": "string"
         },
         "ttsExtra": {
@@ -700,6 +715,9 @@
         "script": {
           "type": "string"
         },
+        "scriptState": {
+          "type": "string"
+        },
         "ttsExtra": {
           "type": "object"
         },
@@ -785,6 +803,9 @@
           }
         },
         "script": {
+          "type": "string"
+        },
+        "scriptState": {
           "type": "string"
         },
         "ttsExtra": {
@@ -891,6 +912,9 @@
         "script": {
           "type": "string"
         },
+        "scriptState": {
+          "type": "string"
+        },
         "ttsExtra": {
           "type": "object"
         },
@@ -966,6 +990,9 @@
         "script": {
           "type": "string"
         },
+        "scriptState": {
+          "type": "string"
+        },
         "ttsExtra": {
           "type": "object"
         },
@@ -1039,6 +1066,9 @@
           }
         },
         "script": {
+          "type": "string"
+        },
+        "scriptState": {
           "type": "string"
         },
         "ttsExtra": {
@@ -1124,6 +1154,9 @@
         "script": {
           "type": "string"
         },
+        "scriptState": {
+          "type": "string"
+        },
         "ttsExtra": {
           "type": "object"
         },
@@ -1202,6 +1235,9 @@
         "script": {
           "type": "string"
         },
+        "scriptState": {
+          "type": "string"
+        },
         "ttsExtra": {
           "type": "object"
         },
@@ -1275,6 +1311,9 @@
           }
         },
         "script": {
+          "type": "string"
+        },
+        "scriptState": {
           "type": "string"
         },
         "ttsExtra": {
@@ -1363,6 +1402,9 @@
           }
         },
         "script": {
+          "type": "string"
+        },
+        "scriptState": {
           "type": "string"
         },
         "ttsExtra": {
