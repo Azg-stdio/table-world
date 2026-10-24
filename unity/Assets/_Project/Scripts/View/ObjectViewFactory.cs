@@ -140,6 +140,10 @@ namespace TableWorld.View
                 case Die die:
                     RefreshDie(view, assets, die, tint);
                     break;
+                case Bag bundleBag when bundleBag.Asset != null && assets.Bundle(bundleBag.Asset) is { } bagPrefab:
+                    // A bag that is a TTS asset bundle (Custom_Assetbundle_Bag): container and model at once.
+                    SetBundle(view, bagPrefab, 0.05f);
+                    break;
                 case Bag bag when bag.Asset != null && assets.Mesh(bag.Asset) is { } bagMesh:
                     // A bag with its own model (TTS Custom_Model_Bag): the model's mesh, untextured until the importer maps its image.
                     SetModel(view, bagMesh, assets.Plain(model.Tint.ToColor(bag is InfiniteBag ? InfiniteBagCloth : BagCloth), 0.1f), 0.05f);
@@ -150,6 +154,10 @@ namespace TableWorld.View
                     SetPrism(view, MeshFactory.Cylinder(BagRadius, BagHeight, 24), cloth, cloth, cloth, 0.05f);
                     break;
                 }
+                case Model bundled when assets.Bundle(bundled.Asset) is { } prefab:
+                    // A TTS asset bundle (Custom_Assetbundle, M4): the bundle's own model, materials and colliders.
+                    SetBundle(view, prefab, 0.05f);
+                    break;
                 case Model modelObject when assets.Mesh(modelObject.Asset) is { } modelMesh:
                 {
                     // A custom model (TTS Custom_Model, G38): its OBJ mesh with its diffuse image.
@@ -348,6 +356,42 @@ namespace TableWorld.View
             }
             collider.convex = true;
             collider.sharedMesh = mesh;
+        }
+
+        /// <summary>
+        /// Shows an asset bundle's prefab on the object (once; refreshes keep it): the object's own mesh is emptied, and
+        /// the bundle's colliders become the object's (a box around it when it has none).
+        /// </summary>
+        private static void SetBundle(ObjectView view, GameObject prefab, float mass)
+        {
+            view.Filter.sharedMesh = null;
+            view.Body.mass = mass;
+            if (view.transform.Find("Bundle") != null)
+                return;
+            var copy = Bundles.Attach(view.transform, prefab);
+            if (view.Collider != null && view.Collider.transform == view.transform)
+                Object.Destroy(view.Collider);
+            var colliders = copy.GetComponentsInChildren<Collider>(true);
+            if (colliders.Length > 0)
+            {
+                view.Collider = colliders[0];
+                return;
+            }
+            var bounds = new Bounds(view.transform.position, Vector3.zero);
+            var first = true;
+            foreach (var renderer in copy.GetComponentsInChildren<Renderer>(true))
+            {
+                if (first)
+                    bounds = renderer.bounds;
+                else
+                    bounds.Encapsulate(renderer.bounds);
+                first = false;
+            }
+            var box = view.gameObject.AddComponent<BoxCollider>();
+            box.center = view.transform.InverseTransformPoint(bounds.center);
+            var size = view.transform.InverseTransformVector(bounds.size);
+            box.size = new Vector3(Mathf.Max(Mathf.Abs(size.x), 0.005f), Mathf.Max(Mathf.Abs(size.y), 0.005f), Mathf.Max(Mathf.Abs(size.z), 0.005f));
+            view.Collider = box;
         }
 
         /// <summary>A round stand under a standee: its own renderer and convex collider, part of the object's rigidbody.</summary>

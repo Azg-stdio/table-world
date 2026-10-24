@@ -207,6 +207,20 @@ namespace TableWorld.View
             return mesh;
         }
 
+        /// <summary>
+        /// An AssetBundle asset's prefab (TTS Custom_Assetbundle, M4 T5.4), or null while it is missing or when it does
+        /// not load. Loaded once per file for the session.
+        /// </summary>
+        public GameObject Bundle(string assetId)
+        {
+            var asset = Find(assetId);
+            if (asset == null || asset.Type != AssetType.AssetBundle || asset.IsBuiltin)
+                return null;
+            var file = _packageRoot != null && Asset.IsSafePath(asset.Path) ? Path.GetFullPath(Path.Combine(_packageRoot, asset.Path)) : null;
+            var key = file ?? "fetched:" + (asset.Hash ?? asset.Path);
+            return Bundles.Prefab(key, file, _fetch == null ? null : (System.Func<byte[]>)(() => _fetch(asset)));
+        }
+
         /// <summary>The asset's file in the game package, or null. Paths were validated to stay inside the package.</summary>
         public byte[] ReadPackageFile(Asset asset)
         {

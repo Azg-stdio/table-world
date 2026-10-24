@@ -13,6 +13,7 @@ Steps, each failing loudly instead of hanging:
 Exit code: 0 all green and no console errors; 1 test failures or console errors; 2 compile errors; 3 stuck run.
 """
 import json
+import re
 import subprocess
 import sys
 import time
@@ -112,6 +113,9 @@ def run(filter_text, timeout):
             sys.exit(3)
 
 
+EXPECTED_TTS = re.compile(r"The referenced script .*is missing|Serialized files \[version 17\] before 2019\.1 are deprecated")
+
+
 def report(status):
     summary = status.get("summary") or {}
     results = status.get("results") or []
@@ -122,8 +126,11 @@ def report(status):
         print(f"  FAIL {r['FullName'].split('.')[-1]}: {(r.get('Message') or '').strip().splitlines()[0][:300] if r.get('Message') else ''}")
     entries = console_entries()
     errors = [e for e in entries if e.get("level") == "error"]
-    warnings = [e for e in entries if e.get("level") == "warn"]
-    print(f"[console] {len(errors)} errors, {len(warnings)} warnings during the run")
+    # Unity warns on every TTS asset bundle it loads (TTS's own components, Unity 5's file format): expected, counted apart.
+    tts = [e for e in entries if e.get("level") == "warn" and EXPECTED_TTS.search(e.get("message") or "")]
+    warnings = [e for e in entries if e.get("level") == "warn" and e not in tts]
+    print(f"[console] {len(errors)} errors, {len(warnings)} warnings during the run"
+          + (f" (and {len(tts)} expected TTS bundle warnings)" if tts else ""))
     for e in (errors + warnings)[:10]:
         print(f"  {e['level']}: {e['message'].splitlines()[0][:200]}")
     return 0 if not failed and not errors else 1

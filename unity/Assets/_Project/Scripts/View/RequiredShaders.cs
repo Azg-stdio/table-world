@@ -12,12 +12,16 @@ namespace TableWorld.View
     {
         public const string LitName = "Universal Render Pipeline/Lit";
         public const string UnlitName = "Universal Render Pipeline/Unlit";
-        public static readonly string[] Names = { LitName, UnlitName };
+        /// <summary>For TTS asset-bundle particles (M4).</summary>
+        public const string ParticlesName = "Universal Render Pipeline/Particles/Unlit";
+        public static readonly string[] Names = { LitName, UnlitName, ParticlesName };
 
         public static Shader Lit => Find(LitName);
 
         /// <summary>Unlit, or Lit if a broken build lost it (the marker still shows, only shaded).</summary>
         public static Shader Unlit => Find(UnlitName) ?? Find(LitName);
+
+        public static Shader Particles => Find(ParticlesName) ?? Unlit;
 
         private static Shader Find(string name) => Shader.Find(name);
 
