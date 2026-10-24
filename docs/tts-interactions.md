@@ -139,7 +139,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G15 | Blindfold, peek alert | B blindfolds; others see "X peeked" | ⏭ (needs G2/G11) | P3 |
 | G16 | Toggles | Snap, Grid, Auto Raise, Sticky, Hands, Hide Face Down, Tooltip per object | Lock only | P3 |
 | G17 | Hidden zones that hide | contents invisible to everyone but the zone's owner | ✅ seats the zone does not list see an opaque block tinted toward the seeing seat's colour; objects inside are not drawn and cannot be hovered or box selected; `host` in `visibleTo` means the hosting machine (2026-10-23). Clients still receive the hidden objects' data (as in TTS): honest play, not anti-cheat | P1 |
-| G18 | Randomize, layout, fog-of-war zones | shuffle what is inside; auto-arrange contents; fog that players reveal | not implemented | P2 |
+| G18 | Randomize, layout, fog-of-war zones | shuffle what is inside; auto-arrange contents; fog that players reveal | ✅ layout zone: what is dropped in lines up in a grid from the far-left corner in reading order of where it was dropped (direction, per row, spacing, face up / down / keep; `manualOnly` waits for right-click → Lay out); randomize zone: right-click → Randomize swaps where its unlocked objects lie and shuffles its decks and bags; zones drawn in their own colours; the agent's `table_action` has `lay_out` and `randomize` (2026-10-23). Fog of war deferred to P3: no local mod has one (the earlier count was hand zones' owner colour) | P2 |
 | G19 | Physics modes | host sets full, semi-lock (nothing topples) or locked | ✅ table menu (right-click the felt) → Physics: Full / Semi-lock / Locked, host only, saved with the table. Semi-lock freezes tipping (dice still tumble); locked sets drops down right where they are released, on the felt or on top of what is below (2026-10-23) | P1 |
 | G20 | Several dice at once | select dice, R rolls them all | ✅ R (or the menu's "Roll N selected dice") rolls every selected or held die together, one throw sound, status line lists each value and the total (2026-10-23) | P1 |
 | G21 | Custom dice | faces and rotation values from images (TTS `Custom_Dice`) | model only | P2 |
@@ -173,7 +173,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G42 | Master Trainer | `Physics.cast` (16×), collision events (`registerCollisions`, `onObjectCollisionEnter`) | none (M5) |
 | G43 | Sinnoh | Scripts that rewrite scripts (`getLuaScript` 816×, `setLuaScript` 300×), `getVar`/`setVar`, coroutines (`startLuaCoroutine` 107×) | none (M5) |
 | G44 | both | Environment from the save: custom table image (`Table_Custom` + `TableURL`), sky (`Sky_Museum`), lighting values, gravity (0.5), music playlist | 🟡 the `environment` block takes room, colours, lamp/ambient and a felt image (`docs/rules-schema.md` → Environment); the importer mapping, TTS sky presets, gravity and music are still to do |
-| G45 | Sinnoh | Fog of war zones (6), layout zones (2), tags on everything (3 468), component tag labels (73) | tags exist; zones not (G18) |
+| G45 | Sinnoh | Layout zones (2, `ManualOnly`, read by scripts with `getObjects()`), tags on everything (3 468), component tag labels (73). (The "fog of war (6)" in the first count was hand zones' `FogColor`) | tags exist; layout zones ✅ (G18) |
 
 
 ## Notes

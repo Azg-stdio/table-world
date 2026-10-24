@@ -24,6 +24,8 @@ namespace TableWorld.View
         /// <summary>The fog is at most this tall, so a tall zone does not wall off the table; taller contents are hidden by the view.</summary>
         public const float MaxFogHeight = 0.08f;
         private static readonly Color SnapColor = new Color(0.05f, 0.16f, 0.11f);
+        private static readonly Color LayoutColor = new Color(0.55f, 0.75f, 0.7f);
+        private static readonly Color RandomizeColor = new Color(0.7f, 0.55f, 0.85f);
 
         public static GameObject Create(Zone zone, Color seatColor, AssetLibrary assets, Transform parent)
         {
@@ -43,7 +45,13 @@ namespace TableWorld.View
                 return root;
             }
 
-            var color = zone is HandZone ? seatColor : HiddenColor;
+            var color = zone switch
+            {
+                HandZone _ => seatColor,
+                LayoutZone _ => LayoutColor,
+                RandomizeZone _ => RandomizeColor,
+                _ => HiddenColor,
+            };
             if (zone is HiddenZone)
             {
                 // TTS draws a hidden zone as a cloud in its owner's colour: here a dark block tinted toward that colour.

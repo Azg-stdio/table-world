@@ -78,6 +78,11 @@ table = {
         # Only the north seat sees inside (the default south player sees fog).
         {"id": "north_secret", "type": "HiddenZone", "name": "North's secret area", "visibleTo": ["seat_north"],
          "transform": {"position": [-0.6, 0.05, 0.15]}, "size": [0.16, 0.1, 0.2]},
+        # G18: cards dropped in the market line up in a row; right-click the tiles' area to randomize where they lie.
+        {"id": "market", "type": "LayoutZone", "name": "Market", "facing": "faceUp",
+         "transform": {"position": [-0.56, 0.05, -0.36]}, "size": [0.3, 0.1, 0.11]},
+        {"id": "tile_mix", "type": "RandomizeZone", "name": "Tile mixer",
+         "transform": {"position": [0.12, 0.05, 0.3]}, "size": [0.22, 0.1, 0.08]},
     ],
     "players": {"seats": [
         {"id": "seat_south", "color": "red", "handZone": "hand_south"},

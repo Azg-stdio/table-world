@@ -1117,6 +1117,12 @@
         },
         {
           "$ref": "#/$defs/SnapPoint"
+        },
+        {
+          "$ref": "#/$defs/LayoutZone"
+        },
+        {
+          "$ref": "#/$defs/RandomizeZone"
         }
       ]
     },
@@ -1277,6 +1283,106 @@
         },
         "rotationSnap": {
           "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "LayoutZone": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "LayoutZone"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "size": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "parent": {
+          "type": "string"
+        },
+        "direction": {
+          "enum": [
+            "rightThenDown",
+            "downThenRight",
+            "leftThenDown",
+            "downThenLeft"
+          ]
+        },
+        "maxPerRow": {
+          "type": "integer"
+        },
+        "spacing": {
+          "type": "number"
+        },
+        "facing": {
+          "enum": [
+            "keep",
+            "faceUp",
+            "faceDown"
+          ]
+        },
+        "manualOnly": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "RandomizeZone": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "RandomizeZone"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "size": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "parent": {
+          "type": "string"
         }
       },
       "additionalProperties": false,

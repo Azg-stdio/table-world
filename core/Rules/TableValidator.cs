@@ -405,6 +405,12 @@ namespace Core.Rules
                                     Suggest.OneOf(who, _seats.Keys.Append("host"), "a seat id or host"));
                         }
                         break;
+                    case LayoutZone layout:
+                        if (layout.MaxPerRow < 0 || layout.MaxPerRow > 100)
+                            Add($"{path}.maxPerRow", ErrorCodes.InvalidValue, $"maxPerRow is {layout.MaxPerRow}; use 0 (fit the zone) to 100.");
+                        if (!(layout.Spacing >= 0f && layout.Spacing <= 1f))
+                            Add($"{path}.spacing", ErrorCodes.InvalidValue, $"spacing is {layout.Spacing} m; use 0 to 1.");
+                        break;
                 }
             }
 

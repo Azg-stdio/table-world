@@ -63,7 +63,7 @@ namespace TableWorld.Mcp
         public static string PlaceObject(GameSession session, [Description("The object as JSON.")] string objectJson) =>
             session.Locked(() => Reply(session.Edit(doc => Upsert(doc, "objects", GameSession.ParseObject(objectJson, "objectJson"))), session));
 
-        [McpServerTool(Name = "define_zone"), Description("Define a zone from JSON: HandZone (owner seat, hidden from others), HiddenZone, ScriptingZone (an area rules can count, e.g. a battlefield), SnapPoint. Example: {\"id\":\"battlefield\",\"type\":\"ScriptingZone\",\"transform\":{\"position\":[0,0.05,0]},\"size\":[0.3,0.1,0.2]}. Replaces a zone with the same id.")]
+        [McpServerTool(Name = "define_zone"), Description("Define a zone from JSON: HandZone (owner seat, hidden from others), HiddenZone, ScriptingZone (an area rules can count, e.g. a battlefield), SnapPoint, LayoutZone (arranges what is dropped in it in a grid: direction rightThenDown|downThenRight|leftThenDown|downThenLeft, maxPerRow, spacing m, facing keep|faceUp|faceDown, manualOnly), RandomizeZone (players shuffle where things in it lie). Example: {\"id\":\"battlefield\",\"type\":\"ScriptingZone\",\"transform\":{\"position\":[0,0.05,0]},\"size\":[0.3,0.1,0.2]}. Replaces a zone with the same id.")]
         public static string DefineZone(GameSession session, [Description("The zone as JSON.")] string zoneJson) =>
             session.Locked(() => Reply(session.Edit(doc => Upsert(doc, "zones", GameSession.ParseObject(zoneJson, "zoneJson"))), session));
 

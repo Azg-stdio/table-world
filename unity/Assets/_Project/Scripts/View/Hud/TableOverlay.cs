@@ -152,6 +152,7 @@ namespace TableWorld.View.Hud
             Item("Save camera 1 (Ctrl+1)", () => _camera.Save(1));
             Item("Load camera 1 (Shift+1)", () => _camera.Load(1));
             Item("Paste (Ctrl+V)", () => _interaction.Paste(_menuWorldPoint));
+            ZoneEntries(_menuWorldPoint);
             Item("Undo (Ctrl+Z)", () => _table.Undo());
             Item("Redo (Ctrl+Y)", () => _table.Redo());
             if (_table.HostsTable && !_table.Engine.State.HasRules)
@@ -243,6 +244,8 @@ namespace TableWorld.View.Hud
                     break;
             }
 
+            ZoneEntries(view.transform.position);
+
             if (model.States.Count > 0)
                 Row("States", model.States.Keys.OrderBy(k => k).Select(k => ($"{k} {model.States[k].Name}".Trim(), (Action)(() => Run(new SetStateCommand { ObjectId = model.Id, State = k })))));
 
@@ -256,6 +259,26 @@ namespace TableWorld.View.Hud
             Swatches(view);
             Rename(view);
             Item("Delete (Del)", () => _interaction.Delete(new[] { view }));
+        }
+
+        /// <summary>Layout and randomize zones under <paramref name="point"/> (G18): Lay out / Randomize.</summary>
+        private void ZoneEntries(Vector3 point)
+        {
+            if (_table.Spectating)
+                return;
+            foreach (var zone in _table.Engine.State.Zones)
+            {
+                if (!(zone is LayoutZone || zone is RandomizeZone) ||
+                    !Geometry.Contains(zone, new Vec3(point.x, zone.Transform.Position.Y, point.z)))
+                    continue;
+                var name = string.IsNullOrEmpty(zone.Name) ? (zone is LayoutZone ? "Layout zone" : "Randomize zone") : zone.Name;
+                Section(name);
+                var id = zone.Id;
+                if (zone is LayoutZone)
+                    Item("Lay out", () => Run(new ArrangeZoneCommand { ZoneId = id }));
+                else
+                    Item("Randomize", () => Run(new RandomizeZoneCommand { ZoneId = id }));
+            }
         }
 
         private void Run(Command command)

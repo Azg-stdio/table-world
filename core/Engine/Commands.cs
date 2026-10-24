@@ -128,6 +128,18 @@ namespace Core.Engine
     {
     }
 
+    /// <summary>Arranges the unlocked objects in a <see cref="LayoutZone"/> in its grid (G18, TTS "Lay out").</summary>
+    public sealed class ArrangeZoneCommand : Command
+    {
+        public string ZoneId { get; set; } = "";
+    }
+
+    /// <summary>Shuffles where the unlocked objects in a <see cref="RandomizeZone"/> lie, and the decks and bags among them (G18).</summary>
+    public sealed class RandomizeZoneCommand : Command
+    {
+        public string ZoneId { get; set; } = "";
+    }
+
     /// <summary>Sets how the table simulates objects (TTS: Options > Physics). Host only.</summary>
     public sealed class SetPhysicsCommand : Command, IHostCommand
     {

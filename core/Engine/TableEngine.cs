@@ -138,6 +138,11 @@ namespace Core.Engine
                 .Distinct().Select(id => State.Zones.FirstOrDefault(z => z.Id == id)).OfType<HandZone>().ToList();
             foreach (var hand in hands)
                 LayoutHand(hand, all);
+            // A layout zone arranges what is dropped into it, unless it only lays out on demand (G18).
+            var layouts = all.OfType<ZoneEntered>().Select(e => e.ZoneId).Distinct()
+                .Select(id => State.Zones.FirstOrDefault(z => z.Id == id)).OfType<LayoutZone>().Where(z => !z.ManualOnly).ToList();
+            foreach (var layout in layouts)
+                Arrange(layout, all);
             return all;
         }
 
@@ -199,6 +204,8 @@ namespace Core.Engine
             SetCounterCommand c => SetCounter(c),
             SetClockCommand c => SetClock(c),
             SetPropertiesCommand c => SetProperties(c),
+            ArrangeZoneCommand c => ArrangeZone(c),
+            RandomizeZoneCommand c => RandomizeZone(c),
             _ => CommandResult.Fail("", ErrorCodes.UnknownCommand, $"Unknown command '{command.GetType().Name}'."),
         };
 

@@ -49,7 +49,9 @@ TTS `Name` → our `type`. Prefix `Custom_` means the mesh/image comes from a UR
 | `Notecard`, `Counter`, `Custom_PDF`, `Tablet`, `Custom_Text` | `Notecard`, `Counter` (UI), out of v0 for PDF/Tablet/Text | keep as placeholder with notes |
 | `ScriptingTrigger` | `ScriptingZone` | transform + scale is the box |
 | `HandTrigger` | `HandZone` | `FogColor` = owner color; hidden to others |
-| `FogOfWarTrigger`, `RandomizeTrigger`, `LayoutZone` | `HiddenZone`, (randomize zone), (layout zone) | randomize/layout: placeholder zones in v0 |
+| `FogOfWarTrigger` | `HiddenZone` | fog of war proper (revealers) not built yet (P3); no local mod uses one |
+| `RandomizeTrigger` | `RandomizeZone` | transform + scale is the box |
+| `LayoutZone` | `LayoutZone` | `LayoutZone.Options`: `ManualOnly` → `manualOnly`; `MaxObjectsPerNewGroup` → `maxPerRow` *(verify)*; `Direction`, `NewObjectFacing` → `direction`, `facing` *(verify the TTS numbers in TTS)*; the rest (`MeldDirection`, `MeldSort`, `CombineIntoDecks`, `SplitAddedDecks`, paddings, `StickyCards`, ...) kept in `ttsExtra` |
 
 ## Common object fields
 

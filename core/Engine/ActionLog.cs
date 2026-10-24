@@ -103,6 +103,10 @@ namespace Core.Engine
                     return $"ended the turn · {engine.State.FreeTurns?.Current}'s turn";
                 case SetPhysicsCommand c:
                     return $"set physics to {c.Mode switch { PhysicsMode.SemiLock => "semi-lock", PhysicsMode.Locked => "locked", _ => "full" }}";
+                case ArrangeZoneCommand c:
+                    return $"laid out {ZoneName(engine, c.ZoneId)}";
+                case RandomizeZoneCommand c:
+                    return $"randomized {ZoneName(engine, c.ZoneId)}";
                 case StartGameCommand _:
                     return "started the game";
                 case PerformActionCommand c:
@@ -134,6 +138,9 @@ namespace Core.Engine
                 _ => "a " + o.Type.ToLowerInvariant(),
             };
         }
+
+        private static string ZoneName(TableEngine engine, string id) =>
+            engine.State.Zones.FirstOrDefault(z => z.Id == id)?.Name is { Length: > 0 } name ? name : "a zone";
 
         private static string Plural(int count, string word) => count == 1 ? $"1 {word}" : $"{count} {word}s";
 

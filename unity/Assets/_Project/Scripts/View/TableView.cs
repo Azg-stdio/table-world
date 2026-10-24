@@ -748,6 +748,10 @@ namespace TableWorld.View
         public const float MotionSeconds = 0.25f;
         /// <summary>A flipping object rises this high while it turns over.</summary>
         public const float FlipLift = 0.05f;
+        /// <summary>An object a layout zone moves away from where it was dropped glides there, lifted this much.</summary>
+        public const float ArrangeLift = 0.015f;
+        /// <summary>A reported pose the table moved further than this was rearranged by a zone, not settled by physics.</summary>
+        public const float ArrangedTolerance = 0.005f;
         private readonly Dictionary<ObjectView, Coroutine> _glides = new Dictionary<ObjectView, Coroutine>();
 
         /// <summary>
@@ -886,7 +890,14 @@ namespace TableWorld.View
                             // A pose reported from this view's own physics is already on screen; snapping would stop
                             // the body (velocity reset) and fight the simulation.
                             // Hand cards are placed by the hand presentation (they glide), not snapped to the state's flat slot.
-                            if (updated.ObjectId != _reportingId && HandZoneOf(updated.ObjectId) == null)
+                            // But a layout zone (G18) can move the very object whose drop it reacts to: then the state
+                            // is no longer where the body is, and the body slides to its slot.
+                            var from0 = view.transform.position;
+                            var movedByTable = updated.ObjectId == _reportingId && HandZoneOf(updated.ObjectId) == null &&
+                                               Vector3.Distance(from0, model.Transform.Position.ToUnity()) > ArrangedTolerance;
+                            if (movedByTable && !view.Held && !view.Animating)
+                                Glide(view, from0, view.transform.rotation, ArrangeLift);
+                            else if (updated.ObjectId != _reportingId && HandZoneOf(updated.ObjectId) == null)
                             {
                                 // A flip turns over in the air (G9); every other change snaps.
                                 var from = (view.transform.position, view.transform.rotation);

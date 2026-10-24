@@ -54,9 +54,33 @@ namespace Core.Rules
         public bool ShouldSerializeSize() => false;
     }
 
+    public enum LayoutDirection { RightThenDown, DownThenRight, LeftThenDown, DownThenLeft }
+    public enum LayoutFacing { Keep, FaceUp, FaceDown }
+
+    /// <summary>
+    /// Arranges what is in it in a grid (G18, TTS <c>LayoutZone</c>): from the zone's far-left corner as seen from its
+    /// front, in reading order. "Lay out" arranges on demand; unless <see cref="ManualOnly"/>, a drop into it does too.
+    /// Locked objects stay where they are.
+    /// </summary>
+    public sealed class LayoutZone : Zone
+    {
+        public LayoutDirection Direction { get; set; }
+        /// <summary>Objects per row (or column); 0 fits as many as the zone is wide.</summary>
+        public int MaxPerRow { get; set; }
+        /// <summary>Gap between objects, meters.</summary>
+        public float Spacing { get; set; } = 0.01f;
+        public LayoutFacing Facing { get; set; }
+        public bool ManualOnly { get; set; }
+    }
+
+    /// <summary>"Randomize" shuffles where the objects in it lie, and shuffles the decks and bags in it (G18, TTS randomize zone).</summary>
+    public sealed class RandomizeZone : Zone
+    {
+    }
+
     public static class ZoneTypes
     {
         public static readonly IReadOnlyDictionary<string, Type> ByName = TableObjectTypes.Build(
-            typeof(HandZone), typeof(HiddenZone), typeof(ScriptingZone), typeof(SnapPoint));
+            typeof(HandZone), typeof(HiddenZone), typeof(ScriptingZone), typeof(SnapPoint), typeof(LayoutZone), typeof(RandomizeZone));
     }
 }

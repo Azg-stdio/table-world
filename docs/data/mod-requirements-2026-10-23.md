@@ -6,9 +6,9 @@
 
 `Card` 5568, `Custom_Assetbundle` 2690, `Custom_Model` 2351, `Custom_Tile` 1693, `Custom_Token` 759, `Custom_Model_Infinite_Bag` 281, `Custom_Model_Bag` 261, `Deck` 226, `ScriptingTrigger` 219, `Custom_Assetbundle_Bag` 168, `CardCustom` 124, `Bag` 80, `Infinite_Bag` 62, `Figurine_Custom` 48, `HandTrigger` 30, `Custom_Dice` 25, `DeckCustom` 21, `Custom_PDF` 16, `BlockRectangle` 11, `Counter` 10, `Die_6` 8, `Custom_Board` 4, `Bowl` 4, `Die_6_Rounded` 4, `Checker_red` 4, `Notecard` 3, `BlockSquare` 3, `LayoutZone` 2, `Custom_Assetbundle_Infinite_Bag` 1
 
-### Object features (23)
+### Object features (22)
 
-`Hands=False` 9657, `Grid=False` 4304, `Tags` 3468, `HideWhenFaceDown=True` 2044, `Locked=True` 1536, `Snap=False` 1507, `States` 1108, `AttachedSnapPoints` 817, `Tooltip=False` 349, `GMNotes` 239, `IgnoreFoW=True` 131, `LuaScriptState` 118, `SidewaysCard` 74, `MultiSheetDeck` 41, `RotationValues` 37, `FogOfWar` 30, `Sticky=False` 23, `PDF` 16, `GridProjection=True` 13, `CounterValue` 10, `Autoraise=False` 6, `DragSelectable=False` 6, `AttachedDecals` 1
+`Hands=False` 9657, `Grid=False` 4304, `Tags` 3468, `HideWhenFaceDown=True` 2044, `Locked=True` 1536, `Snap=False` 1507, `States` 1108, `AttachedSnapPoints` 817, `Tooltip=False` 349, `GMNotes` 239, `IgnoreFoW=True` 131, `LuaScriptState` 118, `SidewaysCard` 74, `MultiSheetDeck` 41, `RotationValues` 37, `Sticky=False` 23, `PDF` 16, `GridProjection=True` 13, `CounterValue` 10, `Autoraise=False` 6, `DragSelectable=False` 6, `AttachedDecals` 1
 
 ### Lua events (28)
 
@@ -35,7 +35,7 @@
 Save: Table Table_Custom, TableURL True, Sky Sky_Museum, Gravity 0.5, PlayArea 0.5, LightIntensity 0.54, AmbientIntensity 1.3, Hands {'Enable': True, 'DisableUnused': True, 'Hiding': 0}, NotebookTabsWithText 3, SnapPoints 36, GlobalLuaChars 116803, GlobalXmlChars 81
 
 - **Types:** `Custom_Model` 1302, `Custom_Assetbundle` 1028, `Card` 509, `Custom_Model_Bag` 182, `Custom_Token` 92, `Deck` 26, `Counter` 10, `Figurine_Custom` 9, `Die_6` 8, `HandTrigger` 6, `BlockRectangle` 6, `Custom_Dice` 2, `DeckCustom` 1, `Notecard` 1, `Infinite_Bag` 1, `ScriptingTrigger` 1
-- **Features:** `Hands=False` 2675, `Grid=False` 523, `Tooltip=False` 86, `HideWhenFaceDown=True` 81, `Locked=True` 79, `SidewaysCard` 70, `Snap=False` 27, `GridProjection=True` 11, `MultiSheetDeck` 11, `RotationValues` 10, `CounterValue` 10, `AttachedSnapPoints` 8, `FogOfWar` 6, `States` 2, `Autoraise=False` 1
+- **Features:** `Hands=False` 2675, `Grid=False` 523, `Tooltip=False` 86, `HideWhenFaceDown=True` 81, `Locked=True` 79, `SidewaysCard` 70, `Snap=False` 27, `GridProjection=True` 11, `MultiSheetDeck` 11, `RotationValues` 10, `CounterValue` 10, `AttachedSnapPoints` 8, `States` 2, `Autoraise=False` 1
 - **Events:** `onLoad` 10, `onChat` 1, `onSave` 1, `onObjectLeaveContainer` 1, `onObjectEnterContainer` 1, `onObjectCollisionEnter` 1, `onObjectHover` 1, `onObjectPickUp` 1, `onObjectDrop` 1, `onObjectDestroy` 1, `onObjectSpawn` 1
 - **Namespaced:** `Physics.cast` 16, `Wait.condition` 11, `Global.call` 8, `Wait.time` 7, `Global.Call` 6, `JSON.decode` 1, `JSON.encode` 1, `Notes.addNotebookTab` 1
 - **Globals:** `getObjectFromGUID` 38, `print` 14, `broadcastToAll` 9, `destroyObject` 2, `getSeatedPlayers` 1
@@ -48,7 +48,7 @@ Save: Table Table_Custom, TableURL True, Sky Sky_Museum, Gravity 0.5, PlayArea 0
 Save: Table Table_None, Sky Sky_Regal, SkyURL True, Gravity 0.5, PlayArea 1.0, LightIntensity 0.3480005, AmbientIntensity 1.90800059, Hands {'Enable': True, 'DisableUnused': False, 'Hiding': 0}, MusicPlaylist 19, NotebookTabsWithText 3, DecalPallet 30, SnapPoints 4, CustomUIAssets 70, GlobalLuaChars 46486, GlobalXmlChars 18442
 
 - **Types:** `Card` 3490, `Custom_Tile` 1441, `Custom_Token` 424, `Custom_Model` 397, `Custom_Model_Infinite_Bag` 281, `Deck` 173, `Bag` 79, `Custom_Model_Bag` 55, `CardCustom` 39, `Infinite_Bag` 18, `DeckCustom` 9, `HandTrigger` 8, `Custom_PDF` 8, `ScriptingTrigger` 4, `Custom_Board` 3, `BlockSquare` 2, `Custom_Assetbundle_Infinite_Bag` 1, `BlockRectangle` 1
-- **Features:** `Hands=False` 2896, `Grid=False` 2582, `Snap=False` 1428, `States` 843, `HideWhenFaceDown=True` 634, `Locked=True` 170, `Tooltip=False` 113, `LuaScriptState` 103, `AttachedSnapPoints` 80, `MultiSheetDeck` 18, `FogOfWar` 8, `PDF` 8, `Sticky=False` 4, `SidewaysCard` 4, `GridProjection=True` 1
+- **Features:** `Hands=False` 2896, `Grid=False` 2582, `Snap=False` 1428, `States` 843, `HideWhenFaceDown=True` 634, `Locked=True` 170, `Tooltip=False` 113, `LuaScriptState` 103, `AttachedSnapPoints` 80, `MultiSheetDeck` 18, `PDF` 8, `Sticky=False` 4, `SidewaysCard` 4, `GridProjection=True` 1
 - **Events:** `onClick` 101, `onLoad` 100, `onCollisionEnter` 99, `onSave` 85, `onValueChanged` 21, `onObjectEnterScriptingZone` 19, `onObjectLeaveScriptingZone` 19, `onEndEdit` 19, `onPlayerConnect` 1, `onScriptingButtonDown` 1, `onObjectLeaveContainer` 1
 - **Namespaced:** `UI.setAttribute` 1570, `UI.getAttribute` 590, `UI.setValue` 432, `Wait.condition` 306, `Wait.frames` 179, `JSON.decode` 109, `JSON.encode` 87, `Physics.cast` 44, `Global.getTable` 23, `JSON.encode_pretty` 21, `Wait.time` 20, `Timer.create` 7, `Timer.destroy` 6, `Global.call` 5, `UI.show` 4, `UI.hide` 4, `UI.getXmlTable` 2, `UI.setXmlTable` 2, `UI.setXml` 2, `UI.getXml` 2, `UI.getValue` 1, `Global.setTable` 1
 - **Globals:** `broadcastToAll` 473, `getObjectFromGUID` 447, `getNotebookTabs` 89, `getAllObjects` 86, `destroyObject` 55, `startLuaCoroutine` 10, `spawnObject` 9, `print` 2
@@ -74,7 +74,7 @@ Save: Table Table_None, Sky Sky_Museum, SkyURL True, Gravity 0.5, PlayArea 0.5, 
 Save: Table Table_RPG, Sky Sky_Regal, Gravity 0.5, PlayArea 0.5, LightIntensity 0.54, AmbientIntensity 1.62000048, Hands {'Enable': True, 'DisableUnused': False, 'Hiding': 0}, MusicPlaylist 1, NotebookTabsWithText 1, DecalPallet 3, SnapPoints 2, GlobalLuaChars 1, GlobalXmlChars 81
 
 - **Types:** `Card` 641, `Custom_Tile` 84, `Custom_Token` 30, `Infinite_Bag` 19, `Custom_Model` 16, `Custom_Model_Bag` 15, `Custom_Dice` 14, `DeckCustom` 11, `Deck` 10, `CardCustom` 7, `HandTrigger` 4, `Bowl` 4, `Die_6_Rounded` 4, `BlockRectangle` 4, `Notecard` 2, `Bag` 1, `Figurine_Custom` 1
-- **Features:** `HideWhenFaceDown=True` 413, `Hands=False` 215, `Locked=True` 51, `AttachedSnapPoints` 29, `Snap=False` 19, `RotationValues` 18, `Grid=False` 12, `MultiSheetDeck` 5, `FogOfWar` 4, `DragSelectable=False` 2, `States` 2, `Autoraise=False` 1, `AttachedDecals` 1
+- **Features:** `HideWhenFaceDown=True` 413, `Hands=False` 215, `Locked=True` 51, `AttachedSnapPoints` 29, `Snap=False` 19, `RotationValues` 18, `Grid=False` 12, `MultiSheetDeck` 5, `DragSelectable=False` 2, `States` 2, `Autoraise=False` 1, `AttachedDecals` 1
 - **Events:** none
 - **Namespaced:** none
 - **Globals:** none
@@ -87,7 +87,7 @@ Save: Table Table_RPG, Sky Sky_Regal, Gravity 0.5, PlayArea 0.5, LightIntensity 
 Save: Table Table_Custom, TableURL True, Sky Sky_Museum, Gravity 0.5, PlayArea 0.5, LightIntensity 0.54, AmbientIntensity 1.3, Hands {'Enable': True, 'DisableUnused': False, 'Hiding': 0}, DecalPallet 1, ComponentTags 73, SnapPoints 3, GlobalLuaChars 17773, GlobalXmlChars 81
 
 - **Types:** `Custom_Assetbundle` 1659, `Card` 928, `Custom_Model` 635, `Custom_Token` 197, `Custom_Assetbundle_Bag` 150, `Custom_Tile` 144, `ScriptingTrigger` 71, `CardCustom` 53, `Figurine_Custom` 38, `Infinite_Bag` 24, `Deck` 17, `Custom_Model_Bag` 9, `Custom_Dice` 9, `Custom_PDF` 7, `HandTrigger` 6, `LayoutZone` 2, `BlockSquare` 1, `Custom_Board` 1
-- **Features:** `Hands=False` 3655, `Tags` 3468, `Grid=False` 1159, `Locked=True` 1001, `HideWhenFaceDown=True` 891, `AttachedSnapPoints` 689, `States` 261, `GMNotes` 239, `Tooltip=False` 146, `IgnoreFoW=True` 131, `Snap=False` 11, `RotationValues` 9, `PDF` 7, `MultiSheetDeck` 7, `FogOfWar` 6
+- **Features:** `Hands=False` 3655, `Tags` 3468, `Grid=False` 1159, `Locked=True` 1001, `HideWhenFaceDown=True` 891, `AttachedSnapPoints` 689, `States` 261, `GMNotes` 239, `Tooltip=False` 146, `IgnoreFoW=True` 131, `Snap=False` 11, `RotationValues` 9, `PDF` 7, `MultiSheetDeck` 7
 - **Events:** `onLoad` 216, `onPickUp` 172, `onDrop` 172, `onObjectEnterZone` 1, `onObjectLeaveZone` 1, `onObjectEnterContainer` 1, `onObjectLeaveContainer` 1
 - **Namespaced:** `MusicPlayer.getPlaylist` 4, `Lighting.apply` 1
 - **Globals:** `print` 204, `getObjectFromGUID` 169, `getObjectsWithTag` 151, `startLuaCoroutine` 107, `getObjectsWithAllTags` 4, `getObjectsWithAnyTags` 4, `printToAll` 2, `getObjects` 1
@@ -100,7 +100,7 @@ Save: Table Table_Custom, TableURL True, Sky Sky_Museum, Gravity 0.5, PlayArea 0
 Save: Table Table_None, Sky Sky_Regal, SkyURL True, Gravity 0.5, PlayArea 0.5, LightIntensity 0.54, AmbientIntensity 1.3, Hands {'Enable': True, 'DisableUnused': False, 'Hiding': 0}, NotebookTabsWithText 1, ComponentTags 5, SnapPoints 1, CustomUIAssets 2, GlobalLuaChars 2634, GlobalXmlChars 81
 
 - **Types:** `ScriptingTrigger` 143, `CardCustom` 25, `Custom_Tile` 24, `Custom_Token` 16, `HandTrigger` 6, `Checker_red` 4, `Custom_PDF` 1
-- **Features:** `Locked=True` 213, `Hands=False` 194, `HideWhenFaceDown=True` 25, `LuaScriptState` 14, `AttachedSnapPoints` 11, `Grid=False` 6, `FogOfWar` 6, `PDF` 1
+- **Features:** `Locked=True` 213, `Hands=False` 194, `HideWhenFaceDown=True` 25, `LuaScriptState` 14, `AttachedSnapPoints` 11, `Grid=False` 6, `PDF` 1
 - **Events:** `onLoad` 138, `onObjectLeaveZone` 81, `onObjectDrop` 76, `onObjectEnterZone` 76, `onObjectEnterScriptingZone` 11, `onNumberTyped` 10, `onObjectLeaveScriptingZone` 6, `onSave` 4, `onObjectFlip` 4, `onScriptingButtonDown` 1, `onUpdate` 1, `onInputSubmit` 1, `onSpawnButtonClick` 1
 - **Namespaced:** `UI.setAttribute` 598, `Wait.time` 424, `UI.setAttributes` 260, `JSON.decode` 210, `UI.setXml` 34, `Wait.frames` 32, `JSON.encode` 18, `UI.setCustomAssets` 1
 - **Globals:** `getObjectFromGUID` 356, `broadcastToAll` 194, `print` 81, `log` 36, `printToAll` 17, `getAllObjects` 8, `spawnObject` 5, `spawnObjectData` 4

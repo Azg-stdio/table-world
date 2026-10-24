@@ -62,7 +62,6 @@
    "RotationValues": 10,
    "CounterValue": 10,
    "AttachedSnapPoints": 8,
-   "FogOfWar": 6,
    "States": 2,
    "Autoraise=False": 1
   },
@@ -203,7 +202,6 @@
    "LuaScriptState": 103,
    "AttachedSnapPoints": 80,
    "MultiSheetDeck": 18,
-   "FogOfWar": 8,
    "PDF": 8,
    "Sticky=False": 4,
    "SidewaysCard": 4,
@@ -571,7 +569,6 @@
    "RotationValues": 18,
    "Grid=False": 12,
    "MultiSheetDeck": 5,
-   "FogOfWar": 4,
    "DragSelectable=False": 2,
    "States": 2,
    "Autoraise=False": 1,
@@ -653,8 +650,7 @@
    "Snap=False": 11,
    "RotationValues": 9,
    "PDF": 7,
-   "MultiSheetDeck": 7,
-   "FogOfWar": 6
+   "MultiSheetDeck": 7
   },
   "lua_events": {
    "onLoad": 216,
@@ -789,7 +785,6 @@
    "LuaScriptState": 14,
    "AttachedSnapPoints": 11,
    "Grid=False": 6,
-   "FogOfWar": 6,
    "PDF": 1
   },
   "lua_events": {

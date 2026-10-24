@@ -104,7 +104,8 @@ def analyze(path):
             flags["3DText"] += 1
         if o.get("CustomPDF"):
             flags["PDF"] += 1
-        if o.get("FogColor"):
+        # FogColor is also the owner colour of every HandTrigger; only a FogOfWarTrigger is a fog-of-war zone.
+        if o.get("Name") == "FogOfWarTrigger":
             flags["FogOfWar"] += 1
 
     lua = "\n".join(strip_lua_comments_and_strings(s) for s in scripts_of(save))
