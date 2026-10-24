@@ -61,7 +61,10 @@ namespace TableWorld.View.ScriptUi
                 _root.styleSheets.Add(style);
             _root.AddToClassList("script-ui-root");
             if (_table != null)
+            {
                 _table.CommandExecuted += OnCommand;
+                _table.AssetRefreshed += OnAssetRefreshed;
+            }
             _dirty = true;
         }
 
@@ -72,15 +75,24 @@ namespace TableWorld.View.ScriptUi
                 _table.CommandExecuted -= OnCommand;
             _table = table;
             if (_table != null && isActiveAndEnabled)
+            {
                 _table.CommandExecuted += OnCommand;
+                _table.AssetRefreshed += OnAssetRefreshed;
+            }
             _dirty = true;
         }
 
         private void OnDisable()
         {
             if (_table != null)
+            {
                 _table.CommandExecuted -= OnCommand;
+                _table.AssetRefreshed -= OnAssetRefreshed;
+            }
         }
+
+        /// <summary>An image arrived (decoded or downloaded): the UI may show it, so it is drawn again.</summary>
+        private void OnAssetRefreshed(string assetId) => _drawnState = null;
 
         private void OnCommand(Command command, CommandResult result)
         {

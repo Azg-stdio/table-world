@@ -92,14 +92,22 @@ namespace TableWorld.View
             }
 
             _packageRoot = packageRoot;
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             Assets = new AssetLibrary(parsed.State.Assets, packageRoot, FetchAsset);
+            Assets.Decoded += ShowDecoded;
             Replace(parsed.State);
+            var placed = watch.ElapsedMilliseconds;
             _undo.Clear();
             _redo.Clear();
             Timeline.Clear();
             Timeline.Record(TableJson.Serialize(Engine.State, indented: false), Time.unscaledTimeAsDouble);
             _loadedAt = Time.time;
+            var recorded = watch.ElapsedMilliseconds;
             Loaded?.Invoke();
+            // A slow load says where the time went (placing objects, or what reacts to it: room, scripts).
+            if (watch.ElapsedMilliseconds > 1000)
+                Debug.Log($"[TableView] Loaded {Engine.State.Objects.Count} objects in {watch.ElapsedMilliseconds} ms: placing {placed} ms, " +
+                          $"recording {recorded - placed} ms, room and scripts {watch.ElapsedMilliseconds - recorded} ms.");
             return true;
         }
 
@@ -285,7 +293,10 @@ namespace TableWorld.View
             // Keep loaded textures when the asset list did not change (a rebuilt prediction, a resync).
             var assets = TableJson.Serialize(new TableState { Assets = game.State.Assets }, indented: false);
             if (Assets == null || assets != _assetsJson)
+            {
                 Assets = new AssetLibrary(game.State.Assets, _packageRoot, FetchAsset);
+                Assets.Decoded += ShowDecoded;
+            }
             _assetsJson = assets;
             Game = game;
             SpawnAll();
@@ -301,6 +312,15 @@ namespace TableWorld.View
         public event Action<string> AssetRefreshed;
 
         /// <summary>An asset's bytes arrived: reload its texture and repaint every object.</summary>
+        /// <summary>An image finished decoding in the background: what shows it is redrawn with it.</summary>
+        private void ShowDecoded(string assetId)
+        {
+            foreach (var view in _views.Values)
+                if (view != null)
+                    ObjectViewFactory.Refresh(view, Assets);
+            AssetRefreshed?.Invoke(assetId);
+        }
+
         public void RefreshAsset(string assetId)
         {
             if (Assets == null)
@@ -523,8 +543,9 @@ namespace TableWorld.View
                     if (ViewOf(id) is { Animating: false } view && !view.Body.isKinematic)
                         ReportPose(view);
 
-            // Every player command can be undone; pose reports from physics are not separate steps.
-            if (!(command is MoveCommand && _reportingId != null))
+            // Every player command can be undone; pose reports from physics are not separate steps, and what scripts do
+            // is not a player's step either (a table's scripts can issue hundreds of commands as it loads).
+            if (!(command is MoveCommand && _reportingId != null) && !command.ByScript)
                 Checkpoint();
 
             var result = Router != null ? Router(command) : Game.Execute(command);

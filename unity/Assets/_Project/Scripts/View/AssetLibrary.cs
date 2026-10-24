@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Core.Rules;
 using TableWorld.View.Builtin;
 using UnityEngine;
@@ -140,6 +141,14 @@ namespace TableWorld.View
             }
             else
             {
+                // Package images decode on a worker thread (a TTS sheet of 10 000 px takes a second even as a small
+                // file): the table shows at once, plain, and each picture appears when it is ready (Decoded).
+                if (PackageFile(asset) is { } file)
+                {
+                    if (_decoding.Add(asset.Path))
+                        Decode(asset.Path, file);
+                    return null;
+                }
                 var bytes = ReadPackageFile(asset) ?? _fetch?.Invoke(asset);
                 if (bytes != null)
                 {
@@ -259,12 +268,47 @@ namespace TableWorld.View
         }
 
         /// <summary>The asset's file in the game package, or null. Paths were validated to stay inside the package.</summary>
-        public byte[] ReadPackageFile(Asset asset)
+        public byte[] ReadPackageFile(Asset asset) => PackageFile(asset) is { } file ? File.ReadAllBytes(file) : null;
+
+        private string PackageFile(Asset asset)
         {
             if (_packageRoot == null || asset.IsBuiltin || !Asset.IsSafePath(asset.Path))
                 return null;
             var file = Path.Combine(_packageRoot, asset.Path);
-            return File.Exists(file) ? File.ReadAllBytes(file) : null;
+            return File.Exists(file) ? file : null;
+        }
+
+        private readonly HashSet<string> _decoding = new HashSet<string>();
+
+        /// <summary>An image decoded in the background is ready (asset id): views showing it redraw.</summary>
+        public event System.Action<string> Decoded;
+
+        /// <summary>Images still being decoded.</summary>
+        public int Decoding => _decoding.Count;
+
+        private void Decode(string path, string file)
+        {
+            var request = UnityEngine.Networking.UnityWebRequestTexture.GetTexture(new System.Uri(file).AbsoluteUri, nonReadable: false);
+            request.SendWebRequest().completed += _ =>
+            {
+                Texture2D texture = null;
+                if (request.result == UnityEngine.Networking.UnityWebRequest.Result.Success)
+                    texture = UnityEngine.Networking.DownloadHandlerTexture.GetContent(request);
+                else
+                    Debug.LogWarning($"[AssetLibrary] '{path}' is not a PNG or JPEG image ({request.error}).");
+                request.Dispose();
+                _decoding.Remove(path);
+                if (texture != null)
+                {
+                    texture.name = path;
+                    texture.anisoLevel = 4;
+                    texture = Fit(texture);
+                }
+                _texturesByPath[path] = texture;
+                if (texture != null)
+                    foreach (var id in _assets.Values.Where(a => a.Path == path).Select(a => a.Id).ToList())
+                        Decoded?.Invoke(id);
+            };
         }
 
         private Material NewMaterial(string name, Color color, float smoothness)

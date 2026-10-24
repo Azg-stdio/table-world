@@ -144,6 +144,23 @@ namespace Core.Scripting
         /// <summary>Scripts loaded right now (the global one counts).</summary>
         public int ScriptCount => (_global != null ? 1 : 0) + _objectScripts.Count;
 
+        private static byte[]? _preludeCode;
+
+        /// <summary>
+        /// The prelude compiled once to bytecode: parsing its source again for each of a table's hundreds of scripts
+        /// was most of their load time.
+        /// </summary>
+        private static byte[] PreludeCode()
+        {
+            if (_preludeCode != null)
+                return _preludeCode;
+            var compiler = new Script(CoreModules.Preset_SoftSandbox);
+            var chunk = compiler.LoadString(LuaPrelude.Source, null, "prelude");
+            using var code = new System.IO.MemoryStream();
+            compiler.Dump(chunk, code);
+            return _preludeCode = code.ToArray();
+        }
+
         private Script? Compile(string source, string? selfId, string label)
         {
             var script = new Script(CoreModules.Preset_SoftSandbox);
@@ -152,7 +169,7 @@ namespace Core.Scripting
             InstallApi(script, selfId);
             try
             {
-                script.DoString(LuaPrelude.Source, null, "prelude");
+                script.Call(script.LoadStream(new System.IO.MemoryStream(PreludeCode()), null, "prelude"));
                 var chunk = script.LoadString(source, null, label);
                 return Run(script, chunk, label, Array.Empty<DynValue>()) ? script : null;
             }

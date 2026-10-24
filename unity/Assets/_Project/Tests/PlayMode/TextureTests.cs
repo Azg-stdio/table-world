@@ -30,7 +30,14 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsTrue(table.Load(json, package));
             yield return null;
 
+            // A big file decodes in the background: the first look finds nothing yet, then the picture arrives.
             var big = table.Assets.Texture("big");
+            for (var wait = 0; wait < 300 && big == null; wait++)
+            {
+                yield return null;
+                big = table.Assets.Texture("big");
+            }
+            Assert.IsNotNull(big, "the big image decoded");
             Assert.AreEqual(4096, big.width, "the longest side fits the limit");
             Assert.AreEqual(2048, big.height, "and the proportions stay (a sheet keeps its grid)");
             Assert.IsTrue(big.format == TextureFormat.DXT5 || big.format == TextureFormat.DXT1 || big.format == TextureFormat.BC7, $"compressed ({big.format})");
