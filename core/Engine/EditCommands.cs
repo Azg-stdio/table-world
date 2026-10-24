@@ -22,6 +22,22 @@ namespace Core.Engine
     /// file writes it; it gets a fresh id and is checked like a loaded table's. <see cref="Assets"/> are added when the
     /// table lacks them (built-in pieces). Host only: scripts spawn, players clone.
     /// </summary>
+    /// <summary>
+    /// Changes the files an object shows (M5, TTS <c>setCustomObject</c>): <see cref="Assets"/> join the table when it
+    /// lacks them, then each given id replaces that part of the object (null keeps it). Host only.
+    /// </summary>
+    public sealed class SetCustomCommand : Command, IHostCommand
+    {
+        public string ObjectId { get; set; } = "";
+        public List<Asset> Assets { get; set; } = new List<Asset>();
+        /// <summary>Tokens, tiles, boards, figures, custom dice and bags: their image (or a bag's or model's mesh).</summary>
+        public string? Image { get; set; }
+        public string? Face { get; set; }
+        public string? Back { get; set; }
+        public string? Mesh { get; set; }
+        public string? Diffuse { get; set; }
+    }
+
     public sealed class SpawnCommand : Command, IHostCommand
     {
         public string ObjectJson { get; set; } = "";

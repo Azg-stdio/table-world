@@ -82,6 +82,11 @@ namespace TableWorld.Editor
             EditorUtility.SetDirty(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TimeManager.asset")[0]);
             // A networked table must keep exchanging messages while its window is in the background.
             PlayerSettings.runInBackground = true;
+            // TTS games name most of their files with plain http addresses (cloud-3.steamusercontent.com): builds
+            // refuse those unless allowed.
+            PlayerSettings.insecureHttpOption = InsecureHttpOption.AlwaysAllowed;
+            // Player settings reach the disk only when their asset is dirty (as with the TimeManager above).
+            EditorUtility.SetDirty(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/ProjectSettings.asset")[0]);
             // No project-wide input actions: the game reads Mouse/Keyboard directly and UI Toolkit falls back to the
             // package's DefaultInputActions. The template asset Unity assigned left a stale action state on
             // Mouse/position in the first Play session after each domain reload (hundreds of NullReferenceExceptions).

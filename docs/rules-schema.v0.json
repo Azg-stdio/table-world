@@ -154,6 +154,9 @@
         },
         "meshScale": {
           "type": "number"
+        },
+        "url": {
+          "type": "string"
         }
       },
       "additionalProperties": false

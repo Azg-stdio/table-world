@@ -75,6 +75,48 @@ namespace Core.Engine
             return result;
         }
 
+        private CommandResult SetCustom(SetCustomCommand c)
+        {
+            if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: true) is { } fail)
+                return fail;
+            var events = new List<StateEvent>();
+            foreach (var asset in c.Assets.Where(a => State.Assets.All(x => x.Id != a.Id)))
+            {
+                if (!Asset.IsSafePath(asset.Path) || (asset.Url != null && !Asset.IsWebAddress(asset.Url)) || string.IsNullOrEmpty(asset.Id))
+                    return CommandResult.Fail("assets", ErrorCodes.InvalidValue, $"Asset '{asset.Id}' needs a path inside the package and an http(s) url.");
+                State.Assets.Add(asset);
+                events.Add(new AssetAdded(asset.Id));
+            }
+            bool Known(string? id) => id == null || State.Assets.Any(a => a.Id == id);
+            if (!Known(c.Image) || !Known(c.Face) || !Known(c.Back) || !Known(c.Mesh) || !Known(c.Diffuse))
+                return CommandResult.Fail("assets", ErrorCodes.InvalidValue, "Every file named must be one of the table's assets.");
+            switch (obj)
+            {
+                case Card card:
+                    if (c.Face != null) { card.FaceAsset = c.Face; card.FaceIndex = 0; }
+                    if (c.Back != null) { card.BackAsset = c.Back; card.BackIndex = 0; }
+                    break;
+                case Deck deck:
+                    if (c.Face != null) deck.FaceAsset = c.Face;
+                    if (c.Back != null) { deck.BackAsset = c.Back; deck.BackIndex = 0; }
+                    break;
+                case Model model:
+                    if (c.Mesh != null) model.Asset = c.Mesh;
+                    if (c.Diffuse != null) model.DiffuseAsset = c.Diffuse;
+                    break;
+                case Bag bag:
+                    if (c.Mesh != null) bag.Asset = c.Mesh;
+                    break;
+                case Token token when c.Image != null: token.Asset = c.Image; break;
+                case Tile tile when c.Image != null: tile.Asset = c.Image; break;
+                case Board board when c.Image != null: board.Asset = c.Image; break;
+                case Figure figure when c.Image != null: figure.Asset = c.Image; break;
+                case Die die when c.Image != null: die.Asset = c.Image; break;
+            }
+            events.Add(new ObjectUpdated(obj.Id));
+            return CommandResult.Success(events);
+        }
+
         private CommandResult Clone(CloneCommand c)
         {
             if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: true) is { } fail)

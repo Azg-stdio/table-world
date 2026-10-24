@@ -168,6 +168,8 @@ namespace Core.Tts
                 Id = id, Type = type, Path = asset.Path, Columns = Math.Max(1, columns), Rows = Math.Max(1, rows),
                 // TTS meshes are in TTS units.
                 MeshScale = type == AssetType.Model ? TtsUnits.TtsUnitsToMeters : 1f,
+                // Fetched on each machine when the package lacks the file, as TTS does.
+                Url = Rules.Asset.IsWebAddress(url) ? url : null,
             });
             return id;
         }

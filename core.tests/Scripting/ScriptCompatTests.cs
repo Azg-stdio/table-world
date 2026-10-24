@@ -215,6 +215,30 @@ namespace Core.Tests.Scripting
         }
 
         [Fact]
+        public void SetCustomObject_PointsObjectsAtWebFiles_EachMachineFetches()
+        {
+            var (engine, _, said) = Load(@"
+                function onLoad()
+                  local m = spawnObject({ type = 'Custom_Model' })
+                  m.setCustomObject({ mesh = 'https://cdn.test/pawn.obj', diffuse = 'https://cdn.test/pawn.png' })
+                  getObjectFromGUID('loose').setCustomObject({ face = 'https://cdn.test/face.jpg' })
+                  local c = m.getCustomObject()
+                  broadcastToAll(c.mesh .. ' ' .. c.diffuse .. ' ' .. tostring(getObjectFromGUID('d6').setCustomObject({ image = 'not a url' })))
+                end");
+            Assert.Equal("https://cdn.test/pawn.obj https://cdn.test/pawn.png true", said.Single());
+            var mesh = engine.State.Assets.Single(a => a.Url == "https://cdn.test/pawn.obj");
+            Assert.Equal(AssetType.Model, mesh.Type);
+            Assert.Equal(0.03f, mesh.MeshScale);
+            Assert.StartsWith("urls/", mesh.Path);
+            Assert.Equal(mesh.Id, ((Model)engine.State.Objects.OfType<Model>().Single(m => m.Asset == mesh.Id)).Asset);
+            var face = engine.State.Assets.Single(a => a.Url == "https://cdn.test/face.jpg");
+            Assert.EndsWith(".jpg", face.Path);
+            Assert.Equal(face.Id, ((Card)engine.Find("loose")!).FaceAsset);
+            var parsed = TableJson.Parse(TableJson.Serialize(engine.State));
+            Assert.True(parsed.Ok, string.Join("; ", parsed.Errors));
+        }
+
+        [Fact]
         public void LogPrettyJsonAndSmoothMoving_Work()
         {
             var (_, host, said) = Load(@"

@@ -26,6 +26,15 @@ namespace Core.Rules
         [System.ComponentModel.DefaultValue(1f)]
         public float MeshScale { get; set; } = 1f;
 
+        /// <summary>
+        /// Where the file comes from on the web (TTS games name their files by URL). Each machine fetches it itself when
+        /// the package does not hold <see cref="Path"/>, as TTS does: http or https only.
+        /// </summary>
+        public string? Url { get; set; }
+
+        public static bool IsWebAddress(string? url) =>
+            url != null && System.Uri.TryCreate(url, System.UriKind.Absolute, out var uri) && (uri.Scheme == System.Uri.UriSchemeHttp || uri.Scheme == System.Uri.UriSchemeHttps);
+
         public const string BuiltinPrefix = "builtin:";
 
         [Newtonsoft.Json.JsonIgnore]

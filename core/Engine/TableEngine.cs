@@ -196,6 +196,7 @@ namespace Core.Engine
             TypeInputCommand c => TypeInput(c),
             SetScriptUiCommand c => SetScriptUi(c),
             SpawnCommand c => Spawn(c),
+            SetCustomCommand c => SetCustom(c),
             SetUiAttributesCommand c => SetUiAttributes(c),
             UiEventCommand c => UiEvent(c),
             ClickButtonCommand c => ClickButton(c),

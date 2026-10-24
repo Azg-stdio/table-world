@@ -1003,6 +1003,10 @@ namespace TableWorld.View
             {
                 switch (e)
                 {
+                    // A file a script named while playing (setCustomObject): the library learns of it.
+                    case AssetAdded asset when Assets != null && Engine.State.Assets.FirstOrDefault(a => a.Id == asset.ObjectId) is { } newAsset:
+                        Assets.Register(newAsset);
+                        break;
                     case ObjectAdded added:
                         if (Engine.Find(added.ObjectId) is { Container: null } obj)
                         {

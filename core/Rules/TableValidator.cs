@@ -270,6 +270,8 @@ namespace Core.Rules
                 else if (!Asset.IsSafePath(asset.Path))
                     Add($"{path}.path", ErrorCodes.InvalidPath, $"Asset path '{asset.Path}' leaves the game package.",
                         "Use a relative path inside the package folder, without '..', drive letters or a leading slash.");
+                if (asset.Url != null && !Asset.IsWebAddress(asset.Url))
+                    Add($"{path}.url", ErrorCodes.InvalidValue, $"Asset url '{asset.Url}' is not an http or https address.");
                 if (asset.Columns < 1)
                     Add($"{path}.columns", ErrorCodes.InvalidValue, "Columns must be at least 1.");
                 if (asset.Rows < 1)

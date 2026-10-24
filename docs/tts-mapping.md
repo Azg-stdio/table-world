@@ -90,6 +90,7 @@ TTS decks: `NumWidth` × `NumHeight` cells, row-major, index 0 at top-left. Defa
 ## Assets and URLs
 
 - Cache key in TTS: URL with every non-alphanumeric character removed, plus extension (`.unity3d`, `.png`/`.jpg`, `.obj`, `.pdf`), under `Mods/{Assetbundles,Images,Models,PDF}` (`TtsImporter.CacheKey`). The importer lists each asset with its URL, cache key and package path (`images/`, `models/`, `bundles/` + key + extension) so the package can be filled from the TTS cache first.
+- Every imported asset keeps its address (`url`): when the package lacks the file, each machine looks in its own copies (our URL cache, then the player's TTS cache) and else fetches it, as TTS does. Script UI may also name images by address.
 - Custom UI images (`CustomUIAssets`) become image assets named `ui_<name in lower case, other characters as _>` (`TtsImporter.UiAssetId`); script UI looks images up by that name too.
 - 86 % of URLs on `cloud-3.steamusercontent.com`, 9.5 % on `steamusercontent-a.akamaihd.net`. Download on demand with a concurrency limit, store by content hash on our side.
 - OBJ models (`Custom_Model`) → convert to glTF at import (M7); AssetBundles → ADR 0001.

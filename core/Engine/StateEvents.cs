@@ -103,6 +103,14 @@ namespace Core.Engine
         }
     }
 
+    /// <summary>A file joined the table's assets while it was played (M5, a script's setCustomObject): views learn of it.</summary>
+    public sealed class AssetAdded : StateEvent
+    {
+        public AssetAdded(string assetId) : base(assetId)
+        {
+        }
+    }
+
     /// <summary>An object's script inputs changed (M5): made, edited or typed into.</summary>
     public sealed class InputsChanged : StateEvent
     {

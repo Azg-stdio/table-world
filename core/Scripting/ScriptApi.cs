@@ -647,9 +647,10 @@ namespace Core.Scripting
                 case "getCustomObject":
                     return Fn((o, a) =>
                     {
-                        // The TTS custom fields that map to ours (image, mesh), as asset paths.
+                        // The TTS custom fields that map to ours (image, mesh): their web address, as TTS gives, or their path.
                         var custom = new Table(script);
-                        string? Path(string? assetId) => assetId == null ? null : Engine.State.Assets.FirstOrDefault(x => x.Id == assetId)?.Path;
+                        string? Path(string? assetId) => assetId == null ? null
+                            : Engine.State.Assets.FirstOrDefault(x => x.Id == assetId) is { } asset ? asset.Url ?? asset.Path : null;
                         switch (o)
                         {
                             case Card c: custom["face"] = Path(c.FaceAsset); custom["back"] = Path(c.BackAsset); break;
@@ -659,6 +660,27 @@ namespace Core.Scripting
                             case Die d: custom["image"] = Path(d.Asset); break;
                         }
                         return DynValue.NewTable(custom);
+                    });
+                case "setCustomObject":
+                    return Fn((o, a) =>
+                    {
+                        // TTS setCustomObject({ image, face, back, mesh, diffuse, ... }) with web addresses; reload() is not needed here.
+                        if (At(a, 0).Type != DataType.Table)
+                            return DynValue.False;
+                        var p = At(a, 0).Table;
+                        var added = new List<Asset>();
+                        string? Image(string key) => UrlAsset(p.Get(key).CastToString(), AssetType.Image, added)?.Id;
+                        var command = new SetCustomCommand
+                        {
+                            ObjectId = id,
+                            Image = Image("image"),
+                            Face = Image("face"),
+                            Back = Image("back"),
+                            Mesh = UrlAsset(p.Get("mesh").CastToString(), AssetType.Model, added)?.Id,
+                            Diffuse = Image("diffuse"),
+                            Assets = added,
+                        };
+                        return Do(command);
                     });
                 case "setLuaScript":
                     return Fn((o, a) => Do(new SetPropertiesCommand { ObjectId = id, Script = Arg(a, 0) ?? "" }));
@@ -905,6 +927,11 @@ namespace Core.Scripting
                         break;
                     case "Custom_Tile": json["type"] = "Tile"; break;
                     case "Custom_Board": json["type"] = "Board"; break;
+                    case "Custom_Model":
+                        json["type"] = "Model";
+                        json["asset"] = "builtin_placeholder";
+                        assets.Add(new Asset { Id = "builtin_placeholder", Type = AssetType.Model, Path = Asset.BuiltinPrefix + "placeholder" });
+                        break;
                     case "Bag": case "Custom_Model_Bag": json["type"] = "Bag"; break;
                     case "Infinite_Bag": case "Custom_Model_Infinite_Bag": json["type"] = "InfiniteBag"; break;
                     case "Notecard": json["type"] = "Notecard"; break;
@@ -938,6 +965,31 @@ namespace Core.Scripting
             if (callback.Type == DataType.Function || callback.Type == DataType.ClrFunction)
                 _timers.Add(new Timer { Id = _nextTimer++, Script = script, Function = callback, Arguments = new[] { proxy }, Due = _now });
             return proxy;
+        }
+
+        /// <summary>
+        /// The asset for a web address a script names (TTS <c>setCustomObject</c>): one per address, fetched by each
+        /// machine (<see cref="Asset.Url"/>); null when it is not an http(s) address.
+        /// </summary>
+        private Asset? UrlAsset(string? url, AssetType type, List<Asset> added)
+        {
+            if (!Asset.IsWebAddress(url))
+                return null;
+            var key = Core.Tts.TtsImporter.CacheKey(url!);
+            var existing = Engine.State.Assets.FirstOrDefault(a => a.Url == url && a.Type == type) ?? added.FirstOrDefault(a => a.Url == url && a.Type == type);
+            if (existing != null)
+                return existing;
+            var extension = type == AssetType.Model ? ".obj" : url!.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ? ".jpg" : ".png";
+            var asset = new Asset
+            {
+                Id = "url_" + Math.Abs(key.GetHashCode()).ToString("x8") + (type == AssetType.Model ? "_m" : ""),
+                Type = type,
+                Path = $"urls/{key}{extension}",
+                Url = url,
+                MeshScale = type == AssetType.Model ? Core.Tts.TtsUnits.TtsUnitsToMeters : 1f,
+            };
+            added.Add(asset);
+            return asset;
         }
 
         /// <summary>A Lua list of strings (or one string) as a list.</summary>

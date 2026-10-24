@@ -81,7 +81,7 @@ API returns are Vectors and Colors.
 | `getZones()` | zones it lies in |
 | `positionToWorld(local)`, `positionToLocal(world)` | between its local axes and the table, TTS units |
 | `setState(n)`, `getStates()` | switches state and returns the object in its new state (`SetState`) |
-| `getCustomObject()` | its image or mesh paths |
+| `getCustomObject()`, `setCustomObject({ image, face, back, mesh, diffuse })` | its files, by web address (`SetCustom`; each machine fetches a new address itself, as in TTS). `spawnObject({ type = 'Custom_Model' })` then `setCustomObject` works; `reload()` is not needed |
 | `isSmoothMoving()`, `reload()` | false; itself |
 | `AssetBundle.playLoopingEffect`, `playTriggerEffect`, `getLoopingEffects`, `getTriggerEffects`; `getComponent(name).get / set`, `getComponents`, `getChildren` | accepted without effect (asset-bundle effects come with M4; Unity components are not scripted) |
 | `playLoopingEffect`, `playTriggerEffect`, `setVelocity`, `getVelocity`, `addForce`, `addTorque`, `highlightOn`, `highlightOff` | accepted, no effect yet (asset-bundle effects come with M4; physics is not script-driven) |

@@ -39,6 +39,7 @@ IMPLEMENTED = {
     "onObjectCollisionExit", "registerCollisions", "unregisterCollisions",
     "spawnObject", "onObjectEnterContainer", "onObjectLeaveContainer", "onChat",
     "createInput", "editInput", "removeInput", "clearInputs", "getInputs",
+    "setCustomObject", "getComponent", "MusicPlayer.getPlaylist",
     # events
     "onLoad", "onObjectDrop", "onDrop", "onObjectEnterZone", "onObjectLeaveZone", "onObjectFlip", "onFlip",
     "onObjectRandomize", "onRandomize", "onPlayerTurn",

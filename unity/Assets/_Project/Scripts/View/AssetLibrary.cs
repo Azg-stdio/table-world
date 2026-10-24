@@ -143,12 +143,14 @@ namespace TableWorld.View
             {
                 // Package images decode on a worker thread (a TTS sheet of 10 000 px takes a second even as a small
                 // file): the table shows at once, plain, and each picture appears when it is ready (Decoded).
-                if (PackageFile(asset) is { } file)
+                if (LocalCopy(asset) is { } file)
                 {
                     if (_decoding.Add(asset.Path))
                         Decode(asset.Path, file);
                     return null;
                 }
+                if (FetchFromWeb(asset))
+                    return null;
                 var bytes = ReadPackageFile(asset) ?? _fetch?.Invoke(asset);
                 if (bytes != null)
                 {
@@ -219,7 +221,9 @@ namespace TableWorld.View
             if (_meshesByPath.TryGetValue(asset.Path, out var cached))
                 return cached;
             Mesh mesh = null;
-            var bytes = ReadPackageFile(asset) ?? _fetch?.Invoke(asset);
+            if (LocalCopy(asset) == null && FetchFromWeb(asset))
+                return null;
+            var bytes = (LocalCopy(asset) is { } local ? File.ReadAllBytes(local) : null) ?? _fetch?.Invoke(asset);
             if (bytes != null)
             {
                 if (!asset.Path.EndsWith(".obj", System.StringComparison.OrdinalIgnoreCase))
@@ -262,7 +266,10 @@ namespace TableWorld.View
             var asset = Find(assetId);
             if (asset == null || asset.Type != AssetType.AssetBundle || asset.IsBuiltin)
                 return null;
-            var file = _packageRoot != null && Asset.IsSafePath(asset.Path) ? Path.GetFullPath(Path.Combine(_packageRoot, asset.Path)) : null;
+            if (LocalCopy(asset) == null && FetchFromWeb(asset))
+                return null;
+            var file = LocalCopy(asset) is { } local ? Path.GetFullPath(local)
+                : _packageRoot != null && Asset.IsSafePath(asset.Path) ? Path.GetFullPath(Path.Combine(_packageRoot, asset.Path)) : null;
             var key = file ?? "fetched:" + (asset.Hash ?? asset.Path);
             return Bundles.Prefab(key, file, _fetch == null ? null : (System.Func<byte[]>)(() => _fetch(asset)));
         }
@@ -279,6 +286,113 @@ namespace TableWorld.View
         }
 
         private readonly HashSet<string> _decoding = new HashSet<string>();
+
+        // ---- files named by web address (Asset.Url) ------------------------------------------------------------------
+
+        /// <summary>Where files fetched from the web are kept, by TTS's name for their address.</summary>
+        public static string UrlCacheFolder => Path.Combine(Application.persistentDataPath, "Cache", "urls");
+
+        /// <summary>Downloads running at once; more wait their turn.</summary>
+        public const int MaxDownloads = 4;
+
+        private static readonly Queue<System.Action> WaitingDownloads = new Queue<System.Action>();
+        private static int _downloading;
+
+        private readonly HashSet<string> _fetching = new HashSet<string>();
+
+        /// <summary>Files still coming from the web.</summary>
+        public int Fetching => _fetching.Count;
+
+        private static string Extension(Asset asset) => Path.GetExtension(asset.Path) is { Length: > 0 } e ? e : asset.Type == AssetType.Model ? ".obj" : ".png";
+
+        /// <summary>
+        /// A file on this computer with the asset's bytes: the package's, a copy of its web address fetched before, or
+        /// the player's own Tabletop Simulator cache (TTS games name the same addresses). Null when there is none.
+        /// </summary>
+        private string LocalCopy(Asset asset)
+        {
+            if (PackageFile(asset) is { } package)
+                return package;
+            if (!Asset.IsWebAddress(asset.Url))
+                return null;
+            var key = Core.Tts.TtsImporter.CacheKey(asset.Url);
+            var cached = Path.Combine(UrlCacheFolder, key + Extension(asset));
+            if (File.Exists(cached))
+                return cached;
+            var tts = Core.Tts.TtsPackage.CachedFile(Core.Tts.TtsPackage.DefaultFolder,
+                new Core.Tts.ImportedAsset { Type = asset.Type, CacheKey = key, Url = asset.Url });
+            return tts;
+        }
+
+        /// <summary>
+        /// Starts fetching the asset's web address when no copy is here (true: it is on its way, the views redraw when it
+        /// lands, through <see cref="Decoded"/>). Each machine fetches for itself, as TTS does.
+        /// </summary>
+        private bool FetchFromWeb(Asset asset)
+        {
+            if (!Asset.IsWebAddress(asset.Url))
+                return false;
+            if (!_fetching.Add(asset.Path))
+                return true;
+            var target = Path.Combine(UrlCacheFolder, Core.Tts.TtsImporter.CacheKey(asset.Url) + Extension(asset));
+            void Start()
+            {
+                _downloading++;
+                Directory.CreateDirectory(UrlCacheFolder);
+                var part = target + ".part";
+                var request = new UnityEngine.Networking.UnityWebRequest(asset.Url, "GET",
+                    new UnityEngine.Networking.DownloadHandlerFile(part) { removeFileOnAbort = true }, null) { timeout = 120 };
+                request.SendWebRequest().completed += _ =>
+                {
+                    var ok = request.result == UnityEngine.Networking.UnityWebRequest.Result.Success;
+                    if (!ok)
+                        Debug.LogWarning($"[AssetLibrary] Could not fetch {asset.Url}: {request.error}");
+                    request.Dispose();
+                    _downloading--;
+                    if (ok)
+                    {
+                        if (File.Exists(target))
+                            File.Delete(target);
+                        File.Move(part, target);
+                    }
+                    _fetching.Remove(asset.Path);
+                    if (ok)
+                        foreach (var id in _assets.Values.Where(a => a.Url == asset.Url).Select(a => a.Id).ToList())
+                            Decoded?.Invoke(id);
+                    if (WaitingDownloads.Count > 0 && _downloading < MaxDownloads)
+                        WaitingDownloads.Dequeue()();
+                };
+            }
+            if (_downloading < MaxDownloads)
+                Start();
+            else
+                WaitingDownloads.Enqueue(Start);
+            return true;
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetDownloads()
+        {
+            WaitingDownloads.Clear();
+            _downloading = 0;
+        }
+
+        /// <summary>
+        /// An image named by its web address rather than an asset (TTS UI sets <c>image</c> to a URL): fetched and decoded
+        /// like an asset's, under a hidden asset of its own; null until it is here.
+        /// </summary>
+        public Texture2D WebTexture(string url)
+        {
+            if (!Asset.IsWebAddress(url))
+                return null;
+            var id = "web_" + Core.Tts.TtsImporter.CacheKey(url).ToLowerInvariant();
+            if (Find(id) == null)
+            {
+                var extension = url.EndsWith(".jpg", System.StringComparison.OrdinalIgnoreCase) ? ".jpg" : ".png";
+                Register(new Asset { Id = id, Type = AssetType.Image, Path = "web/" + Core.Tts.TtsImporter.CacheKey(url) + extension, Url = url });
+            }
+            return Texture(id);
+        }
 
         /// <summary>An image decoded in the background is ready (asset id): views showing it redraw.</summary>
         public event System.Action<string> Decoded;
