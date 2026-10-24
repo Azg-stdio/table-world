@@ -315,8 +315,10 @@ namespace TableWorld.View
         /// <summary>An image finished decoding in the background: what shows it is redrawn with it.</summary>
         private void ShowDecoded(string assetId)
         {
+            // Only the pieces drawn with it: a big table gets hundreds of images, and redrawing every piece for each one
+            // stalled loading and re-made the colliders of cards falling onto each other (they sank into one another).
             foreach (var view in _views.Values)
-                if (view != null)
+                if (view != null && AssetUse.Uses(view.Model, assetId))
                     ObjectViewFactory.Refresh(view, Assets);
             AssetRefreshed?.Invoke(assetId);
         }
@@ -623,6 +625,7 @@ namespace TableWorld.View
             if (_presentedSeat != LocalSeat || _presentedHosting != HostsTable || _presentedAll != SeesEverything)
                 PresentHands();
             _scratch.Clear();
+            ReleasePiles();
             _scratch.AddRange(_views.Values);
             foreach (var view in _scratch)
             {
@@ -640,13 +643,158 @@ namespace TableWorld.View
                     {
                         // Never asleep (jittering on a die, say): the same lay-flat failsafe as a body that came to rest.
                         if (!LayFlat(view))
+                        {
+                            Unsink(view);
                             ReportPose(view);
+                        }
                         _awakeSince[view.Id] = Time.time;
                     }
                     continue;
                 }
                 if (_awakeSince.Remove(view.Id) && !LayFlat(view))
+                {
+                    Unsink(view);
                     ReportPose(view);
+                }
+            }
+        }
+
+        private readonly Collider[] _sunkHits = new Collider[64];
+
+        private static bool IsThin(ObjectView view) =>
+            (view.Model is Card || view.Model is Deck || view.Model is Token || view.Model is Tile) && view.Collider is BoxCollider;
+
+        /// <summary>The thin pieces whose boxes overlap <paramref name="view"/>'s (not held, not in a hand).</summary>
+        private IEnumerable<ObjectView> OverlappingThin(ObjectView view)
+        {
+            var box = (BoxCollider)view.Collider;
+            var t = view.transform;
+            var half = Vector3.Scale(box.size, t.lossyScale) / 2f;
+            var count = Physics.OverlapBoxNonAlloc(t.TransformPoint(box.center), half * 0.98f, _sunkHits, t.rotation, Physics.DefaultRaycastLayers,
+                QueryTriggerInteraction.Ignore);
+            for (var i = 0; i < count; i++)
+                if (_sunkHits[i] != box && _sunkHits[i].GetComponentInParent<ObjectView>() is { } other && other != view && !other.Held && !other.InHand
+                    && !other.Animating && IsThin(other) && (!other.Body.isKinematic || other.PileHeld))
+                    yield return other;
+        }
+
+        /// <summary>
+        /// Failsafe for thin pieces dropped together. A card is 0.4 mm thick, below what PhysX resolves at table scale (TTS
+        /// cards are about 2 cm thick in its physics units), so a script spawning a deck card by card, as TTS deck importers
+        /// do, leaves the cards sunk into one another as one layer, and even a neat pile of loose cards is squeezed flat.
+        /// When a piece comes to rest sunk into another, its whole pile (every thin piece linked to it by overlap) is laid
+        /// out again bottom up, each on what it overlaps, and held there until moved (<see cref="ReleasePiles"/>).
+        /// </summary>
+        private void Unsink(ObjectView view)
+        {
+            if (!IsThin(view) || view.Held || view.InHand)
+                return;
+            Physics.SyncTransforms();
+            var pile = new List<ObjectView> { view };
+            var seen = new HashSet<ObjectView> { view };
+            var sunk = false;
+            for (var i = 0; i < pile.Count && pile.Count < 256; i++)
+                foreach (var other in OverlappingThin(pile[i]))
+                {
+                    if (!sunk && pile[i] == view)
+                        sunk = Physics.ComputePenetration(view.Collider, view.transform.position, view.transform.rotation, other.Collider,
+                            other.transform.position, other.transform.rotation, out var direction, out var depth)
+                            && depth > 0.0001f && Mathf.Abs(direction.y) > 0.7f;
+                    if (seen.Add(other))
+                        pile.Add(other);
+                }
+            if (!sunk)
+                return;
+            // Bottom up: each piece goes just above the highest piece already laid that its footprint overlaps.
+            pile.Sort((a, b) => a.Collider.bounds.min.y.CompareTo(b.Collider.bounds.min.y));
+            var laid = new List<ObjectView>();
+            foreach (var piece in pile)
+            {
+                // Level first: a card tilted by half a degree spans a millimetre of height across its length.
+                var up = piece.transform.up;
+                var forward = Vector3.ProjectOnPlane(piece.transform.forward, Vector3.up);
+                if (forward.sqrMagnitude < 1e-6f)
+                    forward = Vector3.ProjectOnPlane(piece.transform.up, Vector3.up);
+                var level = Quaternion.LookRotation(forward.normalized, Vector3.up) * (up.y >= 0f ? Quaternion.identity : Quaternion.Euler(0f, 0f, 180f));
+                piece.Body.rotation = level;
+                piece.transform.rotation = level;
+                Physics.SyncTransforms();
+                var bounds = piece.Collider.bounds;
+                var floor = bounds.min.y;
+                foreach (var under in laid)
+                {
+                    var b = under.Collider.bounds;
+                    if (b.min.x < bounds.max.x && b.max.x > bounds.min.x && b.min.z < bounds.max.z && b.max.z > bounds.min.z)
+                        floor = Mathf.Max(floor, b.max.y + 0.00002f);
+                }
+                var lift = floor - bounds.min.y;
+                if (lift > 0f)
+                {
+                    piece.Body.position += Vector3.up * lift;
+                    piece.transform.position += Vector3.up * lift;
+                    Physics.SyncTransforms();
+                }
+                if (!piece.Body.isKinematic)
+                {
+                    piece.Body.linearVelocity = Vector3.zero;
+                    piece.Body.angularVelocity = Vector3.zero;
+                }
+                HoldInPile(piece);
+                if (piece != view)
+                    ReportPose(piece);
+                laid.Add(piece);
+            }
+        }
+
+        private readonly HashSet<ObjectView> _pileHeld = new HashSet<ObjectView>();
+        private float _nextPileCheck;
+
+        private void HoldInPile(ObjectView view)
+        {
+            view.PileHeld = true;
+            view.Body.isKinematic = true;
+            _pileHeld.Add(view);
+        }
+
+        /// <summary>
+        /// Lets go of held pile pieces that were picked up or no longer rest on anything (the piece below was taken), so
+        /// they fall as they would. Checked a few times a second.
+        /// </summary>
+        private void ReleasePiles()
+        {
+            if (_pileHeld.Count == 0 || Time.time < _nextPileCheck)
+                return;
+            _nextPileCheck = Time.time + 0.2f;
+            Physics.SyncTransforms();
+            foreach (var view in _pileHeld.ToList())
+            {
+                if (view == null)
+                {
+                    _pileHeld.Remove(view);
+                    continue;
+                }
+                var supported = false;
+                if (!view.Held && view.PileHeld && view.Collider is BoxCollider box)
+                {
+                    var t = view.transform;
+                    var half = Vector3.Scale(box.size, t.lossyScale) / 2f;
+                    var center = t.TransformPoint(box.center);
+                    var count = Physics.BoxCastNonAlloc(center, new Vector3(half.x * 0.9f, 0.00005f, half.z * 0.9f), Vector3.down, _supportHits, t.rotation,
+                        half.y + 0.001f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+                    for (var i = 0; i < count && !supported; i++)
+                        supported = _supportHits[i].collider != box && _supportHits[i].collider.GetComponentInParent<ObjectView>() is var other
+                                    && (other == null || other != view && !other.Held);
+                }
+                if (supported)
+                    continue;
+                _pileHeld.Remove(view);
+                view.PileHeld = false;
+                if (!view.Held)
+                {
+                    view.Body.isKinematic = view.Pinned || view.InHand || view.Animating;
+                    if (!view.Body.isKinematic)
+                        view.Body.WakeUp();
+                }
             }
         }
 

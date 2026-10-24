@@ -246,5 +246,43 @@ namespace TableWorld.Tests.PlayMode
             var between = (V("tile_square").transform.position + V("token_red").transform.position) / 2f;
             yield return Drop("ace_spades", between, Vector3.zero, 0f, new List<string>());
         }
+
+        /// <summary>
+        /// A script spawning a deck card by card (TTS deck importers do): the cards fall together and must end as a pile,
+        /// one card thick each, not sunk into one layer; taking the top card leaves the rest where they are.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator Cards_SpawnedTogetherOnOneSpot_PileUp()
+        {
+            const int count = 20;
+            var ids = new List<string>();
+            for (var i = 0; i < count; i++)
+            {
+                var json = "{\"id\":\"pile\",\"type\":\"Card\",\"faceAsset\":\"std_deck\",\"backAsset\":\"std_back\",\"faceIndex\":" + i +
+                           ",\"transform\":{\"position\":[0.45," + (0.04f + 0.003f * i).ToString(System.Globalization.CultureInfo.InvariantCulture) + ",-0.2],\"rotation\":[0,180,180]}}";
+                var result = _table.Execute(new SpawnCommand { ObjectJson = json });
+                Assert.IsTrue(result.Ok, result.Error?.Message);
+                ids.Add(result.CreatedId);
+            }
+            yield return new WaitForSeconds(4f);
+            var heights = ids.Select(id => V(id).transform.position.y).OrderBy(y => y).ToList();
+            var tall = heights.Last() - heights.First();
+            Debug.Log($"[pile] {count} cards span {tall * 1000f:0.0} mm");
+            Assert.Greater(tall, (count - 1) * ObjectViewFactory.CardThickness * 0.9f, "the cards pile up instead of sinking into one layer");
+            Assert.Less(tall, (count - 1) * ObjectViewFactory.CardThickness * 2f, "and lie on each other without gaps");
+            for (var i = 1; i < heights.Count; i++)
+                Assert.Greater(heights[i] - heights[i - 1], ObjectViewFactory.CardThickness * 0.5f, $"card {i} lies on the one below");
+
+            var top = ids.OrderByDescending(id => V(id).transform.position.y).First();
+            var rest = ids.Where(id => id != top).ToDictionary(id => id, id => V(id).transform.position.y);
+            Assert.IsTrue(_interaction.Grab(V(top), false));
+            _interaction.DragTo(new Vector3(0.2f, 0f, -0.2f));
+            yield return new WaitForSeconds(0.6f);
+            _interaction.Release();
+            yield return new WaitForSeconds(1.5f);
+            foreach (var pair in rest)
+                Assert.AreEqual(pair.Value, V(pair.Key).transform.position.y, 0.0005f, "the rest of the pile stays");
+            Assert.Less(Vector3.Distance(V(top).transform.position, new Vector3(0.2f, V(top).transform.position.y, -0.2f)), 0.05f, "the top card went where it was dropped");
+        }
     }
 }

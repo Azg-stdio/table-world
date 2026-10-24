@@ -344,9 +344,13 @@ namespace TableWorld.View
                     box = view.gameObject.AddComponent<BoxCollider>();
                     view.Collider = box;
                 }
-                box.center = view.Visual == view.transform ? bounds.center : view.Visual.localRotation * bounds.center;
+                var center = view.Visual == view.transform ? bounds.center : view.Visual.localRotation * bounds.center;
                 var size = view.Visual == view.transform ? bounds.size : Abs(view.Visual.localRotation * bounds.size);
-                box.size = size;
+                // Writing the same box again still rebuilds the shape in PhysX and drops its contacts: only on a change.
+                if (box.center != center)
+                    box.center = center;
+                if (box.size != size)
+                    box.size = size;
             }
             else
             {
@@ -358,7 +362,8 @@ namespace TableWorld.View
                     view.Collider = meshCollider;
                 }
                 meshCollider.convex = true;
-                meshCollider.sharedMesh = mesh;
+                if (meshCollider.sharedMesh != mesh)
+                    meshCollider.sharedMesh = mesh;
             }
         }
 

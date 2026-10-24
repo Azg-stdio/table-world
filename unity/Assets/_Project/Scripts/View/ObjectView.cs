@@ -45,8 +45,14 @@ namespace TableWorld.View
         /// <summary>Set by <see cref="TableView"/> while the table's physics mode is locked (G19).</summary>
         internal bool TablePinned;
 
-        /// <summary>True when physics must leave the object where it is: it is locked, or the whole table is.</summary>
-        public bool Pinned => Model.Locked || TablePinned;
+        /// <summary>
+        /// Set by <see cref="TableView"/> on a thin piece resting in a pile of loose cards: held where it lies, because
+        /// PhysX squeezes a pile of 0.4 mm cards into one layer. Let go when it is picked up or loses what it rests on.
+        /// </summary>
+        internal bool PileHeld;
+
+        /// <summary>True when physics must leave the object where it is: it is locked, the whole table is, or it rests in a pile.</summary>
+        public bool Pinned => Model.Locked || TablePinned || PileHeld;
 
         /// <summary>True for a card in someone else's hand: its face shows the back, and its name is not shown.</summary>
         public bool HideFace { get; internal set; }

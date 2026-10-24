@@ -728,6 +728,8 @@ namespace TableWorld.View
         private void Hold(ObjectView view, Vector3 offset)
         {
             _table.NotifyTouched(view.Id);
+            // Taken out of a pile: physics carries it again once it is let go.
+            view.PileHeld = false;
             if (view.InHand)
             {
                 // Out of the hand's standing pose: it is carried flat and face up, as the state has it.
