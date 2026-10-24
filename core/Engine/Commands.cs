@@ -11,6 +11,10 @@ namespace Core.Engine
     {
         /// <summary>Seat id of the player issuing the command, or null for the host/system.</summary>
         public string? Actor { get; set; }
+
+        /// <summary>Issued by a table script on this machine (M5): the player did not ask for it, so it is not announced to them.</summary>
+        [Newtonsoft.Json.JsonIgnore]
+        public bool ByScript { get; set; }
     }
 
     /// <summary>Final pose of an object on the table, typically after physics settles a drop.</summary>

@@ -49,7 +49,11 @@ namespace Core.Scripting
         public ScriptHost(Func<TableEngine?> engine, Func<Command, CommandResult> execute)
         {
             _engine = engine;
-            _execute = execute;
+            _execute = command =>
+            {
+                command.ByScript = true;
+                return execute(command);
+            };
         }
 
         private TableEngine Engine => _engine() ?? throw new InvalidOperationException("No table.");
