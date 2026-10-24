@@ -35,6 +35,8 @@ IMPLEMENTED = {
     "onClick", "onValueChanged", "onEndEdit", "getHandObjects", "lookAt", "Player.getPlayers", "Player.getAvailableColors",
     "setInvisibleTo", "getInvisibleTo", "deal", "isDestroyed", "clone", "Timer.create", "Timer.destroy", "getStateId", "addTag",
     "removeTag", "setTags", "getObjectsWithAllTags", "getObjectsWithAnyTags",
+    "Physics.cast", "Physics.getGravity", "onCollisionEnter", "onCollisionExit", "onObjectCollisionEnter",
+    "onObjectCollisionExit", "registerCollisions", "unregisterCollisions",
     # events
     "onLoad", "onObjectDrop", "onDrop", "onObjectEnterZone", "onObjectLeaveZone", "onObjectFlip", "onFlip",
     "onObjectRandomize", "onRandomize", "onPlayerTurn",

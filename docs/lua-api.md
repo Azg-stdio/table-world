@@ -35,6 +35,7 @@ logged on the host and never stop the game.
 | `Player[color]`, `Player.Red`, `Player.getPlayers()`, `Player.getAvailableColors()` | players: `color`, `steam_name`, `seated`, `getHandObjects()`, `broadcast(text)`, `print(text)`; camera calls (`lookAt`) are accepted without effect |
 | `getNotebookTabs()`, `addNotebookTab({title, body, color})`, `editNotebookTab({index, title, body, color})`, `removeNotebookTab(index)` | the notebook (G25); colour "Grey" is everyone's page |
 | `log(...)`, `JSON.encode_pretty(table)` | host log; JSON |
+| `Physics.cast({ origin, direction, type, size, orientation, max_distance })` | the host's physics: `type` 1 ray, 2 sphere, 3 box; with no distance or direction, what overlaps the shape. Returns `{ hit_object, point, normal, distance }`, nearest first, objects only |
 
 ## Objects
 
@@ -133,6 +134,7 @@ Defined in the global script or any object script; colours are seat colours capi
 | `onObjectFlip(color, obj)`; own `onFlip(color)` | flipped |
 | `onObjectRandomize(obj, color)`; own `onRandomize(color)` | shuffled or rolled |
 | `onPlayerTurn(color)` | free-play turns moved to that seat |
+| own `onCollisionEnter(info)` / `onCollisionExit(info)`; `onObjectCollisionEnter(obj, info)` / `onObjectCollisionExit` for objects that called `registerCollisions()` | physics contacts on the host; `info` is `{ collision_object, contact_points, relative_velocity }` (`collision_object` nil for the table) |
 
 ## Not yet (T6.3)
 

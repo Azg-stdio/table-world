@@ -222,6 +222,8 @@ namespace TableWorld.View
 
         /// <summary>An object hit something hard enough to be heard (speed in m/s). Silent for a moment after a table loads.</summary>
         public event Action<ObjectView, float> Impacted;
+        /// <summary>An object started (true) or stopped touching something (M5: scripts' collision events).</summary>
+        public event Action<ObjectView, Collision, bool> Collided;
 
         /// <summary>Objects settle for a moment after a table loads; that clatter is not played.</summary>
         public const float QuietAfterLoadSeconds = 0.5f;
@@ -1052,6 +1054,7 @@ namespace TableWorld.View
                 return;
             var view = ObjectViewFactory.Create(obj, Assets, _objectsRoot != null ? _objectsRoot : transform);
             view.ImpactHandler = OnImpact;
+            view.CollisionHandler = (v, c, enter) => Collided?.Invoke(v, c, enter);
             ApplyPhysicsMode(view);
             if (view.GetComponent<Readout>() is { } readout)
                 readout.TimerDone = OnTimerDone;

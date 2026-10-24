@@ -182,6 +182,7 @@ namespace Core.Scripting
             g["Global"] = global;
             g["UI"] = UiApi(script, null);
             g["Player"] = PlayerApi(script);
+            g["Physics"] = PhysicsApi(script);
             g["log"] = Fn(args =>
             {
                 Log?.Invoke("[log] " + string.Join(" ", args.GetArray().Select(a => a.ToPrintString())));
@@ -328,7 +329,10 @@ namespace Core.Scripting
             t["getGUID"] = DynValue.NewCallback((_, a) => DynValue.NewString(id));
             t["guid"] = id;
             if (obj != null)
+            {
                 t["UI"] = UiApi(script, id);
+                InstallCollisionMethods(t, id);
+            }
             if (zone != null)
             {
                 t["getName"] = DynValue.NewCallback((_, a) => Str(zone.Name));

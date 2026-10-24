@@ -70,6 +70,8 @@ namespace TableWorld.View
 
         /// <summary>Set by <see cref="TableView"/>: called when this object hits something hard enough to be heard.</summary>
         internal System.Action<ObjectView, float> ImpactHandler;
+        /// <summary>Every collision start (true) and end (false), for table scripts (M5).</summary>
+        internal System.Action<ObjectView, Collision, bool> CollisionHandler;
 
         /// <summary>Impacts slower than this are silent (resting contact, gentle sliding).</summary>
         public const float AudibleImpactSpeed = 0.12f;
@@ -82,8 +84,11 @@ namespace TableWorld.View
 
         private void OnCollisionStay(Collision collision) => _touchingUntil = Time.fixedTime + Time.fixedDeltaTime * 2f;
 
+        private void OnCollisionExit(Collision collision) => CollisionHandler?.Invoke(this, collision, false);
+
         private void OnCollisionEnter(Collision collision)
         {
+            CollisionHandler?.Invoke(this, collision, true);
             _touchingUntil = Time.fixedTime + Time.fixedDeltaTime * 2f;
             var speed = collision.relativeVelocity.magnitude;
             if (speed < AudibleImpactSpeed || Time.time - _lastImpact < 0.06f || ImpactHandler == null)

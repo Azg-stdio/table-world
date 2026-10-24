@@ -4,20 +4,18 @@ Source: `docs/data/mod-requirements-2026-10-23.json`. Calls weighted by how ofte
 
 | Mod | Calls | Covered | Share |
 |---|---|---|---|
-| Pokemon Master Trainer 3D (7 Generations) | 337 | 300 | 89% |
-| Gloomhaven - Fantasy Setup (Scripted UI) | 8051 | 7873 | 98% |
-| The Chimera Table | 40 | 33 | 82% |
+| Pokemon Master Trainer 3D (7 Generations) | 337 | 320 | 95% |
+| Gloomhaven - Fantasy Setup (Scripted UI) | 8051 | 8016 | 100% |
+| The Chimera Table | 40 | 35 | 88% |
 | Anna's Roundtable - The FE Board Game Fan Project | 0 | 0 | 100% |
 | Pokémon: Legends of Sinnoh | 6973 | 6935 | 99% |
 | Riftbound - Basic Table | 5648 | 5543 | 98% |
-| **All** | 21049 | 20684 | **98%** |
+| **All** | 21049 | 20849 | **99%** |
 
 ## Most used missing
 
 | Call | Uses |
 |---|---|
-| `onCollisionEnter` | 99 |
-| `Physics.cast` | 62 |
 | `setCustomObject` | 44 |
 | `heading` | 24 |
 | `editInput` | 22 |
@@ -34,7 +32,6 @@ Source: `docs/data/mod-requirements-2026-10-23.json`. Calls weighted by how ofte
 | `scale` | 3 |
 | `onObjectLeaveContainer` | 3 |
 | `reset` | 3 |
-| `registerCollisions` | 2 |
 | `getHoldingObjects` | 2 |
 | `jointTo` | 2 |
 | `onObjectEnterContainer` | 2 |
@@ -45,14 +42,17 @@ Source: `docs/data/mod-requirements-2026-10-23.json`. Calls weighted by how ofte
 | `onScriptingButtonDown` | 2 |
 | `onUpdate` | 2 |
 | `magnitude` | 2 |
-| `unregisterCollisions` | 1 |
 | `getTransformUp` | 1 |
 | `getTriggerEffects` | 1 |
 | `getLoopingEffects` | 1 |
 | `Notes.addNotebookTab` | 1 |
-| `onObjectCollisionEnter` | 1 |
 | `onObjectHover` | 1 |
 | `onObjectDestroy` | 1 |
 | `onObjectSpawn` | 1 |
 | `changeColor` | 1 |
 | `setAngularVelocity` | 1 |
+| `getHoverObject` | 1 |
+| `onPlayerConnect` | 1 |
+| `rotateOver` | 1 |
+| `Lighting.apply` | 1 |
+| `onInputSubmit` | 1 |

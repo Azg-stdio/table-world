@@ -207,6 +207,41 @@ function hit(player, value, id) broadcastToAll('hit ' .. value .. ' ' .. id) end
         }
 
         [UnityTest]
+        public IEnumerator Collisions_AndPhysicsCast_ReachScripts()
+        {
+            yield return SceneManager.LoadSceneAsync("Table");
+            yield return null;
+            var table = Object.FindAnyObjectByType<TableView>();
+            Object.FindAnyObjectByType<TableInteraction>().IgnoreDevices = true;
+            yield return new WaitForSeconds(0.3f);
+            var global = @"
+function onLoad()
+  Wait.time(function()
+    local hits = Physics.cast({ origin = { 0, 20, 0 }, direction = { 0, -1, 0 }, max_distance = 40 })
+    broadcastToAll('cast ' .. #hits .. ' ' .. hits[1].hit_object.getGUID())
+    local around = Physics.cast({ origin = { 0, 1.5, 0 }, type = 2, size = { 3, 3, 3 }, max_distance = 0 })
+    broadcastToAll('around ' .. #around)
+  end, 1.2)
+end";
+            var json = new JObject
+            {
+                ["schemaVersion"] = "0.1",
+                ["objects"] = JArray.Parse(@"[ { ""id"": ""board"", ""type"": ""Board"", ""locked"": true },
+                  { ""id"": ""die"", ""type"": ""Die"", ""script"": ""function onCollisionEnter(info) if info.collision_object then broadcastToAll('die hit ' .. info.collision_object.getGUID()) end end"",
+                    ""transform"": { ""position"": [0, 0.15, 0] } } ]"),
+                ["players"] = JObject.Parse(@"{ ""seats"": [ { ""id"": ""south"", ""color"": ""red"" } ] }"),
+                ["scripts"] = new JObject { ["global"] = global },
+            };
+            Assert.IsTrue(table.Load(json.ToString(), null));
+            yield return new WaitForSeconds(1.8f);
+            var session = Object.FindAnyObjectByType<NetworkTableSession>();
+            var said = string.Join(" | ", session.Chat.Entries.Select(e => e.Text));
+            Assert.IsTrue(session.Chat.Entries.Any(e => e.Text == "die hit board"), "the die's script felt the board: " + said);
+            Assert.IsTrue(session.Chat.Entries.Any(e => e.Text == "cast 2 die"), "a ray down finds the die first, then the board: " + said);
+            Assert.IsTrue(session.Chat.Entries.Any(e => e.Text == "around 2"), "a sphere with no distance finds what overlaps it: " + said);
+        }
+
+        [UnityTest]
         public IEnumerator ScriptButtons_AreDrawn_HitByThePointer_AndClicked()
         {
             yield return SceneManager.LoadSceneAsync("Table");

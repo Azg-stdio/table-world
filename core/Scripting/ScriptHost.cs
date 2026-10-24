@@ -65,6 +65,7 @@ namespace Core.Scripting
             _timers.Clear();
             _proxies.Clear();
             _coroutines.Clear();
+            _registeredCollisions.Clear();
             _global = null;
             var state = Engine.State;
             // Buttons are made by the scripts' onLoad (as in TTS); the ones a save kept would double up.
