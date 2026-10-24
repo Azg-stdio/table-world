@@ -17,6 +17,17 @@ namespace Core.Engine
     }
 
     /// <summary>Copies an object (with a bag's contents, a deck's cards and its states) under new ids (copy/paste).</summary>
+    /// <summary>
+    /// Puts a new object on the table (M5, TTS <c>spawnObject</c>). <see cref="ObjectJson"/> is one object as the table
+    /// file writes it; it gets a fresh id and is checked like a loaded table's. <see cref="Assets"/> are added when the
+    /// table lacks them (built-in pieces). Host only: scripts spawn, players clone.
+    /// </summary>
+    public sealed class SpawnCommand : Command, IHostCommand
+    {
+        public string ObjectJson { get; set; } = "";
+        public List<Asset> Assets { get; set; } = new List<Asset>();
+    }
+
     public sealed class CloneCommand : Command
     {
         public string ObjectId { get; set; } = "";

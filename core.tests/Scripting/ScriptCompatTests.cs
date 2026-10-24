@@ -118,6 +118,40 @@ namespace Core.Tests.Scripting
         }
 
         [Fact]
+        public void SpawnObject_MakesSupportedPieces_AndCallsBackNextFrame()
+        {
+            var (engine, host, said) = Load(@"
+                local d = spawnObject({ type = 'Die_20', position = { 3, 2, 0 }, callback_function = function(obj) broadcastToAll('ready ' .. obj.getGUID()) end })
+                local p = spawnObject({ type = 'PlayerPawn' })
+                local x = spawnObject({ type = 'Custom_Assetbundle' })
+                broadcastToAll(d.getGUID() .. ' ' .. p.type .. ' ' .. tostring(x))");
+            var die = engine.State.Objects.OfType<Die>().Single(o => o.Faces == 20);
+            Assert.Equal(die.Id + " Model nil", said.Single());
+            Assert.Equal(0.09f, die.Transform.Position.X, 4);
+            Assert.Contains(engine.State.Assets, a => a.Path == "builtin:pawn");
+            host.Tick(0.02);
+            Assert.Equal("ready " + die.Id, said.Last());
+            Assert.False(engine.Execute(new SpawnCommand { ObjectJson = "{ \"type\": \"Die\", \"faces\": 7 }" }).Ok, "checked like a loaded table");
+        }
+
+        [Fact]
+        public void ContainerEvents_AndChat_ReachScripts()
+        {
+            var (engine, host, said) = Load(@"
+                function onObjectLeaveContainer(bag, obj) broadcastToAll('out ' .. bag.getGUID() .. ' ' .. obj.getGUID()) end
+                function onObjectEnterContainer(bag, obj) broadcastToAll('in ' .. bag.getGUID() .. ' ' .. obj.getGUID()) end
+                function onChat(message, player) broadcastToAll(player.color .. ' said ' .. message) return message ~= 'secret' end
+                function onLoad()
+                  getObjectFromGUID('bag').takeObject({ guid = 't1', position = { 5, 2, 0 } })
+                  getObjectFromGUID('bag').putObject(getObjectFromGUID('t1'))
+                end");
+            Assert.Equal(new[] { "out bag t1", "in bag t1" }, said);
+            Assert.True(host.OnChat("hello", "red"));
+            Assert.False(host.OnChat("secret", "red"));
+            Assert.Equal("Red said secret", said.Last());
+        }
+
+        [Fact]
         public void LogPrettyJsonAndSmoothMoving_Work()
         {
             var (_, host, said) = Load(@"

@@ -253,6 +253,15 @@ namespace Core.Scripting
                     case DieRolled rolled:
                         ForObject("onObjectRandomize", "onRandomize", rolled.ObjectId, who, objectFirst: true);
                         break;
+                    // TTS: onObjectEnterContainer(container, object) / onObjectLeaveContainer(container, object).
+                    case ContainerChanged moved when moved.From != null && Engine.Find(moved.From) != null:
+                        EverywhereWith("onObjectLeaveContainer", (s, p) => new[] { p(moved.From), p(moved.ObjectId) });
+                        if (moved.To != null)
+                            EverywhereWith("onObjectEnterContainer", (s, p) => new[] { p(moved.To), p(moved.ObjectId) });
+                        break;
+                    case ContainerChanged moved when moved.To != null:
+                        EverywhereWith("onObjectEnterContainer", (s, p) => new[] { p(moved.To), p(moved.ObjectId) });
+                        break;
                     case ZoneEntered entered when ProxyFor(entered.ZoneId) != null && ProxyFor(entered.ObjectId) != null:
                         EverywhereWith("onObjectEnterZone", (s, p) => new[] { p(entered.ZoneId), p(entered.ObjectId) });
                         // Older TTS scripts use the scripting-zone names for the same thing.
@@ -280,6 +289,27 @@ namespace Core.Scripting
             if (script == null)
                 return;
             CallIfDefined(script, button.Click, Proxy(script, obj.Id), who, DynValue.NewBoolean(click.Alt));
+        }
+
+        /// <summary>
+        /// A player said something in chat (TTS <c>onChat(message, player)</c>): every script hears it; false when one
+        /// returned false, meaning the line is not shown.
+        /// </summary>
+        public bool OnChat(string message, string? color)
+        {
+            if (ScriptCount == 0)
+                return true;
+            var shown = true;
+            void Hear(Script script)
+            {
+                if (CallIfDefined(script, "onChat", DynValue.NewString(message), color != null ? PlayerTable(script, color) : DynValue.Nil) is { Type: DataType.Boolean, Boolean: false })
+                    shown = false;
+            }
+            if (_global != null)
+                Hear(_global);
+            foreach (var script in _objectScripts.Values.ToList())
+                Hear(script);
+            return shown;
         }
 
         /// <summary>Global event with the object, and the object's own event on its script (TTS onObjectDrop / onDrop).</summary>

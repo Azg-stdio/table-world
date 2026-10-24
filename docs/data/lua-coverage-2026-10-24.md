@@ -4,13 +4,13 @@ Source: `docs/data/mod-requirements-2026-10-23.json`. Calls weighted by how ofte
 
 | Mod | Calls | Covered | Share |
 |---|---|---|---|
-| Pokemon Master Trainer 3D (7 Generations) | 337 | 320 | 95% |
-| Gloomhaven - Fantasy Setup (Scripted UI) | 8051 | 8016 | 100% |
-| The Chimera Table | 40 | 35 | 88% |
+| Pokemon Master Trainer 3D (7 Generations) | 337 | 323 | 96% |
+| Gloomhaven - Fantasy Setup (Scripted UI) | 8051 | 8026 | 100% |
+| The Chimera Table | 40 | 39 | 98% |
 | Anna's Roundtable - The FE Board Game Fan Project | 0 | 0 | 100% |
-| Pokémon: Legends of Sinnoh | 6973 | 6935 | 99% |
-| Riftbound - Basic Table | 5648 | 5543 | 98% |
-| **All** | 21049 | 20849 | **99%** |
+| Pokémon: Legends of Sinnoh | 6973 | 6937 | 99% |
+| Riftbound - Basic Table | 5648 | 5548 | 98% |
+| **All** | 21049 | 20873 | **99%** |
 
 ## Most used missing
 
@@ -19,10 +19,8 @@ Source: `docs/data/mod-requirements-2026-10-23.json`. Calls weighted by how ofte
 | `setCustomObject` | 44 |
 | `heading` | 24 |
 | `editInput` | 22 |
-| `spawnObject` | 14 |
 | `getInputs` | 13 |
 | `onNumberTyped` | 10 |
-| `onChat` | 5 |
 | `layout` | 4 |
 | `MusicPlayer.getPlaylist` | 4 |
 | `spawnObjectData` | 4 |
@@ -30,11 +28,9 @@ Source: `docs/data/mod-requirements-2026-10-23.json`. Calls weighted by how ofte
 | `set` | 4 |
 | `getData` | 4 |
 | `scale` | 3 |
-| `onObjectLeaveContainer` | 3 |
 | `reset` | 3 |
 | `getHoldingObjects` | 2 |
 | `jointTo` | 2 |
-| `onObjectEnterContainer` | 2 |
 | `addAttachment` | 2 |
 | `removeAttachments` | 2 |
 | `setPage` | 2 |
@@ -56,3 +52,4 @@ Source: `docs/data/mod-requirements-2026-10-23.json`. Calls weighted by how ofte
 | `rotateOver` | 1 |
 | `Lighting.apply` | 1 |
 | `onInputSubmit` | 1 |
+| `onSpawnButtonClick` | 1 |

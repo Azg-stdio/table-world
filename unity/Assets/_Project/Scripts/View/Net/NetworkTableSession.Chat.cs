@@ -35,9 +35,19 @@ namespace TableWorld.View.Net
             var entry = Room.Say(IsHost ? SpeakerOf(SessionHost.HostId)
                 : new Speaker { Participant = "local", Seat = _table.LocalSeat, Name = LocalName.Length > 0 ? LocalName : _table.LocalSeat ?? "" },
                 text, Time.realtimeSinceStartupAsDouble, out var reply);
-            Publish(entry);
+            if (ScriptsLetThrough(entry))
+                Publish(entry);
             if (reply != null)
                 Chat.Add(new ChatEntry { Kind = ChatKind.Notice, Text = reply });
+        }
+
+        /// <summary>A player's line goes past the table's scripts first (TTS onChat); one returning false keeps it unsaid.</summary>
+        private bool ScriptsLetThrough(ChatEntry entry)
+        {
+            if (entry == null || entry.Kind != ChatKind.Say || Scripts == null || Scripts.ScriptCount == 0)
+                return true;
+            var color = entry.Seat == null ? null : _table.Engine?.State.Players.Seats.FirstOrDefault(s => s.Id == entry.Seat)?.Color;
+            return Scripts.OnChat(entry.Text, color);
         }
 
         /// <summary>A notice from the table to everyone (host or alone).</summary>
@@ -83,7 +93,8 @@ namespace TableWorld.View.Net
         {
             var participant = sender.ToString();
             var entry = Room.Say(SpeakerOf(participant), (string)message["text"] ?? "", Time.realtimeSinceStartupAsDouble, out var reply);
-            Publish(entry);
+            if (ScriptsLetThrough(entry))
+                Publish(entry);
             if (reply != null)
                 SendTo(sender, new JObject { ["kind"] = "chat_reply", ["text"] = reply });
         }

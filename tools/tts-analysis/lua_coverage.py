@@ -37,6 +37,7 @@ IMPLEMENTED = {
     "removeTag", "setTags", "getObjectsWithAllTags", "getObjectsWithAnyTags",
     "Physics.cast", "Physics.getGravity", "onCollisionEnter", "onCollisionExit", "onObjectCollisionEnter",
     "onObjectCollisionExit", "registerCollisions", "unregisterCollisions",
+    "spawnObject", "onObjectEnterContainer", "onObjectLeaveContainer", "onChat",
     # events
     "onLoad", "onObjectDrop", "onDrop", "onObjectEnterZone", "onObjectLeaveZone", "onObjectFlip", "onFlip",
     "onObjectRandomize", "onRandomize", "onPlayerTurn",

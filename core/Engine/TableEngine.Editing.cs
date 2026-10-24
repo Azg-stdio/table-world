@@ -40,6 +40,41 @@ namespace Core.Engine
             events.Add(new ObjectRemoved(obj.Id));
         }
 
+        private CommandResult Spawn(SpawnCommand c)
+        {
+            // Read and check the object inside a table made of this table's assets and it alone.
+            var assets = State.Assets.Concat(c.Assets.Where(a => State.Assets.All(x => x.Id != a.Id))).ToList();
+            Newtonsoft.Json.Linq.JObject obj;
+            try
+            {
+                obj = Newtonsoft.Json.Linq.JObject.Parse(c.ObjectJson);
+            }
+            catch (Newtonsoft.Json.JsonException e)
+            {
+                return CommandResult.Fail("objectJson", ErrorCodes.InvalidJson, e.Message);
+            }
+            obj.Remove("container");
+            obj["id"] = "spawned";
+            var document = Newtonsoft.Json.Linq.JObject.Parse(TableJson.Serialize(new TableState { Assets = assets }, indented: false));
+            document["objects"] = new Newtonsoft.Json.Linq.JArray(obj);
+            var parsed = TableJson.Parse(document.ToString());
+            if (!parsed.Ok)
+            {
+                var first = parsed.Errors.First();
+                return CommandResult.Fail(first.Path, first.Code, first.Message);
+            }
+            foreach (var asset in c.Assets.Where(a => State.Assets.All(x => x.Id != a.Id)))
+                State.Assets.Add(asset);
+            var spawned = parsed.State!.Objects.Single();
+            spawned.Id = Mint(spawned.Type.ToLowerInvariant());
+            foreach (var state in spawned.States.Values)
+                state.Id = Mint(state.Id);
+            AddObject(spawned);
+            var result = CommandResult.Success(new List<StateEvent> { new ObjectAdded(spawned.Id) });
+            result.CreatedId = spawned.Id;
+            return result;
+        }
+
         private CommandResult Clone(CloneCommand c)
         {
             if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: true) is { } fail)

@@ -57,6 +57,7 @@ namespace Core.Scripting
             });
             g["getObjects"] = Fn(args => List(script, Engine.State.Objects.Where(o => o.Container == null).Select(o => o.Id)));
             g["getAllObjects"] = g["getObjects"];
+            g["spawnObject"] = Fn(args => args.Count > 0 && args[0].Type == DataType.Table ? SpawnObject(script, args[0].Table) : DynValue.Nil);
             g["getObjectsWithAllTags"] = Fn(args =>
             {
                 var tags = args.Count > 0 ? Strings(args[0]) : new List<string>();
@@ -632,6 +633,73 @@ namespace Core.Scripting
         }
 
         private const float TtsUnitsToMeters = Core.Tts.TtsUnits.TtsUnitsToMeters;
+
+        /// <summary>
+        /// TTS <c>spawnObject({ type, position, rotation, scale, callback_function })</c> for the types that need no
+        /// custom files: dice, tokens, tiles, boards, bags, notecards, counters and the built-in blocks, checkers and
+        /// pawn. The callback gets the object on the next frame, as TTS calls it once the object has loaded.
+        /// </summary>
+        private DynValue SpawnObject(Script script, Table p)
+        {
+            var type = p.Get("type").CastToString() ?? "";
+            var json = new Newtonsoft.Json.Linq.JObject();
+            var assets = new List<Asset>();
+            void Builtin(string name)
+            {
+                json["type"] = "Model";
+                json["asset"] = "builtin_" + name;
+                assets.Add(new Asset { Id = "builtin_" + name, Type = AssetType.Model, Path = Asset.BuiltinPrefix + name });
+            }
+            if (type.StartsWith("Die_", StringComparison.Ordinal) && int.TryParse(new string(type.Substring(4).TakeWhile(char.IsDigit).ToArray()), out var faces)
+                && Die.SupportedFaces.Contains(faces))
+            {
+                json["type"] = "Die";
+                json["faces"] = faces;
+            }
+            else
+                switch (type)
+                {
+                    case "Custom_Token": case "Chip_10": case "Chip_50": case "Chip_100": case "Chip_500": case "Chip_1000":
+                        json["type"] = "Token";
+                        if (type.StartsWith("Chip", StringComparison.Ordinal))
+                            json["shape"] = "round";
+                        break;
+                    case "Custom_Tile": json["type"] = "Tile"; break;
+                    case "Custom_Board": json["type"] = "Board"; break;
+                    case "Bag": case "Custom_Model_Bag": json["type"] = "Bag"; break;
+                    case "Infinite_Bag": case "Custom_Model_Infinite_Bag": json["type"] = "InfiniteBag"; break;
+                    case "Notecard": json["type"] = "Notecard"; break;
+                    case "Counter": json["type"] = "Counter"; break;
+                    case "BlockSquare": Builtin("block_square"); break;
+                    case "BlockRectangle": Builtin("block_rectangle"); break;
+                    case "Checker_white": case "Checker_black": case "Checker_red": Builtin("checker"); break;
+                    case "PlayerPawn": Builtin("pawn"); break;
+                    default:
+                        Log?.Invoke($"[script] spawnObject: type '{type}' is not supported yet.");
+                        return DynValue.Nil;
+                }
+            var transform = new Newtonsoft.Json.Linq.JObject();
+            if (FromTts(p.Get("position"), true) is { } at)
+                transform["position"] = new Newtonsoft.Json.Linq.JArray(at.X, at.Y, at.Z);
+            if (FromTts(p.Get("rotation"), false) is { } rot)
+                transform["rotation"] = new Newtonsoft.Json.Linq.JArray(rot.X, rot.Y, rot.Z);
+            if (FromTts(p.Get("scale"), false) is { } scale)
+                transform["scale"] = new Newtonsoft.Json.Linq.JArray(scale.X, scale.Y, scale.Z);
+            if (transform.Count > 0)
+                json["transform"] = transform;
+            var result = _execute(new SpawnCommand { ObjectJson = json.ToString(Newtonsoft.Json.Formatting.None), Assets = assets });
+            Count(result);
+            if (!result.Ok)
+            {
+                Log?.Invoke($"[script] spawnObject refused: {result.Error?.Message}");
+                return DynValue.Nil;
+            }
+            var proxy = Proxy(script, result.CreatedId);
+            var callback = p.Get("callback_function");
+            if (callback.Type == DataType.Function || callback.Type == DataType.ClrFunction)
+                _timers.Add(new Timer { Id = _nextTimer++, Script = script, Function = callback, Arguments = new[] { proxy }, Due = _now });
+            return proxy;
+        }
 
         /// <summary>A Lua list of strings (or one string) as a list.</summary>
         private static List<string> Strings(DynValue value)

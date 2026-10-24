@@ -193,6 +193,7 @@ namespace Core.Engine
             PickUpCommand c => RequireOnTable(c.ObjectId, "objectId", out _, allowLocked: true) ?? CommandResult.Success(new List<StateEvent>()),
             SetButtonsCommand c => SetButtons(c),
             SetScriptUiCommand c => SetScriptUi(c),
+            SpawnCommand c => Spawn(c),
             SetUiAttributesCommand c => SetUiAttributes(c),
             UiEventCommand c => UiEvent(c),
             ClickButtonCommand c => ClickButton(c),

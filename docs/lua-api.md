@@ -31,6 +31,7 @@ logged on the host and never stop the game.
 | `Global.call(name, value)`, `Global.getVar(name)`, `Global.setVar(name, value)`, `Global.getTable`, `Global.setTable` | the global script's functions and variables; only plain values (numbers, strings, booleans, tables of them) cross between scripts |
 | `startLuaCoroutine(owner, name)` | runs the owner's function a frame at a time (`coroutine.yield(0)` waits a frame) |
 | `destroyObject(obj)` | `Delete` |
+| `spawnObject({ type, position, rotation, scale, callback_function })` | a new object (`Spawn`, checked like a loaded table): `Die_4`…`Die_20`, `Custom_Token`, chips, `Custom_Tile`, `Custom_Board`, bags, `Notecard`, `Counter`, `BlockSquare`, `BlockRectangle`, checkers, `PlayerPawn`; the callback gets it on the next frame. Types needing custom files (`setCustomObject`) are not supported yet |
 | `getSeatedPlayers()` | the seats' colours |
 | `Player[color]`, `Player.Red`, `Player.getPlayers()`, `Player.getAvailableColors()` | players: `color`, `steam_name`, `seated`, `getHandObjects()`, `broadcast(text)`, `print(text)`; camera calls (`lookAt`) are accepted without effect |
 | `getNotebookTabs()`, `addNotebookTab({title, body, color})`, `editNotebookTab({index, title, body, color})`, `removeNotebookTab(index)` | the notebook (G25); colour "Grey" is everyone's page |
@@ -134,6 +135,8 @@ Defined in the global script or any object script; colours are seat colours capi
 | `onObjectFlip(color, obj)`; own `onFlip(color)` | flipped |
 | `onObjectRandomize(obj, color)`; own `onRandomize(color)` | shuffled or rolled |
 | `onPlayerTurn(color)` | free-play turns moved to that seat |
+| `onObjectEnterContainer(container, obj)`, `onObjectLeaveContainer(container, obj)` | an object went into or came out of a bag or deck |
+| `onChat(message, player)` | a player wrote in chat; returning false keeps the line from being shown |
 | own `onCollisionEnter(info)` / `onCollisionExit(info)`; `onObjectCollisionEnter(obj, info)` / `onObjectCollisionExit` for objects that called `registerCollisions()` | physics contacts on the host; `info` is `{ collision_object, contact_points, relative_velocity }` (`collision_object` nil for the table) |
 
 ## Not yet (T6.3)
