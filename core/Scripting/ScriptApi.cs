@@ -483,6 +483,47 @@ namespace Core.Scripting
                 var s = o.Transform.Scale;
                 return DynValue.NewTable(Vector(script, new Vec3(local.X / TtsUnitsToMeters / s.X, local.Y / TtsUnitsToMeters / s.Y, local.Z / TtsUnitsToMeters / s.Z)));
             });
+            // Buttons (TTS createButton): parameters in TTS units, kept as table state in metres.
+            t["createButton"] = Fn((o, a) =>
+            {
+                if (At(a, 0).Type != DataType.Table)
+                    return DynValue.False;
+                var buttons = o.Buttons.ToList();
+                buttons.Add(ReadButton(script, At(a, 0).Table, new ButtonDef()));
+                return Do(new SetButtonsCommand { ObjectId = id, Buttons = buttons });
+            });
+            t["editButton"] = Fn((o, a) =>
+            {
+                if (At(a, 0).Type != DataType.Table)
+                    return DynValue.False;
+                var p = At(a, 0).Table;
+                var index = p.Get("index").Type == DataType.Number ? (int)p.Get("index").Number : 0;
+                if (index < 0 || index >= o.Buttons.Count)
+                    return DynValue.False;
+                var buttons = o.Buttons.ToList();
+                buttons[index] = ReadButton(script, p, Copy(buttons[index]));
+                return Do(new SetButtonsCommand { ObjectId = id, Buttons = buttons });
+            });
+            t["removeButton"] = Fn((o, a) =>
+            {
+                var index = At(a, 0).Type == DataType.Number ? (int)At(a, 0).Number : -1;
+                if (index < 0 || index >= o.Buttons.Count)
+                    return DynValue.False;
+                var buttons = o.Buttons.ToList();
+                buttons.RemoveAt(index);
+                return Do(new SetButtonsCommand { ObjectId = id, Buttons = buttons });
+            });
+            t["clearButtons"] = Fn((o, a) => o.Buttons.Count == 0 ? DynValue.True : Do(new SetButtonsCommand { ObjectId = id }));
+            t["getButtons"] = Fn((o, a) =>
+            {
+                if (o.Buttons.Count == 0)
+                    return DynValue.Nil;
+                var list = new Table(script);
+                for (var i = 0; i < o.Buttons.Count; i++)
+                    list[i + 1] = DynValue.NewTable(WriteButton(script, o.Buttons[i], i));
+                return DynValue.NewTable(list);
+            });
+
             // Effects of TTS asset bundles (M4) and physics velocity are not simulated here: the calls are accepted and do nothing.
             foreach (var noOp in new[] { "playLoopingEffect", "playTriggerEffect", "setVelocity", "addForce", "addTorque", "highlightOn", "highlightOff" })
                 t[noOp] = DynValue.NewCallback((_, a) => DynValue.Nil);
@@ -494,6 +535,90 @@ namespace Core.Scripting
         }
 
         private const float TtsUnitsToMeters = Core.Tts.TtsUnits.TtsUnitsToMeters;
+
+        /// <summary>
+        /// TTS button sizes (width, height, font_size) count about 500 per local unit: a button 1000 wide spans a
+        /// 2-unit tile. To check against TTS (docs/lua-api.md).
+        /// </summary>
+        public const float ButtonUnitsPerTtsUnit = 500f;
+
+        private static ButtonDef Copy(ButtonDef b) => new ButtonDef
+        {
+            Label = b.Label, Click = b.Click, Owner = b.Owner, Position = b.Position, Rotation = b.Rotation, Width = b.Width,
+            Height = b.Height, FontSize = b.FontSize, Color = b.Color, FontColor = b.FontColor, Tooltip = b.Tooltip,
+        };
+
+        /// <summary>Reads TTS button parameters over <paramref name="b"/> (fields left out keep their value).</summary>
+        private ButtonDef ReadButton(Script script, Table p, ButtonDef b)
+        {
+            if (p.Get("label").Type != DataType.Nil)
+                b.Label = p.Get("label").CastToString() ?? "";
+            if (p.Get("click_function").Type == DataType.String)
+                b.Click = p.Get("click_function").String;
+            var owner = p.Get("function_owner");
+            if (owner.Type == DataType.Table)
+                b.Owner = owner.Table.Get("guid").Type == DataType.String ? owner.Table.Get("guid").String : null;
+            if (FromTts(p.Get("position"), false) is { } at)
+                b.Position = new Vec3(at.X * TtsUnitsToMeters, at.Y * TtsUnitsToMeters, at.Z * TtsUnitsToMeters);
+            if (FromTts(p.Get("rotation"), false) is { } rot)
+                b.Rotation = rot;
+            float? Size(string key) => p.Get(key).Type == DataType.Number
+                ? Math.Max(0f, Math.Min(2f, (float)p.Get(key).Number / ButtonUnitsPerTtsUnit * TtsUnitsToMeters))
+                : (float?)null;
+            b.Width = Size("width") ?? b.Width;
+            b.Height = Size("height") ?? b.Height;
+            b.FontSize = Size("font_size") is { } font ? Math.Min(1f, font) : b.FontSize;
+            b.Color = ReadColor(p.Get("color")) ?? b.Color;
+            b.FontColor = ReadColor(p.Get("font_color")) ?? b.FontColor;
+            if (p.Get("tooltip").Type != DataType.Nil)
+                b.Tooltip = p.Get("tooltip").CastToString();
+            return b;
+        }
+
+        private Table WriteButton(Script script, ButtonDef b, int index)
+        {
+            var t = new Table(script);
+            t["index"] = index;
+            t["label"] = b.Label;
+            t["click_function"] = b.Click;
+            t["function_owner"] = b.Owner == null ? script.Globals.Get("Global") : Proxy(script, b.Owner);
+            t["position"] = Vector(script, new Vec3(b.Position.X / TtsUnitsToMeters, b.Position.Y / TtsUnitsToMeters, b.Position.Z / TtsUnitsToMeters));
+            t["rotation"] = Vector(script, b.Rotation);
+            t["width"] = Math.Round(b.Width / TtsUnitsToMeters * ButtonUnitsPerTtsUnit);
+            t["height"] = Math.Round(b.Height / TtsUnitsToMeters * ButtonUnitsPerTtsUnit);
+            t["font_size"] = Math.Round(b.FontSize / TtsUnitsToMeters * ButtonUnitsPerTtsUnit);
+            t["tooltip"] = b.Tooltip ?? "";
+            return t;
+        }
+
+        /// <summary>TTS's player colours by name (Color.Red and friends).</summary>
+        private static readonly Dictionary<string, float[]> NamedColors = new Dictionary<string, float[]>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["White"] = new[] { 1f, 1f, 1f }, ["Brown"] = new[] { 0.443f, 0.231f, 0.09f }, ["Red"] = new[] { 0.856f, 0.1f, 0.094f },
+            ["Orange"] = new[] { 0.956f, 0.392f, 0.113f }, ["Yellow"] = new[] { 0.905f, 0.898f, 0.172f }, ["Green"] = new[] { 0.192f, 0.701f, 0.168f },
+            ["Teal"] = new[] { 0.129f, 0.694f, 0.607f }, ["Blue"] = new[] { 0.118f, 0.53f, 1f }, ["Purple"] = new[] { 0.627f, 0.125f, 0.941f },
+            ["Pink"] = new[] { 0.96f, 0.439f, 0.807f }, ["Grey"] = new[] { 0.5f, 0.5f, 0.5f }, ["Black"] = new[] { 0.25f, 0.25f, 0.25f },
+        };
+
+        /// <summary>A TTS colour: { r, g, b[, a] } or { 1, 1, 1 }, or a colour name; null when it is neither.</summary>
+        private static float[]? ReadColor(DynValue value)
+        {
+            if (value.Type == DataType.String)
+                return NamedColors.TryGetValue(value.String, out var named) ? named : null;
+            if (value.Type != DataType.Table)
+                return null;
+            var c = value.Table;
+            float? Part(string key, int index)
+            {
+                var v = c.Get(key);
+                if (v.Type != DataType.Number)
+                    v = c.Get(index);
+                return v.Type == DataType.Number ? Math.Max(0f, Math.Min(1f, (float)v.Number)) : (float?)null;
+            }
+            if (!(Part("r", 1) is { } r && Part("g", 2) is { } g && Part("b", 3) is { } b))
+                return null;
+            return Part("a", 4) is { } alpha ? new[] { r, g, b, alpha } : new[] { r, g, b };
+        }
 
         /// <summary>TTS getBounds: { center, size, offset } in TTS units, from the object's footprint.</summary>
         private static Table Bounds(Script script, TableObject o)

@@ -67,6 +67,9 @@ namespace Core.Scripting
             _coroutines.Clear();
             _global = null;
             var state = Engine.State;
+            // Buttons are made by the scripts' onLoad (as in TTS); the ones a save kept would double up.
+            foreach (var withButtons in state.Objects.Where(o => o.Buttons.Count > 0).ToList())
+                Issue(new SetButtonsCommand { ObjectId = withButtons.Id });
             if (state.Scripts.TryGetValue(GlobalName, out var source) && !string.IsNullOrWhiteSpace(source))
                 _global = Compile(source, null, "Global");
             foreach (var obj in state.Objects.Where(o => !string.IsNullOrWhiteSpace(o.Script)))
@@ -99,6 +102,8 @@ namespace Core.Scripting
         /// <summary>Recompiles one object's script after <c>setLuaScript</c> (or a player edit) and runs its onLoad.</summary>
         private void ReloadObject(string id)
         {
+            if (Engine.Find(id) is { Buttons: { Count: > 0 } })
+                Issue(new SetButtonsCommand { ObjectId = id });
             _objectScripts.Remove(id);
             foreach (var key in _proxies.Keys.Where(k => k.Item2 == id).ToList())
                 _proxies.Remove(key);
@@ -224,6 +229,9 @@ namespace Core.Scripting
                 case FlipCommand flip:
                     ForObject("onObjectFlip", "onFlip", flip.ObjectId, who);
                     break;
+                case ClickButtonCommand click:
+                    Click(click, who);
+                    break;
                 case EndTurnCommand _:
                 case SetTurnOrderCommand { Enabled: true }:
                     if (Engine.State.FreeTurns?.Current is { } seat && Engine.State.Players.Seats.FirstOrDefault(s => s.Id == seat) is { } current)
@@ -254,6 +262,20 @@ namespace Core.Scripting
                         break;
                 }
             }
+        }
+
+        /// <summary>A button click: its function, in the owner's script, gets (object, colour, right click) like in TTS.</summary>
+        private void Click(ClickButtonCommand click, DynValue who)
+        {
+            if (!(Engine.Find(click.ObjectId) is { } obj) || click.Index >= obj.Buttons.Count)
+                return;
+            var button = obj.Buttons[click.Index];
+            if (string.IsNullOrEmpty(button.Click))
+                return;
+            var script = button.Owner == null ? _global : _objectScripts.TryGetValue(button.Owner, out var own) ? own : null;
+            if (script == null)
+                return;
+            CallIfDefined(script, button.Click, Proxy(script, obj.Id), who, DynValue.NewBoolean(click.Alt));
         }
 
         /// <summary>Global event with the object, and the object's own event on its script (TTS onObjectDrop / onDrop).</summary>

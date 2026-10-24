@@ -90,6 +90,7 @@ Everything below already passes automated tests on one machine (two processes, s
 - [ ] Drawing (left tool bar): friends see your lines and arrows appear in your colour; Erase and "Clear my drawings" work; drawing feels smooth with a real mouse.
 - [ ] Saves (host: Escape → Save & load): a named save of a game with your own images loads back with its pictures after restarting; an autosave appears after 10 minutes of play.
 - [ ] Blindfold (B) and peek (Alt + Shift over a face-down card): friends read the notices; nobody finds them annoying or missing.
+- [ ] Script buttons (a table whose script calls `createButton`): every player sees the buttons on the object, they darken under the pointer, a click (and a right click) does what the script says for whoever clicked, and nothing gets picked up by accident.
 - [ ] Chat: Enter, type, Enter: everyone sees it with your seat colour; `/roll 2d6` shows the same dice for everyone; the Log tab reads the same on every screen and never names a card someone could not see; typing never flips or moves anything.
 
 **After the session**

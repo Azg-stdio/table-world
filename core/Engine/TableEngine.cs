@@ -191,6 +191,8 @@ namespace Core.Engine
             BlindfoldCommand _ => CommandResult.Success(new List<StateEvent>()),
             DropCommand c => RequireOnTable(c.ObjectId, "objectId", out _, allowLocked: true) ?? CommandResult.Success(new List<StateEvent>()),
             PickUpCommand c => RequireOnTable(c.ObjectId, "objectId", out _, allowLocked: true) ?? CommandResult.Success(new List<StateEvent>()),
+            SetButtonsCommand c => SetButtons(c),
+            ClickButtonCommand c => ClickButton(c),
             DealCommand c => Deal(c),
             LockCommand c => Lock(c),
             GroupCommand c => Group(c),
@@ -495,6 +497,30 @@ namespace Core.Engine
                 return CommandResult.Fail(bad.Path, bad.Code, bad.Message);
             State.Grid = c.Grid;
             return CommandResult.Success(new List<StateEvent> { new TableSettingsChanged() });
+        }
+
+        // ---- script buttons (M5) ------------------------------------------------------------------------------------
+
+        private CommandResult SetButtons(SetButtonsCommand c)
+        {
+            if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: true) is { } fail)
+                return fail;
+            if (c.Buttons.Count > ButtonDef.MaxButtons)
+                return CommandResult.Fail("buttons", ErrorCodes.LimitReached, $"An object holds at most {ButtonDef.MaxButtons} buttons.");
+            for (var i = 0; i < c.Buttons.Count; i++)
+                if (TableValidator.CheckButton(c.Buttons[i], $"buttons[{i}]").FirstOrDefault() is { } bad)
+                    return CommandResult.Fail(bad.Path, bad.Code, bad.Message);
+            obj.Buttons = c.Buttons;
+            return CommandResult.Success(new List<StateEvent> { new ButtonsChanged(obj.Id) });
+        }
+
+        private CommandResult ClickButton(ClickButtonCommand c)
+        {
+            if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: true) is { } fail)
+                return fail;
+            return c.Index < 0 || c.Index >= obj.Buttons.Count
+                ? CommandResult.Fail("index", ErrorCodes.InvalidValue, $"'{obj.Id}' has no button {c.Index}.")
+                : CommandResult.Success(new List<StateEvent>());
         }
 
         // ---- notebook (G25) -----------------------------------------------------------------------------------------

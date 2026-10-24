@@ -985,6 +985,10 @@ namespace TableWorld.View
                     case DrawingsChanged _:
                         RefreshDrawings();
                         break;
+                    case ButtonsChanged buttons:
+                        if (ViewOf(buttons.ObjectId) is { } withButtons)
+                            ScriptButtonsView.Refresh(withButtons);
+                        break;
                     case TableSettingsChanged _:
                         foreach (var each in _views.Values)
                             if (each != null)

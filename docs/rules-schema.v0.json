@@ -258,6 +258,12 @@
         "scriptState": {
           "type": "string"
         },
+        "buttons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ButtonDef"
+          }
+        },
         "ttsExtra": {
           "type": "object"
         },
@@ -316,6 +322,61 @@
           },
           "minItems": 3,
           "maxItems": 3
+        }
+      },
+      "additionalProperties": false
+    },
+    "ButtonDef": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "click": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "position": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "rotation": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "fontSize": {
+          "type": "number"
+        },
+        "color": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "fontColor": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "tooltip": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -385,6 +446,12 @@
         },
         "scriptState": {
           "type": "string"
+        },
+        "buttons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ButtonDef"
+          }
         },
         "ttsExtra": {
           "type": "object"
@@ -529,6 +596,12 @@
         "scriptState": {
           "type": "string"
         },
+        "buttons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ButtonDef"
+          }
+        },
         "ttsExtra": {
           "type": "object"
         },
@@ -622,6 +695,12 @@
         },
         "scriptState": {
           "type": "string"
+        },
+        "buttons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ButtonDef"
+          }
         },
         "ttsExtra": {
           "type": "object"
@@ -718,6 +797,12 @@
         "scriptState": {
           "type": "string"
         },
+        "buttons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ButtonDef"
+          }
+        },
         "ttsExtra": {
           "type": "object"
         },
@@ -807,6 +892,12 @@
         },
         "scriptState": {
           "type": "string"
+        },
+        "buttons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ButtonDef"
+          }
         },
         "ttsExtra": {
           "type": "object"
@@ -915,6 +1006,12 @@
         "scriptState": {
           "type": "string"
         },
+        "buttons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ButtonDef"
+          }
+        },
         "ttsExtra": {
           "type": "object"
         },
@@ -993,6 +1090,12 @@
         "scriptState": {
           "type": "string"
         },
+        "buttons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ButtonDef"
+          }
+        },
         "ttsExtra": {
           "type": "object"
         },
@@ -1070,6 +1173,12 @@
         },
         "scriptState": {
           "type": "string"
+        },
+        "buttons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ButtonDef"
+          }
         },
         "ttsExtra": {
           "type": "object"
@@ -1157,6 +1266,12 @@
         "scriptState": {
           "type": "string"
         },
+        "buttons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ButtonDef"
+          }
+        },
         "ttsExtra": {
           "type": "object"
         },
@@ -1238,6 +1353,12 @@
         "scriptState": {
           "type": "string"
         },
+        "buttons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ButtonDef"
+          }
+        },
         "ttsExtra": {
           "type": "object"
         },
@@ -1315,6 +1436,12 @@
         },
         "scriptState": {
           "type": "string"
+        },
+        "buttons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ButtonDef"
+          }
         },
         "ttsExtra": {
           "type": "object"
@@ -1406,6 +1533,12 @@
         },
         "scriptState": {
           "type": "string"
+        },
+        "buttons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ButtonDef"
+          }
         },
         "ttsExtra": {
           "type": "object"

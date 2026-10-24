@@ -205,6 +205,7 @@ namespace TableWorld.View
                 }
             }
             view.Body.isKinematic = view.Pinned || !view.Renderer.enabled || view.Held || view.Animating;
+            ScriptButtonsView.Refresh(view);
         }
 
         private static void RefreshCard(ObjectView view, AssetLibrary assets, Card card)

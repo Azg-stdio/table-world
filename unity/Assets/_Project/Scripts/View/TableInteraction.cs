@@ -82,6 +82,9 @@ namespace TableWorld.View
         /// <summary>Sets the pointer from code (automated sessions without a mouse, with <see cref="IgnoreDevices"/>).</summary>
         public void OverridePointer(Vector3? point) => PointerOnTable = point;
         public ObjectView Hovered { get; private set; }
+        /// <summary>The script button under the pointer (M5), or null.</summary>
+        public ScriptButtonView HoveredButton { get; private set; }
+        private bool _rightOnButton;
         public IReadOnlyList<ObjectView> Selection => _selection;
 
         /// <summary>Last object clicked (the HUD shows its actions). Cleared by clicking empty table.</summary>
@@ -305,7 +308,17 @@ namespace TableWorld.View
             _lastPointer = pointer;
             var overUi = Held == null && PointerBlocked != null && PointerBlocked(pointer);
             var ray = _camera.ScreenPointToRay(pointer);
-            Hovered = overUi ? null : RaycastObject(ray, Held, out _);
+            var hoverHit = default(RaycastHit);
+            Hovered = overUi ? null : RaycastObject(ray, Held, out hoverHit);
+            var button = Hovered != null && Held == null && hoverHit.collider != null ? hoverHit.collider.GetComponent<ScriptButtonView>() : null;
+            if (button != HoveredButton)
+            {
+                if (HoveredButton != null)
+                    HoveredButton.SetHovered(false);
+                if (button != null)
+                    button.SetHovered(true);
+                HoveredButton = button;
+            }
             var surface = RaycastSurface(ray, Held, out var point);
             PointerOnTable = surface && !overUi ? point : (Vector3?)null;
             var typing = KeyboardBlocked != null && KeyboardBlocked();
@@ -335,6 +348,9 @@ namespace TableWorld.View
                 ClearSelection();
                 Grab(fromBar, moveContainer: false);
             }
+            // Left button on a script button: click it (M5).
+            else if (mouse.leftButton.wasPressedThisFrame && Held == null && !overUi && _tool == Tool.Grab && !tab && HoveredButton != null)
+                ClickButton(HoveredButton, alt: false);
             // Left button: grab, box select, or (with Tab) ping and measure.
             else if (mouse.leftButton.wasPressedThisFrame && Held == null && !overUi && (_tool == Tool.Grab || tab))
             {
@@ -414,7 +430,11 @@ namespace TableWorld.View
             {
                 _rightDown = pointer;
                 _rightTime = Time.unscaledTime;
-                if (Held != null)
+                // A right click on a script button is its alt click (TTS), not the context menu.
+                _rightOnButton = Held == null && !overUi && HoveredButton != null;
+                if (_rightOnButton)
+                    ClickButton(HoveredButton, alt: true);
+                else if (Held != null)
                 {
                     if (alt)
                         DropLast();
@@ -427,8 +447,9 @@ namespace TableWorld.View
             if (mouse.rightButton.wasReleasedThisFrame)
             {
                 _tapDown = false;
-                if (Held == null && !overUi && IsClick(pointer, _rightDown, _rightTime))
+                if (Held == null && !overUi && !_rightOnButton && IsClick(pointer, _rightDown, _rightTime))
                     ContextMenuRequested?.Invoke(Hovered, pointer);
+                _rightOnButton = false;
             }
 
             // Middle button: a click flips the object under the pointer (Alt: other axis) or zooms onto the table; a drag pans.
@@ -1565,6 +1586,14 @@ namespace TableWorld.View
             var local = snap.Transform.Position.ToUnity();
             var parent = _table.ViewOf(snap.Parent);
             return parent != null ? parent.transform.TransformPoint(local) : local;
+        }
+
+        /// <summary>Clicks a script button (M5): the host's scripts run its function with this seat's colour.</summary>
+        public void ClickButton(ScriptButtonView button, bool alt)
+        {
+            if (button == null || button.Owner == null)
+                return;
+            _table.Execute(new ClickButtonCommand { ObjectId = button.Owner.Id, Index = button.Index, Alt = alt, Actor = _table.LocalSeat });
         }
 
         private ObjectView RaycastObject(Ray ray, ObjectView ignore, out RaycastHit hit)

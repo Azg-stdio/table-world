@@ -4,13 +4,13 @@ Source: `docs/data/mod-requirements-2026-10-23.json`. Calls weighted by how ofte
 
 | Mod | Calls | Covered | Share |
 |---|---|---|---|
-| Pokemon Master Trainer 3D (7 Generations) | 337 | 232 | 69% |
-| Gloomhaven - Fantasy Setup (Scripted UI) | 8051 | 4794 | 60% |
+| Pokemon Master Trainer 3D (7 Generations) | 337 | 296 | 88% |
+| Gloomhaven - Fantasy Setup (Scripted UI) | 8051 | 5085 | 63% |
 | The Chimera Table | 40 | 20 | 50% |
 | Anna's Roundtable - The FE Board Game Fan Project | 0 | 0 | 100% |
-| Pokémon: Legends of Sinnoh | 6973 | 6574 | 94% |
-| Riftbound - Basic Table | 5648 | 4372 | 77% |
-| **All** | 21049 | 15992 | **76%** |
+| Pokémon: Legends of Sinnoh | 6973 | 6884 | 99% |
+| Riftbound - Basic Table | 5648 | 4641 | 82% |
+| **All** | 21049 | 16926 | **80%** |
 
 ## Most used missing
 
@@ -18,12 +18,9 @@ Source: `docs/data/mod-requirements-2026-10-23.json`. Calls weighted by how ofte
 |---|---|
 | `UI.setAttribute` | 2181 |
 | `UI.getAttribute` | 590 |
-| `createButton` | 533 |
 | `UI.setValue` | 432 |
-| `editButton` | 296 |
 | `UI.setAttributes` | 260 |
 | `onClick` | 101 |
-| `clearButtons` | 99 |
 | `onCollisionEnter` | 99 |
 | `Physics.cast` | 62 |
 | `setCustomObject` | 44 |
@@ -44,7 +41,6 @@ Source: `docs/data/mod-requirements-2026-10-23.json`. Calls weighted by how ofte
 | `getStateId` | 6 |
 | `Timer.destroy` | 6 |
 | `addTag` | 6 |
-| `removeButton` | 5 |
 | `onChat` | 5 |
 | `getHandObjects` | 4 |
 | `UI.show` | 4 |
@@ -56,3 +52,7 @@ Source: `docs/data/mod-requirements-2026-10-23.json`. Calls weighted by how ofte
 | `MusicPlayer.getPlaylist` | 4 |
 | `spawnObjectData` | 4 |
 | `getComponent` | 4 |
+| `set` | 4 |
+| `getData` | 4 |
+| `scale` | 3 |
+| `onObjectLeaveContainer` | 3 |

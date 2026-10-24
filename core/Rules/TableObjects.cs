@@ -81,6 +81,10 @@ namespace Core.Rules
         /// <summary>What the object's script saved with <c>onSave</c> (TTS <c>script_state</c>); given back to its <c>onLoad</c>.</summary>
         public string? ScriptState { get; set; }
 
+        /// <summary>Buttons scripts put on this object (M5, TTS <c>createButton</c>).</summary>
+        public List<ButtonDef> Buttons { get; set; } = new List<ButtonDef>();
+        public bool ShouldSerializeButtons() => Buttons.Count > 0;
+
         /// <summary>TTS fields we carry but do not interpret yet (interaction flags, AltLookAngle, ...). Free-form.</summary>
         public JObject? TtsExtra { get; set; }
 

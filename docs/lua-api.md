@@ -68,6 +68,19 @@ logged on the host and never stop the game.
 | `isSmoothMoving()`, `reload()` | false; itself |
 | `playLoopingEffect`, `playTriggerEffect`, `setVelocity`, `getVelocity`, `addForce`, `addTorque`, `highlightOn`, `highlightOff` | accepted, no effect yet (asset-bundle effects come with M4; physics is not script-driven) |
 
+### Buttons
+
+`createButton(params)`, `editButton(params)` (with `index`, 0-based; fields left out keep their value),
+`removeButton(index)`, `clearButtons()`, `getButtons()` (nil when there are none). Parameters as in TTS: `label`,
+`click_function`, `function_owner` (an object, or Global by default), `position` and `rotation` in the object's local
+TTS units, `width`, `height`, `font_size` (about 500 per local unit: TTS's default 100 is 6 mm), `color`, `font_color`
+(`{ r, g, b[, a] }`, `{ 1, 1, 1 }` or a player colour name), `tooltip`. A click calls
+`click_function(obj, player_color, alt_click)` in the owner's script; a right click is the alt click. A button 0 wide or
+high is a label only. Buttons are table state (every player sees and clicks them; only the host's scripts make them),
+and scripts make them again in `onLoad`, so a loaded table drops the saved ones first.
+
+*To check against TTS:* the 500-per-unit size and whether TTS mirrors a button's local x.
+
 Zones (`getObjectFromGUID` of a zone): `getGUID()`, `getName()`, `getObjects()`, `getPosition()`, `hasTag(tag)`.
 
 ## Events
@@ -87,6 +100,6 @@ Defined in the global script or any object script; colours are seat colours capi
 
 ## Not yet (T6.3)
 
-`UI.*` and XmlUI, `createButton` / `editButton` / inputs, `Player[color]`, `Turns`, `spawnObject`, physics casts,
+`UI.*` and XmlUI, `createInput`, `Player[color]`, `Turns`, `spawnObject`, physics casts,
 `setInvisibleTo`, joints, music, collision events. The coverage of the local mods is measured by
 `tools/tts-analysis/lua_coverage.py` (T6.4).

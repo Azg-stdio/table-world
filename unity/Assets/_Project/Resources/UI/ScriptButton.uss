@@ -1,0 +1,30 @@
+/* A script button (M5, TTS createButton): world-space panel built in ScriptButtonsView. Colours come from the script. */
+.script-button {
+    flex-grow: 1;
+    justify-content: center;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.script-button--bare {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.script-button-label {
+    -unity-text-align: middle-center;
+    white-space: normal;
+    padding: 0;
+    margin: 0;
+}
+
+.script-button-shade {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.script-button-shade--hover {
+    background-color: rgba(0, 0, 0, 0.18);
+}

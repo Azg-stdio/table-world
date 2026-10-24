@@ -29,6 +29,7 @@ IMPLEMENTED = {
     "isSmoothMoving", "reload", "setState", "getStates", "getCustomObject", "log", "JSON.encode_pretty", "Global.getTable",
     "Global.setTable", "getNotebookTabs", "addNotebookTab", "editNotebookTab", "removeNotebookTab",
     "onObjectEnterScriptingZone", "onObjectLeaveScriptingZone",
+    "createButton", "editButton", "removeButton", "clearButtons", "getButtons",
     # events
     "onLoad", "onObjectDrop", "onDrop", "onObjectEnterZone", "onObjectLeaveZone", "onObjectFlip", "onFlip",
     "onObjectRandomize", "onRandomize", "onPlayerTurn",

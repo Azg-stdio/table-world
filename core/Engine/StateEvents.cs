@@ -95,6 +95,14 @@ namespace Core.Engine
         }
     }
 
+    /// <summary>An object's script buttons changed (M5); the view redraws them.</summary>
+    public sealed class ButtonsChanged : StateEvent
+    {
+        public ButtonsChanged(string objectId) : base(objectId)
+        {
+        }
+    }
+
     /// <summary>A notebook page was written, added or deleted (G25).</summary>
     public sealed class NotebookChanged : StateEvent
     {

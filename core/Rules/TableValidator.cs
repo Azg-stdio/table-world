@@ -19,6 +19,29 @@ namespace Core.Rules
             return v.Errors;
         }
 
+        /// <summary>Problems with a script button (M5): sizes in range, colours of 0–1 numbers, a short label.</summary>
+        public static List<ValidationError> CheckButton(ButtonDef b, string path)
+        {
+            var errors = new List<ValidationError>();
+            void Range(float v, float min, float max, string field)
+            {
+                if (!(v >= min && v <= max))
+                    errors.Add(new ValidationError($"{path}.{field}", ErrorCodes.InvalidValue, $"{field} is {v}; use {min} to {max}."));
+            }
+            Range(b.Width, 0f, 2f, "width");
+            Range(b.Height, 0f, 2f, "height");
+            Range(b.FontSize, 0f, 1f, "fontSize");
+            if ((b.Label ?? "").Length > 500)
+                errors.Add(new ValidationError($"{path}.label", ErrorCodes.InvalidValue, "A button label has at most 500 characters."));
+            foreach (var (c, field) in new[] { (b.Color, "color"), (b.FontColor, "fontColor") })
+                if (c != null && (c.Length < 3 || c.Length > 4 || c.Any(v => !(v >= 0f && v <= 1f))))
+                    errors.Add(new ValidationError($"{path}.{field}", ErrorCodes.InvalidValue, $"{field} is three or four numbers from 0 to 1."));
+            foreach (var p in new[] { b.Position, b.Rotation })
+                if (!(System.Math.Abs(p.X) <= 1000f && System.Math.Abs(p.Y) <= 1000f && System.Math.Abs(p.Z) <= 1000f))
+                    errors.Add(new ValidationError(path, ErrorCodes.InvalidValue, "A button's position or rotation is out of range."));
+            return errors;
+        }
+
         /// <summary>Problems with a notebook page (G25): an id-safe length for title and text.</summary>
         public static List<ValidationError> CheckNoteTab(NoteTab tab, string path)
         {

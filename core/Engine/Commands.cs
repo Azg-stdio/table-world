@@ -86,6 +86,24 @@ namespace Core.Engine
         public string ObjectId { get; set; } = "";
     }
 
+    /// <summary>Replaces an object's script buttons (M5). Host only: the host's scripts are the only ones that make buttons.</summary>
+    public sealed class SetButtonsCommand : Command, IHostCommand
+    {
+        public string ObjectId { get; set; } = "";
+        public List<ButtonDef> Buttons { get; set; } = new List<ButtonDef>();
+    }
+
+    /// <summary>
+    /// A player clicked a script button (M5): nothing changes; the host's scripts run the button's function with the
+    /// player's colour. <see cref="Alt"/> is a right click.
+    /// </summary>
+    public sealed class ClickButtonCommand : Command
+    {
+        public string ObjectId { get; set; } = "";
+        public int Index { get; set; }
+        public bool Alt { get; set; }
+    }
+
     /// <summary>A player picked an object up (TTS's pick up): nothing changes; table scripts hear <c>onObjectPickUp</c> (M5).</summary>
     public sealed class PickUpCommand : Command
     {
