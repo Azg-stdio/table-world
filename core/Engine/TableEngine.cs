@@ -173,7 +173,8 @@ namespace Core.Engine
                 return NoZones;
             var zones = new List<string>();
             foreach (var zone in State.Zones)
-                if (Geometry.Contains(zone, obj.Transform.Position))
+                // An object that never joins hands (G39) is not in a hand zone even when it lies inside one.
+                if (Geometry.Contains(zone, obj.Transform.Position) && (obj.Hands || !(zone is HandZone)))
                     zones.Add(zone.Id);
             return zones;
         }

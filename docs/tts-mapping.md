@@ -73,7 +73,11 @@ TTS `Name` → our `type`. Prefix `Custom_` means the mesh/image comes from a UR
 | `XmlUI` | per-object UI (T8.3) |
 | `AttachedSnapPoints[]` | `SnapPoint` zones parented to the object |
 | `Hands` (bool) | `hideInHand` semantics |
-| `Sticky`, `Tooltip`, `Grid`, `Snap`, `IgnoreFoW`, `MeasureMovement`, `DragSelectable`, `Autoraise`, `HideWhenFaceDown` | interaction flags, kept verbatim in `ttsFlags` until we need them |
+| `Hands` | `hands` (false: never joins a hand) |
+| `HideWhenFaceDown` | `hideWhenFaceDown` (omit when it matches the default: true for cards, false otherwise) |
+| `Grid` | `grid` (false: ignores grid snapping) |
+| `SidewaysCard` | the card's (or deck's) `size` with width and height swapped: a landscape card |
+| `Sticky`, `Tooltip`, `Snap`, `IgnoreFoW`, `MeasureMovement`, `DragSelectable`, `Autoraise` | interaction flags, kept verbatim in `ttsFlags` until we need them |
 | `AltLookAngle`, `Number` (except a token or tile stack's count), `Text`, `Bag.Order` | kept in `ttsExtra` |
 
 ## Sprite sheets

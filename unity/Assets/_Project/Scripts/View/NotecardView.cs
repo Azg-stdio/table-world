@@ -69,7 +69,7 @@ namespace TableWorld.View
             _panel = ScriptableObject.CreateInstance<PanelSettings>();
             _panel.name = "Notecards (world space)";
             _panel.renderMode = PanelRenderMode.WorldSpace;
-            foreach (var document in Object.FindObjectsByType<UIDocument>(FindObjectsSortMode.None))
+            foreach (var document in Object.FindObjectsByType<UIDocument>())
                 if (document.panelSettings != null && document.panelSettings.themeStyleSheet != null)
                 {
                     _panel.themeStyleSheet = document.panelSettings.themeStyleSheet;

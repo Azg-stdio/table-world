@@ -796,7 +796,7 @@ namespace TableWorld.View
                     if (insert.Ok)
                         return;
                 }
-                if (NearestSnapPoint(view.transform.position) is { } snap)
+                if (NearestSnapPoint(view.transform.position, view) is { } snap)
                 {
                     var p = SnapWorldPosition(snap);
                     // The body too: a released kinematic body otherwise keeps its own pose.
@@ -804,8 +804,10 @@ namespace TableWorld.View
                     view.Body.position = view.transform.position;
                     if (snap.RotationSnap)
                     {
+                        // A snap point attached to an object turns with it (G39).
                         var e = view.transform.eulerAngles;
-                        view.transform.rotation = Quaternion.Euler(e.x, snap.Transform.Rotation.Y, e.z);
+                        var parentYaw = _table.ViewOf(snap.Parent) is { } parent ? parent.transform.eulerAngles.y : 0f;
+                        view.transform.rotation = Quaternion.Euler(e.x, snap.Transform.Rotation.Y + parentYaw, e.z);
                         view.Body.rotation = view.transform.rotation;
                     }
                     velocity = Vector3.zero;
@@ -1451,12 +1453,15 @@ namespace TableWorld.View
             return RaycastObject(ray, view, out _);
         }
 
-        private SnapPoint NearestSnapPoint(Vector3 position)
+        private SnapPoint NearestSnapPoint(Vector3 position, ObjectView dropped = null)
         {
             SnapPoint best = null;
             var bestDistance = SnapRadius;
             foreach (var snap in _table.Engine.State.Zones.OfType<SnapPoint>())
             {
+                // An object never snaps to a point it carries itself.
+                if (dropped != null && snap.Parent == dropped.Id)
+                    continue;
                 var p = SnapWorldPosition(snap);
                 var distance = Vector2.Distance(new Vector2(position.x, position.z), new Vector2(p.x, p.z));
                 if (distance <= bestDistance)

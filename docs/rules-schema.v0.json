@@ -216,6 +216,12 @@
         "container": {
           "type": "string"
         },
+        "hands": {
+          "type": "boolean"
+        },
+        "hideWhenFaceDown": {
+          "type": "boolean"
+        },
         "grid": {
           "type": "boolean"
         },
@@ -328,6 +334,12 @@
         },
         "container": {
           "type": "string"
+        },
+        "hands": {
+          "type": "boolean"
+        },
+        "hideWhenFaceDown": {
+          "type": "boolean"
         },
         "grid": {
           "type": "boolean"
@@ -457,6 +469,12 @@
         "container": {
           "type": "string"
         },
+        "hands": {
+          "type": "boolean"
+        },
+        "hideWhenFaceDown": {
+          "type": "boolean"
+        },
         "grid": {
           "type": "boolean"
         },
@@ -535,6 +553,12 @@
         },
         "container": {
           "type": "string"
+        },
+        "hands": {
+          "type": "boolean"
+        },
+        "hideWhenFaceDown": {
+          "type": "boolean"
         },
         "grid": {
           "type": "boolean"
@@ -616,6 +640,12 @@
         "container": {
           "type": "string"
         },
+        "hands": {
+          "type": "boolean"
+        },
+        "hideWhenFaceDown": {
+          "type": "boolean"
+        },
         "grid": {
           "type": "boolean"
         },
@@ -690,6 +720,12 @@
         },
         "container": {
           "type": "string"
+        },
+        "hands": {
+          "type": "boolean"
+        },
+        "hideWhenFaceDown": {
+          "type": "boolean"
         },
         "grid": {
           "type": "boolean"
@@ -783,6 +819,12 @@
         "container": {
           "type": "string"
         },
+        "hands": {
+          "type": "boolean"
+        },
+        "hideWhenFaceDown": {
+          "type": "boolean"
+        },
         "grid": {
           "type": "boolean"
         },
@@ -846,6 +888,12 @@
         "container": {
           "type": "string"
         },
+        "hands": {
+          "type": "boolean"
+        },
+        "hideWhenFaceDown": {
+          "type": "boolean"
+        },
         "grid": {
           "type": "boolean"
         },
@@ -908,6 +956,12 @@
         },
         "container": {
           "type": "string"
+        },
+        "hands": {
+          "type": "boolean"
+        },
+        "hideWhenFaceDown": {
+          "type": "boolean"
         },
         "grid": {
           "type": "boolean"
@@ -980,6 +1034,12 @@
         "container": {
           "type": "string"
         },
+        "hands": {
+          "type": "boolean"
+        },
+        "hideWhenFaceDown": {
+          "type": "boolean"
+        },
         "grid": {
           "type": "boolean"
         },
@@ -1046,6 +1106,12 @@
         "container": {
           "type": "string"
         },
+        "hands": {
+          "type": "boolean"
+        },
+        "hideWhenFaceDown": {
+          "type": "boolean"
+        },
         "grid": {
           "type": "boolean"
         },
@@ -1108,6 +1174,12 @@
         },
         "container": {
           "type": "string"
+        },
+        "hands": {
+          "type": "boolean"
+        },
+        "hideWhenFaceDown": {
+          "type": "boolean"
         },
         "grid": {
           "type": "boolean"
@@ -1184,6 +1256,12 @@
         },
         "container": {
           "type": "string"
+        },
+        "hands": {
+          "type": "boolean"
+        },
+        "hideWhenFaceDown": {
+          "type": "boolean"
         },
         "grid": {
           "type": "boolean"

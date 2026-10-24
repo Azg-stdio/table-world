@@ -167,7 +167,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G36 | Sinnoh | PDF rulebooks on the table (`Custom_PDF`, page turning) | none |
 | G37 | Master Trainer | Counter object (10), Notecard (1) | none (G27) |
 | G38 | both | Primitive blocks (`BlockRectangle`, `BlockSquare`), custom models from OBJ (`Custom_Model` 1 937) | OBJ not loaded (M4 has glTF) |
-| G39 | both | Snap points attached to objects (689 in Sinnoh), sideways cards (70), per-object `Hands=false` (3 655), `HideWhenFaceDown` (891), `Grid=false`, `GridProjection` | partial (model fields exist; behaviour per object not wired) |
+| G39 | both | Snap points attached to objects (689 in Sinnoh), sideways cards (70), per-object `Hands=false` (3 655), `HideWhenFaceDown` (891), `Grid=false`, `GridProjection` | ✅ attached snap points follow and turn with their object, never catch the object carrying them; `hands: false` objects lie in hand zones without joining the hand; face-down cards keep their name out of tooltips, the selection panel, the menu and the log (`hideWhenFaceDown`, default for cards; a face-down deck keeps its deck name); `grid: false` (G28). Sideways cards are landscape card sizes (importer). `GridProjection` (grid drawn on objects) not built (2026-10-23) |
 | G40 | both | Joints (`jointTo`) | none |
 | G41 | Sinnoh | Per-player visibility (`setInvisibleTo` 24×), highlights (`highlightOn/Off`), smooth moves (`setPositionSmooth`, `setRotationSmooth`, `isSmoothMoving`) | none (M5) |
 | G42 | Master Trainer | `Physics.cast` (16×), collision events (`registerCollisions`, `onObjectCollisionEnter`) | none (M5) |

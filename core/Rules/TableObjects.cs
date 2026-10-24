@@ -42,6 +42,20 @@ namespace Core.Rules
         /// <summary>Id of the Bag/InfiniteBag holding this object, or null when it is on the table.</summary>
         public string? Container { get; set; }
 
+        /// <summary>False: the object never joins a hand; dropped in a hand zone it just lies there (TTS <c>Hands</c>, G39).</summary>
+        [System.ComponentModel.DefaultValue(true)]
+        public bool Hands { get; set; } = true;
+
+        /// <summary>
+        /// Whether the name and description stay secret while the object lies face down (TTS <c>HideWhenFaceDown</c>, G39).
+        /// Null: cards hide, other objects do not (a face-down deck keeps its deck name, as in TTS).
+        /// </summary>
+        public bool? HideWhenFaceDown { get; set; }
+
+        /// <summary>True when its name must not be shown now: face down and hiding when face down.</summary>
+        [JsonIgnore]
+        public bool NameHidden => !IsFaceUp && (HideWhenFaceDown ?? this is Card);
+
         /// <summary>False: the object ignores the table grid's snapping (TTS <c>Grid</c> flag, G28).</summary>
         // Table JSON skips default values: [DefaultValue] names the real default, so false is written and true is not.
         [System.ComponentModel.DefaultValue(true)]

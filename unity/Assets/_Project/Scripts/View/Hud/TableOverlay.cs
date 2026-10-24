@@ -249,7 +249,7 @@ namespace TableWorld.View.Hud
         private void BuildObjectMenu(ObjectView view)
         {
             var model = view.Model;
-            Title(string.IsNullOrEmpty(model.Name) ? $"{model.Type} {model.Id}" : model.Name);
+            Title(DisplayName(model));
 
             switch (model)
             {
@@ -551,6 +551,11 @@ namespace TableWorld.View.Hud
 
         // ---- looking, tooltip, box, measure -----------------------------------------------------------------------
 
+        /// <summary>The name a player may see: a face-down card (or anything hiding when face down, G39) shows its kind only.</summary>
+        public static string DisplayName(TableObject model) =>
+            model.NameHidden ? (model is Card ? "Face-down card" : model.Type)
+            : string.IsNullOrEmpty(model.Name) ? $"{model.Type} {model.Id}" : model.Name;
+
         private void OnLook(ObjectView view, bool peek)
         {
             _look.Show(view, peek);
@@ -559,7 +564,9 @@ namespace TableWorld.View.Hud
                 return;
             // A render texture is created at runtime, so it can only be set from code.
             _lookImage.style.backgroundImage = Background.FromRenderTexture(_look.Texture);
-            _lookCaption.text = view.HideFace ? "A card in another player's hand" : (peek ? "Peek: " : "") + (view.Model.Name ?? view.Model.Id);
+            // Peeking shows the face, so its name; a plain look at a face-down card shows only its back (G39).
+            _lookCaption.text = view.HideFace ? "A card in another player's hand"
+                : peek ? "Peek: " + (view.Model.Name ?? view.Model.Id) : DisplayName(view.Model);
         }
 
         /// <summary>
@@ -588,7 +595,8 @@ namespace TableWorld.View.Hud
                     count = items == 1 ? "1 item" : $"{items} items";
                     break;
             }
-            var name = model.Name ?? (model is Core.Rules.Card ? null : model.Type);
+            // A face-down card keeps its name secret (G39): its tooltip says nothing.
+            var name = model.NameHidden ? (model is Core.Rules.Card ? null : model.Type) : model.Name ?? (model is Core.Rules.Card ? null : model.Type);
             return count == null ? name : $"{name}\n{count}";
         }
 
@@ -596,10 +604,9 @@ namespace TableWorld.View.Hud
         {
             var view = _interaction.TooltipView;
             var seconds = _interaction.TooltipSeconds;
-            var show = view != null && seconds >= TooltipNameSeconds && _interaction.Held == null && _interaction.Looking == null && !MenuOpen
-                       && !(view.Model.IsFaceUp == false && view.Model.TtsExtra?.Value<bool?>("HideWhenFaceDown") == true);
+            var show = view != null && seconds >= TooltipNameSeconds && _interaction.Held == null && _interaction.Looking == null && !MenuOpen;
             var text = view == null ? null : TooltipText(view, _table.Engine);
-            if (show && seconds >= TooltipDescriptionSeconds && !string.IsNullOrEmpty(view.Model.Description))
+            if (show && seconds >= TooltipDescriptionSeconds && !string.IsNullOrEmpty(view.Model.Description) && !view.Model.NameHidden)
                 text = $"{text}\n{view.Model.Description}";
             show &= !string.IsNullOrEmpty(text);
             _tooltip.EnableInClassList(Hidden, !show);

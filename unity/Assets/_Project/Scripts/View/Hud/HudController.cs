@@ -573,8 +573,7 @@ namespace TableWorld.View.Hud
                 return;
 
             var model = selected.Model;
-            _selectionTitle.text = selected.HideFace ? "A card in another player's hand"
-                : string.IsNullOrEmpty(model.Name) ? $"{model.Type} {model.Id}" : model.Name;
+            _selectionTitle.text = selected.HideFace ? "A card in another player's hand" : TableOverlay.DisplayName(model);
             _selectionDetail.text = selected.HideFace ? "" : Describe(model);
 
             AddAction(model.Locked ? "Unlock (L)" : "Lock (L)", () => _interaction.ToggleLock(selected));
@@ -619,7 +618,7 @@ namespace TableWorld.View.Hud
             }
         }
 
-        private static string SelectionKey(TableObject model) => model switch
+        private static string SelectionKey(TableObject model) => $"{model.NameHidden}:{model.Name}:" + model switch
         {
             Deck deck => $"{model.Locked}:{deck.Cards.Count}",
             Die die => $"{model.Locked}:{die.Value}",

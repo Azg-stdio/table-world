@@ -138,9 +138,10 @@ namespace Core.Engine
             var hidden = engine.IsHiddenFrom(id, viewer);
             if (hidden && engine.HiddenZoneHiding(id, viewer, host: viewer == null) != null)
                 return "something";
-            if (o is Card && (hidden || !o.IsFaceUp || o.Container != null))
+            // In another hand or a deck, a card is never named; face down, only when it hides its name (G39, the default).
+            if (o is Card && (hidden || o.Container != null))
                 return "a card";
-            if (!string.IsNullOrWhiteSpace(o.Name))
+            if (!string.IsNullOrWhiteSpace(o.Name) && !o.NameHidden)
                 return o.Name!;
             return o switch
             {
