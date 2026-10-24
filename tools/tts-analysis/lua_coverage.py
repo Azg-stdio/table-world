@@ -33,6 +33,8 @@ IMPLEMENTED = {
     "UI.setAttribute", "UI.setAttributes", "UI.getAttribute", "UI.getAttributes", "UI.setValue", "UI.getValue", "UI.show",
     "UI.hide", "UI.setXml", "UI.getXml", "UI.setXmlTable", "UI.getXmlTable", "UI.setCustomAssets", "UI.getCustomAssets",
     "onClick", "onValueChanged", "onEndEdit", "getHandObjects", "lookAt", "Player.getPlayers", "Player.getAvailableColors",
+    "setInvisibleTo", "getInvisibleTo", "deal", "isDestroyed", "clone", "Timer.create", "Timer.destroy", "getStateId", "addTag",
+    "removeTag", "setTags", "getObjectsWithAllTags", "getObjectsWithAnyTags",
     # events
     "onLoad", "onObjectDrop", "onDrop", "onObjectEnterZone", "onObjectLeaveZone", "onObjectFlip", "onFlip",
     "onObjectRandomize", "onRandomize", "onPlayerTurn",

@@ -4,13 +4,13 @@ Source: `docs/data/mod-requirements-2026-10-23.json`. Calls weighted by how ofte
 
 | Mod | Calls | Covered | Share |
 |---|---|---|---|
-| Pokemon Master Trainer 3D (7 Generations) | 337 | 296 | 88% |
-| Gloomhaven - Fantasy Setup (Scripted UI) | 8051 | 7845 | 97% |
+| Pokemon Master Trainer 3D (7 Generations) | 337 | 300 | 89% |
+| Gloomhaven - Fantasy Setup (Scripted UI) | 8051 | 7873 | 98% |
 | The Chimera Table | 40 | 33 | 82% |
 | Anna's Roundtable - The FE Board Game Fan Project | 0 | 0 | 100% |
-| Pokémon: Legends of Sinnoh | 6973 | 6884 | 99% |
-| Riftbound - Basic Table | 5648 | 5537 | 98% |
-| **All** | 21049 | 20595 | **98%** |
+| Pokémon: Legends of Sinnoh | 6973 | 6935 | 99% |
+| Riftbound - Basic Table | 5648 | 5543 | 98% |
+| **All** | 21049 | 20684 | **98%** |
 
 ## Most used missing
 
@@ -19,24 +19,13 @@ Source: `docs/data/mod-requirements-2026-10-23.json`. Calls weighted by how ofte
 | `onCollisionEnter` | 99 |
 | `Physics.cast` | 62 |
 | `setCustomObject` | 44 |
-| `setInvisibleTo` | 24 |
 | `heading` | 24 |
 | `editInput` | 22 |
 | `spawnObject` | 14 |
-| `deal` | 13 |
 | `getInputs` | 13 |
 | `onNumberTyped` | 10 |
-| `isDestroyed` | 8 |
-| `clone` | 7 |
-| `Timer.create` | 7 |
-| `getStateId` | 6 |
-| `Timer.destroy` | 6 |
-| `addTag` | 6 |
 | `onChat` | 5 |
-| `getObjectsWithAllTags` | 4 |
-| `getObjectsWithAnyTags` | 4 |
 | `layout` | 4 |
-| `removeTag` | 4 |
 | `MusicPlayer.getPlaylist` | 4 |
 | `spawnObjectData` | 4 |
 | `getComponent` | 4 |
@@ -56,3 +45,14 @@ Source: `docs/data/mod-requirements-2026-10-23.json`. Calls weighted by how ofte
 | `onScriptingButtonDown` | 2 |
 | `onUpdate` | 2 |
 | `magnitude` | 2 |
+| `unregisterCollisions` | 1 |
+| `getTransformUp` | 1 |
+| `getTriggerEffects` | 1 |
+| `getLoopingEffects` | 1 |
+| `Notes.addNotebookTab` | 1 |
+| `onObjectCollisionEnter` | 1 |
+| `onObjectHover` | 1 |
+| `onObjectDestroy` | 1 |
+| `onObjectSpawn` | 1 |
+| `changeColor` | 1 |
+| `setAngularVelocity` | 1 |

@@ -334,7 +334,7 @@ namespace Core.Scripting
                 }
                 else
                     _timers.Remove(timer);
-                Run(timer.Script, timer.Function, "Wait", Array.Empty<DynValue>());
+                Run(timer.Script, timer.Function, "Wait", timer.Arguments ?? Array.Empty<DynValue>());
             }
         }
 
@@ -395,6 +395,7 @@ namespace Core.Scripting
             public Script Script = null!;
             public DynValue Function = null!;
             public DynValue? Condition;
+            public DynValue[]? Arguments;
             public double Due;
             public double Interval;
             public int Repetitions = 1;

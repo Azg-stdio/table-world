@@ -19,7 +19,8 @@ logged on the host and never stop the game.
 |---|---|
 | `getObjectFromGUID(guid)` | the object or zone with that id, or nil |
 | `getObjects()`, `getAllObjects()` | every object on the table (not inside containers) |
-| `getObjectsWithTag(tag)` | objects on the table with that tag |
+| `getObjectsWithTag(tag)`, `getObjectsWithAllTags(tags)`, `getObjectsWithAnyTags(tags)` | objects on the table with those tags |
+| `Timer.create({ identifier, function_name, function_owner, parameters, delay, repetitions })`, `Timer.destroy(identifier)` | TTS's older timers, on Wait's clock (`repetitions = 0` repeats forever) |
 | `broadcastToAll(text)`, `printToAll(text)`, `broadcastToColor(text, color)`, `printToColor(text, color)` | a line in every player's chat (the colour variants also go to everyone for now) |
 | `print(...)` | a line in the host's log |
 | `JSON.encode(table)`, `JSON.decode(text)` | JSON text and Lua tables |
@@ -43,7 +44,12 @@ logged on the host and never stop the game.
 | `getName()`, `setName(text)` | name (`SetProperties`) |
 | `getDescription()`, `setDescription(text)` | description (`SetProperties`) |
 | `getGMNotes()`, `setGMNotes(text)` | GM notes (host data, no command) |
-| `getTags()`, `hasTag(tag)` | tags |
+| `getTags()`, `hasTag(tag)`, `addTag(tag)`, `removeTag(tag)`, `setTags(tags)` | tags (`SetProperties`) |
+| `clone({ position })` | a copy, returned (`Clone`) |
+| `deal(count[, color])` | deals from a deck to that seat or every seat (`Deal`) |
+| `getStateId()` | the number of the state shown, -1 without states |
+| `isDestroyed()` | true once it is gone |
+| `setInvisibleTo(colors)`, `getInvisibleTo()` | colours that do not see it at all, on their machines (honest play, like hidden zones) |
 | `getPosition()`, `setPosition(pos)`, `setPositionSmooth(pos)` | position in TTS units (`Move`) |
 | `getRotation()`, `setRotation(rot)`, `setRotationSmooth(rot)` | rotation in degrees (`Move`) |
 | `flip()` | `Flip` |

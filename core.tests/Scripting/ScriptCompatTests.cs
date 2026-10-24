@@ -74,6 +74,50 @@ namespace Core.Tests.Scripting
         }
 
         [Fact]
+        public void Tags_AreAddedRemovedAndQueried()
+        {
+            var (engine, _, said) = Load(@"
+                local d = getObjectFromGUID('d6')
+                d.addTag('dice') d.addTag('red') d.addTag('dice')
+                broadcastToAll(#getObjectsWithAllTags({ 'dice', 'red' }) .. ' ' .. #getObjectsWithAnyTags({ 'red', 'none' }) .. ' ' .. tostring(d.hasTag('red')))
+                d.removeTag('red')
+                broadcastToAll(#getObjectsWithAllTags({ 'dice', 'red' }) .. ' ' .. #d.getTags())");
+            Assert.Equal(new[] { "1 1 true", "0 1" }, said);
+            Assert.Equal(new[] { "dice" }, engine.Find("d6")!.Tags);
+        }
+
+        [Fact]
+        public void CloneDealStateIdDestroyedAndInvisible_Work()
+        {
+            var (engine, _, said) = Load(@"
+                local d = getObjectFromGUID('d6')
+                local copy = d.clone({ position = { 5, 1, 0 } })
+                broadcastToAll(tostring(copy ~= nil and copy.getGUID() ~= 'd6') .. ' ' .. tostring(copy.isDestroyed()))
+                copy.destruct()
+                broadcastToAll(tostring(copy.isDestroyed()) .. ' ' .. d.getStateId())
+                getObjectFromGUID('deck').deal(2, 'Red')
+                d.setInvisibleTo({ 'Blue' })
+                broadcastToAll(d.getInvisibleTo()[1])");
+            Assert.Equal("true false", said[0]);
+            Assert.Equal("true -1", said[1]);
+            Assert.Equal("Blue", said[2]);
+            Assert.Equal(new[] { "blue" }, engine.Find("d6")!.InvisibleTo);
+            Assert.Equal(8, ((Deck)engine.Find("deck")!).Cards.Count);
+        }
+
+        [Fact]
+        public void TimerCreate_CallsByName_WithParameters_AndDestroyStops()
+        {
+            var (_, host, said) = Load(@"
+                function tick(p) broadcastToAll('tick ' .. p.n) end
+                Timer.create({ identifier = 'a', function_name = 'tick', parameters = { n = 7 }, delay = 1, repetitions = 0 })
+                broadcastToAll(tostring(Timer.create({ identifier = 'a', function_name = 'tick', delay = 1 })))");
+            host.Tick(1.01);
+            host.Tick(2.02);
+            Assert.Equal(new[] { "false", "tick 7", "tick 7" }, said);
+        }
+
+        [Fact]
         public void LogPrettyJsonAndSmoothMoving_Work()
         {
             var (_, host, said) = Load(@"

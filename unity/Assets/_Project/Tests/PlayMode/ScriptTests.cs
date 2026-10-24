@@ -186,6 +186,27 @@ function hit(player, value, id) broadcastToAll('hit ' .. value .. ' ' .. id) end
         }
 
         [UnityTest]
+        public IEnumerator SetInvisibleTo_HidesTheObject_FromThoseColoursOnly()
+        {
+            yield return SceneManager.LoadSceneAsync("Table");
+            yield return null;
+            var table = Object.FindAnyObjectByType<TableView>();
+            Object.FindAnyObjectByType<TableInteraction>().IgnoreDevices = true;
+            yield return new WaitForSeconds(0.3f);
+            var json = new JObject
+            {
+                ["schemaVersion"] = "0.1",
+                ["objects"] = JArray.Parse(@"[ { ""id"": ""die"", ""type"": ""Die"" }, { ""id"": ""other"", ""type"": ""Die"", ""transform"": { ""position"": [0.2, 0, 0] } } ]"),
+                ["players"] = JObject.Parse(@"{ ""seats"": [ { ""id"": ""south"", ""color"": ""red"" } ] }"),
+                ["scripts"] = new JObject { ["global"] = "function onLoad() getObjectFromGUID('die').setInvisibleTo({ 'Red' }) getObjectFromGUID('other').setInvisibleTo({ 'Blue' }) end" },
+            };
+            Assert.IsTrue(table.Load(json.ToString(), null));
+            yield return null;
+            Assert.IsTrue(table.ViewOf("die").ZoneHidden, "red does not see it");
+            Assert.IsFalse(table.ViewOf("other").ZoneHidden, "only blue is kept from the other");
+        }
+
+        [UnityTest]
         public IEnumerator ScriptButtons_AreDrawn_HitByThePointer_AndClicked()
         {
             yield return SceneManager.LoadSceneAsync("Table");

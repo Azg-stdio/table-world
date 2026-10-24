@@ -57,6 +57,52 @@ namespace Core.Scripting
             });
             g["getObjects"] = Fn(args => List(script, Engine.State.Objects.Where(o => o.Container == null).Select(o => o.Id)));
             g["getAllObjects"] = g["getObjects"];
+            g["getObjectsWithAllTags"] = Fn(args =>
+            {
+                var tags = args.Count > 0 ? Strings(args[0]) : new List<string>();
+                return List(script, Engine.State.Objects.Where(o => o.Container == null && tags.Count > 0 && tags.All(o.Tags.Contains)).Select(o => o.Id));
+            });
+            g["getObjectsWithAnyTags"] = Fn(args =>
+            {
+                var tags = args.Count > 0 ? Strings(args[0]) : new List<string>();
+                return List(script, Engine.State.Objects.Where(o => o.Container == null && tags.Any(o.Tags.Contains)).Select(o => o.Id));
+            });
+
+            // Timer: TTS's older timer API, on the same clock as Wait.
+            var timers = new Table(script);
+            var named = new Dictionary<string, int>();
+            timers["create"] = Fn(args =>
+            {
+                if (args.Count < 1 || args[0].Type != DataType.Table)
+                    return DynValue.False;
+                var p = args[0].Table;
+                var name = p.Get("function_name").CastToString();
+                var ownerId = p.Get("function_owner").Type == DataType.Table ? p.Get("function_owner").Table.Get("guid").CastToString() : null;
+                var owner = ownerId != null && _objectScripts.TryGetValue(ownerId, out var o) ? o : _global ?? script;
+                var function = name != null ? owner.Globals.Get(name) : DynValue.Nil;
+                if (function.Type != DataType.Function)
+                    return DynValue.False;
+                var parameters = p.Get("parameters");
+                var delay = p.Get("delay").Type == DataType.Number ? Math.Max(0, p.Get("delay").Number) : 0;
+                // TTS: repetitions 0 repeats forever.
+                var repetitions = p.Get("repetitions").Type == DataType.Number ? (int)p.Get("repetitions").Number : 1;
+                var timer = new Timer { Id = _nextTimer++, Script = owner, Function = function, Arguments = parameters.IsNil() ? null : new[] { parameters }, Due = _now + delay, Interval = delay, Repetitions = repetitions <= 0 ? int.MaxValue : repetitions };
+                var identifier = p.Get("identifier").CastToString() ?? timer.Id.ToString();
+                if (named.TryGetValue(identifier, out var old) && _timers.Any(t => t.Id == old))
+                    return DynValue.False;
+                named[identifier] = timer.Id;
+                _timers.Add(timer);
+                return DynValue.True;
+            });
+            timers["destroy"] = Fn(args =>
+            {
+                var identifier = args.Count > 0 ? args[0].CastToString() : null;
+                if (identifier == null || !named.TryGetValue(identifier, out var timerId))
+                    return DynValue.False;
+                named.Remove(identifier);
+                return DynValue.NewBoolean(_timers.RemoveAll(t => t.Id == timerId) > 0);
+            });
+            g["Timer"] = timers;
             g["getObjectsWithTag"] = Fn(args =>
             {
                 var tag = args.Count > 0 ? args[0].CastToString() : null;
@@ -316,6 +362,49 @@ namespace Core.Scripting
                 return DynValue.NewTable(tags);
             });
             t["hasTag"] = Fn((o, a) => DynValue.NewBoolean(o.Tags.Contains(Arg(a, 0) ?? "")));
+            t["addTag"] = Fn((o, a) => Arg(a, 0) is { } add && !o.Tags.Contains(add)
+                ? Do(new SetPropertiesCommand { ObjectId = id, Tags = o.Tags.Concat(new[] { add }).ToList() })
+                : DynValue.NewBoolean(Arg(a, 0) != null));
+            t["removeTag"] = Fn((o, a) => Arg(a, 0) is { } remove && o.Tags.Contains(remove)
+                ? Do(new SetPropertiesCommand { ObjectId = id, Tags = o.Tags.Where(x => x != remove).ToList() })
+                : DynValue.False);
+            t["setTags"] = Fn((o, a) => Do(new SetPropertiesCommand { ObjectId = id, Tags = Strings(At(a, 0)) }));
+            t["hasAnyTag"] = Fn((o, a) => DynValue.NewBoolean(o.Tags.Count > 0));
+            t["getStateId"] = Fn((o, a) =>
+            {
+                // TTS numbers states from 1; the other states are listed by number, so this one is the number missing.
+                if (o.States.Count == 0)
+                    return DynValue.NewNumber(-1);
+                var n = 1;
+                while (o.States.ContainsKey(n.ToString()))
+                    n++;
+                return DynValue.NewNumber(n);
+            });
+            t["isDestroyed"] = DynValue.NewCallback((_, a) => DynValue.NewBoolean(Engine.Find(id) == null));
+            t["clone"] = Fn((o, a) =>
+            {
+                var position = At(a, 0).Type == DataType.Table ? FromTts(At(a, 0).Table.Get("position"), true) : null;
+                var result = _execute(new CloneCommand { ObjectId = id, Position = position });
+                Count(result);
+                var added = result.Ok ? result.Events.OfType<ObjectAdded>().FirstOrDefault()?.ObjectId : null;
+                return added != null ? Proxy(script, added) : DynValue.Nil;
+            });
+            t["deal"] = Fn((o, a) =>
+            {
+                // deal(count[, color]): to that seat, or to every seat.
+                var count = At(a, 0).Type == DataType.Number ? Math.Max(1, (int)At(a, 0).Number) : 1;
+                var seats = Engine.State.Players.Seats.Where(s => Arg(a, 1) is not { } color || string.Equals(s.Color, color, StringComparison.OrdinalIgnoreCase))
+                    .Select(s => s.Id).ToList();
+                return seats.Count == 0 ? DynValue.False : Do(new DealCommand { DeckId = id, Count = count, Seats = seats });
+            });
+            t["setInvisibleTo"] = Fn((o, a) => Do(new SetPropertiesCommand { ObjectId = id, InvisibleTo = Strings(At(a, 0)) }));
+            t["getInvisibleTo"] = Fn((o, a) =>
+            {
+                var list = new Table(script);
+                for (var i = 0; i < o.InvisibleTo.Count; i++)
+                    list[i + 1] = Capital(o.InvisibleTo[i]);
+                return DynValue.NewTable(list);
+            });
             t["getPosition"] = Fn((o, a) => DynValue.NewTable(ToTts(script, o.Transform.Position)));
             t["getRotation"] = Fn((o, a) => DynValue.NewTable(Vector(script, o.Transform.Rotation)));
             t["setPosition"] = Fn((o, a) => FromTts(At(a, 0), true) is { } p
@@ -539,6 +628,19 @@ namespace Core.Scripting
         }
 
         private const float TtsUnitsToMeters = Core.Tts.TtsUnits.TtsUnitsToMeters;
+
+        /// <summary>A Lua list of strings (or one string) as a list.</summary>
+        private static List<string> Strings(DynValue value)
+        {
+            var list = new List<string>();
+            if (value.Type == DataType.String)
+                list.Add(value.String);
+            else if (value.Type == DataType.Table)
+                foreach (var v in value.Table.Values)
+                    if (v.CastToString() is { Length: > 0 } s)
+                        list.Add(s);
+            return list;
+        }
 
         /// <summary>
         /// TTS button sizes (width, height, font_size) count about 500 per local unit: a button 1000 wide spans a

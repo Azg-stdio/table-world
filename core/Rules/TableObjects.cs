@@ -35,6 +35,12 @@ namespace Core.Rules
         public string? Description { get; set; }
         public string? GmNotes { get; set; }
         public List<string> Tags { get; set; } = new List<string>();
+        /// <summary>
+        /// Seat colours that do not see this object at all (TTS <c>setInvisibleTo</c>). Like hidden zones, honest play:
+        /// every machine has the object.
+        /// </summary>
+        public List<string> InvisibleTo { get; set; } = new List<string>();
+        public bool ShouldSerializeInvisibleTo() => InvisibleTo.Count > 0;
         public bool Locked { get; set; }
         public TableTransform Transform { get; set; } = new TableTransform();
         public bool ShouldSerializeTransform() => !Transform.IsDefault;

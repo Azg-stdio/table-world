@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Core.Rules;
 
 namespace Core.Engine
@@ -98,5 +99,9 @@ namespace Core.Engine
         public bool? Tooltip { get; set; }
         /// <summary>Replaces the object's Lua (TTS <c>setLuaScript</c>); the host reloads that script. Empty removes it.</summary>
         public string? Script { get; set; }
+        /// <summary>Replaces the tags.</summary>
+        public List<string>? Tags { get; set; }
+        /// <summary>Replaces the seat colours that cannot see the object.</summary>
+        public List<string>? InvisibleTo { get; set; }
     }
 }

@@ -392,12 +392,15 @@ namespace TableWorld.View
                 if (fog.Fog != null)
                     fog.Fog.SetActive(!SeesEverything && !fog.Zone.Reveals(viewer, HostsTable));
             var hands = new Dictionary<HandZone, List<ObjectView>>();
+            var viewerColor = viewer == null ? null : Engine.State.Players.Seats.FirstOrDefault(s => s.Id == viewer)?.Color?.ToLowerInvariant();
             foreach (var view in _views.Values)
             {
                 if (view == null)
                     continue;
-                // Hidden zones (G17): what lies inside is not drawn for viewers the zone does not list.
-                var zoneHidden = !view.Held && !SeesEverything && Engine.HiddenZoneHiding(view.Id, viewer, HostsTable) != null;
+                // Hidden zones (G17): what lies inside is not drawn for viewers the zone does not list; scripts can also
+                // make an object invisible to some colours (M5, setInvisibleTo).
+                var zoneHidden = !view.Held && !SeesEverything && (Engine.HiddenZoneHiding(view.Id, viewer, HostsTable) != null ||
+                                                                    viewerColor != null && view.Model.InvisibleTo.Contains(viewerColor));
                 if (zoneHidden != view.ZoneHidden)
                     view.SetZoneHidden(zoneHidden);
                 if (!(view.Model is Card))

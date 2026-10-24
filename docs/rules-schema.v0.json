@@ -222,6 +222,12 @@
             "type": "string"
           }
         },
+        "invisibleTo": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "locked": {
           "type": "boolean"
         },
@@ -447,6 +453,12 @@
             "type": "string"
           }
         },
+        "invisibleTo": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "locked": {
           "type": "boolean"
         },
@@ -602,6 +614,12 @@
             "type": "string"
           }
         },
+        "invisibleTo": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "locked": {
           "type": "boolean"
         },
@@ -703,6 +721,12 @@
           "type": "string"
         },
         "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "invisibleTo": {
           "type": "array",
           "items": {
             "type": "string"
@@ -815,6 +839,12 @@
             "type": "string"
           }
         },
+        "invisibleTo": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "locked": {
           "type": "boolean"
         },
@@ -912,6 +942,12 @@
           "type": "string"
         },
         "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "invisibleTo": {
           "type": "array",
           "items": {
             "type": "string"
@@ -1036,6 +1072,12 @@
             "type": "string"
           }
         },
+        "invisibleTo": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "locked": {
           "type": "boolean"
         },
@@ -1126,6 +1168,12 @@
             "type": "string"
           }
         },
+        "invisibleTo": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "locked": {
           "type": "boolean"
         },
@@ -1211,6 +1259,12 @@
           "type": "string"
         },
         "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "invisibleTo": {
           "type": "array",
           "items": {
             "type": "string"
@@ -1314,6 +1368,12 @@
             "type": "string"
           }
         },
+        "invisibleTo": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "locked": {
           "type": "boolean"
         },
@@ -1407,6 +1467,12 @@
             "type": "string"
           }
         },
+        "invisibleTo": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "locked": {
           "type": "boolean"
         },
@@ -1492,6 +1558,12 @@
           "type": "string"
         },
         "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "invisibleTo": {
           "type": "array",
           "items": {
             "type": "string"
@@ -1595,6 +1667,12 @@
           "type": "string"
         },
         "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "invisibleTo": {
           "type": "array",
           "items": {
             "type": "string"
