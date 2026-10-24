@@ -34,6 +34,9 @@ namespace Core.Scripting
     /// <summary>TTS <c>Physics.cast</c> and collision events (M5). The physics is the game's: core only asks and hears.</summary>
     public sealed partial class ScriptHost
     {
+        /// <summary>Object proxies built so far (diagnostics: each costs a table of methods).</summary>
+        public int ProxiesMade { get; private set; }
+
         /// <summary>Runs a cast in the game's physics; null when there is none (headless), and casts then hit nothing.</summary>
         public Func<PhysicsCastQuery, IReadOnlyList<PhysicsCastHit>>? PhysicsCast { get; set; }
 
@@ -113,14 +116,13 @@ namespace Core.Scripting
                 EverywhereWith(enter ? "onObjectCollisionEnter" : "onObjectCollisionExit", (script, proxy) => new[] { proxy(objectId), Info(script) });
         }
 
-        private void InstallCollisionMethods(Table t, string id)
+        /// <summary>An object's <c>registerCollisions</c> / <c>unregisterCollisions</c>.</summary>
+        private DynValue CollisionMethod(string id, bool register) => DynValue.NewCallback((_, a) =>
         {
-            t["registerCollisions"] = DynValue.NewCallback((_, a) =>
-            {
-                _registeredCollisions.Add(id);
-                return DynValue.True;
-            });
-            t["unregisterCollisions"] = DynValue.NewCallback((_, a) => DynValue.NewBoolean(_registeredCollisions.Remove(id)));
-        }
+            if (!register)
+                return DynValue.NewBoolean(_registeredCollisions.Remove(id));
+            _registeredCollisions.Add(id);
+            return DynValue.True;
+        });
     }
 }

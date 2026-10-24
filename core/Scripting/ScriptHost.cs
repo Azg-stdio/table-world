@@ -128,6 +128,7 @@ namespace Core.Scripting
         private Script? Compile(string source, string? selfId, string label)
         {
             var script = new Script(CoreModules.Preset_SoftSandbox);
+            _scriptNames[script] = label;
             script.Options.DebugPrint = text => Log?.Invoke($"[{label}] {text}");
             InstallApi(script, selfId);
             try
@@ -149,7 +150,34 @@ namespace Core.Scripting
         /// </summary>
         private bool Run(Script script, DynValue function, string label, DynValue[] args) => RunFor(script, function, label, args, out _);
 
+        /// <summary>When set, milliseconds spent per script and call (tests and diagnostics; off in play).</summary>
+        public Dictionary<string, double>? Profile { get; set; }
+
+        private readonly Dictionary<Script, string> _scriptNames = new Dictionary<Script, string>();
+
+        private void Measure(Script script, string label, System.Diagnostics.Stopwatch? watch)
+        {
+            if (watch == null || Profile == null)
+                return;
+            var key = (_scriptNames.TryGetValue(script, out var name) ? name : "?") + " / " + label;
+            Profile.TryGetValue(key, out var ms);
+            Profile[key] = ms + watch.Elapsed.TotalMilliseconds;
+        }
+
         private bool RunFor(Script script, DynValue function, string label, DynValue[] args, out DynValue result)
+        {
+            var watch = Profile != null ? System.Diagnostics.Stopwatch.StartNew() : null;
+            try
+            {
+                return RunMeasured(script, function, label, args, out result);
+            }
+            finally
+            {
+                Measure(script, label, watch);
+            }
+        }
+
+        private bool RunMeasured(Script script, DynValue function, string label, DynValue[] args, out DynValue result)
         {
             result = DynValue.Nil;
             if (_depth >= MaxDepth)
@@ -423,6 +451,7 @@ namespace Core.Scripting
                 _coroutines.RemoveAll(c => c.Thread == thread);
                 if (thread.State == CoroutineState.Dead)
                     continue;
+                var watch = Profile != null ? System.Diagnostics.Stopwatch.StartNew() : null;
                 try
                 {
                     thread.AutoYieldCounter = Slice;
@@ -444,6 +473,10 @@ namespace Core.Scripting
                 catch (InterpreterException e)
                 {
                     Log?.Invoke($"[{label}] error: {e.DecoratedMessage ?? e.Message}");
+                }
+                finally
+                {
+                    Measure(script, "coroutine " + label, watch);
                 }
             }
         }
