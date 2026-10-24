@@ -107,19 +107,22 @@ namespace TableWorld.View.Meshes
                 valueNormals[value - 1] = normal;
 
                 var centroid = loop.Aggregate(Vector3.zero, (s, p) => s + p) / loop.Count;
-                // Face-local axes: "up" of the printed number is the direction towards the first vertex.
-                var up = (loop[0] - centroid).normalized;
+                // Face-local axes: "up" of the printed number points to a vertex; on a d10 kite, to its tip (the vertex
+                // furthest from the centre), as real d10s are printed.
+                var tip = loop.OrderByDescending(p => (p - centroid).sqrMagnitude).First();
+                var up = (faces == 10 ? tip - centroid : loop[0] - centroid).normalized;
                 var right = Vector3.Cross(normal, up).normalized;
                 var circumradius = loop.Max(p => (p - centroid).magnitude);
                 var cell = new Vector2((value - 1) % BuiltinTextures.DiceColumns, (value - 1) / BuiltinTextures.DiceColumns);
                 var cellSize = new Vector2(1f / BuiltinTextures.DiceColumns, 1f / BuiltinTextures.DiceRows);
+                var perMetre = NumberScale(loop, centroid, circumradius);
 
                 var start = vertices.Count;
                 foreach (var p in loop)
                 {
                     var local = p - centroid;
-                    var a = Vector3.Dot(local, right) / circumradius * 0.48f;
-                    var b = Vector3.Dot(local, up) / circumradius * 0.48f;
+                    var a = Vector3.Dot(local, right) * perMetre;
+                    var b = Vector3.Dot(local, up) * perMetre;
                     vertices.Add(p);
                     normals.Add(normal);
                     uvs.Add(new Vector2((cell.x + 0.5f + a) * cellSize.x, 1f - (cell.y + 0.5f - b) * cellSize.y));
@@ -146,6 +149,28 @@ namespace TableWorld.View.Meshes
                 template.RecalculateTangents();
             }
             return new DiceGeometry(faces, mesh, valueNormals, template);
+        }
+
+        /// <summary>Largest share of a number cell a face's corner may reach: beyond it lies the neighbouring number.</summary>
+        public const float MaxCornerReach = 0.7f;
+
+        /// <summary>
+        /// Atlas cells per metre on a face: the number (<see cref="BuiltinTextures.DiceGlyphHalf"/> of a cell from its
+        /// centre) fills 85% of the face's inscribed circle, so it never runs over an edge, and no corner reaches far
+        /// enough into the next cell to show another number.
+        /// </summary>
+        private static float NumberScale(List<Vector3> loop, Vector3 centroid, float circumradius)
+        {
+            var inradius = float.MaxValue;
+            for (var i = 0; i < loop.Count; i++)
+                inradius = Mathf.Min(inradius, DistanceToLine(centroid, loop[i], loop[(i + 1) % loop.Count]));
+            return Mathf.Min(BuiltinTextures.DiceGlyphHalf / (0.85f * inradius), MaxCornerReach / circumradius);
+        }
+
+        private static float DistanceToLine(Vector3 p, Vector3 a, Vector3 b)
+        {
+            var ab = b - a;
+            return Vector3.Cross(ab, p - a).magnitude / ab.magnitude;
         }
 
         /// <summary>

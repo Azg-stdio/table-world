@@ -17,6 +17,11 @@ namespace TableWorld.View.Builtin
         public const int DeckRows = 7;
         public const int DiceColumns = 5;
         public const int DiceRows = 4;
+        /// <summary>
+        /// How far a die number reaches from its cell's centre, as a share of the cell. The rest of the cell is blank
+        /// paper, so a face whose corners reach past its own cell (triangles, kites) shows no other number.
+        /// </summary>
+        public const float DiceGlyphHalf = 0.22f;
 
         private const int CardWidth = 180;
         private const int CardHeight = 252;
@@ -88,8 +93,8 @@ namespace TableWorld.View.Builtin
 
         public static Texture2D DiceNumbers()
         {
-            const int cell = 64;
-            const int scale = 4;
+            const int cell = 128;
+            const int scale = 5;
             var canvas = new Canvas(cell * DiceColumns, cell * DiceRows);
             canvas.FillRect(0, 0, canvas.Width, canvas.Height, Paper);
             for (var n = 1; n <= DiceColumns * DiceRows; n++)
@@ -101,7 +106,7 @@ namespace TableWorld.View.Builtin
                 var ty = y + (cell - PixelFont.GlyphHeight * scale) / 2 - 2;
                 PixelFont.DrawText(canvas, text, tx, ty, scale, Ink);
                 if (n == 6 || n == 9)
-                    canvas.FillRect(tx, ty + PixelFont.GlyphHeight * scale + 3, PixelFont.TextWidth(text, scale), 3, Ink);
+                    canvas.FillRect(tx, ty + PixelFont.GlyphHeight * scale + 4, PixelFont.TextWidth(text, scale), 4, Ink);
             }
             return canvas.ToTexture("builtin:dice_numbers");
         }
