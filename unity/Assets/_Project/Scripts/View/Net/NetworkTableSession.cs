@@ -289,7 +289,13 @@ namespace TableWorld.View.Net
         /// <summary>Called by the interaction when the local player touches an object: a client reports its physics for a while.</summary>
         public void Touch(string objectId) => _touched[objectId] = Time.unscaledTime;
 
-        private void OnDestroy() => Stop();
+        private void OnDestroy()
+        {
+            Stop();
+            // NGO keeps its manager across scene loads; left there, every new table scene would add another.
+            if (_network != null)
+                Destroy(_network.gameObject);
+        }
 
         // ---- host -------------------------------------------------------------------------------------------------
 
