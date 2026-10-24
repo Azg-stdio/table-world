@@ -15,6 +15,7 @@
 | T3.5 ⚗ | Multiplayer Play Mode 2 virtual players + Unity Transport latency/loss simulator (200 ms, 2 % loss); 500 random commands | S | T3.2 | State hash equal on all peers | todo |
 | T3.6 **human** | Windows `.exe` (Mono); playtest with two friends over Relay. Triggers T0.6 (Steam fee); it blocks nothing else | S | T3.3, T3.4 | Playtest notes filed; findings become tasks | todo (ready: build ships War and UNO, steps in `docs/playtest.md`) |
 | T3.7 | Steam transport on test app ID 480 (`steam_appid.txt` = 480, Steam running on both ends); swap transports without touching the game layer | S | T3.6 | Two machines connect through Steam | todo |
+| T3.8 | Joining a heavy game looks good (Miguel, 2026-10-24; TTS shows nothing): a join overlay over the table outline with a progress bar ("Loading table… 132 of 480 files") and cancel; pieces without their image yet show a placeholder (card back, grey token) that fades into the image when it lands; the overlay lifts once the pieces near your seat are ready and the rest streams in behind | M | T3.4 | Joining a big imported table (Riftbound, a Pokémon mod) from an empty cache: the overlay counts up, nothing pops in as flat colour, play can start before the last file | later |
 
 ## Simulation record
 
