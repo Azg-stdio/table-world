@@ -61,6 +61,26 @@ namespace Core.Tests.Scripting
         }
 
         [Fact]
+        public void Handlers_RunAgainAfterAnError_AndCallsIntoTheSameScriptNest()
+        {
+            // Handlers share one runner per script: an error, a call back into the script while it runs, and the next
+            // event must each behave as if every call had its own coroutine.
+            var h = new Harness(@"
+                local flips = 0
+                function onObjectFlip(color, obj)
+                    flips = flips + 1
+                    if flips == 1 then error('first flip fails') end
+                    broadcastToAll('flip ' .. flips .. ' ' .. Global.call('twice', { n = flips }))
+                end
+                function twice(t) return t.n * 2 end");
+            h.Run(new FlipCommand { ObjectId = "loose" });
+            Assert.Contains(h.Log, l => l.Contains("error:") && l.Contains("first flip fails"));
+            h.Run(new FlipCommand { ObjectId = "loose" });
+            h.Run(new FlipCommand { ObjectId = "loose" });
+            Assert.Equal(new[] { "flip 2 4", "flip 3 6" }, h.Said);
+        }
+
+        [Fact]
         public void HugeStrings_AreRefused()
         {
             var h = new Harness("local s = string.rep('x', 2000000000) broadcastToAll('built')");

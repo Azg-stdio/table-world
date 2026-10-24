@@ -75,6 +75,8 @@ namespace Core.Scripting
         {
             _now = now;
             _objectScripts.Clear();
+            _trampolines.Clear();
+            _runners.Clear();
             _timers.Clear();
             _proxies.Clear();
             _coroutines.Clear();
@@ -179,6 +181,8 @@ namespace Core.Scripting
             try
             {
                 script.Call(script.LoadStream(new System.IO.MemoryStream(PreludeCode()), null, "prelude"));
+                // Made before the script's own code runs, so it holds the real pcall and table functions.
+                _trampolines[script] = script.DoString(Trampoline, null, "runner");
                 var chunk = script.LoadString(source, null, label);
                 return Run(script, chunk, label, Array.Empty<DynValue>()) ? script : null;
             }
@@ -222,6 +226,81 @@ namespace Core.Scripting
             }
         }
 
+        /// <summary>
+        /// A script's runner: one coroutine that calls each function it is handed (under pcall) and yields the result.
+        /// Making a MoonSharp coroutine costs about 0.25 ms (it allocates its stacks), against microseconds for the call;
+        /// Riftbound's 78 zone scripts each heard every card a deck import spawned, and creating a coroutine per call made
+        /// an import take 3 s. The runner keeps the step budget: it still yields every <see cref="Slice"/> instructions.
+        /// </summary>
+        private const string Trampoline = @"
+local pcall, pack, unpack, yield = pcall, table.pack, table.unpack, coroutine.yield
+return function(...)
+    local call = pack(...)
+    while true do
+        call = pack(yield(pcall(call[1], unpack(call, 2, call.n))))
+    end
+end";
+
+        private readonly Dictionary<Script, DynValue> _trampolines = new Dictionary<Script, DynValue>();
+
+        private sealed class Runner
+        {
+            public MoonSharp.Interpreter.Coroutine? Thread;
+            public bool Busy;
+        }
+
+        private readonly Dictionary<Script, Runner> _runners = new Dictionary<Script, Runner>();
+
+        /// <summary>
+        /// Runs <paramref name="function"/> on the script's runner; false when it raised an error (logged) or ran past the
+        /// step budget. A runner left mid-call (an error outside pcall, the budget) is dropped and made again next time.
+        /// </summary>
+        private bool RunOnRunner(Script script, DynValue trampoline, Runner runner, DynValue function, string label, DynValue[] args, out DynValue result)
+        {
+            result = DynValue.Nil;
+            runner.Busy = true;
+            var keep = false;
+            try
+            {
+                if (runner.Thread == null || runner.Thread.State == CoroutineState.Dead)
+                    runner.Thread = script.CreateCoroutine(trampoline).Coroutine;
+                var thread = runner.Thread;
+                thread.AutoYieldCounter = Slice;
+                var call = new DynValue[args.Length + 1];
+                call[0] = function;
+                Array.Copy(args, 0, call, 1, args.Length);
+                var reply = thread.Resume(call);
+                long steps = Slice;
+                while (thread.State == CoroutineState.ForceSuspended)
+                {
+                    steps += Slice;
+                    if (steps > MaxSteps)
+                    {
+                        Log?.Invoke($"[{label}] stopped: it ran more than {MaxSteps:N0} steps (an endless loop?).");
+                        return false;
+                    }
+                    reply = thread.Resume();
+                }
+                if (thread.State != CoroutineState.Suspended)
+                    return false;
+                keep = true;
+                var values = reply.Type == DataType.Tuple ? reply.Tuple : new[] { reply };
+                if (values.Length == 0 || !values[0].CastToBool())
+                {
+                    Log?.Invoke($"[{label}] error: {(values.Length > 1 ? values[1].CastToString() : "unknown error")}");
+                    return false;
+                }
+                result = values.Length > 1 ? values[1] : DynValue.Nil;
+                return true;
+            }
+            finally
+            {
+                runner.Busy = false;
+                if (!keep)
+                    runner.Thread = null;
+            }
+        }
+
         private bool RunMeasured(Script script, DynValue function, string label, DynValue[] args, out DynValue result)
         {
             result = DynValue.Nil;
@@ -233,6 +312,15 @@ namespace Core.Scripting
             _depth++;
             try
             {
+                // The script's runner when it is free; a call made while it runs (a handler whose command wakes another
+                // handler of the same script) gets a coroutine of its own.
+                if (_trampolines.TryGetValue(script, out var trampoline))
+                {
+                    if (!_runners.TryGetValue(script, out var runner))
+                        _runners[script] = runner = new Runner();
+                    if (!runner.Busy)
+                        return RunOnRunner(script, trampoline, runner, function, label, args, out result);
+                }
                 var thread = script.CreateCoroutine(function).Coroutine;
                 thread.AutoYieldCounter = Slice;
                 result = thread.Resume(args);
@@ -403,6 +491,8 @@ namespace Core.Scripting
             if (!_objectScripts.TryGetValue(id, out var script))
                 return;
             _objectScripts.Remove(id);
+            _trampolines.Remove(script);
+            _runners.Remove(script);
             StopTimers(t => t.Script == script);
             _coroutines.RemoveAll(c => c.Script == script);
             foreach (var key in _proxies.Keys.Where(k => k.Item1 == script).ToList())
