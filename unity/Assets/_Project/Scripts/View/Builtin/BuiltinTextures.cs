@@ -36,6 +36,7 @@ namespace TableWorld.View.Builtin
                 case "standard_deck": return StandardDeck();
                 case "standard_back": return StandardBack();
                 case "dice_numbers": return DiceNumbers();
+                case "d6_template": return D6Template();
                 default: return null;
             }
         }
@@ -103,6 +104,43 @@ namespace TableWorld.View.Builtin
                     canvas.FillRect(tx, ty + PixelFont.GlyphHeight * scale + 3, PixelFont.TextWidth(text, scale), 3, Ink);
             }
             return canvas.ToTexture("builtin:dice_numbers");
+        }
+
+        /// <summary>
+        /// A custom d6 image in the TTS template (G21): the top third empty, then 2 4 5 / 1 3 6, the 1 and 6 upside down,
+        /// as TTS expects. Faces are tinted so a rolled die reads at a glance; makers can copy the layout.
+        /// </summary>
+        public static Texture2D D6Template()
+        {
+            const int cell = 96;
+            const int scale = 7;
+            var canvas = new Canvas(cell * 3, cell * 3);
+            canvas.FillRect(0, 0, canvas.Width, canvas.Height, Paper);
+            var values = new[] { 2, 4, 5, 1, 3, 6 };
+            var colors = new[]
+            {
+                new Color32(248, 226, 226, 255), new Color32(230, 236, 245, 255), new Color32(238, 230, 246, 255),
+                new Color32(245, 232, 214, 255), new Color32(226, 242, 228, 255), new Color32(246, 242, 214, 255),
+            };
+            for (var i = 0; i < 6; i++)
+            {
+                var x = i % 3 * cell;
+                var y = cell + i / 3 * cell;
+                var value = values[i];
+                canvas.FillRect(x, y, cell, cell, colors[value - 1]);
+                canvas.StrokeRect(x + 4, y + 4, cell - 8, cell - 8, 3, Border);
+                var text = value.ToString();
+                var width = PixelFont.TextWidth(text, scale);
+                var tx = x + (cell - width) / 2;
+                var ty = y + (cell - PixelFont.GlyphHeight * scale) / 2;
+                var upsideDown = value == 1 || value == 6;
+                PixelFont.DrawText(canvas, text, upsideDown ? tx + width : tx, ty,
+                    scale, value == 1 ? Red : Ink, rotate180: upsideDown);
+                // A bar under the 6 (above it, as it is printed upside down) tells it from a 9.
+                if (value == 6)
+                    canvas.FillRect(tx, ty - 7, width, 4, Ink);
+            }
+            return canvas.ToTexture("builtin:d6_template");
         }
 
         private static void DrawFrame(Canvas canvas, int x, int y)

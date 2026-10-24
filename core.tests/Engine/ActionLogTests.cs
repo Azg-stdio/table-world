@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Core.Engine;
 using Core.Rules;
@@ -26,6 +27,20 @@ namespace Core.Tests.Engine
             Assert.Equal("seat_1 locked a d6", Single(engine, new LockCommand { ObjectId = "d6" }));
             Assert.Equal("Shuffled a deck", Single(engine, new ShuffleCommand { ObjectId = "deck" }, actor: null));
             Assert.Equal("seat_1 searched a deck", Single(engine, new SearchCommand { ContainerId = "deck", Actor = "seat_1" }));
+        }
+
+        [Fact]
+        public void LabelledDice_AnnounceTheirFace_AndAreNotAddedUp()
+        {
+            var engine = EngineFixture.Create();
+            var die = (Die)engine.Find("d6")!;
+            die.Labels = new List<string> { "Trade", "Extra Turn", "Battle", "Legend", "Event", "Item" };
+            var text = Single(engine, new RollCommand { ObjectId = "d6" });
+            Assert.Contains(text.Substring("seat_1 rolled a d6: ".Length), die.Labels);
+            Assert.Equal("Extra Turn", die.Face(2));
+            Assert.Equal("7", die.Face(7));
+            Assert.False(die.Numeric);
+            Assert.True(new Die { Labels = new List<string> { "1", "2", "", "4", "5", "6" } }.Numeric);
         }
 
         [Fact]

@@ -565,7 +565,7 @@ namespace TableWorld.View.Hud
         {
             Deck deck => $"Deck · {deck.Cards.Count} cards · {(deck.IsFaceUp ? "face up" : "face down")}",
             Card card => $"Card · {(card.IsFaceUp ? "face up" : "face down")}",
-            Die die => $"d{die.Faces} · {(die.Value.HasValue ? $"shows {die.Value}" : "not rolled")}",
+            Die die => $"d{die.Faces} · {(die.Value is { } value ? $"shows {die.Face(value)}" : "not rolled")}",
             Bag bag => $"{model.Type} · {_table.Engine.ContentsOf(bag.Id).Count()} inside",
             _ => model.Type,
         } + (model.Locked ? " · locked" : "");
@@ -596,7 +596,7 @@ namespace TableWorld.View.Hud
             _ => "full",
         };
 
-        private readonly List<(int Faces, int Value)> _rolls = new List<(int, int)>();
+        private readonly List<(int Faces, int Value, string Face, bool Numeric)> _rolls = new List<(int, int, string, bool)>();
         private int _rollsFrame = -1;
 
         /// <summary>What was rolled; dice rolled together (G20) are listed together with their total.</summary>
@@ -609,12 +609,14 @@ namespace TableWorld.View.Hud
             }
             foreach (var rolled in result.Events.OfType<DieRolled>())
                 if (_table.Engine.Find(rolled.ObjectId) is Die die)
-                    _rolls.Add((die.Faces, rolled.Value));
+                    _rolls.Add((die.Faces, rolled.Value, die.Face(rolled.Value), die.Numeric));
             if (_rolls.Count == 0)
                 return "Rolled";
             if (_rolls.Count == 1)
-                return $"Rolled {_rolls[0].Value} (d{_rolls[0].Faces})";
-            return $"Rolled {string.Join(", ", _rolls.Select(r => $"{r.Value} (d{r.Faces})"))} · total {_rolls.Sum(r => r.Value)}";
+                return $"Rolled {_rolls[0].Face} (d{_rolls[0].Faces})";
+            var list = $"Rolled {string.Join(", ", _rolls.Select(r => $"{r.Face} (d{r.Faces})"))}";
+            // Labelled faces (G21) do not add up.
+            return _rolls.All(r => r.Numeric) ? $"{list} · total {_rolls.Sum(r => r.Value)}" : list;
         }
 
         private async void HostOnline(TextField address)

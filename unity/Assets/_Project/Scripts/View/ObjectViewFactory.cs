@@ -232,7 +232,8 @@ namespace TableWorld.View
         private static void RefreshDie(ObjectView view, AssetLibrary assets, Die die, Color tint)
         {
             var geometry = DiceGeometry.Get(die.Faces);
-            view.Filter.sharedMesh = geometry.Mesh;
+            // A custom d6 image follows the TTS template (G21); other custom dice use the builtin atlas layout.
+            view.Filter.sharedMesh = die.Asset != null && geometry.TemplateMesh != null ? geometry.TemplateMesh : geometry.Mesh;
             var material = die.Asset != null
                 ? assets.ImageMaterial(die.Asset, tint)
                 : assets.ImageMaterial(BuiltinDiceAsset(assets), tint);

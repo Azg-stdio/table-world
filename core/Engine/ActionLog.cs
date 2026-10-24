@@ -46,9 +46,11 @@ namespace Core.Engine
                     var rolls = result.Events.OfType<DieRolled>().ToList();
                     if (rolls.Count == 0)
                         return null;
+                    string Face(DieRolled r) => engine.Find(r.ObjectId) is Die die ? die.Face(r.Value) : r.Value.ToString();
+                    var numeric = rolls.All(r => !(engine.Find(r.ObjectId) is Die { Numeric: false }));
                     return rolls.Count == 1
-                        ? $"rolled {Name(rolls[0].ObjectId)}: {rolls[0].Value}"
-                        : $"rolled {string.Join(", ", rolls.Select(r => r.Value))} · total {rolls.Sum(r => r.Value)}";
+                        ? $"rolled {Name(rolls[0].ObjectId)}: {Face(rolls[0])}"
+                        : $"rolled {string.Join(", ", rolls.Select(Face))}" + (numeric ? $" · total {rolls.Sum(r => r.Value)}" : "");
                 }
                 case DealCommand c:
                 {

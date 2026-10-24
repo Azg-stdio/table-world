@@ -30,6 +30,7 @@ table = {
         {"id": "std_deck", "type": "image", "path": "builtin:standard_deck", "columns": 10, "rows": 7},
         {"id": "std_back", "type": "image", "path": "builtin:standard_back"},
         {"id": "placeholder_model", "type": "model", "path": "builtin:placeholder"},
+        {"id": "d6_template", "type": "image", "path": "builtin:d6_template"},
     ],
     "objects": [
         {"id": "deck_main", "type": "Deck", "name": "Standard deck", "faceAsset": "std_deck", "backAsset": "std_back",
@@ -47,6 +48,9 @@ table = {
         {"id": "tile_square", "type": "Tile", "shape": "square", **at(0.05, 0.3)},
         {"id": "tile_hex", "type": "Tile", "shape": "hex", **at(0.12, 0.3)},
         {"id": "tile_circle", "type": "Tile", "shape": "circle", **at(0.19, 0.3)},
+        # A custom die (G21): its image follows the TTS d6 template, and its faces have names.
+        {"id": "event_die", "type": "Die", "name": "Event die", "faces": 6, "asset": "d6_template", "value": 2,
+         "labels": ["Draw a card", "Move 2", "Swap seats", "Move 4", "Roll again", "Lose a turn"], **at(0.02, -0.28)},
         # Counted stacks (G14): drop the loose chip on the stack, drag one off, right-click to split.
         {"id": "chips_gold", "type": "Token", "name": "Gold chip", "shape": "round", "stackable": True, "count": 10,
          "tint": [0.95, 0.75, 0.2], **at(0.1, -0.28)},

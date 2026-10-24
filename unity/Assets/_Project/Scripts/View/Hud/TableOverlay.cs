@@ -211,13 +211,22 @@ namespace TableWorld.View.Hud
                     break;
                 }
                 case Die die:
-                    Section($"d{die.Faces}{(die.Value.HasValue ? $" · shows {die.Value}" : "")}");
+                    Section($"d{die.Faces}{(die.Value is { } shown ? $" · shows {die.Face(shown)}" : "")}");
                     var selectedDice = _interaction.Selection.Contains(view) ? _interaction.Selection.Where(v => v.Model is Die).ToList() : null;
                     if (selectedDice != null && selectedDice.Count > 1)
                         Item($"Roll {selectedDice.Count} selected dice (R)", () => _interaction.RollDice(selectedDice));
                     else
                         Item("Roll (R)", () => _interaction.RollOrShuffle(view));
-                    Row("Set value", Enumerable.Range(1, die.Faces).Select(v => ($"{v}", (Action)(() => Run(new SetDieValueCommand { ObjectId = die.Id, Value = v })))));
+                    // Labelled faces (G21) are listed one per line; numbers fit on one row.
+                    var setValue = Enumerable.Range(1, die.Faces).Select(v => (die.Face(v), (Action)(() => Run(new SetDieValueCommand { ObjectId = die.Id, Value = v }))));
+                    if (die.Numeric)
+                        Row("Set value", setValue);
+                    else
+                    {
+                        Section("Set face");
+                        foreach (var (label, set) in setValue)
+                            Item(label, set);
+                    }
                     break;
                 case Counter counter:
                     Section($"Counter · {counter.Value}");

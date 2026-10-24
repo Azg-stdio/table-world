@@ -34,8 +34,8 @@ TTS `Name` → our `type`. Prefix `Custom_` means the mesh/image comes from a UR
 | `Deck`, `DeckCustom` | `Deck` | `DeckIDs[]`, `ContainedObjects[]` (full cards), `CustomDeck{}`; `DeckIDs[0]` is the **top** card, same as our `cards[0]`. Contained cards' `Transform` is stale (their last position before joining) and is ignored |
 | `Custom_Token` | `Token` | `CustomImage.ImageURL`, `ImageSecondaryURL`, `ImageScalar`, `WidthScale`, `CustomToken.Thickness`, `MergeDistancePixels`, `StandUp`, `Stackable`; `Number` (pieces in a stack) → `count` *(verify in TTS that stacks save this way; no local mod has a saved stack)* |
 | `Custom_Tile` | `Tile` | `CustomImage.CustomTile.Type` (0 box, 1 hex, 2 circle, 3 rounded), `Thickness`, `Stackable`, `Stretch`; `Number` → `count` |
-| `Die_4/6/8/10/12/20`, `Die_6_Rounded` | `Die` | `RotationValues[]` (value ↔ rotation), `faces` |
-| `Custom_Dice` | `Die` | `CustomImage.CustomDice.Type` (0 d4, 1 d6, 2 d8, 3 d10, 4 d12, 5 d20), image |
+| `Die_4/6/8/10/12/20`, `Die_6_Rounded` | `Die` | `faces`; `RotationValues[]` → `labels`: each entry labels the face its rotation turns up (not its list position: `Die_6_Rounded` lists them in another order). Our d6 numbers faces as TTS does (1 +Z, 2 +Y, 3 −X, 4 +X, 5 −Y, 6 −Z), so a save's rotation shows the same value. Labels that are just the face's number are dropped |
+| `Custom_Dice` | `Die` | `CustomImage.CustomDice.Type` (0 d4, 1 d6, 2 d8, 3 d10, 4 d12, 5 d20); `ImageURL` → `asset`. The d6 image is the TTS template: a square, top third unused, then two rows of three cells `2 4 5` / `1 3 6`, the 1 and 6 printed upside down (checked against a local mod's die, 2026-10-23; `builtin:d6_template` is a sample). Templates for other dice are not mapped yet (no local mod uses them): they draw with the builtin atlas layout |
 | `Custom_Model` | `Model` | `CustomMesh.MeshURL` (OBJ), `DiffuseURL`, `NormalURL`, `ColliderURL`, `Convex`, `MaterialIndex` (0 plastic, 1 wood, 2 metal, 3 cardboard, 4 glass), `TypeIndex` (0 generic, 1 figurine, 2 dice, 3 coin, 4 board, 5 chip, 6 bag, 7 infinite bag), `CastShadows` |
 | `Custom_Model_Bag`, `Custom_Model_Infinite_Bag` | `Bag` / `InfiniteBag` with a `Model` look | as `Custom_Model` + `ContainedObjects` |
 | `Custom_Assetbundle` | `Model` (source = bundle) | `CustomAssetbundle.AssetbundleURL`, `AssetbundleSecondaryURL`, `MaterialIndex`, `TypeIndex`, `LoopingEffectIndex`, `TriggerEffectIndex`; load via ADR 0001 remap or placeholder |
@@ -97,4 +97,4 @@ Re-run `python -I tools/tts-analysis/analyze_mods.py` after adding mods to refre
 | Deck order | **Resolved (T1.3):** `DeckIDs[0]` is the top |
 | Table surface height | **Resolved (T1.3):** 0.96 units on default tables |
 | Card base size in TTS units → `TtsUnitsToMeters` | **Bounded (T1.3):** ≤ 2.97 units wide; exact `getBounds()` in T8.1 |
-| `RotationValues` on dice, `Custom_Dice` value ↔ rotation | Open → T8.1 (no dice logic needs it before the importer) |
+| `RotationValues` on dice, `Custom_Dice` value ↔ rotation | d6 settled (G21, above); other dice open → T8.1 |

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -160,12 +161,26 @@ namespace Core.Rules
         public static readonly IReadOnlyList<int> SupportedFaces = new[] { 4, 6, 8, 10, 12, 20 };
 
         public int Faces { get; set; } = 6;
-        /// <summary>Optional label per face; length must equal <see cref="Faces"/>.</summary>
+        /// <summary>
+        /// Optional label per face, value 1 first; length must equal <see cref="Faces"/> (TTS <c>RotationValues</c>, e.g.
+        /// "Extra Turn"). A labelled die shows and announces its label instead of the number (G21).
+        /// </summary>
         public List<string>? Labels { get; set; }
         /// <summary>Face showing up, 1..Faces; null before the first roll.</summary>
         public int? Value { get; set; }
-        /// <summary>Optional image asset for custom dice (TTS <c>Custom_Dice</c>).</summary>
+        /// <summary>
+        /// Optional image for custom dice (TTS <c>Custom_Dice</c>). A d6 image follows the TTS template: a square whose
+        /// lower two thirds hold the faces in two rows of three (see docs/tts-mapping.md).
+        /// </summary>
         public string? Asset { get; set; }
+
+        /// <summary>What face <paramref name="value"/> says: its label, or the number.</summary>
+        public string Face(int value) =>
+            Labels != null && value >= 1 && value <= Labels.Count && !string.IsNullOrWhiteSpace(Labels[value - 1]) ? Labels[value - 1] : value.ToString();
+
+        /// <summary>True when every face is a plain number (rolls can be added up).</summary>
+        [Newtonsoft.Json.JsonIgnore]
+        public bool Numeric => Labels == null || Labels.Select((l, i) => (l, i)).All(p => string.IsNullOrWhiteSpace(p.l) || p.l == (p.i + 1).ToString());
     }
 
     public sealed class Model : TableObject

@@ -9,6 +9,12 @@ namespace TableWorld.View.Meshes
     /// d4–d20 as convex polyhedra. Faces are found by brute force (planes through three vertices with every other vertex
     /// behind them), numbered so opposite faces add up to n + 1, and UV-mapped onto the builtin dice number atlas.
     /// A die shows value v when face v points up; a d4 reads the face pointing down.
+    /// <para>
+    /// The d6 follows TTS so a save's rotations show the same values: 1 on +Z, 2 on +Y (up at rest), 3 on −X, 4 on +X,
+    /// 5 on −Y, 6 on −Z. It also has <see cref="TemplateMesh"/> for custom images in the TTS d6 template (G21): the top
+    /// third of the square image is unused, below it two rows of three faces: 2 4 5 / 1 3 6, the 1 and 6 printed upside
+    /// down.
+    /// </para>
     /// </summary>
     public sealed class DiceGeometry
     {
@@ -19,13 +25,25 @@ namespace TableWorld.View.Meshes
         /// <summary>Outward local normal of the face showing value v, at index v − 1.</summary>
         public Vector3[] ValueNormals { get; }
         public bool ReadsDown => Faces == 4;
+        /// <summary>The same die UV-mapped for a TTS template image (d6 only; null otherwise).</summary>
+        public Mesh TemplateMesh { get; }
 
-        private DiceGeometry(int faces, Mesh mesh, Vector3[] valueNormals)
+        /// <summary>TTS d6 template: the outward normal of the face in each cell, row by row from the top.</summary>
+        public static readonly Vector3[] TemplateCells = { Vector3.up, Vector3.right, Vector3.down, Vector3.forward, Vector3.left, Vector3.back };
+
+        private DiceGeometry(int faces, Mesh mesh, Vector3[] valueNormals, Mesh templateMesh)
         {
             Faces = faces;
             Mesh = mesh;
             ValueNormals = valueNormals;
+            TemplateMesh = templateMesh;
         }
+
+        /// <summary>The value TTS gives each d6 face normal.</summary>
+        private static readonly (Vector3 Normal, int Value)[] TtsD6 =
+        {
+            (Vector3.forward, 1), (Vector3.up, 2), (Vector3.left, 3), (Vector3.right, 4), (Vector3.down, 5), (Vector3.back, 6),
+        };
 
         /// <summary>Circumradius in metres; a d6 is a 16 mm cube.</summary>
         public static float RadiusOf(int faces) => faces == 6 ? 0.016f * 0.8660254f : faces == 4 ? 0.014f : 0.012f;
@@ -78,6 +96,7 @@ namespace TableWorld.View.Meshes
             var vertices = new List<Vector3>();
             var normals = new List<Vector3>();
             var uvs = new List<Vector2>();
+            var templateUvs = new List<Vector2>();
             var triangles = new List<int>();
             var valueNormals = new Vector3[faces];
 
@@ -105,6 +124,8 @@ namespace TableWorld.View.Meshes
                     normals.Add(normal);
                     uvs.Add(new Vector2((cell.x + 0.5f + a) * cellSize.x, 1f - (cell.y + 0.5f - b) * cellSize.y));
                 }
+                if (faces == 6)
+                    AddTemplateUvs(normal, loop, centroid, templateUvs);
                 for (var i = 1; i < loop.Count - 1; i++)
                     triangles.AddRange(new[] { start, start + i, start + i + 1 });
             }
@@ -116,7 +137,36 @@ namespace TableWorld.View.Meshes
             mesh.SetTriangles(triangles, 0);
             mesh.RecalculateBounds();
             mesh.RecalculateTangents();
-            return new DiceGeometry(faces, mesh, valueNormals);
+            Mesh template = null;
+            if (faces == 6)
+            {
+                template = Object.Instantiate(mesh);
+                template.name = "d6 (TTS template)";
+                template.SetUVs(0, templateUvs);
+                template.RecalculateTangents();
+            }
+            return new DiceGeometry(faces, mesh, valueNormals, template);
+        }
+
+        /// <summary>
+        /// UVs of one d6 face in the TTS template. Each cell's art is upright on the die: on the X faces it reads with +Y
+        /// up, on the Z faces (printed upside down in the template) with -Y up, on top and bottom with +Z up.
+        /// </summary>
+        private static void AddTemplateUvs(Vector3 normal, List<Vector3> loop, Vector3 centroid, List<Vector2> uvs)
+        {
+            var index = System.Array.FindIndex(TemplateCells, n => Vector3.Dot(n, normal) > 0.99f);
+            var column = index % 3;
+            var row = index / 3;
+            var up = Mathf.Abs(normal.y) > 0.5f ? Vector3.forward : Mathf.Abs(normal.z) > 0.5f ? Vector3.down : Vector3.up;
+            var right = Vector3.Cross(normal, up).normalized;
+            var half = loop.Max(p => Mathf.Abs(Vector3.Dot(p - centroid, right)));
+            foreach (var p in loop)
+            {
+                var a = Vector3.Dot(p - centroid, right) / half * 0.5f;
+                var b = Vector3.Dot(p - centroid, up) / half * 0.5f;
+                // Rows from the top of the image: row 0 spans v 2/3 to 1/3, row 1 spans 1/3 to 0.
+                uvs.Add(new Vector2((column + 0.5f + a) / 3f, (2f - row - 0.5f + b) / 3f));
+            }
         }
 
         private static IEnumerable<Vector3> Vertices(int faces)
@@ -218,6 +268,8 @@ namespace TableWorld.View.Meshes
         /// <summary>Values 1..n; each face's opposite (antiparallel normal) gets n + 1 − v when one exists.</summary>
         private static int[] AssignValues(List<(Vector3 Normal, List<Vector3> Loop)> faces, int n)
         {
+            if (n == 6)
+                return faces.Select(f => TtsD6.First(t => Vector3.Dot(t.Normal, f.Normal) > 0.99f).Value).ToArray();
             var order = Enumerable.Range(0, faces.Count)
                 .OrderByDescending(i => Mathf.Round(faces[i].Normal.y * 1000f))
                 .ThenBy(i => Mathf.Atan2(faces[i].Normal.z, faces[i].Normal.x))
