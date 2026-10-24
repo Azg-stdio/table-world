@@ -109,6 +109,12 @@ namespace Core.Engine
                     return $"laid out {ZoneName(engine, c.ZoneId)}";
                 case RandomizeZoneCommand c:
                     return $"randomized {ZoneName(engine, c.ZoneId)}";
+                case AddDrawingCommand c:
+                    return c.Drawing.Arrow ? "drew an arrow" : "drew on the table";
+                case EraseDrawingCommand _:
+                    return "erased a drawing";
+                case ClearDrawingsCommand c:
+                    return c.Seat == null ? "cleared every drawing" : $"cleared {c.Seat}'s drawings";
                 case SetGridCommand { Grid: null }:
                     return "removed the grid";
                 case SetGridCommand c:

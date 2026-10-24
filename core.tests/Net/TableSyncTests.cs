@@ -110,6 +110,16 @@ namespace Core.Tests.Net
                 new GroupCommand { ObjectIds = { "a", "b" } },
                 new PerformActionCommand { ActionId = "play", Actor = "s1", Params = { ["card"] = "c1" } },
                 new SetPropertiesCommand { ObjectId = "a", Tint = new[] { 1f, 0f, 0f } },
+                new TakeCommand { ContainerId = "stack", Count = 3 },
+                new SetGridCommand { Grid = new GridDef { Shape = GridShape.Hex, Lines = false, Snapping = GridSnapping.Both, Opacity = 0f } },
+                new SetGridCommand { Grid = null },
+                new AddDrawingCommand { Drawing = new DrawingDef { Points = { new Vec3(0, 0, 0), new Vec3(0.1f, 0, 0.2f) }, Arrow = true, Seat = "s1" } },
+                new EraseDrawingCommand { DrawingId = "drawing-1" },
+                new ClearDrawingsCommand { Seat = "s1" },
+                new ArrangeZoneCommand { ZoneId = "row" },
+                new RandomizeZoneCommand { ZoneId = "mix" },
+                new LockCommand { ObjectId = "a", Locked = false },
+                new SetTurnOrderCommand { Enabled = false },
             };
             foreach (var command in commands)
             {
@@ -117,6 +127,12 @@ namespace Core.Tests.Net
                 var decoded = CommandCodec.Decode(JObject.Parse(encoded.ToString()));
                 Assert.Equal(encoded.ToString(), CommandCodec.Encode(decoded).ToString());
             }
+            // False and zero survive the wire (an unlock must not arrive as a lock).
+            Assert.False(((LockCommand)CommandCodec.Decode(CommandCodec.Encode(new LockCommand { Locked = false }))).Locked);
+            Assert.False(((SetTurnOrderCommand)CommandCodec.Decode(CommandCodec.Encode(new SetTurnOrderCommand { Enabled = false }))).Enabled);
+            var grid = ((SetGridCommand)CommandCodec.Decode(CommandCodec.Encode(new SetGridCommand { Grid = new GridDef { Lines = false, Opacity = 0f } }))).Grid!;
+            Assert.False(grid.Lines);
+            Assert.Equal(0f, grid.Opacity);
             Assert.Throws<System.FormatException>(() => CommandCodec.Decode(new JObject { ["type"] = "Command" }));
         }
 

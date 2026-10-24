@@ -192,6 +192,9 @@ namespace Core.Engine
             RollCommand c => Roll(c),
             SetPhysicsCommand c => SetPhysics(c),
             SetGridCommand c => SetGrid(c),
+            AddDrawingCommand c => AddDrawing(c),
+            EraseDrawingCommand c => EraseDrawing(c),
+            ClearDrawingsCommand c => ClearDrawings(c),
             SetTurnOrderCommand c => SetTurnOrder(c),
             EndTurnCommand c => EndTurn(c),
             ScaleCommand c => Scale(c),
@@ -485,6 +488,48 @@ namespace Core.Engine
                 return CommandResult.Fail(bad.Path, bad.Code, bad.Message);
             State.Grid = c.Grid;
             return CommandResult.Success(new List<StateEvent> { new TableSettingsChanged() });
+        }
+
+        // ---- drawings (G28) -----------------------------------------------------------------------------------------
+
+        public const int MaxDrawings = 500;
+
+        private CommandResult AddDrawing(AddDrawingCommand c)
+        {
+            var d = c.Drawing;
+            if (d == null)
+                return CommandResult.Fail("drawing", ErrorCodes.MissingField, "No drawing.");
+            if (TableValidator.CheckDrawing(d, "drawing").FirstOrDefault() is { } bad)
+                return CommandResult.Fail(bad.Path, bad.Code, bad.Message);
+            if (State.Drawings.Count >= MaxDrawings)
+                return CommandResult.Fail("drawing", ErrorCodes.LimitReached, $"The table holds at most {MaxDrawings} drawings.", "Erase some first.");
+            if (string.IsNullOrEmpty(d.Id) || State.Drawings.Any(x => x.Id == d.Id))
+                d.Id = MintDrawingId();
+            State.Drawings.Add(d);
+            var result = CommandResult.Success(new List<StateEvent> { new DrawingsChanged() });
+            result.CreatedId = d.Id;
+            return result;
+        }
+
+        private string MintDrawingId()
+        {
+            for (var n = State.Drawings.Count + 1; ; n++)
+                if (State.Drawings.All(x => x.Id != $"drawing-{n}"))
+                    return $"drawing-{n}";
+        }
+
+        private CommandResult EraseDrawing(EraseDrawingCommand c)
+        {
+            var removed = State.Drawings.RemoveAll(d => d.Id == c.DrawingId);
+            return removed == 0
+                ? CommandResult.Fail("drawingId", ErrorCodes.UnknownObject, $"There is no drawing '{c.DrawingId}'.")
+                : CommandResult.Success(new List<StateEvent> { new DrawingsChanged() });
+        }
+
+        private CommandResult ClearDrawings(ClearDrawingsCommand c)
+        {
+            State.Drawings.RemoveAll(d => c.Seat == null || d.Seat == c.Seat);
+            return CommandResult.Success(new List<StateEvent> { new DrawingsChanged() });
         }
 
         // ---- free-play turns (G22) ---------------------------------------------------------------------------------

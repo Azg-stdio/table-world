@@ -47,6 +47,12 @@
         "grid": {
           "$ref": "#/$defs/GridDef"
         },
+        "drawings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DrawingDef"
+          }
+        },
         "game": {
           "$ref": "#/$defs/GameInfo"
         },
@@ -1613,6 +1619,41 @@
         },
         "hexRow": {
           "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DrawingDef": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "points": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "color": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "thickness": {
+          "type": "number"
+        },
+        "arrow": {
+          "type": "boolean"
+        },
+        "seat": {
+          "type": "string"
         }
       },
       "additionalProperties": false

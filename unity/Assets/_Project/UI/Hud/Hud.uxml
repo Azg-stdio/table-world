@@ -72,6 +72,12 @@
             <ui:Button name="saveButton" class="hud-button" text="Save (F5)" />
             <ui:Button name="loadButton" class="hud-button" text="Load (F9)" />
         </ui:VisualElement>
+        <ui:VisualElement name="toolBar" class="tool-bar">
+            <ui:Button name="toolGrab" class="tool-button tool-button--active" text="Grab" tooltip="Pick up and move (Esc)" />
+            <ui:Button name="toolDraw" class="tool-button" text="Draw" tooltip="Draw on the table in your colour" />
+            <ui:Button name="toolArrow" class="tool-button" text="Arrow" tooltip="Drag to draw an arrow" />
+            <ui:Button name="toolErase" class="tool-button" text="Erase" tooltip="Drag over drawings to erase them" />
+        </ui:VisualElement>
         <ui:VisualElement name="gamePanel" class="game-panel hidden">
             <ui:Label name="gameLog" class="game-log" />
             <ui:VisualElement name="gameActions" class="actions" />

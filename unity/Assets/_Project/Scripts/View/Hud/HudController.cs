@@ -110,6 +110,9 @@ namespace TableWorld.View.Hud
                 _handBar = new HandBar(_root, _table, _interaction);
                 _help = new ControlsHelp(_root);
                 _interaction.Pinged += OnPing;
+                foreach (var (name, tool) in new[] { ("toolGrab", TableInteraction.Tool.Grab), ("toolDraw", TableInteraction.Tool.Draw),
+                             ("toolArrow", TableInteraction.Tool.Arrow), ("toolErase", TableInteraction.Tool.Erase) })
+                    _root.Q<Button>(name).clicked += () => SetTool(tool);
             }
             if (_table != null)
             {
@@ -220,10 +223,23 @@ namespace TableWorld.View.Hud
                 PressEscape();
         }
 
+        /// <summary>Picks the left button's tool (G28) and lights its button.</summary>
+        public void SetTool(TableInteraction.Tool tool)
+        {
+            if (_interaction == null)
+                return;
+            _interaction.ActiveTool = tool;
+            foreach (var (name, t) in new[] { ("toolGrab", TableInteraction.Tool.Grab), ("toolDraw", TableInteraction.Tool.Draw),
+                         ("toolArrow", TableInteraction.Tool.Arrow), ("toolErase", TableInteraction.Tool.Erase) })
+                _root.Q<Button>(name)?.EnableInClassList("tool-button--active", t == tool);
+        }
+
         /// <summary>What Escape does (also called by tests).</summary>
         public void PressEscape()
         {
-            if (_overlay != null && _overlay.MenuOpen)
+            if (_interaction != null && _interaction.ActiveTool != TableInteraction.Tool.Grab)
+                SetTool(TableInteraction.Tool.Grab);
+            else if (_overlay != null && _overlay.MenuOpen)
                 _overlay.CloseMenu();
             else if (_overlay != null && _overlay.SearchOpen)
                 _overlay.CloseSearch();
@@ -596,7 +612,8 @@ namespace TableWorld.View.Hud
 
         private void OnCommand(Command command, CommandResult result)
         {
-            if (result.Ok && command is MoveCommand)
+            // Moves and strokes are too frequent for the status line (strokes are in the game log).
+            if (result.Ok && (command is MoveCommand || command is AddDrawingCommand || command is EraseDrawingCommand))
                 return;
             var name = command.GetType().Name.Replace("Command", "");
             _status.text = result.Ok ? (command is RollCommand ? RollText(result) : command is SetPhysicsCommand physics ? $"Physics: {PhysicsName(physics.Mode)}" : TurnText(command) ?? $"{name}: done")

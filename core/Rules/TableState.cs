@@ -106,6 +106,9 @@ namespace Core.Rules
         public PhysicsMode Physics { get; set; }
         /// <summary>The table grid (G28): lines and snapping; null means none. Only the host changes it.</summary>
         public GridDef? Grid { get; set; }
+        /// <summary>Lines and arrows players drew on the table (G28).</summary>
+        public List<DrawingDef> Drawings { get; set; } = new List<DrawingDef>();
+        public bool ShouldSerializeDrawings() => Drawings.Count > 0;
 
         // ---- rules (docs/rules-schema.md); all optional: a table without them is free play ----
 

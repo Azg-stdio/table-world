@@ -95,6 +95,14 @@ namespace Core.Engine
         }
     }
 
+    /// <summary>Drawings were added, erased or cleared (G28); the view redraws them.</summary>
+    public sealed class DrawingsChanged : StateEvent
+    {
+        public DrawingsChanged() : base("")
+        {
+        }
+    }
+
     /// <summary>A line for the game log (a <c>message</c> effect or a win). Not tied to an object.</summary>
     public sealed class GameMessage : StateEvent
     {

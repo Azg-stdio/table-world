@@ -957,3 +957,35 @@
 .seat-swatch--none {
     background-color: rgba(255, 255, 255, 0.15);
 }
+
+/* Left-button tools (G28): a column at the left edge; the active one is lit. */
+.tool-bar {
+    position: absolute;
+    left: 12px;
+    top: 38%;
+    padding: 4px;
+    border-radius: 6px;
+    background-color: rgba(16, 18, 22, 0.82);
+}
+
+.tool-button {
+    margin: 2px 0;
+    padding: 4px 10px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
+    background-color: rgb(46, 52, 62);
+    color: rgb(220, 216, 206);
+    font-size: 14px;
+}
+
+.tool-button:hover {
+    background-color: rgb(66, 76, 92);
+}
+
+.tool-button--active {
+    border-color: rgb(242, 196, 82);
+    background-color: rgba(242, 196, 82, 0.25);
+    color: rgb(255, 252, 244);
+    -unity-font-style: bold;
+}

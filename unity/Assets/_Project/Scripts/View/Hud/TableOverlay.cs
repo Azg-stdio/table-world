@@ -153,6 +153,12 @@ namespace TableWorld.View.Hud
             Item("Load camera 1 (Shift+1)", () => _camera.Load(1));
             Item("Paste (Ctrl+V)", () => _interaction.Paste(_menuWorldPoint));
             ZoneEntries(_menuWorldPoint);
+            // Drawings (G28): your own, or (host) everyone's.
+            var drawings = _table.Engine.State.Drawings;
+            if (!_table.Spectating && drawings.Any(d => d.Seat == _table.LocalSeat))
+                Item("Clear my drawings", () => Run(new ClearDrawingsCommand { Seat = _table.LocalSeat }));
+            if (_table.MayChangeTable && drawings.Count > 0)
+                Item("Clear all drawings", () => Run(new ClearDrawingsCommand()));
             Item("Undo (Ctrl+Z)", () => _table.Undo());
             Item("Redo (Ctrl+Y)", () => _table.Redo());
             if (_table.MayChangeTable && !_table.Engine.State.HasRules)

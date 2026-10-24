@@ -87,6 +87,7 @@ Everything below already passes automated tests on one machine (two processes, s
 - [ ] Players (top bar, host): everyone shows with the name they set in Settings; promote a friend and they get Physics and Turns in the table menu; make a friend Game Master and they see your hand and north's secret area; put two friends on a team and `/t` reaches only them; mute stops a friend's chat; Remove sends them back to their own table with a message.
 - [ ] Rewind (host: right-click the felt → Rewind): after a few minutes of play, stepping back puts everyone's table where it was, forward brings it back, and friends see the notice.
 - [ ] Grid (host: right-click the felt → Grid): squares and hexes look right on everyone's screen and drops snap where people expect.
+- [ ] Drawing (left tool bar): friends see your lines and arrows appear in your colour; Erase and "Clear my drawings" work; drawing feels smooth with a real mouse.
 - [ ] Chat: Enter, type, Enter: everyone sees it with your seat colour; `/roll 2d6` shows the same dice for everyone; the Log tab reads the same on every screen and never names a card someone could not see; typing never flips or moves anything.
 
 **After the session**

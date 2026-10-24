@@ -77,6 +77,7 @@ namespace TableWorld.View.Hud
                 ("Ctrl + Z / Ctrl + Y", "Undo / redo (playing alone)"),
                 ("Right click the table → Rewind", "Host: step the whole table back in time, and forward again"),
                 ("Right click the table → Grid", "Host: squares or hexes, snapping, cell size, lines"),
+                ("Draw / Arrow / Erase (left tool bar)", "Draw on the table in your colour, drag an arrow, rub drawings out; Esc goes back to Grab"),
                 ("F5 / F9", "Quick save / quick load"),
                 ("Tab + click", "Ping"),
                 ("Tab + drag", "Measure"),

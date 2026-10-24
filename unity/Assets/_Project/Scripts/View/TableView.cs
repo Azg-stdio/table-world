@@ -317,7 +317,23 @@ namespace TableWorld.View
                 Spawn(obj);
             SpawnZones();
             RefreshGrid();
+            RefreshDrawings();
             PresentHands();
+        }
+
+        private Transform _drawings;
+
+        /// <summary>Drawings on the table (G28), one child per drawing.</summary>
+        public Transform DrawingsRoot => _drawings;
+
+        private void RefreshDrawings()
+        {
+            if (_drawings == null)
+            {
+                _drawings = new GameObject("Drawings").transform;
+                _drawings.SetParent(transform, false);
+            }
+            DrawingView.Rebuild(_drawings, Engine?.State.Drawings ?? new List<DrawingDef>());
         }
 
         private GameObject _grid;
@@ -949,6 +965,9 @@ namespace TableWorld.View
                             Spawn(obj);
                             ComeOutOf(ViewOf(obj.Id), added.From);
                         }
+                        break;
+                    case DrawingsChanged _:
+                        RefreshDrawings();
                         break;
                     case TableSettingsChanged _:
                         foreach (var each in _views.Values)

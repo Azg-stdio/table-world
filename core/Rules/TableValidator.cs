@@ -19,6 +19,21 @@ namespace Core.Rules
             return v.Errors;
         }
 
+        /// <summary>Problems with a drawing (G28): 1 to <see cref="DrawingDef.MaxPoints"/> points on or near the table, a colour, a thickness.</summary>
+        public static List<ValidationError> CheckDrawing(DrawingDef d, string path)
+        {
+            var errors = new List<ValidationError>();
+            if (d.Points == null || d.Points.Count < 1 || d.Points.Count > DrawingDef.MaxPoints)
+                errors.Add(new ValidationError($"{path}.points", ErrorCodes.InvalidValue, $"A drawing has 1 to {DrawingDef.MaxPoints} points."));
+            else if (d.Points.Any(p => !(System.Math.Abs(p.X) <= 10f && System.Math.Abs(p.Y) <= 10f && System.Math.Abs(p.Z) <= 10f)))
+                errors.Add(new ValidationError($"{path}.points", ErrorCodes.InvalidValue, "Drawing points must be within 10 m of the table."));
+            if (d.Color == null || d.Color.Length < 3 || d.Color.Length > 4 || d.Color.Any(c => !(c >= 0f && c <= 1f)))
+                errors.Add(new ValidationError($"{path}.color", ErrorCodes.InvalidValue, "color is three or four numbers from 0 to 1."));
+            if (!(d.Thickness >= DrawingDef.MinThickness && d.Thickness <= DrawingDef.MaxThickness))
+                errors.Add(new ValidationError($"{path}.thickness", ErrorCodes.InvalidValue, $"thickness is {DrawingDef.MinThickness} to {DrawingDef.MaxThickness} m."));
+            return errors;
+        }
+
         /// <summary>Problems with a grid (G28): sizes in range, a colour of three or four 0–1 numbers, opacity 0–1, known enums.</summary>
         public static List<ValidationError> CheckGrid(GridDef grid, string path)
         {
@@ -77,6 +92,13 @@ namespace Core.Rules
                     CheckEnvironment(_state.Environment, "environment");
                 if (_state.Grid != null)
                     Errors.AddRange(CheckGrid(_state.Grid, "grid"));
+                var drawingIds = new HashSet<string>();
+                for (var i = 0; i < _state.Drawings.Count; i++)
+                {
+                    Errors.AddRange(CheckDrawing(_state.Drawings[i], $"drawings[{i}]"));
+                    if (!drawingIds.Add(_state.Drawings[i].Id))
+                        Add($"drawings[{i}].id", ErrorCodes.DuplicateId, $"Two drawings are called '{_state.Drawings[i].Id}'.");
+                }
                 RulesValidator.Validate(_state, Errors);
             }
 

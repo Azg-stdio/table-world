@@ -162,8 +162,121 @@ namespace TableWorld.View
         /// <summary>Tab + click: a ping at a world point.</summary>
         public event Action<Vector3> Pinged;
 
+        /// <summary>What the left button does (G28): grab (TTS's default), draw freehand, draw an arrow, or erase drawings.</summary>
+        public enum Tool { Grab, Draw, Arrow, Erase }
+
+        private Tool _tool;
+
+        /// <summary>The active tool; changing it drops any drawing in progress.</summary>
+        public Tool ActiveTool
+        {
+            get => _tool;
+            set
+            {
+                _tool = value;
+                EndStroke(commit: false);
+            }
+        }
+
+        /// <summary>Freehand points closer together than this are merged.</summary>
+        public const float DrawStep = 0.004f;
+        /// <summary>The eraser removes drawings within this distance of the pointer.</summary>
+        public const float EraseRadius = 0.012f;
+
+        private List<Vec3> _stroke;
+        private GameObject _strokePreview;
+
         /// <summary>The local player picked something up (for its sound).</summary>
         public event Action<ObjectView> PickedUp;
+
+        // ---- drawing tools (G28) ----------------------------------------------------------------------------------
+
+        /// <summary>One frame of the draw, arrow or erase tool: pressed this frame, held, and where the pointer touches the table.</summary>
+        public void HandleDrawingTool(bool pressed, bool held, Vector3? at)
+        {
+            if (_table.Spectating)
+                return;
+            if (_tool == Tool.Erase)
+            {
+                if (held && at is { } p)
+                    EraseAt(p);
+                return;
+            }
+            if (pressed && at is { } start)
+            {
+                _stroke = new List<Vec3> { start.ToCore() };
+                return;
+            }
+            if (_stroke == null)
+                return;
+            if (held)
+            {
+                if (at is { } p)
+                {
+                    if (_tool == Tool.Arrow)
+                    {
+                        if (_stroke.Count == 1)
+                            _stroke.Add(p.ToCore());
+                        else
+                            _stroke[1] = p.ToCore();
+                    }
+                    else if (Vector3.Distance(p, _stroke[_stroke.Count - 1].ToUnity()) >= DrawStep && _stroke.Count < DrawingDef.MaxPoints)
+                        _stroke.Add(p.ToCore());
+                    ShowStroke();
+                }
+                return;
+            }
+            EndStroke(commit: true);
+        }
+
+        /// <summary>Removes every drawing under the pointer (one command each).</summary>
+        public int EraseAt(Vector3 at)
+        {
+            var hits = _table.Engine.State.Drawings.Where(d => d.DistanceTo(at.x, at.z) <= EraseRadius).Select(d => d.Id).ToList();
+            foreach (var id in hits)
+                _table.Execute(new EraseDrawingCommand { DrawingId = id, Actor = _table.LocalSeat });
+            return hits.Count;
+        }
+
+        private DrawingDef StrokeDrawing()
+        {
+            var seat = _table.Engine.State.Players.Seats.FirstOrDefault(s => s.Id == _table.LocalSeat);
+            var color = seat != null ? ZoneViewFactory.SeatColor(seat.Color) : Color.white;
+            return new DrawingDef
+            {
+                Points = new List<Vec3>(_stroke),
+                Color = new[] { color.r, color.g, color.b },
+                Arrow = _tool == Tool.Arrow,
+                Seat = _table.LocalSeat,
+            };
+        }
+
+        private void ShowStroke()
+        {
+            if (_strokePreview != null)
+                Destroy(_strokePreview);
+            _strokePreview = DrawingView.Build(StrokeDrawing(), _table.transform);
+        }
+
+        private void EndStroke(bool commit)
+        {
+            if (_strokePreview != null)
+                Destroy(_strokePreview);
+            _strokePreview = null;
+            var stroke = _stroke;
+            _stroke = null;
+            if (!commit || stroke == null || stroke.Count < 2)
+                return;
+            var length = 0f;
+            for (var i = 1; i < stroke.Count; i++)
+                length += Vector3.Distance(stroke[i - 1].ToUnity(), stroke[i].ToUnity());
+            if (length < 0.01f)
+                return;
+            _stroke = stroke;
+            var drawing = StrokeDrawing();
+            _stroke = null;
+            _table.Execute(new AddDrawingCommand { Drawing = drawing, Actor = _table.LocalSeat });
+        }
 
         public void Configure(TableView table, Camera camera, TableCamera tableCamera)
         {
@@ -201,8 +314,10 @@ namespace TableWorld.View
             UpdateTooltip();
             UpdateLook(alt, shift);
 
+            if (_tool != Tool.Grab && !tab && Held == null)
+                HandleDrawingTool(mouse.leftButton.wasPressedThisFrame && !overUi, mouse.leftButton.isPressed, surface && !overUi ? point : (Vector3?)null);
             // Left button on a card in the hand bar: pick that card up (it then follows the pointer like any grab).
-            if (mouse.leftButton.wasPressedThisFrame && Held == null && HandCardAt?.Invoke(pointer) is { } handCard && _table.ViewOf(handCard) is { } fromBar)
+            else if (mouse.leftButton.wasPressedThisFrame && Held == null && HandCardAt?.Invoke(pointer) is { } handCard && _table.ViewOf(handCard) is { } fromBar)
             {
                 _leftDown = pointer;
                 _leftTime = Time.unscaledTime;
@@ -210,7 +325,7 @@ namespace TableWorld.View
                 Grab(fromBar, moveContainer: false);
             }
             // Left button: grab, box select, or (with Tab) ping and measure.
-            else if (mouse.leftButton.wasPressedThisFrame && Held == null && !overUi)
+            else if (mouse.leftButton.wasPressedThisFrame && Held == null && !overUi && (_tool == Tool.Grab || tab))
             {
                 _leftDown = pointer;
                 _leftTime = Time.unscaledTime;

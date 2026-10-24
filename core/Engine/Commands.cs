@@ -128,6 +128,24 @@ namespace Core.Engine
     {
     }
 
+    /// <summary>Adds a line or arrow drawn on the table (G28). The engine gives it an id when it has none.</summary>
+    public sealed class AddDrawingCommand : Command
+    {
+        public DrawingDef Drawing { get; set; } = new DrawingDef();
+    }
+
+    /// <summary>Erases one drawing (G28).</summary>
+    public sealed class EraseDrawingCommand : Command
+    {
+        public string DrawingId { get; set; } = "";
+    }
+
+    /// <summary>Erases every drawing; with <see cref="Seat"/>, only that seat's (G28).</summary>
+    public sealed class ClearDrawingsCommand : Command
+    {
+        public string? Seat { get; set; }
+    }
+
     /// <summary>Sets the table grid (G28): lines, snapping, shape and size; null removes it. Host only.</summary>
     public sealed class SetGridCommand : Command, IHostCommand
     {
