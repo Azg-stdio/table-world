@@ -123,10 +123,14 @@ namespace TableWorld.View.Net
             if (IsHost || IsClient)
                 return;
             Log(_table.Engine, command, result, LocalName.Length > 0 ? LocalName : _table.LocalSeat);
+            ScriptsHear(command, result, command.Actor ?? _table.LocalSeat);
         }
 
-        private void OnHostExecuted(string origin, Command command, CommandResult result) =>
+        private void OnHostExecuted(string origin, Command command, CommandResult result)
+        {
             Log(_host.Game.Table, command, result, _roster.Of(origin).Name);
+            ScriptsHear(command, result, origin == SessionHost.HostId ? command.Actor ?? _table.SeatOverride : _seating.Seat(origin));
+        }
 
         private void OnClientOrdered(string origin, Command command, CommandResult result)
         {

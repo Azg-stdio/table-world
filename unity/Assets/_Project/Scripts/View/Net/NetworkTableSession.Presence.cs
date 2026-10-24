@@ -65,6 +65,7 @@ namespace TableWorld.View.Net
                 return;
             }
             DisconnectKicked();
+            TickScripts();
             if (_network == null || !_network.IsListening || !Synced)
                 return;
             SendPresence();

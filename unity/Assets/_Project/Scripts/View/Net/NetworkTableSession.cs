@@ -82,6 +82,9 @@ namespace TableWorld.View.Net
             _table.Loaded += OnTableLoaded;
             _table.CommandExecuted += OnLocalCommand;
             _table.Rewound += OnRewound;
+            _table.Loaded += LoadScripts;
+            // The table loaded before this component woke up runs its scripts too.
+            LoadScripts();
         }
 
         private void OnDisable()
@@ -92,6 +95,7 @@ namespace TableWorld.View.Net
             _table.Loaded -= OnTableLoaded;
             _table.CommandExecuted -= OnLocalCommand;
             _table.Rewound -= OnRewound;
+            _table.Loaded -= LoadScripts;
         }
 
         /// <summary>Starts hosting the current table on <paramref name="port"/> (all interfaces).</summary>

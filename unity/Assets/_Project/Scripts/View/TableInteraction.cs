@@ -822,6 +822,9 @@ namespace TableWorld.View
             view.Held = false;
             SetHeldLayer(view, false);
             _table.NotifyTouched(view.Id);
+            // Table scripts hear the drop (onObjectDrop, M5); it changes nothing by itself.
+            if (joinBelow)
+                _table.Execute(new DropCommand { ObjectId = view.Id, Actor = _table.LocalSeat });
             // Into your own hand (over the hand bar, or over your hand zone): straight into its slot, no fall.
             if (view.Model is Card && HandOfLocalSeat() is { } ownHand)
             {
