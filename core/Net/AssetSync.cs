@@ -57,7 +57,65 @@ namespace Core.Net
 
         public bool Has(string hash) => AssetHash.IsValid(hash) && File.Exists(FileOf(hash));
 
-        public byte[]? Read(string hash) => Has(hash) ? File.ReadAllBytes(FileOf(hash)) : null;
+        public byte[]? Read(string hash)
+        {
+            if (!Has(hash))
+                return null;
+            var file = FileOf(hash);
+            // Reading marks it used, for the least-recently-used cleanup (Windows may not keep access times itself).
+            try
+            {
+                File.SetLastWriteTimeUtc(file, DateTime.UtcNow);
+            }
+            catch (IOException)
+            {
+            }
+            return File.ReadAllBytes(file);
+        }
+
+        /// <summary>Default size of the cache (T5.3): TTS tables with their models and bundles run to gigabytes.</summary>
+        public const long DefaultMaxBytes = 10L * 1024 * 1024 * 1024;
+
+        /// <summary>
+        /// Cleanup (M4 T5.3): deletes interrupted downloads older than a day, then the least recently used files until the
+        /// cache holds at most <paramref name="maxBytes"/>. Returns the bytes freed.
+        /// </summary>
+        public long Trim(long maxBytes = DefaultMaxBytes)
+        {
+            long freed = 0;
+            var files = new DirectoryInfo(Folder).GetFiles();
+            foreach (var part in files.Where(f => f.Name.EndsWith(".part", StringComparison.Ordinal) && f.LastWriteTimeUtc < DateTime.UtcNow.AddDays(-1)))
+                freed += Delete(part);
+            var kept = files.Where(f => !f.Name.EndsWith(".part", StringComparison.Ordinal) && f.Exists).OrderBy(f => f.LastWriteTimeUtc).ToList();
+            var total = kept.Sum(f => f.Length);
+            foreach (var oldest in kept)
+            {
+                if (total <= maxBytes)
+                    break;
+                var size = Delete(oldest);
+                freed += size;
+                total -= size;
+            }
+            return freed;
+        }
+
+        private static long Delete(FileInfo file)
+        {
+            try
+            {
+                var size = file.Length;
+                file.Delete();
+                return size;
+            }
+            catch (IOException)
+            {
+                return 0;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return 0;
+            }
+        }
 
         public void Write(string hash, byte[] data)
         {

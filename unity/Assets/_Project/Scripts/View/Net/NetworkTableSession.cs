@@ -465,7 +465,20 @@ namespace TableWorld.View.Net
             if (clientId != _network.LocalClientId)
                 return;
             _client = new SessionClient(clientId.ToString());
-            _assets = new AssetClient(new DirectoryAssetStore(CacheFolder));
+            var store = new DirectoryAssetStore(CacheFolder);
+            _assets = new AssetClient(store);
+            // Keep the cache within its size (T5.3), off the main thread; files this table needs are fetched again if trimmed.
+            System.Threading.Tasks.Task.Run(() =>
+            {
+                try
+                {
+                    store.Trim();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning("[Assets] Cache cleanup failed: " + e.Message);
+                }
+            });
             _assets.Ready += id =>
             {
                 _table.RefreshAsset(id);

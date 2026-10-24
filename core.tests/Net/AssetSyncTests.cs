@@ -217,6 +217,43 @@ namespace Core.Tests.Net
         }
 
         [Fact]
+        public void DirectoryStore_TrimsTheLeastRecentlyUsed_AndOldPartialDownloads()
+        {
+            var folder = Path.Combine(Path.GetTempPath(), "tw-cache-trim-" + System.Guid.NewGuid().ToString("N"));
+            var store = new DirectoryAssetStore(folder);
+            try
+            {
+                string Put(int seed, int days)
+                {
+                    var data = Enumerable.Repeat((byte)seed, 1000).ToArray();
+                    var hash = AssetHash.Of(data);
+                    store.Write(hash, data);
+                    File.SetLastWriteTimeUtc(Path.Combine(folder, hash.Substring(7)), System.DateTime.UtcNow.AddDays(-days));
+                    return hash;
+                }
+                var oldest = Put(1, 30);
+                var old = Put(2, 20);
+                var recent = Put(3, 1);
+                store.Read(old); // reading it makes it the most recently used
+                var stale = Path.Combine(folder, "abc.part");
+                File.WriteAllBytes(stale, new byte[10]);
+                File.SetLastWriteTimeUtc(stale, System.DateTime.UtcNow.AddDays(-2));
+
+                var freed = store.Trim(maxBytes: 2000);
+                Assert.Equal(1010, freed);
+                Assert.False(store.Has(oldest));
+                Assert.True(store.Has(old));
+                Assert.True(store.Has(recent));
+                Assert.False(File.Exists(stale));
+                Assert.Equal(0, store.Trim(maxBytes: 2000));
+            }
+            finally
+            {
+                Directory.Delete(folder, recursive: true);
+            }
+        }
+
+        [Fact]
         public void DirectoryStoreRoundTripsAndRejectsBadHashes()
         {
             var folder = Path.Combine(Path.GetTempPath(), "tw-assets-" + Guid.NewGuid().ToString("N"));
