@@ -195,12 +195,25 @@ namespace Core.Scripting
                     list[i++] = Capital(seat.Color);
                 return DynValue.NewTable(list);
             });
+            // Player:getColors(): every TTS colour a player can take.
+            t["getColors"] = DynValue.NewCallback((_, a) =>
+            {
+                var list = new Table(script);
+                var i = 1;
+                foreach (var color in PlayerColors)
+                    list[i++] = color;
+                return DynValue.NewTable(list);
+            });
             var meta = new Table(script);
             meta["__index"] = DynValue.NewCallback((_, a) =>
-                a.Count > 1 && a[1].Type == DataType.String ? PlayerTable(script, a[1].String) : DynValue.Nil);
+                a.Count > 1 && a[1].Type == DataType.String && PlayerColors.Contains(Capital(a[1].String))
+                    ? PlayerTable(script, a[1].String) : DynValue.Nil);
             t.MetaTable = meta;
             return DynValue.NewTable(t);
         }
+
+        private static readonly string[] PlayerColors =
+            { "White", "Brown", "Red", "Orange", "Yellow", "Green", "Teal", "Blue", "Purple", "Pink", "Grey", "Black" };
 
         /// <summary>A TTS player as scripts see it: <c>color</c>, <c>steam_name</c>, <c>seated</c>, <c>getHandObjects()</c>, <c>broadcast()</c>.</summary>
         private DynValue PlayerTable(Script script, string color)

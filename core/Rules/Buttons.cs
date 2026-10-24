@@ -8,7 +8,7 @@ namespace Core.Rules
     /// </summary>
     public sealed class ButtonDef
     {
-        public const int MaxButtons = 64;
+        public const int MaxButtons = 1000;
         public const float DefaultSize = 0.006f;
 
         public string Label { get; set; } = "";
@@ -36,7 +36,7 @@ namespace Core.Rules
     /// </summary>
     public sealed class InputDef
     {
-        public const int MaxInputs = 64;
+        public const int MaxInputs = 1000;
         public const int MaxLength = 10000;
 
         /// <summary>Placeholder shown while empty.</summary>

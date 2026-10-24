@@ -152,6 +152,23 @@ namespace Core.Tests.Scripting
         }
 
         [Fact]
+        public void VectorAndColor_WorkLikeTts_AndTheApiReturnsThem()
+        {
+            var (_, _, said) = Load(@"
+                local v = Vector(1, 2, 3) + Vector({ 1, 1, 1 })
+                local p = getObjectFromGUID('d6').getPosition() + Vector(0, 1, 0)
+                local d = Vector(3, 0, 4)
+                broadcastToAll(v.x .. ' ' .. v[3] .. ' ' .. d:magnitude() .. ' ' .. tostring(v * 2) .. ' ' .. p.y .. ' ' .. p:copy():scale(2).y)
+                local c = Color.Red
+                broadcastToAll(c:toString() .. ' ' .. Color(1, 0, 0):toHex() .. ' ' .. tostring(Color.fromHex('#00ff00'):equals({ 0, 1, 0 })))
+                broadcastToAll(tostring(getObjectFromGUID('d6').getColorTint():equals(Color.White)) .. ' ' .. MusicPlayer.player_status)
+                getObjectFromGUID('d6').AssetBundle.playLoopingEffect(0)");
+            Assert.Equal("2 4 5 {4, 6, 8} 1.96 3.92", said[0]);
+            Assert.Equal("Red ff0000 true", said[1]);
+            Assert.Equal("true Stop", said[2]);
+        }
+
+        [Fact]
         public void LogPrettyJsonAndSmoothMoving_Work()
         {
             var (_, host, said) = Load(@"

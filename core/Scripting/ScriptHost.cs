@@ -132,6 +132,7 @@ namespace Core.Scripting
             InstallApi(script, selfId);
             try
             {
+                script.DoString(LuaPrelude.Source, null, "prelude");
                 var chunk = script.LoadString(source, null, label);
                 return Run(script, chunk, label, Array.Empty<DynValue>()) ? script : null;
             }
@@ -481,7 +482,18 @@ namespace Core.Scripting
             var y = Math.Round(metres.Y / TtsUnits.TtsUnitsToMeters + TtsUnits.TableSurfaceY, 4);
             var z = Math.Round(metres.Z / TtsUnits.TtsUnitsToMeters, 4);
             t["x"] = x; t["y"] = y; t["z"] = z;
-            t[1] = x; t[2] = y; t[3] = z;
+            return AsVector(script, t, x, y, z);
+        }
+
+        /// <summary>A TTS Vector (the prelude's metatable gives v[1] and the methods); a plain table with both keys without it.</summary>
+        private static Table AsVector(Script script, Table t, double x, double y, double z)
+        {
+            if (script.Globals.Get(LuaPrelude.VectorMeta) is { Type: DataType.Table } meta)
+                t.MetaTable = meta.Table;
+            else
+            {
+                t[1] = x; t[2] = y; t[3] = z;
+            }
             return t;
         }
 
@@ -509,8 +521,7 @@ namespace Core.Scripting
             var t = new Table(script);
             double x = Math.Round(v.X, 4), y = Math.Round(v.Y, 4), z = Math.Round(v.Z, 4);
             t["x"] = x; t["y"] = y; t["z"] = z;
-            t[1] = x; t[2] = y; t[3] = z;
-            return t;
+            return AsVector(script, t, x, y, z);
         }
     }
 }

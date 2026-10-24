@@ -15,6 +15,11 @@ logged on the host and never stop the game.
 
 ## Globals
 
+`Vector(x, y, z)` / `Vector({ x, y, z })` and `Color(r, g, b[, a])` / `Color.Red` / `Color.fromHex('#ff0000')` work as in
+TTS (operators `+ - * /`, `v[1]`, `copy`, `add`, `sub`, `scale`, `magnitude`, `normalized`, `distance`, `dot`, `cross`,
+`angle`, `lerp`, `rotateOver`, `heading`; `toHex`, `toString`, `equals`, `lerp`), and positions, rotations and tints the
+API returns are Vectors and Colors.
+
 | Function | Does |
 |---|---|
 | `getObjectFromGUID(guid)` | the object or zone with that id, or nil |
@@ -36,6 +41,7 @@ logged on the host and never stop the game.
 | `Player[color]`, `Player.Red`, `Player.getPlayers()`, `Player.getAvailableColors()` | players: `color`, `steam_name`, `seated`, `getHandObjects()`, `broadcast(text)`, `print(text)`; camera calls (`lookAt`) are accepted without effect |
 | `getNotebookTabs()`, `addNotebookTab({title, body, color})`, `editNotebookTab({index, title, body, color})`, `removeNotebookTab(index)` | the notebook (G25); colour "Grey" is everyone's page |
 | `log(...)`, `JSON.encode_pretty(table)` | host log; JSON |
+| `MusicPlayer.*` | accepted without effect (music, G27, is not scripted yet); `player_status` is "Stop" |
 | `Physics.cast({ origin, direction, type, size, orientation, max_distance })` | the host's physics: `type` 1 ray, 2 sphere, 3 box; with no distance or direction, what overlaps the shape. Returns `{ hit_object, point, normal, distance }`, nearest first, objects only |
 
 ## Objects
@@ -75,6 +81,7 @@ logged on the host and never stop the game.
 | `setState(n)`, `getStates()` | switches state and returns the object in its new state (`SetState`) |
 | `getCustomObject()` | its image or mesh paths |
 | `isSmoothMoving()`, `reload()` | false; itself |
+| `AssetBundle.playLoopingEffect`, `playTriggerEffect`, `getLoopingEffects`, `getTriggerEffects`; `getComponent(name).get / set`, `getComponents`, `getChildren` | accepted without effect (asset-bundle effects come with M4; Unity components are not scripted) |
 | `playLoopingEffect`, `playTriggerEffect`, `setVelocity`, `getVelocity`, `addForce`, `addTorque`, `highlightOn`, `highlightOff` | accepted, no effect yet (asset-bundle effects come with M4; physics is not script-driven) |
 
 ### Buttons

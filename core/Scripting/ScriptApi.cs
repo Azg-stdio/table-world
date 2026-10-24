@@ -184,6 +184,18 @@ namespace Core.Scripting
             g["UI"] = UiApi(script, null);
             g["Player"] = PlayerApi(script);
             g["Physics"] = PhysicsApi(script);
+            // Music (G27) is not played by scripts yet: the player's calls are accepted, without effect.
+            var music = new Table(script);
+            foreach (var call in new[] { "setPlaylist", "play", "pause", "skipForward", "skipBack", "setCurrentAudioclip" })
+                music[call] = Fn(_ => DynValue.True);
+            music["getPlaylist"] = Fn(_ => DynValue.NewTable(new Table(script)));
+            music["getCurrentAudioclip"] = Fn(_ => DynValue.Nil);
+            music["player_status"] = "Stop";
+            music["playlist_index"] = 0;
+            music["loaded"] = false;
+            music["repeat_track"] = false;
+            music["shuffle"] = false;
+            g["MusicPlayer"] = music;
             g["log"] = Fn(args =>
             {
                 Log?.Invoke("[log] " + string.Join(" ", args.GetArray().Select(a => a.ToPrintString())));
@@ -541,7 +553,12 @@ namespace Core.Scripting
                 var c = o.Tint ?? new[] { 1f, 1f, 1f };
                 var tint = new Table(script);
                 tint["r"] = c[0]; tint["g"] = c[1]; tint["b"] = c[2]; tint["a"] = c.Length > 3 ? c[3] : 1f;
-                tint[1] = c[0]; tint[2] = c[1]; tint[3] = c[2];
+                if (script.Globals.Get(LuaPrelude.ColorMeta) is { Type: DataType.Table } meta)
+                    tint.MetaTable = meta.Table;
+                else
+                {
+                    tint[1] = c[0]; tint[2] = c[1]; tint[3] = c[2];
+                }
                 return DynValue.NewTable(tint);
             });
             t["setColorTint"] = Fn((o, a) =>
@@ -678,6 +695,24 @@ namespace Core.Scripting
             foreach (var noOp in new[] { "playLoopingEffect", "playTriggerEffect", "setVelocity", "addForce", "addTorque", "highlightOn", "highlightOff" })
                 t[noOp] = DynValue.NewCallback((_, a) => DynValue.Nil);
             t["getVelocity"] = DynValue.NewCallback((_, a) => DynValue.NewTable(Vector(script, new Vec3(0f, 0f, 0f))));
+            // Asset-bundle effects (M4) and Unity components are not scripted yet: accepted, without effect.
+            var bundle = new Table(script);
+            foreach (var noOp in new[] { "playLoopingEffect", "playTriggerEffect" })
+                bundle[noOp] = DynValue.NewCallback((_, a) => DynValue.Nil);
+            foreach (var empty in new[] { "getLoopingEffects", "getTriggerEffects" })
+                bundle[empty] = DynValue.NewCallback((_, a) => DynValue.NewTable(new Table(script)));
+            bundle["getLoopingEffectIndex"] = DynValue.NewCallback((_, a) => DynValue.NewNumber(0));
+            t["AssetBundle"] = bundle;
+            t["getComponent"] = DynValue.NewCallback((_, a) =>
+            {
+                var component = new Table(script);
+                component["get"] = DynValue.NewCallback((__, b) => DynValue.Nil);
+                component["set"] = DynValue.NewCallback((__, b) => DynValue.False);
+                component["getVars"] = DynValue.NewCallback((__, b) => DynValue.NewTable(new Table(script)));
+                return DynValue.NewTable(component);
+            });
+            t["getComponents"] = DynValue.NewCallback((_, a) => DynValue.NewTable(new Table(script)));
+            t["getChildren"] = DynValue.NewCallback((_, a) => DynValue.NewTable(new Table(script)));
 
             var proxy = DynValue.NewTable(t);
             _proxies[(script, id)] = proxy;
