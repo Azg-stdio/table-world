@@ -144,7 +144,9 @@ namespace TableWorld.View
                 if (bytes != null)
                 {
                     texture = new Texture2D(2, 2, TextureFormat.RGBA32, mipChain: true) { name = asset.Path, anisoLevel = 4 };
-                    if (!texture.LoadImage(bytes, markNonReadable: true))
+                    if (texture.LoadImage(bytes, markNonReadable: false))
+                        texture = Fit(texture);
+                    else
                         Debug.LogWarning($"[AssetLibrary] '{asset.Path}' is not a PNG or JPEG image.");
                 }
                 else if (_fetch == null)
@@ -155,6 +157,41 @@ namespace TableWorld.View
             // A network client does not cache a miss: the bytes may still be on their way.
             if (texture != null || _fetch == null)
                 _texturesByPath[asset.Path] = texture;
+            return texture;
+        }
+
+        /// <summary>Largest side of a loaded image (M4 T5.2); bigger ones are scaled down, keeping their proportions.</summary>
+        public const int MaxTextureSize = 4096;
+
+        /// <summary>
+        /// Makes a freshly loaded image fit for the GPU: at most <see cref="MaxTextureSize"/> on its longest side (sprite
+        /// sheets keep their grid, since the whole sheet scales), block-compressed when its size allows (a quarter of the
+        /// memory or less), with mipmaps, and no longer readable from the CPU.
+        /// </summary>
+        public static Texture2D Fit(Texture2D texture)
+        {
+            var largest = Mathf.Max(texture.width, texture.height);
+            if (largest > MaxTextureSize)
+            {
+                var scale = (float)MaxTextureSize / largest;
+                var width = Mathf.Max(4, Mathf.RoundToInt(texture.width * scale / 4f) * 4);
+                var height = Mathf.Max(4, Mathf.RoundToInt(texture.height * scale / 4f) * 4);
+                var target = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+                Graphics.Blit(texture, target);
+                var previous = RenderTexture.active;
+                RenderTexture.active = target;
+                var smaller = new Texture2D(width, height, TextureFormat.RGBA32, mipChain: true) { name = texture.name, anisoLevel = texture.anisoLevel };
+                smaller.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+                RenderTexture.active = previous;
+                RenderTexture.ReleaseTemporary(target);
+                Object.Destroy(texture);
+                texture = smaller;
+                texture.Apply(updateMipmaps: true);
+            }
+            // Block compression works on 4 × 4 blocks.
+            if (texture.width % 4 == 0 && texture.height % 4 == 0)
+                texture.Compress(highQuality: false);
+            texture.Apply(updateMipmaps: false, makeNoLongerReadable: true);
             return texture;
         }
 
