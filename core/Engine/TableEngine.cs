@@ -477,7 +477,7 @@ namespace Core.Engine
                     var card = CardFromEntry(deck, deck.Cards[0]);
                     deck.Cards.RemoveAt(0);
                     card.Transform.Position = HandSlot(zone, slot, card.Size ?? Card.DefaultSize);
-                    card.Transform.Rotation = new Vec3(0f, zone.Transform.Rotation.Y, 0f);
+                    card.Transform.Rotation = new Vec3(0f, Geometry.FacingYaw(zone.Transform.Rotation.Y), 0f);
                     AddObject(card);
                     events.Add(new ObjectAdded(card.Id, deck.Id));
                     dealt[seatId].Add(card.Id);

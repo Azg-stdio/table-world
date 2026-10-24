@@ -109,6 +109,12 @@ table = {
     ]},
 }
 
+# Cards, tiles, tokens and boards face the south seat: TTS draws their images upright from +Z at yaw 0 (ADR 0005).
+for o in table["objects"]:
+    if o["type"] in ("Deck", "Card", "Token", "Tile", "Board") and "transform" in o:
+        r = o["transform"].get("rotation", [0, 0, 0])
+        o["transform"]["rotation"] = [r[0], 180, r[2]]
+
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 out = os.path.join(root, "unity", "Assets", "_Project", "Resources", "Tables", "sample.json")
 os.makedirs(os.path.dirname(out), exist_ok=True)

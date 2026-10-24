@@ -46,17 +46,17 @@ namespace TableWorld.Tests.PlayMode
         public IEnumerator Rotate_HoveredAndHeld_InFifteenDegreeSteps()
         {
             Assert.IsTrue(_interaction.Rotate(V("ace_spades"), 15f));
-            Assert.AreEqual(15f, M("ace_spades").Transform.Rotation.Y, 0.01f);
+            Assert.AreEqual(195f, M("ace_spades").Transform.Rotation.Y, 0.01f, "from yaw 180, facing the south seat");
             Assert.IsTrue(_interaction.Rotate(V("ace_spades"), 90f, otherAxis: true));
             Assert.AreNotEqual(0f, M("ace_spades").Transform.Rotation.X + M("ace_spades").Transform.Rotation.Z);
 
             _interaction.Grab(V("king_hearts"), false);
             _interaction.Rotate(V("king_hearts"), -15f);
             yield return new WaitForSeconds(0.2f);
-            Assert.AreEqual(345f, V("king_hearts").transform.eulerAngles.y, 0.5f);
+            Assert.AreEqual(165f, V("king_hearts").transform.eulerAngles.y, 0.5f);
             _interaction.Release();
             yield return new WaitForSeconds(1.5f);
-            Assert.AreEqual(345f, M("king_hearts").Transform.Rotation.Y, 1f);
+            Assert.AreEqual(165f, M("king_hearts").Transform.Rotation.Y, 1f);
         }
 
         [UnityTest]
@@ -445,7 +445,7 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsNotNull(M("ace_spades-1"));
             _overlay.OpenMenu(V("ace_spades"), Vector2.zero);
             Assert.IsTrue(_overlay.Choose("Rotate 90° (E ×6)"));
-            Assert.AreEqual(90f, M("ace_spades").Transform.Rotation.Y, 0.5f);
+            Assert.AreEqual(270f, M("ace_spades").Transform.Rotation.Y, 0.5f);
             _overlay.OpenMenu(V("ace_spades"), Vector2.zero);
             Assert.IsTrue(_overlay.Choose("Scale: +"));
             Assert.AreEqual(1.1f, M("ace_spades").Transform.Scale.X, 0.001f);

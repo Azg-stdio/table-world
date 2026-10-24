@@ -966,7 +966,7 @@ namespace TableWorld.View
             {
                 ObjectId = card.Id,
                 Position = new Vector3(position.x, 0f, position.z).ToCore(),
-                Rotation = new Vec3(0f, hand.Transform.Rotation.Y, 0f),
+                Rotation = new Vec3(0f, Geometry.FacingYaw(hand.Transform.Rotation.Y), 0f),
                 Actor = _table.LocalSeat,
             });
             if (!result.Ok)

@@ -46,6 +46,12 @@ namespace Core.Rules
                 && Math.Abs(local.Z) <= zone.Size.Z * t.Scale.Z / 2 + epsilon;
         }
 
+        /// <summary>
+        /// The yaw of a card or tile that faces a zone's front (its −Z side, where a hand zone's owner sits): TTS draws
+        /// images upright from +Z at yaw 0, so it is the zone's yaw turned 180° (ADR 0005).
+        /// </summary>
+        public static float FacingYaw(float zoneYaw) => NormalizeAngle(zoneYaw + 180f);
+
         /// <summary>Angle normalized to [0, 360).</summary>
         public static float NormalizeAngle(float degrees)
         {

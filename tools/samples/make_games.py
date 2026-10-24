@@ -24,9 +24,9 @@ ASSETS = [
 ]
 
 
-def deck(id_, x, z, rotation_z=180, tags=None, with_cards=False, name=None):
+def deck(id_, x, z, rotation_z=180, tags=None, with_cards=False, name=None, yaw=180):
     d = {"id": id_, "type": "Deck", "faceAsset": "std_deck", "backAsset": "std_back",
-         "transform": {"position": [x, 0, z], "rotation": [0, 0, rotation_z]}, "cards": cards() if with_cards else []}
+         "transform": {"position": [x, 0, z], "rotation": [0, yaw, rotation_z]}, "cards": cards() if with_cards else []}
     if tags:
         d["tags"] = tags
     if name:
@@ -58,8 +58,8 @@ war = {
         deck("deck_main", 0, 0, with_cards=True, name="Deck"),
         deck("deck_south", -0.15, -0.25, tags=["deck:seat_south"], name="South's deck"),
         deck("battle_south", -0.15, -0.08, rotation_z=0, tags=["battle:seat_south"], name="South's battle pile"),
-        deck("deck_north", 0.15, 0.25, tags=["deck:seat_north"], name="North's deck"),
-        deck("battle_north", 0.15, 0.08, rotation_z=0, tags=["battle:seat_north"], name="North's battle pile"),
+        deck("deck_north", 0.15, 0.25, tags=["deck:seat_north"], name="North's deck", yaw=0),
+        deck("battle_north", 0.15, 0.08, rotation_z=0, tags=["battle:seat_north"], name="North's battle pile", yaw=0),
     ],
     "players": {"seats": [{"id": "seat_south", "color": "red"}, {"id": "seat_north", "color": "blue"}]},
     "turn": {"order": "clockwise", "startingPlayer": "first", "phases": ["battle", "resolve"]},

@@ -84,7 +84,8 @@ namespace TableWorld.View
                 var normal = _target.transform.up;
                 var side = normal.y >= -0.01f ? normal : -normal;
                 var direction = _peek ? -side : side;
-                var top = Quaternion.AngleAxis(_yaw, direction) * _target.transform.forward;
+                // The image's top edge is the piece's −Z side (TTS's convention).
+                var top = Quaternion.AngleAxis(_yaw, direction) * -_target.transform.forward;
                 var local = _target.Filter.sharedMesh.bounds.size;
                 var scale = _target.transform.lossyScale;
                 var size = Mathf.Max(local.x * scale.x, local.z * scale.z, 0.02f);

@@ -524,7 +524,7 @@ namespace Core.Engine
 
         private static Vec3 FaceRotation(object target, bool faceUp)
         {
-            var yaw = target switch { Zone z => z.Transform.Rotation.Y, TableObject o => o.Transform.Rotation.Y, _ => 0f };
+            var yaw = target switch { Zone z => Geometry.FacingYaw(z.Transform.Rotation.Y), TableObject o => o.Transform.Rotation.Y, _ => 180f };
             return new Vec3(0f, yaw, faceUp ? 0f : 180f);
         }
 

@@ -6,7 +6,9 @@ namespace TableWorld.View.Meshes
     /// <summary>
     /// Procedural meshes centred on the origin. Prisms have three submeshes: 0 = top (+Y) face, 1 = bottom (−Y) face,
     /// 2 = sides. Top UVs map the outline's bounding box to 0..1 with v towards +Z (image top points away from the
-    /// south seat); bottom UVs are mirrored in U so a face turned over around Z reads correctly.
+    /// south seat); bottom UVs are mirrored in U so a face turned over around Z reads correctly. The <c>Image*</c>
+    /// shapes turn both faces' images 180° as TTS draws cards, tiles, tokens and boards: upright from +Z at yaw 0,
+    /// so a piece facing the south seat has yaw 180 (ADR 0005).
     /// </summary>
     public static class MeshFactory
     {
@@ -25,6 +27,15 @@ namespace TableWorld.View.Meshes
         /// <summary>Hexagon with flat edges facing ±Z.</summary>
         public static Mesh HexPrism(float radius, float height) =>
             Cached($"hex:{radius:F5}:{height:F5}", () => Prism(Polygon(radius, 6, 0f), height));
+
+        public static Mesh ImageBox(Vector3 size) =>
+            Cached($"ibox:{size.x:F5}:{size.y:F5}:{size.z:F5}", () => Prism(Rectangle(size.x, size.z), size.y, turned: true));
+
+        public static Mesh ImageCylinder(float radius, float height, int segments = 32) =>
+            Cached($"icyl:{radius:F5}:{height:F5}:{segments}", () => Prism(Polygon(radius, segments, 0f), height, turned: true));
+
+        public static Mesh ImageHexPrism(float radius, float height) =>
+            Cached($"ihex:{radius:F5}:{height:F5}", () => Prism(Polygon(radius, 6, 0f), height, turned: true));
 
         private static Mesh Cached(string key, System.Func<Mesh> build)
         {
@@ -57,8 +68,11 @@ namespace TableWorld.View.Meshes
             return points;
         }
 
-        /// <summary>Extrudes a convex counter-clockwise outline (x, z) to <paramref name="height"/>, centred on Y = 0.</summary>
-        public static Mesh Prism(Vector2[] outline, float height)
+        /// <summary>
+        /// Extrudes a convex counter-clockwise outline (x, z) to <paramref name="height"/>, centred on Y = 0;
+        /// <paramref name="turned"/> turns the faces' images 180°.
+        /// </summary>
+        public static Mesh Prism(Vector2[] outline, float height, bool turned = false)
         {
             var n = outline.Length;
             var min = outline[0];
@@ -151,6 +165,11 @@ namespace TableWorld.View.Meshes
             {
                 var u = (p.x - min.x) / extent.x;
                 var v = (p.y - min.y) / extent.y;
+                if (turned)
+                {
+                    u = 1f - u;
+                    v = 1f - v;
+                }
                 return new Vector2(mirrorU ? 1f - u : u, v);
             }
         }

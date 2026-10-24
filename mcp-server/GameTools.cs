@@ -351,7 +351,8 @@ namespace TableWorld.Mcp
         private static JObject Transform(float x, float z, float rotationZ) => new JObject
         {
             ["position"] = new JArray(x, 0, z),
-            ["rotation"] = new JArray(0, 0, rotationZ),
+            // Yaw 180: the piece reads upright from the south seat, as TTS draws images (ADR 0005).
+            ["rotation"] = new JArray(0, 180, rotationZ),
         };
 
         private static JArray? Tags(string? csv) =>

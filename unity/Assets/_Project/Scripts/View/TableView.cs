@@ -468,7 +468,8 @@ namespace TableWorld.View
             var width = hand.Size.X * hand.Transform.Scale.X;
             var step = cards.Count < 2 ? 0f : Mathf.Min(size.x * 1.08f, (width - size.x) / (cards.Count - 1));
             var lift = size.y / 2f * Mathf.Sin(HandTiltDegrees * Mathf.Deg2Rad) + 0.004f;
-            var pose = yaw * Quaternion.Euler(-HandTiltDegrees, 0f, 0f);
+            // Turned to face the owner (TTS images read upright from +Z), its far edge raised.
+            var pose = yaw * Quaternion.Euler(0f, 180f, 0f) * Quaternion.Euler(HandTiltDegrees, 0f, 0f);
             for (var i = 0; i < cards.Count; i++)
             {
                 var view = cards[i];

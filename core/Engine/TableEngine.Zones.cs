@@ -92,9 +92,10 @@ namespace Core.Engine
                 var obj = list[i];
                 var r = obj.Transform.Rotation;
                 var faceable = obj is Card || obj is Deck;
+                var yaw = faceable ? Geometry.FacingYaw(zone.Transform.Rotation.Y) : zone.Transform.Rotation.Y;
                 var rotation = zone.Facing == LayoutFacing.Keep || !faceable
-                    ? new Vec3(r.X, zone.Transform.Rotation.Y, r.Z)
-                    : new Vec3(0f, zone.Transform.Rotation.Y, zone.Facing == LayoutFacing.FaceUp ? 0f : 180f);
+                    ? new Vec3(r.X, yaw, r.Z)
+                    : new Vec3(0f, yaw, zone.Facing == LayoutFacing.FaceUp ? 0f : 180f);
                 var position = new Vec3(world.X, floor, world.Z);
                 if (Near(obj.Transform.Position, position) && Near(r, rotation))
                     continue;

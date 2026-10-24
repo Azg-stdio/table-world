@@ -205,7 +205,9 @@ namespace TableWorld.View
                     yield return null;
                 if (probe == null)
                     yield break;
-                probe.RenderProbe();
+                // A room switched off meanwhile (another table loaded, the look changed) has nothing to render.
+                if (probe.isActiveAndEnabled)
+                    probe.RenderProbe();
             }
         }
 

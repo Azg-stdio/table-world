@@ -116,8 +116,8 @@ namespace TableWorld.View
                     // A TTS token is shaped by its image: it takes the image's proportions.
                     var face2 = token.Shape == TokenShape.Image ? Proportioned(new Vector2(TokenDiameter, TokenDiameter), assets.Texture(token.Asset)) : new Vector2(TokenDiameter, TokenDiameter);
                     var mesh = token.Shape == TokenShape.Round
-                        ? MeshFactory.Cylinder(TokenDiameter / 2f, size)
-                        : MeshFactory.Box(new Vector3(face2.x, size, face2.y));
+                        ? MeshFactory.ImageCylinder(TokenDiameter / 2f, size)
+                        : MeshFactory.ImageBox(new Vector3(face2.x, size, face2.y));
                     var face = assets.ImageMaterial(token.Asset, model.Tint.ToColor(Ivory));
                     var edge = model.Tint.ToColor(Ivory) * 0.85f;
                     SetPrism(view, mesh, face, face, token.Count > 1 ? assets.Grooved(edge) : assets.Plain(edge), 0.002f * token.Count);
@@ -132,9 +132,9 @@ namespace TableWorld.View
                         area = Proportioned(area, assets.Texture(tile.Asset));
                     var mesh = tile.Shape switch
                     {
-                        TileShape.Hex => MeshFactory.HexPrism(area.y * 0.6f, thickness),
-                        TileShape.Circle => MeshFactory.Cylinder(area.y / 2f, thickness),
-                        _ => MeshFactory.Box(new Vector3(area.x, thickness, area.y)),
+                        TileShape.Hex => MeshFactory.ImageHexPrism(area.y * 0.6f, thickness),
+                        TileShape.Circle => MeshFactory.ImageCylinder(area.y / 2f, thickness),
+                        _ => MeshFactory.ImageBox(new Vector3(area.x, thickness, area.y)),
                     };
                     var face = assets.ImageMaterial(tile.Asset, model.Tint.ToColor(new Color(0.8f, 0.7f, 0.5f)));
                     var edge = model.Tint.ToColor(new Color(0.6f, 0.5f, 0.35f));
@@ -176,7 +176,7 @@ namespace TableWorld.View
                 {
                     var size = board.Size?.ToUnity() ?? BoardDefaultSize;
                     var face = assets.ImageMaterial(board.Asset, model.Tint.ToColor(new Color(0.85f, 0.8f, 0.7f)));
-                    SetPrism(view, MeshFactory.Box(new Vector3(size.x, BoardThickness, size.y)), face, assets.Plain(new Color(0.3f, 0.25f, 0.2f)),
+                    SetPrism(view, MeshFactory.ImageBox(new Vector3(size.x, BoardThickness, size.y)), face, assets.Plain(new Color(0.3f, 0.25f, 0.2f)),
                         assets.Plain(new Color(0.3f, 0.25f, 0.2f)), 0.2f);
                     break;
                 }
@@ -241,7 +241,7 @@ namespace TableWorld.View
         private static void RefreshCard(ObjectView view, AssetLibrary assets, Card card)
         {
             var size = (card.Size ?? Card.DefaultSize).ToUnity();
-            var mesh = MeshFactory.Box(new Vector3(size.x, CardThickness, size.y));
+            var mesh = MeshFactory.ImageBox(new Vector3(size.x, CardThickness, size.y));
             // A card in another player's hand shows its back on both sides.
             var faceAsset = view.HideFace ? card.BackAsset : card.FaceAsset;
             var faceIndex = view.HideFace ? card.BackIndex : card.FaceIndex;
@@ -259,7 +259,7 @@ namespace TableWorld.View
         {
             var size = (deck.Size ?? Card.DefaultSize).ToUnity();
             var count = deck.Cards.Count;
-            var mesh = MeshFactory.Box(new Vector3(size.x, CardThickness * Mathf.Max(1, count), size.y));
+            var mesh = MeshFactory.ImageBox(new Vector3(size.x, CardThickness * Mathf.Max(1, count), size.y));
             if (count == 0)
             {
                 // An empty deck stays as a drop target: invisible, kinematic, its collider a trigger.
@@ -333,7 +333,7 @@ namespace TableWorld.View
             view.Body.mass = mass;
 
             // Box colliders for boxes (cheap and stable for thin cards), convex mesh colliders for everything else.
-            var isBox = mesh.name.StartsWith("box:");
+            var isBox = mesh.name.StartsWith("box:") || mesh.name.StartsWith("ibox:");
             var bounds = mesh.bounds;
             if (isBox)
             {

@@ -88,7 +88,7 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsFalse(M("ace_spades").IsFaceUp, "F flips");
             yield return Tap(_keyboard.eKey);
             yield return new WaitForSeconds(0.3f);
-            Assert.AreEqual(15f, M("ace_spades").Transform.Rotation.Y, 0.5f, "E rotates the hovered object");
+            Assert.AreEqual(195f, M("ace_spades").Transform.Rotation.Y, 0.5f, "E rotates the hovered object");
             yield return Tap(_keyboard.lKey);
             Assert.IsTrue(M("ace_spades").Locked, "L locks");
             yield return Tap(_keyboard.lKey);
