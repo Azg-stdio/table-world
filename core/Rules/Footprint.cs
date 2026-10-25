@@ -22,7 +22,7 @@ namespace Core.Rules
             {
                 Card card => card.Size ?? Card.DefaultSize,
                 Deck deck => deck.Size ?? Card.DefaultSize,
-                Token _ => new Vec2(Token, Token),
+                Rules.Token token => new Vec2(token.Size ?? Token, token.Size ?? Token),
                 Rules.Tile tile => tile.Size ?? new Vec2(Tile, Tile),
                 Rules.Die _ => new Vec2(Die, Die),
                 Rules.Bag _ => new Vec2(Bag, Bag),

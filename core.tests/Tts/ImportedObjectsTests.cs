@@ -176,5 +176,17 @@ namespace Core.Tests.Tts
             Assert.True(engine.Execute(new DeleteCommand { ObjectId = "chip01" }).Ok);
             Assert.Null(engine.Find("mon001")!.Joint);
         }
+
+        [Fact]
+        public void CustomTokens_AreTtsSized_WhateverTheirImage()
+        {
+            var state = TtsImporter.Import(@"{ ""ObjectStates"": [ { ""Name"": ""Custom_Token"", ""GUID"": ""k00001"",
+                ""Transform"": { ""scaleX"": 16.68, ""scaleY"": 1, ""scaleZ"": 16.68 }, ""CustomImage"": { ""ImageURL"": ""http://x/board.png"" } } ] }").State;
+            var token = (Token)state.Objects.Single();
+            Assert.Equal(TtsUnits.CustomTokenSize, token.Size);
+            // Master Trainer's Kanto board: snap points 2.07 units out at scale 16.68 must lie on the board.
+            Assert.True(Footprint.Of(token).X / 2f > 2.07f * TtsUnits.TtsUnitsToMeters * 16.68f);
+            Assert.True(TableJson.Parse(TableJson.Serialize(state)).Ok);
+        }
     }
 }

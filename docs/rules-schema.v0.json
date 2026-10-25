@@ -825,6 +825,9 @@
         "thickness": {
           "type": "number"
         },
+        "size": {
+          "type": "number"
+        },
         "stackable": {
           "type": "boolean"
         },

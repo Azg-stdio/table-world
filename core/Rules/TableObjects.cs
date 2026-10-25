@@ -185,6 +185,11 @@ namespace Core.Rules
         public TokenShape Shape { get; set; }
         /// <summary>Meters; null means the view's default.</summary>
         public float? Thickness { get; set; }
+        /// <summary>
+        /// The longer side of an image token, metres (the image keeps its proportions); null means the view's default.
+        /// TTS draws every custom token the same size whatever its image's pixels (<c>TtsUnits.CustomTokenSize</c>).
+        /// </summary>
+        public float? Size { get; set; }
         /// <summary>Identical pieces dropped on each other form one counted stack (TTS <c>Stackable</c>).</summary>
         public bool Stackable { get; set; }
 

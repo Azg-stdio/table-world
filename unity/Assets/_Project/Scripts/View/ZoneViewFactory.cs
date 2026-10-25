@@ -41,6 +41,10 @@ namespace TableWorld.View
 
             if (zone is SnapPoint)
             {
+                // Attached to a scaled object, its place scales with it (TTS keeps it in the object's own space) but the
+                // marker keeps its size: Master Trainer's board at scale 16.7 drew 30 cm discs that merged into a dark cloud.
+                if (zone.Parent != null && parent.lossyScale is var s && s.x > 0.0001f && s.y > 0.0001f && s.z > 0.0001f)
+                    root.transform.localScale = new Vector3(1f / s.x, 1f / s.y, 1f / s.z);
                 AddPiece(root, MeshFactory.Cylinder(SnapRadius, LineHeight, 20), Vector3.zero, assets.Plain(SnapColor, 0.1f));
                 return root;
             }

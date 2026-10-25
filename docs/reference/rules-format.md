@@ -240,6 +240,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `asset` | string |  |
 | `shape` | one of `round`, `square`, `image` |  |
 | `thickness` | number |  |
+| `size` | number |  |
 | `stackable` | boolean |  |
 | `count` | integer |  |
 

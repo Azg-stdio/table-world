@@ -366,6 +366,7 @@ namespace Core.Rules
                     case Token token:
                         CheckOptionalAsset(token.Asset, $"{path}.asset", AssetType.Image);
                         CheckPositive(token.Thickness, $"{path}.thickness");
+                        CheckPositive(token.Size, $"{path}.size");
                         CheckCount(obj, token.Count, token.Stackable, path);
                         break;
                     case Tile tile:
