@@ -25,6 +25,20 @@ namespace Core.Tests.Net
         }
 
         [Fact]
+        public void Looks_RoundTrip_AndOnlyPlainNamesPass()
+        {
+            var roster = new Roster();
+            roster.SetLook("1", "Grumpy");
+            roster.SetLook("2", "<b>Grumpy</b>");
+            roster.SetLook("3", new string('a', 40));
+            var read = Roster.Read(JObject.Parse(roster.ToJson().ToString()));
+            Assert.Equal("Grumpy", read["1"].Look);
+            Assert.Equal("", read["2"].Look);
+            Assert.Equal("", read["3"].Look);
+            Assert.Equal("", PlayerInfo.FromJson(JObject.Parse(@"{ ""name"": ""x"", ""look"": 5 }")).Look);
+        }
+
+        [Fact]
         public void Roster_RoundTrips_AndHostileValuesAreIgnored()
         {
             var roster = new Roster();

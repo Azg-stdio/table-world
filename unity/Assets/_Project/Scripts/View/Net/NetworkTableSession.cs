@@ -191,6 +191,7 @@ namespace TableWorld.View.Net
             _table.Router = HostRoute;
             _seating.Join(SessionHost.HostId, SeatIds());
             _roster.Rename(SessionHost.HostId, LocalName);
+            _roster.SetLook(SessionHost.HostId, LocalLook);
             ApplyLocalRole(_roster.Of(SessionHost.HostId));
             _table.SeatOverride = _seating.Seat(SessionHost.HostId);
             _table.Spectating = _table.SeatOverride == null;

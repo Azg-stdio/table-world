@@ -34,6 +34,18 @@ namespace Core.Tests.Net
             Assert.Null(PresenceCodec.Decode(PresenceCodec.Encode(noPointer))!.Gaze);
         }
 
+        [Fact]
+        public void Emotes_RoundTrip()
+        {
+            var frame = Frame("seat_north", 3);
+            frame.Emote = "Wave";
+            frame.EmoteCount = 4;
+            var decoded = PresenceCodec.Decode(JObject.Parse(PresenceCodec.Encode(frame).ToString()))!;
+            Assert.Equal("Wave", decoded.Emote);
+            Assert.Equal(4, decoded.EmoteCount);
+            Assert.Null(PresenceCodec.Decode(PresenceCodec.Encode(Frame("s", 1)))!.Emote);
+        }
+
         [Theory]
         [InlineData(@"{ ""kind"": ""order"" }")]
         [InlineData(@"{ ""kind"": ""presence"" }")]
@@ -41,6 +53,8 @@ namespace Core.Tests.Net
         [InlineData(@"{ ""kind"": ""presence"", ""seat"": ""s"", ""pointer"": [1, ""x"", 3] }")]
         [InlineData(@"{ ""kind"": ""presence"", ""seat"": ""s"", ""pointer"": [1e9, 0, 0] }")]
         [InlineData(@"{ ""kind"": ""presence"", ""seat"": ""s"", ""gaze"": [0, ""x"", 0] }")]
+        [InlineData(@"{ ""kind"": ""presence"", ""seat"": ""s"", ""emote"": { ""name"": ""<script>"", ""n"": 1 } }")]
+        [InlineData(@"{ ""kind"": ""presence"", ""seat"": ""s"", ""emote"": { ""name"": ""Wave"" } }")]
         [InlineData(@"{ ""kind"": ""presence"", ""seat"": ""s"", ""held"": [ { ""id"": """", ""p"": [0, 0, 0], ""r"": [0, 0, 0] } ] }")]
         [InlineData(@"{ ""kind"": ""presence"", ""seat"": ""s"", ""held"": [ { ""id"": ""a"", ""p"": [0, 0], ""r"": [0, 0, 0] } ] }")]
         public void MalformedFrames_AreRefused(string json)

@@ -173,6 +173,7 @@ namespace TableWorld.View.Hud
             var s = Settings;
             Group("You");
             Text("Your name", s.PlayerName, "Player", v => s.PlayerName = v);
+            Choice("Chalker face", Enum.GetNames(typeof(TableWorld.View.Chalkers.ChalkerPersonality)), s.Personality, v => s.Personality = v, v => v);
 
             Group("Saving");
             Choice("Autosave", GameSettings.AutosaveChoices, s.AutosaveMinutes, v => s.AutosaveMinutes = v, v => v == 0 ? "Off" : $"Every {v} minutes");

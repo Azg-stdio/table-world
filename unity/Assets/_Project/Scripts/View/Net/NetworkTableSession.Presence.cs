@@ -28,6 +28,25 @@ namespace TableWorld.View.Net
         private long _presenceSeq;
         private float _presenceSentAt = -1f;
         private string _presenceKey;
+        private string _emote;
+        private int _emoteCount;
+
+        /// <summary>This player emoted (T7.4): the name of the emote. Fires offline too, for the mirror chalker.</summary>
+        public event System.Action<string> LocalEmoted;
+
+        /// <summary>Plays an emote (a <c>ChalkerEmote</c> name) for everyone: it rides on the next presence frame.</summary>
+        public void Emote(string name)
+        {
+            name = PlayerInfo.CleanLook(name);
+            if (name.Length == 0)
+                return;
+            _emote = name;
+            _emoteCount++;
+            // Send it now, not at the next change or keep-alive.
+            _presenceKey = null;
+            _presenceSentAt = -1f;
+            LocalEmoted?.Invoke(name);
+        }
 
         /// <summary>The other players heard from recently (never this machine's own frame).</summary>
         public IEnumerable<(string Peer, PresenceFrame Frame)> Others =>
@@ -87,12 +106,14 @@ namespace TableWorld.View.Net
                 if (_interaction.PointerOnTable is { } pointer)
                     frame.Pointer = pointer.ToCore();
                 frame.Gaze = Gaze();
+                frame.Emote = _emote;
+                frame.EmoteCount = _emoteCount;
                 foreach (var view in _interaction.HeldGroup)
                     if (view != null)
                         frame.Held.Add(new HeldPose { Id = view.Id, Position = view.transform.position.ToCore(), Rotation = view.transform.rotation.eulerAngles.ToCore() });
             }
             // Millimetre and degree resolution is plenty; it also keeps an idle player quiet.
-            var key = string.Join("|", new[] { frame.Pointer is { } p ? $"{p.X:F3},{p.Z:F3}" : "-", frame.Gaze is { } g ? $"{g.X:F2},{g.Y:F2},{g.Z:F2}" : "-" }
+            var key = string.Join("|", new[] { frame.Pointer is { } p ? $"{p.X:F3},{p.Z:F3}" : "-", frame.Gaze is { } g ? $"{g.X:F2},{g.Y:F2},{g.Z:F2}" : "-", frame.EmoteCount.ToString() }
                 .Concat(frame.Held.Select(h => $"{h.Id}:{h.Position.X:F3},{h.Position.Y:F3},{h.Position.Z:F3},{h.Rotation.Y:F0},{h.Rotation.X:F0},{h.Rotation.Z:F0}")));
             if (key == _presenceKey && now - _presenceSentAt < PresenceKeepAlive)
                 return;

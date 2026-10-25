@@ -27,6 +27,9 @@ namespace TableWorld.View.Settings
         /// <summary>The name other players see (G23); empty means "Player N".</summary>
         public string PlayerName { get; set; } = "";
 
+        /// <summary>Your chalker's personality, the face other players see (a <see cref="Chalkers.ChalkerPersonality"/> name).</summary>
+        public string Personality { get; set; } = nameof(Chalkers.ChalkerPersonality.Cheerful);
+
         public static readonly int[] AutosaveChoices = { 0, 5, 10, 15 };
 
         /// <summary>Minutes between autosaves while the table changes (G30); 0 is off.</summary>
@@ -76,6 +79,8 @@ namespace TableWorld.View.Settings
         public GameSettings Clamped()
         {
             PlayerName = Core.Net.PlayerInfo.CleanName(PlayerName) ?? "";
+            if (!Enum.TryParse<Chalkers.ChalkerPersonality>(Personality, out var personality) || !Enum.IsDefined(typeof(Chalkers.ChalkerPersonality), personality) || Personality != personality.ToString())
+                Personality = nameof(Chalkers.ChalkerPersonality.Cheerful);
             MasterVolume = Clamp(MasterVolume, 0f, 1f, 1f);
             TableVolume = Clamp(TableVolume, 0f, 1f, 0.8f);
             MusicVolume = Clamp(MusicVolume, 0f, 1f, 0.5f);

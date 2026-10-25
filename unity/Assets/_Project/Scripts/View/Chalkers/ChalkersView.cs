@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using TableWorld.View.Net;
@@ -23,6 +24,9 @@ namespace TableWorld.View.Chalkers
         [SerializeField] private VoiceChat _voice;
 
         private readonly Dictionary<string, Chalker> _chalkers = new Dictionary<string, Chalker>();
+        /// <summary>The last emote count seen per seat: an emote plays when it changes.</summary>
+        private readonly Dictionary<string, int> _emoteCounts = new Dictionary<string, int>();
+        private NetworkTableSession _subscribed;
 
         public void Configure(TableView table, NetworkTableSession session, VoiceChat voice)
         {
@@ -38,6 +42,11 @@ namespace TableWorld.View.Chalkers
         {
             if (_table == null || _table.Engine == null)
                 return;
+            if (_session != null && _subscribed != _session)
+            {
+                _session.LocalEmoted += OnLocalEmote;
+                _subscribed = _session;
+            }
             var seen = new HashSet<string>();
             var dt = Time.deltaTime;
             if (_session != null)
@@ -47,6 +56,11 @@ namespace TableWorld.View.Chalkers
                         continue;
                     seen.Add(frame.Seat);
                     var chalker = ChalkerFor(frame.Seat, ColorOf(frame.Seat));
+                    chalker.Personality = PersonalityOf(_session.LookAtSeat(frame.Seat));
+                    // A new count is a new emote; the first frame seen only records it (no replay of an old one).
+                    if (_emoteCounts.TryGetValue(frame.Seat, out var count) && count != frame.EmoteCount && Enum.TryParse<ChalkerEmote>(frame.Emote, out var emote))
+                        chalker.Play(emote);
+                    _emoteCounts[frame.Seat] = frame.EmoteCount;
                     var position = Behind(seatPoint, SeatBack);
                     var gaze = frame.Gaze is { } g ? new Vector3(g.X, g.Y, g.Z) : (Vector3?)null;
                     var pointer = frame.Pointer is { } p ? new Vector3(p.X, p.Y, p.Z) : (Vector3?)null;
@@ -59,6 +73,7 @@ namespace TableWorld.View.Chalkers
             {
                 seen.Add(MirrorKey);
                 var chalker = ChalkerFor(MirrorKey, ColorOf(_table.LocalSeat));
+                chalker.Personality = PersonalityOf(_session != null ? _session.LocalLook : "");
                 var from = camera.transform.position;
                 var across = new Vector3(-from.x, 0f, -from.z);
                 if (across.sqrMagnitude < 1e-4f)
@@ -74,8 +89,19 @@ namespace TableWorld.View.Chalkers
             {
                 _chalkers[key].Destroy();
                 _chalkers.Remove(key);
+                _emoteCounts.Remove(key);
             }
         }
+
+        /// <summary>This player's own emote shows on the mirror chalker (Hear myself), the only chalker of yours you see.</summary>
+        private void OnLocalEmote(string name)
+        {
+            if (_chalkers.TryGetValue(MirrorKey, out var mirror) && Enum.TryParse<ChalkerEmote>(name, out var emote))
+                mirror.Play(emote);
+        }
+
+        public static ChalkerPersonality PersonalityOf(string look) =>
+            Enum.TryParse<ChalkerPersonality>(look, out var personality) && Enum.IsDefined(typeof(ChalkerPersonality), personality) ? personality : ChalkerPersonality.Cheerful;
 
         /// <summary>The voice plays from the chalker's mouth.</summary>
         private void Carry(Chalker chalker, string seat)
@@ -125,6 +151,8 @@ namespace TableWorld.View.Chalkers
 
         private void OnDestroy()
         {
+            if (_subscribed != null)
+                _subscribed.LocalEmoted -= OnLocalEmote;
             foreach (var chalker in _chalkers.Values)
                 chalker.Destroy();
             _chalkers.Clear();

@@ -20,6 +20,9 @@ namespace TableWorld.View.Net
         /// <summary>This machine's player name (from the settings); empty means "Player N".</summary>
         public string LocalName { get; private set; } = "";
 
+        /// <summary>This machine's chalker personality (T7.3, from the settings), a <c>ChalkerPersonality</c> name.</summary>
+        public string LocalLook { get; private set; } = "";
+
         /// <summary>Participant → who they are, as last known on this machine.</summary>
         public IReadOnlyDictionary<string, PlayerInfo> Players => IsHost ? _roster.Players : _players;
 
@@ -30,6 +33,26 @@ namespace TableWorld.View.Net
         /// <summary>The name of whoever sits at <paramref name="seat"/>, or null.</summary>
         public string NameAtSeat(string seat) =>
             seat != null && Occupants.TryGetValue(seat, out var participant) ? NameOf(participant) : null;
+
+        /// <summary>The chalker personality of whoever sits at <paramref name="seat"/>, or empty.</summary>
+        public string LookAtSeat(string seat) =>
+            seat != null && Occupants.TryGetValue(seat, out var participant) && Players.TryGetValue(participant, out var info) ? info.Look : "";
+
+        /// <summary>Sets this machine's chalker personality; online it travels like the name.</summary>
+        public void SetLocalLook(string look)
+        {
+            look = PlayerInfo.CleanLook(look);
+            if (look == LocalLook)
+                return;
+            LocalLook = look;
+            if (IsHost)
+            {
+                _roster.SetLook(SessionHost.HostId, LocalLook);
+                BroadcastSeating();
+            }
+            else if (IsClient && _network != null && _network.IsConnectedClient)
+                SendHello();
+        }
 
         /// <summary>Sets this machine's name; online it is sent to the host (or applied, when hosting).</summary>
         public void SetLocalName(string name)
@@ -44,7 +67,7 @@ namespace TableWorld.View.Net
                 SendHello();
         }
 
-        private void SendHello() => SendTo(NetworkManager.ServerClientId, new JObject { ["kind"] = "hello", ["name"] = LocalName });
+        private void SendHello() => SendTo(NetworkManager.ServerClientId, new JObject { ["kind"] = "hello", ["name"] = LocalName, ["look"] = LocalLook });
 
         /// <summary>The seating broadcast with the roster in it.</summary>
         private JObject SeatingMessage()
@@ -59,6 +82,7 @@ namespace TableWorld.View.Net
             var participant = sender.ToString();
             var first = !_greeted.Contains(participant);
             _roster.Rename(participant, (string)message["name"]);
+            _roster.SetLook(participant, message["look"]?.Type == JTokenType.String ? (string)message["look"] : null);
             if (first)
             {
                 _greeted.Add(participant);

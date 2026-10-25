@@ -29,6 +29,9 @@ namespace TableWorld.View.Hud
         private VisualElement _root;
         private Label _turnLabel;
         private VisualElement _seatList;
+        private readonly Dictionary<string, VisualElement> _seatChips = new Dictionary<string, VisualElement>();
+        private EmoteWheel _emoteWheel;
+        private TableWorld.View.Voice.VoiceChat _voice;
         private VisualElement _selectionPanel;
         private Label _selectionTitle;
         private Label _selectionDetail;
@@ -76,6 +79,7 @@ namespace TableWorld.View.Hud
 
         /// <summary>The Escape menu and settings (G13, G31).</summary>
         public EscapeMenu Escape => _escape;
+        public EmoteWheel Emotes => _emoteWheel;
 
         /// <summary>Chat and game log, bottom left (Enter).</summary>
         public ChatPanel Chat => _chat;
@@ -135,6 +139,7 @@ namespace TableWorld.View.Hud
             {
                 _chat = new ChatPanel(_root, _table, _session);
                 _players = new PlayersPanel(_root, _table, _session);
+                _emoteWheel = new EmoteWheel(_root, emote => _session?.Emote(emote.ToString()));
             }
             _escape = new EscapeMenu(_root, GameSettings.Load(GameSettings.DefaultPath), ApplySettings, _session, () => _help?.Show());
             ApplySettings(_escape.Settings);
@@ -310,6 +315,7 @@ namespace TableWorld.View.Hud
             var camera = Camera.main != null ? Camera.main.GetComponent<TableCamera>() : null;
             settings.Apply(camera);
             _session?.SetLocalName(settings.PlayerName);
+            _session?.SetLocalLook(settings.Personality);
             var panel = GetComponent<UIDocument>().panelSettings;
             if (panel != null && _sharedPanelSettings != null)
                 panel.referenceResolution = new Vector2Int(
@@ -380,6 +386,8 @@ namespace TableWorld.View.Hud
             _chat?.Update(TypingInUi() || (_interaction != null && _interaction.IgnoreDevices));
             _players?.Update();
             _notes?.Update();
+            _emoteWheel?.Update(TypingInUi() || (_interaction != null && _interaction.IgnoreDevices));
+            UpdateTalking();
             if (_saves?.Tick(_escape.Settings.AutosaveMinutes) is { } autosaved)
                 ShowStatus($"Autosaved ({autosaved})", error: false);
             UpdatePresenceLabels();
@@ -390,6 +398,20 @@ namespace TableWorld.View.Hud
                 _nextGameRefresh = Time.unscaledTime + 0.25f;
                 RefreshGame();
                 _gameUi.Refresh();
+            }
+        }
+
+        /// <summary>A seat chip glows while its player talks; your own while your microphone sends.</summary>
+        private void UpdateTalking()
+        {
+            _voice ??= FindAnyObjectByType<TableWorld.View.Voice.VoiceChat>();
+            if (_voice == null)
+                return;
+            var local = _table.LocalSeat;
+            foreach (var pair in _seatChips)
+            {
+                var talking = pair.Key == local ? _voice.Talking && (_voice.Online?.Invoke() ?? false) : _voice.LevelOf(pair.Key) > 0.01f;
+                pair.Value.EnableInClassList("seat-chip--talking", talking);
             }
         }
 
@@ -528,6 +550,7 @@ namespace TableWorld.View.Hud
         private void RebuildSeats()
         {
             _seatList.Clear();
+            _seatChips.Clear();
             var local = _table.LocalSeat;
             var online = _table.Networked && _session != null;
             var occupants = online ? _session.Occupants : null;
@@ -535,6 +558,7 @@ namespace TableWorld.View.Hud
             {
                 var chip = new VisualElement();
                 chip.AddToClassList("seat-chip");
+                _seatChips[seat.Id] = chip;
                 if (seat.Id == local)
                     chip.AddToClassList("seat-chip--local");
                 if (seat.Id == CurrentTurnSeat())

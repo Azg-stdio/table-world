@@ -15,12 +15,15 @@ namespace Core.Net
     public sealed class PlayerInfo
     {
         public const int MaxNameLength = 24;
+        public const int MaxLookLength = 24;
 
         public string Name { get; set; } = "";
         public bool Promoted { get; set; }
         public bool GameMaster { get; set; }
         public Team Team { get; set; }
         public bool Muted { get; set; }
+        /// <summary>The chalker personality the player picked (T7.3), a name like "Grumpy"; empty means the default.</summary>
+        public string Look { get; set; } = "";
 
         public JObject ToJson()
         {
@@ -29,6 +32,7 @@ namespace Core.Net
             if (GameMaster) json["gm"] = true;
             if (Team != Team.None) json["team"] = Team.ToString();
             if (Muted) json["muted"] = true;
+            if (Look.Length > 0) json["look"] = Look;
             return json;
         }
 
@@ -42,8 +46,13 @@ namespace Core.Net
                 GameMaster = o?["gm"]?.Type == JTokenType.Boolean && (bool)o["gm"]!,
                 Team = System.Enum.TryParse<Team>((string?)o?["team"], out var team) ? team : Team.None,
                 Muted = o?["muted"]?.Type == JTokenType.Boolean && (bool)o["muted"]!,
+                Look = CleanLook(o?["look"]?.Type == JTokenType.String ? (string?)o["look"] : null),
             };
         }
+
+        /// <summary>A personality or emote name: letters only, at most <see cref="MaxLookLength"/>; anything else is empty.</summary>
+        public static string CleanLook(string? look) =>
+            look != null && look.Length <= MaxLookLength && look.All(c => c < 128 && char.IsLetter(c)) ? look : "";
 
         /// <summary>A name as players may see it: one line, trimmed, at most <see cref="MaxNameLength"/> characters; null when empty.</summary>
         public static string? CleanName(string? name)
@@ -82,6 +91,9 @@ namespace Core.Net
             Of(participant).Name = clean;
             return true;
         }
+
+        /// <summary>Sets the chalker personality a participant picked (anything not a plain name clears it).</summary>
+        public void SetLook(string participant, string? look) => Of(participant).Look = PlayerInfo.CleanLook(look);
 
         public void Leave(string participant) => _players.Remove(participant);
 

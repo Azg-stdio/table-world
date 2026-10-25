@@ -29,9 +29,13 @@ namespace Core.Net
         /// <summary>The point at the centre of the player's view (T7.3): their chalker turns its head to it. Null when unknown.</summary>
         public Vec3? Gaze { get; set; }
         public List<HeldPose> Held { get; set; } = new List<HeldPose>();
+        /// <summary>The player's latest emote (T7.4), by name, or null; it plays when <see cref="EmoteCount"/> changes.</summary>
+        public string? Emote { get; set; }
+        /// <summary>Counts the player's emotes, so the same emote twice plays twice and a re-sent frame plays nothing.</summary>
+        public int EmoteCount { get; set; }
     }
 
-    /// <summary>Presence frames on the wire: <c>{ kind: "presence", seat, seq, pointer?, gaze?, held: [{ id, p, r }] }</c>.</summary>
+    /// <summary>Presence frames on the wire: <c>{ kind: "presence", seat, seq, pointer?, gaze?, emote?: { name, n }, held: [{ id, p, r }] }</c>.</summary>
     public static class PresenceCodec
     {
         /// <summary>A frame carrying more held objects than this is refused (a TTS player can carry a big group, not the table).</summary>
@@ -46,6 +50,7 @@ namespace Core.Net
             ["seq"] = frame.Sequence,
             ["pointer"] = frame.Pointer is { } p ? new JArray(p.X, p.Y, p.Z) : null,
             ["gaze"] = frame.Gaze is { } g ? new JArray(g.X, g.Y, g.Z) : null,
+            ["emote"] = frame.Emote != null ? new JObject { ["name"] = frame.Emote, ["n"] = frame.EmoteCount } : null,
             ["held"] = new JArray(frame.Held.Select(h => new JObject
             {
                 ["id"] = h.Id,
@@ -71,6 +76,14 @@ namespace Core.Net
                 if (!(ReadVec(gaze) is { } point))
                     return null;
                 frame.Gaze = point;
+            }
+            if (message["emote"] is JObject emote)
+            {
+                var name = emote["name"]?.Type == JTokenType.String ? PlayerInfo.CleanLook((string?)emote["name"]) : "";
+                if (name.Length == 0 || emote["n"]?.Type != JTokenType.Integer)
+                    return null;
+                frame.Emote = name;
+                frame.EmoteCount = (int)emote["n"]!;
             }
             if (message["held"] is JArray held)
             {

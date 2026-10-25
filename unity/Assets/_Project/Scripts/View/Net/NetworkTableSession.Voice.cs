@@ -25,9 +25,15 @@ namespace TableWorld.View.Net
             {
                 _voice.Spoke -= OnSpoke;
                 _voice.Spoke += OnSpoke;
-                _voice.Online = () => _network != null && _network.IsListening && Synced && _table.LocalSeat != null;
+                _voice.Online = () => _network != null && _network.IsListening && Synced && SpeakerKey() != null;
+                _voice.SpeakerKey = SpeakerKey;
             }
         }
+
+        /// <summary>Whose voice it is: the seat, or for a spectator "~" and their participant id (no chalker, still heard).</summary>
+        private string SpeakerKey() => _table.LocalSeat ?? (LocalParticipant != null ? SpectatorVoice(LocalParticipant) : null);
+
+        public static string SpectatorVoice(string participant) => "~" + participant;
 
         private void UnregisterVoice()
         {
@@ -53,10 +59,10 @@ namespace TableWorld.View.Net
         {
             reader.ReadValueSafe(out byte[] bytes);
             var packet = VoiceCodec.Decode(bytes);
-            // A client speaks only for the seat it was given.
-            if (packet == null || !_seatOf.TryGetValue(sender, out var seat) || seat == null)
+            // A client speaks only for the seat it was given (a spectator for itself).
+            if (packet == null || !_seatOf.TryGetValue(sender, out var seat))
                 return;
-            packet.Seat = seat;
+            packet.Seat = seat ?? SpectatorVoice(sender.ToString());
             _voice?.Receive(packet);
             var relayed = VoiceCodec.Encode(packet);
             foreach (var client in _network.ConnectedClientsIds.Where(c => c != NetworkManager.ServerClientId && c != sender).ToList())
@@ -66,7 +72,7 @@ namespace TableWorld.View.Net
         private void OnClientVoice(ulong sender, FastBufferReader reader)
         {
             reader.ReadValueSafe(out byte[] bytes);
-            if (VoiceCodec.Decode(bytes) is { } packet && packet.Seat != _table.LocalSeat)
+            if (VoiceCodec.Decode(bytes) is { } packet && packet.Seat != SpeakerKey())
                 _voice?.Receive(packet);
         }
 

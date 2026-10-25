@@ -45,8 +45,11 @@ namespace TableWorld.View.Voice
         /// <summary>Each packet this player says; the session sends it.</summary>
         public event Action<VoicePacket> Spoke;
 
-        /// <summary>True when there is someone to talk to (set by the session: online with a seat).</summary>
+        /// <summary>True when there is someone to talk to (set by the session: online and synced).</summary>
         public Func<bool> Online { get; set; }
+
+        /// <summary>Whose voice this machine sends (set by the session: the seat, or a spectator's own key).</summary>
+        public Func<string> SpeakerKey { get; set; }
 
         /// <summary>The microphone is open and sending this frame.</summary>
         public bool Talking { get; private set; }
@@ -245,7 +248,7 @@ namespace TableWorld.View.Voice
             if (!Talking)
                 return;
             _encoder ??= new VoiceEncoder();
-            var seat = _table != null ? _table.LocalSeat : null;
+            var seat = SpeakerKey != null ? SpeakerKey() : _table != null ? _table.LocalSeat : null;
             var packet = _encoder.Encode(_frame, seat ?? "");
             if (online && seat != null)
             {
