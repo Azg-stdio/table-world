@@ -122,6 +122,20 @@ namespace TableWorld.Tests.PlayMode
             Assert.AreEqual(9, ((Pdf)table.Engine.Find("rules")).Page, "reading does not turn the table's page");
             hud.PressEscape();
             Assert.IsFalse(hud.Reader.Visible);
+
+            // Alt's close-up looks square at the page, top edge up, even on a tilted PDF (a lectern, as Riftbound has).
+            view = table.ViewOf("rules");
+            // Held still in the air while tilted, so physics does not lay it down between the camera's update and the check.
+            view.Body.isKinematic = true;
+            view.transform.rotation = Quaternion.Euler(42f, 90f, 0f);
+            var look = Object.FindAnyObjectByType<LookCamera>();
+            look.Show(view, false);
+            yield return null;
+            yield return null;
+            Assert.AreEqual(1f, Vector3.Dot(look.transform.forward, -view.transform.up), 0.01f, "looking at the page's face");
+            Assert.AreEqual(1f, Vector3.Dot(look.transform.up, -view.transform.forward), 0.01f, "the page's top edge is up");
+            look.Show(null, false);
+            Assert.AreEqual("Rules\nClick to read", TableOverlay.TooltipText(view, table.Engine));
         }
     }
 }

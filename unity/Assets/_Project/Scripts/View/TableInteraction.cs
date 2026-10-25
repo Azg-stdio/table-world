@@ -60,6 +60,8 @@ namespace TableWorld.View
         private float _digitTime;
         private ObjectView _digitTarget;
         private Vector2 _leftDown, _rightDown, _middleDown;
+        /// <summary>What the left button went down on, to tell a click on it from a drag.</summary>
+        private ObjectView _leftPressed;
         private float _leftTime, _rightTime, _middleTime;
         private bool _boxing;
         private bool _measuring;
@@ -173,6 +175,9 @@ namespace TableWorld.View
 
         /// <summary>The Gizmo tool clicked an object: the HUD opens its exact-position panel.</summary>
         public event Action<ObjectView> GizmoRequested;
+
+        /// <summary>A PDF was clicked: the HUD opens it to read (M7 T8.8).</summary>
+        public event Action<ObjectView> ReadRequested;
 
         private Tool _tool;
 
@@ -375,6 +380,7 @@ namespace TableWorld.View
                 else if (Hovered != null)
                 {
                     Selected = Hovered;
+                    _leftPressed = Hovered;
                     if (_selection.Contains(Hovered) && _selection.Count > 1)
                         GrabSelection(Hovered);
                     else
@@ -434,6 +440,13 @@ namespace TableWorld.View
                     DragTo(point);
                 if (mouse.leftButton.wasReleasedThisFrame)
                     Release();
+            }
+            // A click on a PDF (no drag) opens it to read (M7 T8.8), locked or not.
+            if (mouse.leftButton.wasReleasedThisFrame)
+            {
+                if (_leftPressed != null && _leftPressed.Model is Pdf && !overUi && IsClick(pointer, _leftDown, _leftTime))
+                    ReadRequested?.Invoke(_leftPressed);
+                _leftPressed = null;
             }
 
             // Right button: while holding, add the hovered object to the group, or tap down; Alt drops the last one.

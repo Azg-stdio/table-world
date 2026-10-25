@@ -105,7 +105,8 @@ namespace TableWorld.View
         }
 
         private static bool IsFlat(Core.Rules.TableObject model) =>
-            model is Core.Rules.Card || model is Core.Rules.Deck || model is Core.Rules.Token || model is Core.Rules.Tile || model is Core.Rules.Board;
+            model is Core.Rules.Card || model is Core.Rules.Deck || model is Core.Rules.Token || model is Core.Rules.Tile || model is Core.Rules.Board
+            || model is Core.Rules.Pdf;
 
         private void RestoreLayers()
         {

@@ -131,6 +131,7 @@ namespace TableWorld.View.Hud
                 _overlay = new TableOverlay(_root, _table, _interaction, camera, _look);
                 _reader = new PdfReader(_root, _table);
                 _overlay.ReadRequested += _reader.Show;
+                _interaction.ReadRequested += _reader.Show;
                 _handBar = new HandBar(_root, _table, _interaction);
                 _help = new ControlsHelp(_root);
                 _interaction.Pinged += OnPing;
@@ -361,6 +362,8 @@ namespace TableWorld.View.Hud
                 _interaction.PointerBlocked = null;
                 _interaction.KeyboardBlocked = null;
                 _interaction.Pinged -= OnPing;
+                if (_reader != null)
+                    _interaction.ReadRequested -= _reader.Show;
             }
         }
 

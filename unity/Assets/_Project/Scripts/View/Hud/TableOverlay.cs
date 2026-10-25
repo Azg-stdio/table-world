@@ -615,6 +615,9 @@ namespace TableWorld.View.Hud
                 case Core.Rules.InfiniteBag _:
                     count = "endless";
                     break;
+                case Core.Rules.Pdf _:
+                    count = "Click to read";
+                    break;
                 case var stack when Core.Rules.Stacks.CountOf(stack) > 1:
                     count = $"stack of {Core.Rules.Stacks.CountOf(stack)}";
                     break;

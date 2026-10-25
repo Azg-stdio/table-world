@@ -47,6 +47,7 @@ namespace TableWorld.View.Hud
                 ("Hold Alt", "Close-up of what is under the pointer (wheel zooms, Q / E turns)"),
                 ("Hold Alt + Shift", "Peek at the underside (others are told when you peek at something face down)"),
                 ("Hover", "Name, then description"),
+                ("Click a PDF", "Read it in a window (arrows or Page Up/Down turn pages; right click turns the page on the table for everyone)"),
             }),
             ("Cards, decks, bags, dice", new[]
             {
