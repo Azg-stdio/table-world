@@ -1628,6 +1628,9 @@ namespace TableWorld.View
                 // An object never snaps to a point it carries itself, nor at all when its snapping is off (G16).
                 if (dropped != null && (snap.Parent == dropped.Id || !dropped.Model.Snap))
                     continue;
+                // A snap point of a state not shown (or of something in a bag) is not on the table.
+                if (snap.Parent != null && _table.ViewOf(snap.Parent) == null)
+                    continue;
                 var p = SnapWorldPosition(snap);
                 var distance = Vector2.Distance(new Vector2(position.x, position.z), new Vector2(p.x, p.z));
                 if (distance <= bestDistance)

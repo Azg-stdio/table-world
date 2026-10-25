@@ -1241,6 +1241,9 @@ namespace TableWorld.View
                         {
                             Spawn(obj);
                             ComeOutOf(ViewOf(obj.Id), added.From);
+                            // Its attached snap points (a state shown again, an object out of a bag).
+                            foreach (var attached in Engine.State.Zones.Where(z => z.Parent == obj.Id).Select(z => z.Id).ToList())
+                                RespawnZone(attached);
                         }
                         break;
                     case DrawingsChanged _:
@@ -1415,6 +1418,9 @@ namespace TableWorld.View
 
         private void SpawnZone(Zone zone)
         {
+            // Attached to an object not on the table (a state not shown, something in a bag): nothing to draw.
+            if (zone.Parent != null && ViewOf(zone.Parent) == null)
+                return;
             var seats = Engine.State.Players.Seats;
             {
                 // A hand is drawn in its owner's colour, a hidden zone's fog in the colour of the first seat that sees into it.

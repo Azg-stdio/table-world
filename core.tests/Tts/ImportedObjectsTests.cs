@@ -7,8 +7,11 @@ using Core.Tts;
 
 namespace Core.Tests.Tts
 {
-    /// <summary>M7 T8.8: TTS <c>Custom_PDF</c> imports as a PDF on the table; pages turn for everyone, from the menu or a script.</summary>
-    public class PdfTests
+    /// <summary>
+    /// M7: imported objects as TTS has them. PDFs (T8.8) turn pages for everyone, from the menu or a script; model bags keep
+    /// their image and textured models their tint; each state keeps its own snap points.
+    /// </summary>
+    public class ImportedObjectsTests
     {
         private const string Save = @"{ ""ObjectStates"": [
             { ""Name"": ""Custom_PDF"", ""GUID"": ""a1b2c3"", ""Nickname"": ""Rulebook"",
@@ -89,6 +92,30 @@ namespace Core.Tests.Tts
                 { ""Name"": ""Custom_Model"", ""GUID"": ""m00002"", ""ColorDiffuse"": { ""r"": 1.0, ""g"": 1.0, ""b"": 1.0 }, ""CustomMesh"": { ""MeshURL"": ""http://x/hex.obj"", ""DiffuseURL"": ""http://x/white.png"" } } ] }").State;
             Assert.Equal(new[] { 0.49f, 0.39f, 0.29f }, models.Objects.Single(o => o.Id == "m00001").Tint);
             Assert.Null(models.Objects.Single(o => o.Id == "m00002").Tint);
+        }
+
+        [Fact]
+        public void EachState_KeepsItsOwnSnapPoints()
+        {
+            var save = @"{ ""ObjectStates"": [ { ""Name"": ""Custom_Tile"", ""GUID"": ""a00001"", ""CustomImage"": { ""ImageURL"": ""http://x/a.png"" },
+                ""AttachedSnapPoints"": [ { ""Position"": { ""x"": 0.1, ""y"": 0, ""z"": 0 } } ],
+                ""States"": { ""2"": { ""Name"": ""Custom_Tile"", ""GUID"": ""b00001"", ""CustomImage"": { ""ImageURL"": ""http://x/b.png"" },
+                    ""AttachedSnapPoints"": [ { ""Position"": { ""x"": -0.1, ""y"": 0, ""z"": 0 } }, { ""Position"": { ""x"": 0, ""y"": 0, ""z"": 0.2 } } ] } } } ] }";
+            var result = TtsImporter.Import(save);
+            var snaps = result.State.Zones.OfType<SnapPoint>().ToList();
+            Assert.Equal(1, snaps.Count(z => z.Parent == "a00001"));
+            Assert.Equal(2, snaps.Count(z => z.Parent == "b00001"));
+            Assert.DoesNotContain(result.Notes, n => n.Contains("snap points"));
+            var parsed = TableJson.Parse(TableJson.Serialize(result.State));
+            Assert.True(parsed.Ok, string.Join("; ", parsed.Errors));
+
+            // Switching shows the other state with its own points; the first state's wait for it.
+            var engine = new TableEngine(parsed.State!, 1);
+            Assert.True(engine.Execute(new SetStateCommand { ObjectId = "a00001", State = "2" }).Ok);
+            Assert.Equal(1, engine.State.Zones.Count(z => z.Parent == "a00001"));
+            Assert.Equal(2, engine.State.Zones.Count(z => z.Parent == "b00001"));
+            Assert.NotNull(engine.Find("b00001"));
+            Assert.True(TableJson.Parse(TableJson.Serialize(engine.State)).Ok);
         }
     }
 }

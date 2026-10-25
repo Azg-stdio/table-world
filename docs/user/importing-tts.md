@@ -13,12 +13,14 @@ it.
 1. Install Tabletop Simulator and open the game there at least once. This puts the game's images and models in TTS's
    cache, where Table World copies them from.
 2. In Table World, open **Games**. Under **Import from Tabletop Simulator** you see every game TTS has on this
-   computer, by name.
+   computer, with where it comes from: **Workshop** (the game as published), **your save**, or **TTS autosave**, with
+   the date. A save keeps the game as you left it (pages turned, pieces moved); each imports into its own game.
 3. Click a game. Importing a big game takes a few seconds. When it is done, the status line says how many objects and
    files it brought in, and the game appears in the list of games.
-4. If some files were not in the TTS cache, a **Download the N missing files of …** button appears. Click it to fetch
-   them (see section 3).
-5. Open the game from **Games**, like any other game. Re-importing the same game updates it.
+4. If some files were not in the TTS cache, **Download its N missing files** appears under the game in the list. Click
+   it to fetch them (see section 3). It stays there until every file has arrived, so you can do it later too.
+5. Open the game from **Games**, like any other game. Re-importing the same game updates it. When Table World learns
+   to import something better, games imported before show **Re-import it (made by an older importer)**.
 
 **Where Table World looks:** `Documents/My Games/Tabletop Simulator`:
 
@@ -78,7 +80,6 @@ Imported from 2918471932.json on 2026-10-24 21:14.
 5346 objects; 1180 of 1206 files found in the Tabletop Simulator cache.
 Not in the cache yet: https://steamusercontent-a.akamaihd.net/ugc/…/
 Tablet 4a1b2c ('Rules site') has no counterpart yet: kept as a placeholder.
-State 5c2d1e of Custom_Model has snap points; they are dropped until the state is shown.
 ```
 
 | Line | What it means | What to do |
@@ -87,7 +88,6 @@ State 5c2d1e of Custom_Model has snap points; they are dropped until the state i
 | `Not in the cache yet: <address>` | A file TTS had not cached. A placeholder stands in for it | Download the missing files, or open the game in TTS once and import again |
 | `… has no counterpart yet: kept as a placeholder` | An object Table World cannot show yet (a tablet, a text object, a bowl) | See below |
 | `… was inside a container; zones cannot be, so it lies on the table` | A zone was stored inside a bag in TTS | Nothing: it works on the table |
-| `State … of … has snap points; they are dropped until the state is shown` | Snap points on a state that is not showing | Nothing yet (see section 5) |
 | `The XmlUI of … does not read (…); left out` | A UI document TTS accepted but that is not valid XML | Usually harmless; tell us which game |
 
 **Why placeholders:** nothing is ever dropped. A placeholder is a plain block that keeps the object's id, name,
@@ -98,16 +98,15 @@ become the real object once Table World supports it.
 
 | Feature | Today |
 |---|---|
-| PDFs, tablets, text objects, bowls | Placeholders |
-| Snap points on a hidden state | Dropped until that state is shown |
-| Lua | About 99 % of the calls in the tested games work. Missing: typing into text fields drawn on objects, joints, AssetBundle effects (accepted, do nothing), and scripted forces and velocities |
+| Tablets, text objects, bowls | Placeholders |
+| Lua | More than 99.9 % of the calls in the tested games work. Missing: typing into text fields drawn on objects, joints, AssetBundle effects (accepted, do nothing), and scripted forces and velocities |
 | Chat for one colour (`broadcastToColor`) | Reaches everyone |
 | Fog of war that reveals around pieces | A hidden zone only |
 | Physics | Table World's own: pieces behave like TTS's but not identically |
 | Table size | Table World's table is fitted to where the pieces lie, so it is often smaller than TTS's |
 | TTS installed outside `Documents/My Games` | Not found yet |
 
-How much of each tested game's Lua works is in [the Lua coverage report](../data/lua-coverage-2026-10-24.md).
+How much of each tested game's Lua works is in [the Lua coverage report](../data/lua-coverage-2026-10-25.md).
 
 ## 6. Privacy
 

@@ -52,7 +52,7 @@ namespace Core.Tts
         /// <summary>
         /// The importer's version, recorded in each package (<c>import.json</c>). Raise it when an import would come out
         /// different (a new object type, a mapping fixed), so games imported before are offered a re-import.
-        /// 2: PDFs (T8.8) and import.json. 3: model bags keep their image; textured models keep their tint.
+        /// 2: PDFs (T8.8) and import.json. 3: model bags keep their image; textured models keep their tint; states keep their snap points.
         /// </summary>
         public const int Version = 3;
 
@@ -292,13 +292,10 @@ namespace Core.Tts
             foreach (var pair in o["States"] as JObject ?? new JObject())
                 if (pair.Value is JObject stateObject && Convert(stateObject, null, isState: true) is { } state)
                     obj.States[pair.Key] = state;
-            // A state's snap points would need the state on the table; they come back when it is (not yet).
-            if (isState && o["AttachedSnapPoints"] is JArray { Count: > 0 })
-                _result.Notes.Add($"State {obj.Id} of {name} has snap points; they are dropped until the state is shown.");
-            else
-                foreach (var snap in o["AttachedSnapPoints"] as JArray ?? new JArray())
-                    if (snap is JObject point)
-                        State.Zones.Add(Snap(point, obj.Id));
+            // Each state keeps its own snap points (TTS): parented to the state's id, they work while it is the one shown.
+            foreach (var snap in o["AttachedSnapPoints"] as JArray ?? new JArray())
+                if (snap is JObject point)
+                    State.Zones.Add(Snap(point, obj.Id));
             if (!(obj is Deck) && !isState)
                 foreach (var child in o["ContainedObjects"] as JArray ?? new JArray())
                     if (child is JObject inner)

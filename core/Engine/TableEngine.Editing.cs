@@ -188,8 +188,7 @@ namespace Core.Engine
             State.Objects[index] = next;
             _objects.Remove(obj.Id);
             _objects[next.Id] = next;
-            foreach (var zone in State.Zones.Where(z => z.Parent == obj.Id))
-                zone.Parent = next.Id;
+            // Snap points stay with the state they belong to (TTS): the shown state's work, the hidden one's wait.
             return CommandResult.Success(new List<StateEvent> { new ObjectRemoved(obj.Id), new ObjectAdded(next.Id) });
         }
 

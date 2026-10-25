@@ -141,6 +141,8 @@ namespace Core.Rules
             private readonly TableState _state;
             private readonly Dictionary<string, Asset> _assets = new Dictionary<string, Asset>();
             private readonly Dictionary<string, TableObject> _objects = new Dictionary<string, TableObject>();
+            /// <summary>Ids of the states not shown (an attached snap point may belong to one).</summary>
+            private readonly HashSet<string> _stateIds = new HashSet<string>();
             private readonly HashSet<string> _tableIds = new HashSet<string>();
             private readonly Dictionary<string, Seat> _seats = new Dictionary<string, Seat>();
             private readonly Dictionary<string, Zone> _zones = new Dictionary<string, Zone>();
@@ -209,7 +211,8 @@ namespace Core.Rules
                     if (ClaimTableId(obj.Id, $"objects[{i}].id", "object"))
                         _objects[obj.Id] = obj;
                     foreach (var pair in obj.States)
-                        ClaimTableId(pair.Value.Id, $"objects[{i}].states.{pair.Key}.id", "object");
+                        if (ClaimTableId(pair.Value.Id, $"objects[{i}].states.{pair.Key}.id", "object"))
+                            _stateIds.Add(pair.Value.Id);
                     if (obj is Deck deck)
                         for (var j = 0; j < deck.Cards.Count; j++)
                             if (deck.Cards[j].Id != null)
@@ -538,7 +541,7 @@ namespace Core.Rules
                 CheckTransform(zone.Transform, $"{path}.transform");
                 if (!(zone is SnapPoint) && (zone.Size.X <= 0 || zone.Size.Y <= 0 || zone.Size.Z <= 0))
                     Add($"{path}.size", ErrorCodes.InvalidValue, $"Size {zone.Size} must be positive on every axis.");
-                if (zone.Parent != null && !_objects.ContainsKey(zone.Parent))
+                if (zone.Parent != null && !_objects.ContainsKey(zone.Parent) && !_stateIds.Contains(zone.Parent))
                     Add($"{path}.parent", ErrorCodes.UnknownObject, $"Parent object '{zone.Parent}' does not exist.",
                         Suggest.OneOf(zone.Parent, _objects.Keys, "an object id"));
 
