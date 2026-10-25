@@ -172,8 +172,8 @@ namespace Core.Net
             _byHash.Clear();
             Warnings.Clear();
             var entries = new List<ManifestEntry>();
-            // Images and model meshes travel; asset bundles come later (M4).
-            foreach (var asset in state.Assets.Where(a => (a.Type == AssetType.Image || a.Type == AssetType.Model || a.Type == AssetType.AssetBundle) && !a.IsBuiltin))
+            // Images, model meshes, asset bundles and PDFs travel.
+            foreach (var asset in state.Assets.Where(a => (a.Type == AssetType.Image || a.Type == AssetType.Model || a.Type == AssetType.AssetBundle || a.Type == AssetType.Pdf) && !a.IsBuiltin))
             {
                 byte[]? data;
                 try

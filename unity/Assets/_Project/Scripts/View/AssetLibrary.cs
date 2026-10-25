@@ -51,6 +51,19 @@ namespace TableWorld.View
             if (_meshesByPath.TryGetValue(asset.Path, out var mesh) && mesh != null)
                 Object.Destroy(mesh);
             _meshesByPath.Remove(asset.Path);
+            if (_pdfsByPath.TryGetValue(asset.Path, out var document))
+                document?.Dispose();
+            _pdfsByPath.Remove(asset.Path);
+            foreach (var page in _pdfPages.Where(p => p.Key.StartsWith(assetId + "#", System.StringComparison.Ordinal)).ToList())
+            {
+                _pdfPages.Remove(page);
+                if (_materials.TryGetValue("pdf:" + page.Key, out var pageMaterial))
+                {
+                    Object.Destroy(pageMaterial);
+                    _materials.Remove("pdf:" + page.Key);
+                }
+                Object.Destroy(page.Texture);
+            }
             if (_materials.TryGetValue("img:" + assetId, out var material))
             {
                 foreach (var key in _cells.Keys.Where(k => k.Source == material).ToList())

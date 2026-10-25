@@ -217,6 +217,16 @@ namespace Core.Tests.Net
         }
 
         [Fact]
+        public void PdfsTravelToo()
+        {
+            var (state, files) = Table();
+            state.Assets.Add(new Asset { Id = "rules", Type = AssetType.Pdf, Path = "pdfs/rules.pdf" });
+            files["pdfs/rules.pdf"] = System.Text.Encoding.ASCII.GetBytes("%PDF-1.4 rules");
+            var manifest = Host(state, files).Snapshot("c1").Message["assets"]!.Select(e => (string)e["id"]!).ToList();
+            Assert.Contains("rules", manifest);
+        }
+
+        [Fact]
         public void DirectoryStore_TrimsTheLeastRecentlyUsed_AndOldPartialDownloads()
         {
             var folder = Path.Combine(Path.GetTempPath(), "tw-cache-trim-" + System.Guid.NewGuid().ToString("N"));
