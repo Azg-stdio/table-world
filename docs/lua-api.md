@@ -158,8 +158,17 @@ Defined in the global script or any object script; colours are seat colours capi
 | `onChat(message, player)` | a player wrote in chat; returning false keeps the line from being shown |
 | own `onCollisionEnter(info)` / `onCollisionExit(info)`; `onObjectCollisionEnter(obj, info)` / `onObjectCollisionExit` for objects that called `registerCollisions()` | physics contacts on the host; `info` is `{ collision_object, contact_points, relative_velocity }` (`collision_object` nil for the table) |
 
+## Turns and grid
+
+`Turns` is free-play turns (`freeTurns` in the table): `enable`, `order` (colours), `reverse_order`,
+`skip_empty_hands` and `turn_color` (setting it passes the turn) can be read and set; `type` (1 auto, 2 when `order` is
+set), `pass_turns` (always true) and `disable_interactations` (always false, not enforced) are read only;
+`getNextTurnColor()` and `getPreviousTurnColor()`. Changes send `SetTurnOrder`; a turn change runs `onPlayerTurn`.
+
+`Grid` is the table grid: `type` (1 squares, 2 hexes), `show_lines`, `color`, `opacity`, `snapping` (1 off, 2 corners,
+3 centres, 4 both), `offsetX`, `offsetY`, `sizeX`, `sizeY` in TTS units; `thick_lines` reads false.
+
 ## Not yet (T6.3)
 
-Typing into XmlUI `InputField`s drawn on objects, `Turns`, `spawnObject`, physics casts,
-`setInvisibleTo`, joints, music, collision events. The coverage of the local mods is measured by
-`tools/tts-analysis/lua_coverage.py` (T6.4).
+Typing into XmlUI `InputField`s drawn on objects, joints, asset-bundle effects, and scripted forces and velocities. The
+coverage of the local mods is measured by `tools/tts-analysis/lua_coverage.py` (T6.4).
