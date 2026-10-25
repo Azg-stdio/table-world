@@ -168,6 +168,17 @@ set), `pass_turns` (always true) and `disable_interactations` (always false, not
 `Grid` is the table grid: `type` (1 squares, 2 hexes), `show_lines`, `color`, `opacity`, `snapping` (1 off, 2 corners,
 3 centres, 4 both), `offsetX`, `offsetY`, `sizeX`, `sizeY` in TTS units; `thick_lines` reads false.
 
+## Object data, spawning and per-frame events
+
+`obj.getData()` returns the object as our own table JSON (what a save writes), plus the TTS names scripts read and
+edit: `GUID`, `Nickname`, `Description`, `GMNotes`. `spawnObjectData({ data, position, rotation, scale,
+callback_function })` spawns a new object from such data (changes to those names apply) under a new id; a deck's cards
+get new ids too. Hand-made TTS data (`Name = 'Custom_Model'`, ...) is not read yet: it spawns nothing and logs why.
+`bag.reset()` empties a bag or infinite bag and keeps it. A layout zone lays out with `zone.LayoutZone.layout()`.
+
+`onUpdate()` runs every frame on the host. `onObjectSpawn(object)` runs for every new object and `onObjectDestroy(object)`
+for every one removed (a card joining a deck too); the destroyed object is already gone, so it offers only `getGUID()`.
+
 ## Not yet (T6.3)
 
 Typing into XmlUI `InputField`s drawn on objects, joints, asset-bundle effects, and scripted forces and velocities. The

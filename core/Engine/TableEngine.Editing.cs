@@ -25,9 +25,15 @@ namespace Core.Engine
 
         private CommandResult Delete(DeleteCommand c)
         {
-            if (RequireOnTable(c.ObjectId, "objectId", out var obj) is { } fail)
+            if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: c.Contents) is { } fail)
                 return fail;
             var events = new List<StateEvent>();
+            if (c.Contents)
+            {
+                foreach (var child in ContentsOf(obj.Id).ToList())
+                    DeleteTree(child, events);
+                return CommandResult.Success(events);
+            }
             DeleteTree(obj, events);
             return CommandResult.Success(events);
         }
@@ -73,6 +79,10 @@ namespace Core.Engine
             spawned.Id = Mint(spawned.Type.ToLowerInvariant());
             foreach (var state in spawned.States.Values)
                 state.Id = Mint(state.Id);
+            // A deck spawned from another's data (TTS spawnObjectData) must not share its cards' ids.
+            if (spawned is Deck deck)
+                foreach (var entry in deck.Cards.Where(e => e.Id != null))
+                    entry.Id = Mint(entry.Id!);
             AddObject(spawned);
             var result = CommandResult.Success(new List<StateEvent> { new ObjectAdded(spawned.Id) });
             result.CreatedId = spawned.Id;

@@ -58,6 +58,7 @@ API the local mods' calls find is measured in [`docs/data/lua-coverage-*.md`](..
 | `self` | table | `call`, `Call`, `getGUID`, `getTable`, `getVar`, `setTable`, `setVar` |
 | `setmetatable` | function |  |
 | `spawnObject` | function |  |
+| `spawnObjectData` | function |  |
 | `startLuaCoroutine` | function |  |
 | `Timer` | table | `create`, `destroy` |
 | `tonumber` | function |  |
@@ -102,6 +103,7 @@ On every object a script gets (`getObjectFromGUID`, `self`, event arguments). Fu
 | `getComponent` | function |
 | `getComponents` | function |
 | `getCustomObject` | function |
+| `getData` | function |
 | `getDescription` | function |
 | `getGMNotes` | function |
 | `getInputs` | function |
@@ -144,6 +146,7 @@ On every object a script gets (`getObjectFromGUID`, `self`, event arguments). Fu
 | `removeButton` | function |
 | `removeInput` | function |
 | `removeTag` | function |
+| `reset` | function |
 | `resting` | value |
 | `roll` | function |
 | `setColorTint` | function |

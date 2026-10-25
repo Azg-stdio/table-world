@@ -14,6 +14,8 @@ namespace Core.Engine
     public sealed class DeleteCommand : Command
     {
         public string ObjectId { get; set; } = "";
+        /// <summary>Removes only what is inside the bag and keeps the bag (TTS <c>reset()</c>), locked or not.</summary>
+        public bool Contents { get; set; }
     }
 
     /// <summary>Copies an object (with a bag's contents, a deck's cards and its states) under new ids (copy/paste).</summary>

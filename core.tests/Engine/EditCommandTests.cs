@@ -83,6 +83,10 @@ namespace Core.Tests.Engine
             Assert.Null(engine.State.Zones.Single(z => z.Id == "snap").Parent);
             engine.Fails(new DeleteCommand { ObjectId = "locked_die" }, ErrorCodes.ObjectLocked);
             engine.Fails(new DeleteCommand { ObjectId = "coin" }, ErrorCodes.NotOnTable);
+            // Contents: empties a container and keeps it (TTS reset()).
+            var emptied = engine.Ok(new DeleteCommand { ObjectId = "coins", Contents = true });
+            Assert.Equal(new[] { "coin" }, emptied.Events.OfType<ObjectRemoved>().Select(e => e.ObjectId));
+            Assert.NotNull(engine.Find("coins"));
             engine.AssertValid();
         }
 

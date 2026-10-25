@@ -445,6 +445,14 @@ end";
                     case ContainerChanged moved when moved.To != null:
                         EverywhereWith("onObjectEnterContainer", (s, p) => new[] { p(moved.To), p(moved.ObjectId) });
                         break;
+                    // TTS: onObjectSpawn(object) for every new object, onObjectDestroy(object) for every one gone (a card
+                    // joining a deck too). The destroyed one is gone already: scripts get its GUID only.
+                    case ObjectAdded added when Engine.Find(added.ObjectId) != null:
+                        EverywhereWith("onObjectSpawn", (s, p) => new[] { p(added.ObjectId) });
+                        break;
+                    case ObjectRemoved removed:
+                        EverywhereWith("onObjectDestroy", (s, p) => new[] { Gone(s, removed.ObjectId) });
+                        break;
                     case ZoneEntered entered when ProxyFor(entered.ZoneId) != null && ProxyFor(entered.ObjectId) != null:
                         EverywhereWith("onObjectEnterZone", (s, p) => new[] { p(entered.ZoneId), p(entered.ObjectId) });
                         // Older TTS scripts use the scripting-zone names for the same thing.
@@ -580,14 +588,29 @@ end";
                 Call(script);
         }
 
+        /// <summary>A stand-in for an object that no longer exists: its GUID, and destroyed.</summary>
+        private static DynValue Gone(Script script, string id)
+        {
+            var t = new Table(script);
+            t["guid"] = id;
+            t["getGUID"] = DynValue.NewCallback((_, a) => DynValue.NewString(id));
+            t["getName"] = DynValue.NewCallback((_, a) => DynValue.NewString(""));
+            t["isDestroyed"] = DynValue.NewCallback((_, a) => DynValue.True);
+            return DynValue.NewTable(t);
+        }
+
         private object? ProxyFor(string id) =>
             Engine.Find(id) as object ?? Engine.State.Zones.FirstOrDefault(z => z.Id == id);
 
-        /// <summary>Advances time: runs the <c>Wait</c> callbacks that are due and every running coroutine's next frame (the host calls this every frame).</summary>
+        /// <summary>
+        /// Advances time: runs the <c>Wait</c> callbacks that are due, every running coroutine's next frame and TTS's
+        /// per-frame <c>onUpdate</c> (the host calls this every frame).
+        /// </summary>
         public void Tick(double now)
         {
             _now = now;
             ResumeCoroutines();
+            Everywhere("onUpdate");
             // Hundreds of Wait.condition timers can be polling at once (a mod waiting on every piece): finished timers are
             // marked and removed together, not searched for one by one.
             var finished = false;

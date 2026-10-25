@@ -40,9 +40,14 @@ IMPLEMENTED = {
     "spawnObject", "onObjectEnterContainer", "onObjectLeaveContainer", "onChat",
     "createInput", "editInput", "removeInput", "clearInputs", "getInputs",
     "setCustomObject", "getComponent", "MusicPlayer.getPlaylist",
+    # Vector and Color methods (core/Scripting/LuaPrelude.cs)
+    "copy", "get", "set", "setAt", "add", "sub", "scale", "clamp", "sqrMagnitude", "magnitude", "normalize", "normalized",
+    "sqrDistance", "distance", "dot", "cross", "angle", "lerp", "inverse", "equals", "string", "heading", "rotateOver",
+    "between", "fromString", "fromHex", "toHex", "toString",
     # events
     "onLoad", "onObjectDrop", "onDrop", "onObjectEnterZone", "onObjectLeaveZone", "onObjectFlip", "onFlip",
     "onObjectRandomize", "onRandomize", "onPlayerTurn",
+    "getData", "spawnObjectData", "reset", "layout", "onUpdate", "onObjectSpawn", "onObjectDestroy",
 }
 
 # Lua built-ins and string/table/math library names the analyzer may count as methods; they are provided by MoonSharp.

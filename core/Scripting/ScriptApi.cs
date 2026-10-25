@@ -58,6 +58,7 @@ namespace Core.Scripting
             g["getObjects"] = Fn(args => List(script, Engine.State.Objects.Where(o => o.Container == null).Select(o => o.Id)));
             g["getAllObjects"] = g["getObjects"];
             g["spawnObject"] = Fn(args => args.Count > 0 && args[0].Type == DataType.Table ? SpawnObject(script, args[0].Table) : DynValue.Nil);
+            g["spawnObjectData"] = Fn(args => args.Count > 0 && args[0].Type == DataType.Table ? SpawnObjectData(script, args[0].Table) : DynValue.Nil);
             g["getObjectsWithAllTags"] = Fn(args =>
             {
                 var tags = args.Count > 0 ? Strings(args[0]) : new List<string>();
@@ -364,6 +365,13 @@ namespace Core.Scripting
                     ? MoveZone(null, null, new Vec3(Math.Abs(s.X) * TtsUnitsToMeters, Math.Abs(s.Y) * TtsUnitsToMeters, Math.Abs(s.Z) * TtsUnitsToMeters))
                     : DynValue.False);
                 t["destruct"] = DynValue.False;
+                // TTS reaches a layout zone's layout through its component: zone.LayoutZone.layout().
+                if (zone is LayoutZone)
+                {
+                    var layout = new Table(script);
+                    layout["layout"] = DynValue.NewCallback((_, a) => DynValue.NewBoolean(Issue(new ArrangeZoneCommand { ZoneId = id })));
+                    t["LayoutZone"] = layout;
+                }
                 // A trigger's scale is its box in TTS units.
                 t["getScale"] = DynValue.NewCallback((_, a) => DynValue.NewTable(Vector(script,
                     new Vec3(zone.Size.X / TtsUnitsToMeters, zone.Size.Y / TtsUnitsToMeters, zone.Size.Z / TtsUnitsToMeters))));
@@ -529,6 +537,15 @@ namespace Core.Scripting
                         while (o.States.ContainsKey(n.ToString()))
                             n++;
                         return DynValue.NewNumber(n);
+                    });
+                case "getData":
+                    // TTS object data: our own object JSON, with the TTS names scripts read and edit.
+                    return Fn((o, a) => DynValue.NewTable(DataOf(script, o)));
+                case "reset":
+                    // TTS: resetting a bag (or infinite bag) clears what it holds.
+                    return Fn((o, a) =>
+                    {
+                        return o is Bag ? Do(new DeleteCommand { ObjectId = id, Contents = true }) : DynValue.False;
                     });
                 case "isDestroyed":
                     return DynValue.NewCallback((_, a) => DynValue.NewBoolean(Engine.Find(id) == null));
@@ -955,6 +972,85 @@ namespace Core.Scripting
             return bundle;
         }
 
+        /// <summary>The TTS names <see cref="DataOf"/> adds beside our own object JSON, and the fields they stand for.</summary>
+        private static readonly (string Tts, string Ours)[] DataAliases = { ("Nickname", "name"), ("Description", "description"), ("GMNotes", "gmNotes") };
+
+        /// <summary>
+        /// TTS <c>getData()</c>: the object as our own JSON (what <see cref="SpawnObjectData"/> reads back), plus the TTS
+        /// names scripts read and edit: <c>GUID</c>, <c>Nickname</c>, <c>Description</c>, <c>GMNotes</c>. A bag's
+        /// contents are not included.
+        /// </summary>
+        private Table DataOf(Script script, TableObject obj)
+        {
+            var document = Newtonsoft.Json.Linq.JObject.Parse(TableJson.Serialize(new TableState { Objects = { TableJson.CloneObject(obj) } }, indented: false));
+            var json = (Newtonsoft.Json.Linq.JObject)document["objects"]![0]!;
+            json.Remove("container");
+            var data = JsonTableConverter.JsonToTable(json.ToString(Newtonsoft.Json.Formatting.None), script);
+            data["GUID"] = obj.Id;
+            data["Nickname"] = obj.Name ?? "";
+            data["Description"] = obj.Description ?? "";
+            data["GMNotes"] = obj.GmNotes ?? "";
+            return data;
+        }
+
+        /// <summary>
+        /// TTS <c>spawnObjectData({ data, position, rotation, scale, callback_function })</c> for data from
+        /// <c>getData()</c> (edited or not): a new object with a new id. Hand-made TTS data (<c>Name = 'Custom_Model'</c>
+        /// ...) is not read yet and spawns nothing.
+        /// </summary>
+        private DynValue SpawnObjectData(Script script, Table p)
+        {
+            var data = p.Get("data");
+            if (data.Type != DataType.Table)
+                return DynValue.Nil;
+            Newtonsoft.Json.Linq.JObject json;
+            try
+            {
+                json = Newtonsoft.Json.Linq.JObject.Parse(JsonTableConverter.TableToJson(data.Table));
+            }
+            catch (Exception e) when (e is Newtonsoft.Json.JsonException || e is ScriptRuntimeException)
+            {
+                return DynValue.Nil;
+            }
+            if (json["type"]?.Type != Newtonsoft.Json.Linq.JTokenType.String)
+            {
+                Log?.Invoke("[script] spawnObjectData: only data from getData() can be spawned yet.");
+                return DynValue.Nil;
+            }
+            foreach (var (tts, ours) in DataAliases)
+            {
+                if (json[tts]?.Type == Newtonsoft.Json.Linq.JTokenType.String)
+                    json[ours] = (string)json[tts]!;
+                json.Remove(tts);
+            }
+            json.Remove("GUID");
+            var transform = json["transform"] as Newtonsoft.Json.Linq.JObject ?? new Newtonsoft.Json.Linq.JObject();
+            if (FromTts(p.Get("position"), true) is { } at)
+                transform["position"] = new Newtonsoft.Json.Linq.JArray(at.X, at.Y, at.Z);
+            if (FromTts(p.Get("rotation"), false) is { } rot)
+                transform["rotation"] = new Newtonsoft.Json.Linq.JArray(rot.X, rot.Y, rot.Z);
+            if (FromTts(p.Get("scale"), false) is { } scale)
+                transform["scale"] = new Newtonsoft.Json.Linq.JArray(scale.X, scale.Y, scale.Z);
+            json["transform"] = transform;
+            return Spawned(script, p, _execute(new SpawnCommand { ObjectJson = json.ToString(Newtonsoft.Json.Formatting.None) }), "spawnObjectData");
+        }
+
+        /// <summary>The spawned object's proxy; its callback runs on the next tick, as TTS calls it once the object has loaded.</summary>
+        private DynValue Spawned(Script script, Table p, CommandResult result, string what)
+        {
+            Count(result);
+            if (!result.Ok)
+            {
+                Log?.Invoke($"[script] {what} refused: {result.Error?.Message}");
+                return DynValue.Nil;
+            }
+            var proxy = Proxy(script, result.CreatedId);
+            var callback = p.Get("callback_function");
+            if (callback.Type == DataType.Function || callback.Type == DataType.ClrFunction)
+                _timers.Add(new Timer { Id = _nextTimer++, Script = script, Function = callback, Arguments = new[] { proxy }, Due = _now });
+            return proxy;
+        }
+
         /// <summary>
         /// TTS <c>spawnObject({ type, position, rotation, scale, callback_function })</c> for the types that need no
         /// custom files: dice, tokens, tiles, boards, bags, notecards, counters and the built-in blocks, checkers and
@@ -1025,18 +1121,7 @@ namespace Core.Scripting
                 transform["scale"] = new Newtonsoft.Json.Linq.JArray(scale.X, scale.Y, scale.Z);
             if (transform.Count > 0)
                 json["transform"] = transform;
-            var result = _execute(new SpawnCommand { ObjectJson = json.ToString(Newtonsoft.Json.Formatting.None), Assets = assets });
-            Count(result);
-            if (!result.Ok)
-            {
-                Log?.Invoke($"[script] spawnObject refused: {result.Error?.Message}");
-                return DynValue.Nil;
-            }
-            var proxy = Proxy(script, result.CreatedId);
-            var callback = p.Get("callback_function");
-            if (callback.Type == DataType.Function || callback.Type == DataType.ClrFunction)
-                _timers.Add(new Timer { Id = _nextTimer++, Script = script, Function = callback, Arguments = new[] { proxy }, Due = _now });
-            return proxy;
+            return Spawned(script, p, _execute(new SpawnCommand { ObjectJson = json.ToString(Newtonsoft.Json.Formatting.None), Assets = assets }), "spawnObject");
         }
 
         /// <summary>
