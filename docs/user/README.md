@@ -1,12 +1,13 @@
 # Player and designer docs
 
-> Status: in progress. The pages below exist today; getting started, the agent guide's rewrite, importing TTS games and
-> the rules format for humans are being written as the features they describe are finished.
+> Status: in progress. The pages below exist today; getting started, importing TTS games, preparing assets and
+> troubleshooting are being written as the features they describe are finished.
 
 | Page | What it is for |
 |---|---|
 | [Playtest guide](playtest.md) | Building the game, hosting and joining with friends, and the checklist of things only people can confirm |
-| [Building a game with your agent](agent-guide.md) | Connecting Claude Code or another agent to Table World through the MCP server, and what to ask it |
+| [Building a game with your agent](building-with-an-agent.md) | What the MCP server does, connecting Claude Code, Claude Desktop or Codex, the build loop, a real annotated session, and what to do when the agent is stuck |
+| [Agent guide](agent-guide.md) | The instructions for the agent itself (the server also serves them) |
 | [MCP tools by job](mcp-tools-guide.md) | Every tool of the server grouped by job, each with an example that a test runs against the server |
 | [Game brief template](game-brief-template.md) | Everything your agent needs about your game in one document, so it builds it with fewer questions |
 | [Rules and scripting](rules-and-scripting.md) | The rules format in game terms, using War and UNO-lite, and Lua scripting: events, script UI, the sandbox, differences from TTS |
