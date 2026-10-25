@@ -8,6 +8,7 @@
 | [Playtest guide](playtest.md) | Building the game, hosting and joining with friends, and the checklist of things only people can confirm |
 | [Building a game with your agent](agent-guide.md) | Connecting Claude Code or another agent to Table World through the MCP server, and what to ask it |
 | [Game brief template](game-brief-template.md) | Everything your agent needs about your game in one document, so it builds it with fewer questions |
+| Example briefs: [War](examples/war-brief.md), [Match the Pile](examples/uno-lite-brief.md) | The template filled in for the two sample rulebooks |
 
 Coming next: getting started (install, first table, controls, hosting and joining), the MCP tool guide grouped by job,
 importing Tabletop Simulator games, the rules format and Lua scripting for humans, preparing assets, and troubleshooting.
