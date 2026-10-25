@@ -2468,6 +2468,9 @@
         "roomAsset": {
           "type": "string"
         },
+        "skyAsset": {
+          "type": "string"
+        },
         "wallColor": {
           "type": "array",
           "items": {

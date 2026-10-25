@@ -117,5 +117,22 @@ namespace Core.Tests.Tts
             Assert.NotNull(engine.Find("b00001"));
             Assert.True(TableJson.Parse(TableJson.Serialize(engine.State)).Ok);
         }
+
+        [Fact]
+        public void CustomTableImage_AndSky_ComeFromTheSave()
+        {
+            var save = @"{ ""Table"": ""Table_Custom"", ""TableURL"": ""http://x/felt.jpg"", ""Sky"": ""Sky_Museum"", ""SkyURL"": ""http://x/sky.jpg"",
+                ""ObjectStates"": [ { ""Name"": ""Custom_Token"", ""GUID"": ""t00001"" } ] }";
+            var state = TtsImporter.Import(save).State;
+            var env = state.Environment!;
+            Assert.Equal(AssetType.Image, state.Assets.Single(a => a.Id == env.Table.FeltAsset).Type);
+            Assert.Equal(AssetType.Image, state.Assets.Single(a => a.Id == env.SkyAsset).Type);
+            Assert.Equal(RoomPreset.None, env.Room);
+            Assert.True(TableJson.Parse(TableJson.Serialize(state)).Ok);
+            // A built-in sky alone keeps the default room, and a table that is not custom brings no image.
+            var plain = TtsImporter.Import(@"{ ""Table"": ""Table_RPG"", ""Sky"": ""Sky_Regal"", ""ObjectStates"": [] }").State;
+            Assert.Null(plain.Environment?.SkyAsset);
+            Assert.Null(plain.Environment?.Table.FeltAsset);
+        }
     }
 }

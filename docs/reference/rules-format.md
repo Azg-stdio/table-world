@@ -705,6 +705,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 |---|---|---|
 | `room` | one of `gameNight`, `none` |  |
 | `roomAsset` | string |  |
+| `skyAsset` | string |  |
 | `wallColor` | array of number |  |
 | `floorColor` | array of number |  |
 | `lighting` | [LightingDef](#lightingdef) |  |

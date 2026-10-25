@@ -14,7 +14,9 @@ namespace TableWorld.View
         public const string UnlitName = "Universal Render Pipeline/Unlit";
         /// <summary>For TTS asset-bundle particles (M4).</summary>
         public const string ParticlesName = "Universal Render Pipeline/Particles/Unlit";
-        public static readonly string[] Names = { LitName, UnlitName, ParticlesName };
+        /// <summary>Unity's built-in panorama sky (TTS custom skies): not part of URP, so it must be kept in builds too.</summary>
+        public const string SkyName = "Skybox/Panoramic";
+        public static readonly string[] Names = { LitName, UnlitName, ParticlesName, SkyName };
 
         public static Shader Lit => Find(LitName);
 

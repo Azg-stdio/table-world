@@ -52,7 +52,7 @@ namespace Core.Tts
         /// <summary>
         /// The importer's version, recorded in each package (<c>import.json</c>). Raise it when an import would come out
         /// different (a new object type, a mapping fixed), so games imported before are offered a re-import.
-        /// 2: PDFs (T8.8) and import.json. 3: model bags keep their image; textured models keep their tint; states keep their snap points; bowls.
+        /// 2: PDFs (T8.8) and import.json. 3: model bags keep their image; textured models keep their tint; states keep their snap points; bowls; custom table image and sky.
         /// </summary>
         public const int Version = 3;
 
@@ -91,7 +91,8 @@ namespace Core.Tts
             foreach (var seat in State.Players.Seats)
                 seat.HandZone = State.Zones.OfType<HandZone>().FirstOrDefault(z => z.Owner == seat.Id)?.Id;
             Settle();
-            Table((string?)save["Table"]);
+            Table((string?)save["Table"], (string?)save["TableURL"]);
+            Sky((string?)save["SkyURL"]);
             return _result;
         }
 
@@ -118,7 +119,21 @@ namespace Core.Tts
         /// The table the game needs: big enough for its layout (TTS tables are far larger than our default, and games
         /// spread across them), or none for <c>Table_None</c>, where the game's own models are the surface.
         /// </summary>
-        private void Table(string? ttsTable)
+        /// <summary>
+        /// TTS's custom sky (<c>SkyURL</c>, a 360° image): drawn around the table in place of our room. TTS's built-in skies
+        /// (<c>Sky_Museum</c>, <c>Sky_Regal</c> …) keep our default room; their lighting values do not map one to one and
+        /// are left to the room preset.
+        /// </summary>
+        private void Sky(string? skyUrl)
+        {
+            if (string.IsNullOrWhiteSpace(skyUrl))
+                return;
+            State.Environment ??= new EnvironmentDef();
+            State.Environment.SkyAsset = Asset(skyUrl, AssetType.Image);
+            State.Environment.Room = RoomPreset.None;
+        }
+
+        private void Table(string? ttsTable, string? tableUrl = null)
         {
             var onTable = State.Objects.Where(o => o.Container == null).Select(o => o.Transform.Position)
                 .Concat(State.Zones.OfType<HandZone>().Select(z => z.Transform.Position)).ToList();
@@ -146,7 +161,10 @@ namespace Core.Tts
                 var lowest = onTable.Count > 0 ? onTable.Min(p => p.Y) - shift : 0f;
                 look.LowestY = Math.Min(-0.05f, lowest - 0.3f);
             }
-            if (look.Size != null || look.Hidden)
+            // A custom table (Table_Custom) shows its image over the playing surface.
+            if (ttsTable == "Table_Custom" && !string.IsNullOrWhiteSpace(tableUrl))
+                look.FeltAsset = Asset(tableUrl, AssetType.Image);
+            if (look.Size != null || look.Hidden || look.FeltAsset != null)
                 State.Environment = new EnvironmentDef { Table = look };
         }
 

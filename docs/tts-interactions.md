@@ -172,7 +172,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G41 | Sinnoh | Per-player visibility (`setInvisibleTo` 24×), highlights (`highlightOn/Off`), smooth moves (`setPositionSmooth`, `setRotationSmooth`, `isSmoothMoving`) | none (M5) |
 | G42 | Master Trainer | `Physics.cast` (16×), collision events (`registerCollisions`, `onObjectCollisionEnter`) | none (M5) |
 | G43 | Sinnoh | Scripts that rewrite scripts (`getLuaScript` 816×, `setLuaScript` 300×), `getVar`/`setVar`, coroutines (`startLuaCoroutine` 107×) | none (M5) |
-| G44 | both | Environment from the save: custom table image (`Table_Custom` + `TableURL`), sky (`Sky_Museum`), lighting values, gravity (0.5), music playlist | 🟡 the `environment` block takes room, colours, lamp/ambient and a felt image (`docs/rules-schema.md` → Environment); the importer mapping, TTS sky presets, gravity and music are still to do |
+| G44 | both | Environment from the save: custom table image (`Table_Custom` + `TableURL`), sky (`Sky_Museum`), lighting values, gravity (0.5), music playlist | ✅ (2026-10-25) the importer maps `Table_Custom` + `TableURL` to the felt image, a custom sky (`SkyURL`, 360° image) to `skyAsset` drawn around the table (Skybox/Panoramic, kept in builds), and the music playlist; gravity is 0.5 (TTS's normal) in every local mod. Not mapped: TTS's built-in skies (`Sky_Museum`, `Sky_Regal` … keep our room) and its lighting values, whose model differs from ours (only Gloomhaven changes them) |
 | G45 | Sinnoh | Layout zones (2, `ManualOnly`, read by scripts with `getObjects()`), tags on everything (3 468), component tag labels (73). (The "fog of war (6)" in the first count was hand zones' `FogColor`) | tags exist; layout zones ✅ (G18) |
 
 

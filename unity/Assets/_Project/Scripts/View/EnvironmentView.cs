@@ -94,9 +94,11 @@ namespace TableWorld.View
         /// <summary>A joining player receives the felt image after the table: dress the table again when it lands.</summary>
         private void OnAssetRefreshed(string assetId)
         {
-            var look = _table.Engine?.State.Environment?.Table;
-            if (look != null && look.FeltAsset == assetId)
-                DressTable(look);
+            var env = _table.Engine?.State.Environment;
+            if (env?.Table != null && env.Table.FeltAsset == assetId)
+                DressTable(env.Table);
+            if (env != null && env.SkyAsset == assetId)
+                Apply();
         }
 
         private void Start()
@@ -166,6 +168,7 @@ namespace TableWorld.View
                 BuildGameNight(wall, floor);
             if (_camera != null)
                 _camera.backgroundColor = wall * 0.5f;
+            ApplySky(env);
 
             // Light: the room preset, then the game's overrides.
             var lighting = env.Lighting;
@@ -188,6 +191,29 @@ namespace TableWorld.View
                 _sun.enabled = !gameNight;
 
             DressTable(env.Table);
+        }
+
+        private Material _sky;
+
+        /// <summary>A game's 360° sky (TTS SkyURL) all around the table, or the room's plain background without one.</summary>
+        private void ApplySky(EnvironmentDef env)
+        {
+            var texture = env.SkyAsset != null ? _table.Assets?.Texture(env.SkyAsset) : null;
+            var shader = texture != null ? Shader.Find(RequiredShaders.SkyName) : null;
+            if (_camera != null)
+                _camera.clearFlags = shader != null ? CameraClearFlags.Skybox : CameraClearFlags.SolidColor;
+            if (shader == null)
+            {
+                RenderSettings.skybox = null;
+                return;
+            }
+            if (_sky == null || _sky.shader != shader)
+                _sky = new Material(shader) { name = "Game sky" };
+            _sky.SetTexture("_MainTex", texture);
+            // Equirectangular images (TTS's skies) span 360° by 180°.
+            _sky.SetFloat("_Mapping", 1f);
+            _sky.SetFloat("_ImageType", 0f);
+            RenderSettings.skybox = _sky;
         }
 
         /// <summary>

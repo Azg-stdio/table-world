@@ -474,6 +474,7 @@ namespace Core.Rules
             private void CheckEnvironment(EnvironmentDef env, string path)
             {
                 CheckOptionalAsset(env.RoomAsset, $"{path}.roomAsset", AssetType.Model, AssetType.AssetBundle);
+                CheckOptionalAsset(env.SkyAsset, $"{path}.skyAsset", AssetType.Image);
                 CheckColor(env.WallColor, $"{path}.wallColor");
                 CheckColor(env.FloorColor, $"{path}.floorColor");
                 CheckColor(env.Lighting.AmbientColor, $"{path}.lighting.ambientColor");

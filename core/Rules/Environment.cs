@@ -61,6 +61,11 @@ namespace Core.Rules
         public RoomPreset Room { get; set; }
         /// <summary>Model asset that replaces the built-in room (loaded once models load, M4).</summary>
         public string? RoomAsset { get; set; }
+        /// <summary>
+        /// A 360° image drawn all around the table instead of a room (TTS's custom sky, <c>SkyURL</c>): an
+        /// equirectangular panorama, twice as wide as high.
+        /// </summary>
+        public string? SkyAsset { get; set; }
         public float[]? WallColor { get; set; }
         public float[]? FloorColor { get; set; }
         public LightingDef Lighting { get; set; } = new LightingDef();
