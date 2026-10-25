@@ -190,7 +190,7 @@ python -I tools/unity/playmode_tests.py [--filter Name]   # PlayMode tests with 
 ```
 
 # MCP server (stdio). Build it, then run the DLL (never `dotnet run`: build output on stdout breaks MCP).
-# .mcp.json registers it for Claude Code in this repo; docs/agent-guide.md covers other agents.
+# .mcp.json registers it for Claude Code in this repo; docs/user/agent-guide.md covers other agents.
 dotnet build mcp-server -c Release
 dotnet mcp-server/bin/Release/net9.0/TableWorld.Mcp.dll --file games/my-game.json   # --no-bridge: headless only
 dotnet test mcp-server.tests          # contract tests: starts the server over stdio
@@ -207,4 +207,7 @@ unity/Builds/Win64/TableWorld.exe -batchmode -tw-profile client -tw-join @code.t
 # Long simulations and generated files
 TW_GAMES=1000 dotnet test core.tests --filter GamePlayTests   # 1 000 random games of War and UNO
 TW_UPDATE_SCHEMA=1 dotnet test core.tests --filter SchemaFile # regenerate docs/rules-schema.v0.json
+TW_UPDATE_DOCS=1 dotnet test core.tests --filter DocsReference        # regenerate docs/reference/ (error codes, Lua API, rules format)
+TW_UPDATE_DOCS=1 dotnet test mcp-server.tests --filter DocsReference  # regenerate docs/reference/mcp-tools.md
+python -I tools/docs/check_docs.py                            # links, anchors, Mermaid (MMDC=<path to mmdc> to parse diagrams)
 python -I tools/samples/make_games.py                         # regenerate games/war.json, games/uno-lite.json
