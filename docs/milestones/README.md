@@ -16,6 +16,7 @@ Status values: `todo` · `in progress` · `blocked (why)` · `done YYYY-MM-DD` �
 | [M5](M5-lua-sandbox.md) | Sandboxed Lua | Scripts react to events; the TTS API layer; hostile scripts cannot hurt the host | T6.1–T6.4 | todo |
 | [M6](M6-characters-and-dnd.md) | Physics characters + DnD | Active ragdolls, DnD assistant | T7.1–T7.2 | todo |
 | [M7](M7-catalog-and-importer.md) | TTS importer + catalog | Import local TTS mods and play them; layered catalog | T8.1–T8.7 | todo |
+| [M8](M8-documentation.md) | Documentation | Developer wireframes linked to code; player docs for play, MCP, importer; game brief template | T9.1–T9.17 | in progress (T9.10 template written) |
 
 ## Order
 
@@ -24,6 +25,8 @@ M0 ──► M1 (TTS parity) ──► M2 ──► M3 ──► M4 ──► M5
                                    │
                                    ├──► friends playtest (T3.6) ──► Steam fee (T0.6, money)
                                    └──► M6 (after M3)
+
+M8 (docs) runs alongside: each page follows the feature it describes.
 ```
 
 - The order is dependencies, not scope: M4, M5 and M7 are what "play a real TTS game" needs.

@@ -59,7 +59,7 @@ A 3D board game simulator, positioned as "a more advanced Tabletop Simulator, wi
 │       │   └── Art/ThirdParty/<pack>/   # CC0 packs, each with its LICENSE.txt
 │       └── Plugins/        # core.dll and dependencies
 ├── tools/                  # Helper scripts (TTS analysis, Unity probes, converters)
-└── docs/                   # plan.md (context), milestones/ (tasks + status), adr/, rules schema, TTS mapping
+└── docs/                   # plan.md (context), milestones/ (tasks + status), adr/, rules schema, TTS mapping; dev/, user/, reference/ (M8)
 ```
 
 **Principles:**
@@ -162,6 +162,9 @@ MoonSharp with a restricted API. Compatibility subset of the most used TTS funct
 Active ragdoll, talking interaction. DnD assistant.
 
 ### M7 / Task 8 — Catalog, mods and TTS importer
+
+### M8 / Task 9 — Documentation
+Runs alongside the others. Developer docs in `docs/dev/` (Mermaid wireframes, each followed by a table linking its boxes to files), player docs in `docs/user/` (play, host, MCP, importer, game brief template), generated references in `docs/reference/`. A task that changes documented behaviour updates its page in the same commit.
 
 ## 9. Commands
 
