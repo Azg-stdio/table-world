@@ -338,7 +338,7 @@ namespace Core.Engine
 
         private CommandResult Insert(InsertCommand c)
         {
-            if (RequireOnTable(c.ObjectId, "objectId", out var obj) is { } fail)
+            if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: c.EvenLocked) is { } fail)
                 return fail;
             if (c.IntoId == c.ObjectId)
                 return CommandResult.Fail("intoId", ErrorCodes.InvalidTarget, "An object cannot be inserted into itself.");

@@ -205,6 +205,20 @@ namespace Core.Tests.Net
         }
 
         [Fact]
+        public void ClientsCannotUseTheScriptsLockOverride()
+        {
+            var net = new Network(Game(9), 9, "a");
+            net.HostDoes(new LockCommand { ObjectId = "d6", Locked = true });
+            net.Flush();
+            var before = TableJson.Hash(net.Host.Game.State);
+            net.ClientDoes("a", new MoveCommand { ObjectId = "d6", Position = new Vec3(0.3f, 0, 0.3f), EvenLocked = true });
+            net.ClientDoes("a", new ScaleCommand { ObjectId = "d6", Factor = 2f, EvenLocked = true });
+            net.Flush();
+            Assert.Equal(before, TableJson.Hash(net.Host.Game.State));
+            Assert.Equal(before, TableJson.Hash(net.Clients["a"].Predicted!.State));
+        }
+
+        [Fact]
         public void Ordered_ReportsEveryCommandWithItsOrigin_InTheHostsOrder_EvenWhileOursAreInFlight()
         {
             var net = new Network(Game(7), 7, "a", "b");

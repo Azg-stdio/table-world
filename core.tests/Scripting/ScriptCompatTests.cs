@@ -151,6 +151,29 @@ namespace Core.Tests.Scripting
             Assert.Equal("Red said secret", said.Last());
         }
 
+        /// <summary>
+        /// Pokémon Master Trainer spawns a figure with takeObject({ callback_function }) and resets after
+        /// Wait.condition(done, cond, 2, on_timeout) when the figure never came.
+        /// </summary>
+        [Fact]
+        public void TakeObjectCallback_AndConditionTimeout_WorkLikeTts()
+        {
+            var (_, host, said) = Load(@"
+                function onLoad()
+                  broadcastToAll('in the bag: ' .. tostring(getObjectFromGUID('t1')))
+                  getObjectFromGUID('bag').takeObject({ guid = 't1', position = { 5, 2, 0 },
+                    callback_function = function(obj) broadcastToAll('arrived ' .. obj.getGUID()) end })
+                  Wait.condition(function() broadcastToAll('met') end, function() return false end, 1,
+                    function() broadcastToAll('timed out') end)
+                  Wait.condition(function() broadcastToAll('never') end, function() return false end, 1)
+                end");
+            Assert.Equal(new[] { "in the bag: nil" }, said); // as in TTS, getObjectFromGUID does not see into bags
+            host.Tick(0.02);
+            Assert.Equal(new[] { "in the bag: nil", "arrived t1" }, said);
+            host.Tick(1.5);
+            Assert.Equal(new[] { "in the bag: nil", "arrived t1", "timed out" }, said); // the main function never runs on a timeout
+        }
+
         [Fact]
         public void VectorAndColor_WorkLikeTts_AndTheApiReturnsThem()
         {

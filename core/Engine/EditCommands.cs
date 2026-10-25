@@ -8,6 +8,8 @@ namespace Core.Engine
     {
         public string ObjectId { get; set; } = "";
         public float Factor { get; set; } = 1.1f;
+        /// <summary>Scales a locked object too (scripts may, as in TTS; players may not).</summary>
+        public bool EvenLocked { get; set; }
     }
 
     /// <summary>Removes an object from the table; a bag goes with everything inside it.</summary>

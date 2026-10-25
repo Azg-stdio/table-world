@@ -13,7 +13,7 @@ namespace Core.Engine
 
         private CommandResult Scale(ScaleCommand c)
         {
-            if (RequireOnTable(c.ObjectId, "objectId", out var obj) is { } fail)
+            if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: c.EvenLocked) is { } fail)
                 return fail;
             if (!(c.Factor > 0))
                 return CommandResult.Fail("factor", ErrorCodes.InvalidValue, $"Factor must be positive, got {c.Factor}.");

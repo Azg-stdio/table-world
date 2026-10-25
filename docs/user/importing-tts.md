@@ -56,6 +56,11 @@ TTS installed somewhere else is not found yet.
 
 Ids stay the TTS GUIDs, so scripts that look objects up by GUID find them.
 
+AssetBundle figures play their animations (idle, attacks, fainting) when the game's scripts ask for them. Some games
+keep their 3D figures switched off until you turn them on, as they do in TTS: in Pokémon Master Trainer, click
+**3D Model Options** on the options table at the right edge and tick **Enable Models**; a Pokémon chip taken out of
+its bag and laid face up then gets its figure, and turning the chip face down puts the figure away.
+
 ## 3. Missing files
 
 A game names its files by web address. When TTS has not cached a file, the game opens with a placeholder where that

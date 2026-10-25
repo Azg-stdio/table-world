@@ -265,10 +265,32 @@ function onLoad(s) broadcastToAll('die got ' .. s) end"));
                 broadcastToAll(#card.getZones() .. ' zone')
                 local w = card.positionToWorld({1, 0, 0})
                 broadcastToAll(string.format('%.2f', w.x - card.getPosition().x))
+                card.scale(1.5)
+                broadcastToAll(string.format('%.1f', card.getScale().x))
                 card.playLoopingEffect(1)");
             Assert.Equal("0 2 4.2333", h.Said[0]);
             Assert.Equal("1 zone", h.Said[1]);
             Assert.Equal("2.00", h.Said[2]); // one local unit across, scaled twice
+            Assert.Equal("3.0", h.Said[3]); // scale(1.5) multiplies
+        }
+
+        /// <summary>Pokémon Master Trainer spawns a figure only on a face-up chip, tested with getTransformUp()[2] > 0.</summary>
+        [Fact]
+        public void TransformAxes_FollowTheRotation()
+        {
+            var h = new Harness(@"
+                local card = getObjectFromGUID('loose')
+                local function axes() local u, f, r = card.getTransformUp(), card.getTransformForward(), card.getTransformRight()
+                    return string.format('%.0f %.0f %.0f / %.0f %.0f %.0f', u[2], f.z, r.x, u.y, f[3], r[1]) end
+                broadcastToAll(axes())
+                card.flip()
+                broadcastToAll(string.format('%.0f', card.getTransformUp()[2]))
+                card.setRotation({0, 90, 0})
+                local f = card.getTransformForward()
+                broadcastToAll(string.format('%.0f %.0f', f.x, f.z))");
+            Assert.Equal("1 1 1 / 1 1 1", h.Said[0]);
+            Assert.Equal("-1", h.Said[1]); // face down: up points down
+            Assert.Equal("1 0", h.Said[2]); // a quarter turn about y sends forward to +x, as in Unity and TTS
         }
 
         [Fact]

@@ -24,7 +24,7 @@ API returns are Vectors and Colors.
 
 | Function | Does |
 |---|---|
-| `getObjectFromGUID(guid)` | the object or zone with that id, or nil |
+| `getObjectFromGUID(guid)` | the object or zone with that id, or nil; nil for an object inside a bag, as in TTS |
 | `getObjects()`, `getAllObjects()` | every object on the table (not inside containers) |
 | `getObjectsWithTag(tag)`, `getObjectsWithAllTags(tags)`, `getObjectsWithAnyTags(tags)` | objects on the table with those tags |
 | `Timer.create({ identifier, function_name, function_owner, parameters, delay, repetitions })`, `Timer.destroy(identifier)` | TTS's older timers, on Wait's clock (`repetitions = 0` repeats forever) |
@@ -33,7 +33,7 @@ API returns are Vectors and Colors.
 | `JSON.encode(table)`, `JSON.decode(text)` | JSON text and Lua tables |
 | `Wait.time(fn, seconds[, repetitions])` | calls `fn` later; `-1` repeats forever; returns an id |
 | `Wait.frames(fn, frames)` | calls `fn` after that many frames (1/60 s each) |
-| `Wait.condition(fn, condition[, timeout])` | calls `fn` once `condition()` is true (checked every frame) |
+| `Wait.condition(fn, condition[, timeout, on_timeout])` | calls `fn` once `condition()` is true (checked every frame); after `timeout` seconds without it, calls `on_timeout` instead (if given) and never `fn` |
 | `Wait.stop(id)`, `Wait.stopAll()` | cancels |
 | `Global.call(name, value)`, `Global.getVar(name)`, `Global.setVar(name, value)`, `Global.getTable`, `Global.setTable` | the global script's functions and variables; only plain values (numbers, strings, booleans, tables of them) cross between scripts |
 | `startLuaCoroutine(owner, name)` | runs the owner's function a frame at a time (`coroutine.yield(0)` waits a frame) |
@@ -69,7 +69,7 @@ API returns are Vectors and Colors.
 | `getValue()`, `setValue(n)` | a counter's number or a die's face (`SetCounter`, `SetDieValue`) |
 | `getQuantity()` | cards in a deck, items in a bag, pieces in a stack; -1 otherwise |
 | `getObjects()` | a deck's cards or a bag's items as `{ name, guid, index }`; on a zone, the objects in it |
-| `takeObject({ position, rotation, guid, index, top })` | takes from a deck, bag or stack and returns it (`Take`) |
+| `takeObject({ position, rotation, guid, index, top, callback_function })` | takes from a deck, bag or stack and returns it (`Take`); `callback_function(obj)` runs on the next frame |
 | `putObject(obj)` | puts another object into this one (`Insert`) |
 | `destruct()` | `Delete` |
 | `call(name, value)`, `getVar(name)`, `setVar(name, value)` | that object's script |
@@ -77,7 +77,10 @@ API returns are Vectors and Colors.
 | `getTable(name)`, `setTable(name, table)` | that object's script tables (copied) |
 | `getColorTint()`, `setColorTint(color)` | tint (`SetProperties`) |
 | `getScale()`, `setScale(scale)` | uniform scale from x (`Scale`) |
-| `getBounds()`, `getBoundsNormalized()` | `{ center, size, offset }` from the footprint |
+| `getBounds()`, `getBoundsNormalized()` | `{ center, size, offset }` of its colliders (normalized: as if unrotated); headless, from the footprint |
+| `getTransformUp()`, `getTransformForward()`, `getTransformRight()` | its local axes in the world, unit length |
+| `scale(n)` or `scale({x, y, z})` | multiplies its scale (scripts may scale, move and bag locked objects, as in TTS) |
+| `resting` | false while it is held, falling, sliding or rolling, until the table has its settled pose |
 | `getZones()` | zones it lies in |
 | `positionToWorld(local)`, `positionToLocal(world)` | between its local axes and the table, TTS units |
 | `setState(n)`, `getStates()` | switches state and returns the object in its new state (`SetState`) |

@@ -1336,6 +1336,75 @@ namespace TableWorld.View
         /// Physics follows the table's joints (TTS jointTo, attachments): a fixed joint from each held object's body to
         /// the one it is held to; none where the table has none. Hinge and spring hold like fixed for now.
         /// </summary>
+        /// <summary>
+        /// An object's collider bounds in metres for scripts (TTS <c>getBounds</c>): the world box, or, normalized, the box
+        /// it would have unrotated. Null without a view or colliders.
+        /// </summary>
+        public (Vector3 center, Vector3 size)? MeasureBounds(string objectId, bool normalized)
+        {
+            var view = ViewOf(objectId);
+            if (view == null)
+                return null;
+            var root = view.transform;
+            // Unrotated: each collider's local box through the object's local frame, scaled but not turned.
+            var toFrame = normalized ? Matrix4x4.TRS(root.position, Quaternion.identity, root.lossyScale) * root.worldToLocalMatrix : Matrix4x4.identity;
+            Bounds? total = null;
+            foreach (var collider in view.GetComponentsInChildren<Collider>())
+            {
+                if (collider.isTrigger || collider.GetComponentInParent<ObjectView>() != view)
+                    continue;
+                var local = collider switch
+                {
+                    BoxCollider cube => new Bounds(cube.center, cube.size),
+                    SphereCollider sphere => new Bounds(sphere.center, Vector3.one * sphere.radius * 2f),
+                    CapsuleCollider capsule => new Bounds(capsule.center, CapsuleSize(capsule)),
+                    MeshCollider mesh when mesh.sharedMesh != null => mesh.sharedMesh.bounds,
+                    _ => (Bounds?)null,
+                };
+                Bounds box;
+                if (!normalized || local == null)
+                    box = collider.bounds;
+                else
+                {
+                    var m = toFrame * collider.transform.localToWorldMatrix;
+                    var b = local.Value;
+                    box = new Bounds(m.MultiplyPoint3x4(b.center), Vector3.zero);
+                    for (var i = 0; i < 8; i++)
+                        box.Encapsulate(m.MultiplyPoint3x4(b.center + Vector3.Scale(b.extents, new Vector3((i & 1) == 0 ? -1 : 1, (i & 2) == 0 ? -1 : 1, (i & 4) == 0 ? -1 : 1))));
+                }
+                if (total is { } t)
+                {
+                    t.Encapsulate(box);
+                    total = t;
+                }
+                else
+                    total = box;
+            }
+            return total is { } result ? (result.center, result.size) : ((Vector3, Vector3)?)null;
+        }
+
+        /// <summary>
+        /// True until an object has come to rest and the table knows where (TTS <c>resting</c> is false): gliding out of a
+        /// bag, falling, sliding, a die rolling, or still and not yet reported, so a script never reads a pose in the air.
+        /// </summary>
+        public bool IsMoving(string objectId)
+        {
+            var view = ViewOf(objectId);
+            if (view == null || view.Body == null || view.Held || view.InHand)
+                return false;
+            if (view.Animating || view.GetComponent<DieToss>() is { Busy: true } || _awakeSince.ContainsKey(objectId))
+                return true;
+            return !view.Body.isKinematic && !view.Body.IsSleeping()
+                && (view.Body.linearVelocity.magnitude > StillSpeed || view.Body.angularVelocity.magnitude > StillSpin);
+        }
+
+        private static Vector3 CapsuleSize(CapsuleCollider c)
+        {
+            var size = Vector3.one * c.radius * 2f;
+            size[c.direction] = Mathf.Max(c.height, c.radius * 2f);
+            return size;
+        }
+
         /// <summary>The effect names of an asset-bundle object (ADR 0008), for scripts; null when its bundle is not shown.</summary>
         public IReadOnlyList<string> EffectNames(string objectId, bool looping)
         {

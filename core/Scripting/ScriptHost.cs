@@ -669,6 +669,14 @@ end";
                             finished = timer.Done = true;
                         continue;
                     }
+                    // Timed out without the condition: TTS calls the timeout function (if any), never the main one.
+                    if (!met.CastToBool())
+                    {
+                        finished = timer.Done = true;
+                        if (timer.OnTimeout != null)
+                            Run(timer.Script, timer.OnTimeout, "Wait.condition timeout", Array.Empty<DynValue>());
+                        continue;
+                    }
                 }
                 if (timer.Repetitions > 1)
                 {
@@ -752,6 +760,8 @@ end";
             public double Interval;
             public int Repetitions = 1;
             public double Timeout;
+            /// <summary>Wait.condition's fourth argument, called instead of <see cref="Function"/> when it times out.</summary>
+            public DynValue? OnTimeout;
         }
 
         /// <summary>Thrown by the API when a script asks for too much (a giant string); stops that call.</summary>

@@ -26,6 +26,8 @@ namespace TableWorld.View.Net
             _scripts.Log += text => Debug.Log("[Lua] " + text);
             _scripts.PhysicsCast = Cast;
             _scripts.EffectNames = (id, looping) => _table.EffectNames(id, looping);
+            _scripts.IsMoving = id => _table.IsMoving(id);
+            _scripts.MeasureBounds = (id, normalized) => _table.MeasureBounds(id, normalized) is { } b ? (b.center.ToCore(), b.size.ToCore()) : null;
             _table.Collided += OnCollided;
         }
 

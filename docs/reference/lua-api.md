@@ -124,6 +124,9 @@ On every object a script gets (`getObjectFromGUID`, `self`, event arguments). Fu
 | `getStates` | function |
 | `getTable` | function |
 | `getTags` | function |
+| `getTransformForward` | function |
+| `getTransformRight` | function |
+| `getTransformUp` | function |
 | `getTriggerEffects` | function |
 | `getValue` | function |
 | `getVar` | function |
@@ -156,6 +159,7 @@ On every object a script gets (`getObjectFromGUID`, `self`, event arguments). Fu
 | `reset` | function |
 | `resting` | value |
 | `roll` | function |
+| `scale` | function |
 | `setColorTint` | function |
 | `setCustomObject` | function |
 | `setDescription` | function |

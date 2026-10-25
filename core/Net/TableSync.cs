@@ -150,6 +150,14 @@ namespace Core.Net
                     $"You play {seat}; this action was sent as {command.Actor ?? "the current seat"}.", $"Send it with actor '{seat}'.");
                 return (refused, new Outgoing(origin, Rejection(origin, clientSeq, refused.Error!)));
             }
+            // Moving, scaling or bagging a locked object is for the host's scripts; a client's request never may.
+            if (origin != HostId)
+                switch (command)
+                {
+                    case MoveCommand move: move.EvenLocked = false; break;
+                    case ScaleCommand scale: scale.EvenLocked = false; break;
+                    case InsertCommand insert: insert.EvenLocked = false; break;
+                }
             var result = Game.Execute(command);
             if (!result.Ok)
                 return (result, new Outgoing(origin == HostId ? null : origin, Rejection(origin, clientSeq, result.Error!)));

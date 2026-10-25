@@ -62,6 +62,8 @@ namespace Core.Engine
         public string ObjectId { get; set; } = "";
         public string IntoId { get; set; } = "";
         public bool AtBottom { get; set; }
+        /// <summary>Puts a locked object away too (scripts may, as in TTS; players may not).</summary>
+        public bool EvenLocked { get; set; }
     }
 
     /// <summary>Turns an object over around its Z axis. Flipping a deck also reverses its order, like a real deck.</summary>

@@ -34,7 +34,11 @@ namespace Core.Scripting
             if (selfId != null)
                 g["self"] = Proxy(script, selfId);
 
-            g["getObjectFromGUID"] = Fn(args => Proxy(script, args.Count > 0 ? args[0].CastToString() : null));
+            // As in TTS, an object inside a bag is not on the table: nil (Pokémon Master Trainer takes its figure out of
+            // the bag only when this says so; it clones it otherwise).
+            g["getObjectFromGUID"] = Fn(args => args.Count > 0 && args[0].CastToString() is { } guid && Engine.Find(guid) is { Container: { } }
+                ? DynValue.Nil
+                : Proxy(script, args.Count > 0 ? args[0].CastToString() : null));
             g["startLuaCoroutine"] = Fn(args =>
             {
                 // startLuaCoroutine(owner, "name"): owner is Global or an object; its script runs the function.
@@ -150,7 +154,8 @@ namespace Core.Scripting
                 if (args.Count < 2 || args[0].Type != DataType.Function || args[1].Type != DataType.Function)
                     return DynValue.Nil;
                 var timeout = args.Count > 2 && args[2].Type == DataType.Number ? _now + args[2].Number : 0;
-                var timer = new Timer { Id = _nextTimer++, Script = script, Function = args[0], Condition = args[1], Due = _now, Timeout = timeout };
+                var timer = new Timer { Id = _nextTimer++, Script = script, Function = args[0], Condition = args[1], Due = _now, Timeout = timeout,
+                    OnTimeout = args.Count > 3 && args[3].Type is DataType.Function or DataType.ClrFunction ? args[3] : null };
                 _timers.Add(timer);
                 return DynValue.NewNumber(timer.Id);
             });
@@ -453,7 +458,7 @@ namespace Core.Scripting
                 return DynValue.Nil;
             return name switch
             {
-                "resting" => DynValue.NewBoolean(!_heldBy.ContainsKey(id)),
+                "resting" => DynValue.NewBoolean(!_heldBy.ContainsKey(id) && IsMoving?.Invoke(id) != true),
                 "is_face_down" => DynValue.NewBoolean(!live.IsFaceUp),
                 "spawning" => DynValue.False,
                 "loading_custom" => DynValue.False,
@@ -643,6 +648,13 @@ namespace Core.Scripting
                     return Fn((o, a) => DynValue.NewTable(ToTts(script, o.Transform.Position)));
                 case "getRotation":
                     return Fn((o, a) => DynValue.NewTable(Vector(script, o.Transform.Rotation)));
+                // The object's local axes in the world, unit length (TTS and our axes agree: y up, z forward).
+                case "getTransformUp":
+                    return Fn((o, a) => DynValue.NewTable(Vector(script, Geometry.Rotate(o.Transform.Rotation, new Vec3(0, 1, 0)))));
+                case "getTransformForward":
+                    return Fn((o, a) => DynValue.NewTable(Vector(script, Geometry.Rotate(o.Transform.Rotation, new Vec3(0, 0, 1)))));
+                case "getTransformRight":
+                    return Fn((o, a) => DynValue.NewTable(Vector(script, Geometry.Rotate(o.Transform.Rotation, new Vec3(1, 0, 0)))));
                 case "setPosition": case "setPositionSmooth":
                     return Fn((o, a) => FromTts(At(a, 0), true) is { } p
                         ? Do(new MoveCommand { ObjectId = id, Position = p, Rotation = o.Transform.Rotation, EvenLocked = true })
@@ -724,13 +736,20 @@ namespace Core.Scripting
                         }
                         var result = _execute(take);
                         Count(result);
-                        return result.Ok && result.CreatedId != null ? Proxy(script, result.CreatedId) : DynValue.Nil;
+                        if (!result.Ok || result.CreatedId == null)
+                            return DynValue.Nil;
+                        var taken = Proxy(script, result.CreatedId);
+                        // TTS calls callback_function(taken) once the object is out (Pokémon Master Trainer spawns its figures so).
+                        var callback = At(a, 0).Type == DataType.Table ? At(a, 0).Table.Get("callback_function") : DynValue.Nil;
+                        if (callback.Type == DataType.Function || callback.Type == DataType.ClrFunction)
+                            _timers.Add(new Timer { Id = _nextTimer++, Script = script, Function = callback, Arguments = new[] { taken }, Due = _now });
+                        return taken;
                     });
                 case "putObject":
                     return Fn((o, a) =>
                     {
                         var other = At(a, 0).Type == DataType.Table ? At(a, 0).Table.Get("guid").CastToString() : null;
-                        return other == null ? DynValue.False : Do(new InsertCommand { ObjectId = other, IntoId = id });
+                        return other == null ? DynValue.False : Do(new InsertCommand { ObjectId = other, IntoId = id, EvenLocked = true });
                     });
                 case "call":
                     return Fn((o, a) => CallIn(_objectScripts.TryGetValue(id, out var s) ? s : null, script, a, Self(a)));
@@ -849,10 +868,19 @@ namespace Core.Scripting
                         // Our objects scale uniformly: the x of the requested scale decides.
                         var wanted = FromTts(At(a, 0), false);
                         var current = o.Transform.Scale.X;
-                        return wanted is { } w && w.X > 0 && current > 0 ? Do(new ScaleCommand { ObjectId = id, Factor = w.X / current }) : DynValue.False;
+                        return wanted is { } w && w.X > 0 && current > 0 ? Do(new ScaleCommand { ObjectId = id, Factor = w.X / current, EvenLocked = true }) : DynValue.False;
                     });
-                case "getBounds": case "getBoundsNormalized":
-                    return Fn((o, a) => DynValue.NewTable(Bounds(script, o)));
+                // TTS scale(n) or scale({x, y, z}) multiplies the current scale (Pokémon Master Trainer grows its figures so).
+                case "scale":
+                    return Fn((o, a) =>
+                    {
+                        var factor = At(a, 0).Type == DataType.Number ? (float)At(a, 0).Number : FromTts(At(a, 0), false)?.X ?? 0f;
+                        return factor > 0 ? Do(new ScaleCommand { ObjectId = id, Factor = factor, EvenLocked = true }) : DynValue.False;
+                    });
+                case "getBounds":
+                    return Fn((o, a) => DynValue.NewTable(Bounds(script, o, normalized: false)));
+                case "getBoundsNormalized":
+                    return Fn((o, a) => DynValue.NewTable(Bounds(script, o, normalized: true)));
                 case "getZones":
                     return Fn((o, a) => List(script, Engine.ZonesOf(id)));
                 case "positionToWorld":
@@ -1686,14 +1714,36 @@ namespace Core.Scripting
         }
 
         /// <summary>TTS getBounds: { center, size, offset } in TTS units, from the object's footprint.</summary>
-        private static Table Bounds(Script script, TableObject o)
+        /// <summary>
+        /// The bounds of an object's colliders in metres, from the views (only they know the shapes): (id, normalized) →
+        /// (center, size), or null. Normalized is as if the object were not rotated (TTS <c>getBoundsNormalized</c>).
+        /// </summary>
+        public Func<string, bool, (Vec3 Center, Vec3 Size)?>? MeasureBounds { get; set; }
+
+        /// <summary>
+        /// Whether an object is still moving (falling, sliding, rolling), from the views: TTS <c>resting</c> is false then.
+        /// Without views, a piece no one holds is at rest.
+        /// </summary>
+        public Func<string, bool>? IsMoving { get; set; }
+
+        /// <summary>TTS <c>getBounds</c>: <c>{ center, size, offset }</c> in TTS units; offset is center minus position.</summary>
+        private Table Bounds(Script script, TableObject o, bool normalized)
         {
-            var size = Footprint.Of(o);
-            var height = o is Card || o is Deck ? 0.01f : Math.Min(size.X, size.Y);
+            Vec3 center, size;
+            if (MeasureBounds?.Invoke(o.Id, normalized) is { } measured)
+                (center, size) = measured;
+            else
+            {
+                // Without views (headless): the footprint, and a height guessed from it.
+                var footprint = Footprint.Of(o);
+                center = o.Transform.Position;
+                size = new Vec3(footprint.X, o is Card || o is Deck ? 0.01f : Math.Min(footprint.X, footprint.Y), footprint.Y);
+            }
             var bounds = new Table(script);
-            bounds["center"] = ToTts(script, o.Transform.Position);
-            bounds["size"] = Vector(script, new Vec3(size.X / TtsUnitsToMeters, height / TtsUnitsToMeters, size.Y / TtsUnitsToMeters));
-            bounds["offset"] = Vector(script, new Vec3(0f, 0f, 0f));
+            bounds["center"] = ToTts(script, center);
+            bounds["size"] = Vector(script, new Vec3(size.X / TtsUnitsToMeters, size.Y / TtsUnitsToMeters, size.Z / TtsUnitsToMeters));
+            var offset = Geometry.Subtract(center, o.Transform.Position);
+            bounds["offset"] = Vector(script, new Vec3(offset.X / TtsUnitsToMeters, offset.Y / TtsUnitsToMeters, offset.Z / TtsUnitsToMeters));
             return bounds;
         }
 

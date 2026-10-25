@@ -24,7 +24,7 @@ IMPLEMENTED = {
     "getObjects", "takeObject", "putObject", "destruct", "call", "getVar", "setVar", "getLuaScript",
     "setLuaScript", "getTable", "setTable", "getColorTint", "setColorTint", "getScale", "setScale", "getBounds",
     "getBoundsNormalized", "getZones", "positionToWorld", "positionToLocal", "playLoopingEffect", "playTriggerEffect",
-    "getLoopingEffects", "getTriggerEffects",
+    "getLoopingEffects", "getTriggerEffects", "getTransformUp", "getTransformForward", "getTransformRight", "scale",
     "setVelocity", "getVelocity", "addForce", "addTorque", "highlightOn", "highlightOff", "startLuaCoroutine",
     "destroyObject", "getSeatedPlayers", "onSave", "onObjectPickUp", "onPickUp",
     "isSmoothMoving", "reload", "setState", "getStates", "getCustomObject", "log", "JSON.encode_pretty", "Global.getTable",
