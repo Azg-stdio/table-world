@@ -30,7 +30,6 @@ namespace TableWorld.View
         private static readonly Color BagCloth = new Color(0.45f, 0.3f, 0.18f);
         private static readonly Color InfiniteBagCloth = new Color(0.33f, 0.2f, 0.45f);
         private static readonly Color Placeholder = new Color(0.55f, 0.55f, 0.6f);
-        private static readonly int BaseMapSt = Shader.PropertyToID("_BaseMap_ST");
         private static PhysicsMaterial _diceMaterial;
 
         /// <summary>Hard plastic on felt: a little bounce, moderate friction, so dice tumble and then settle on a face.</summary>
@@ -121,7 +120,7 @@ namespace TableWorld.View
                     var face = assets.ImageMaterial(token.Asset, model.Tint.ToColor(Ivory));
                     var edge = model.Tint.ToColor(Ivory) * 0.85f;
                     SetPrism(view, mesh, face, face, token.Count > 1 ? assets.Grooved(edge) : assets.Plain(edge), 0.002f * token.Count);
-                    SetCell(view, MeshFactory.SideSubmesh, new Vector4(1f, token.Count, 0f, 0f));
+                    SetCell(view, assets, MeshFactory.SideSubmesh, new Vector4(1f, token.Count, 0f, 0f));
                     break;
                 }
                 case Tile tile:
@@ -139,7 +138,7 @@ namespace TableWorld.View
                     var face = assets.ImageMaterial(tile.Asset, model.Tint.ToColor(new Color(0.8f, 0.7f, 0.5f)));
                     var edge = model.Tint.ToColor(new Color(0.6f, 0.5f, 0.35f));
                     SetPrism(view, mesh, face, face, tile.Count > 1 ? assets.Grooved(edge) : assets.Plain(edge), 0.005f * tile.Count);
-                    SetCell(view, MeshFactory.SideSubmesh, new Vector4(1f, tile.Count, 0f, 0f));
+                    SetCell(view, assets, MeshFactory.SideSubmesh, new Vector4(1f, tile.Count, 0f, 0f));
                     break;
                 }
                 case Die die:
@@ -267,9 +266,9 @@ namespace TableWorld.View
             var faceAsset = view.HideFace ? card.BackAsset : card.FaceAsset;
             var faceIndex = view.HideFace ? card.BackIndex : card.FaceIndex;
             SetPrism(view, mesh, assets.ImageMaterial(faceAsset, Ivory), assets.ImageMaterial(card.BackAsset, Ivory), assets.Plain(CardEdge), CardMass);
-            SetCell(view, MeshFactory.TopSubmesh, assets.CellScaleOffset(faceAsset, faceIndex));
+            SetCell(view, assets, MeshFactory.TopSubmesh, assets.CellScaleOffset(faceAsset, faceIndex));
             UseCardPhysics(view);
-            SetCell(view, MeshFactory.BottomSubmesh, assets.CellScaleOffset(card.BackAsset, card.BackIndex));
+            SetCell(view, assets, MeshFactory.BottomSubmesh, assets.CellScaleOffset(card.BackAsset, card.BackIndex));
         }
 
         /// <summary>
@@ -300,8 +299,8 @@ namespace TableWorld.View
             UseCardPhysics(view);
             view.Renderer.enabled = true;
             view.Collider.isTrigger = false;
-            SetCell(view, MeshFactory.TopSubmesh, assets.CellScaleOffset(faceAsset, faceSideCard.FaceIndex));
-            SetCell(view, MeshFactory.BottomSubmesh, assets.CellScaleOffset(backAsset, backIndex));
+            SetCell(view, assets, MeshFactory.TopSubmesh, assets.CellScaleOffset(faceAsset, faceSideCard.FaceIndex));
+            SetCell(view, assets, MeshFactory.BottomSubmesh, assets.CellScaleOffset(backAsset, backIndex));
         }
 
         private static void RefreshDie(ObjectView view, AssetLibrary assets, Die die, Color tint)
@@ -460,12 +459,14 @@ namespace TableWorld.View
             view.Base.sharedMaterials = new[] { material, material, material };
         }
 
-        private static void SetCell(ObjectView view, int submesh, Vector4 scaleOffset)
+        /// <summary>Shows one cell of the submesh's image, through a material shared by every piece showing that cell (<see cref="AssetLibrary.Cell"/>).</summary>
+        private static void SetCell(ObjectView view, AssetLibrary assets, int submesh, Vector4 scaleOffset)
         {
-            var block = new MaterialPropertyBlock();
-            view.Renderer.GetPropertyBlock(block, submesh);
-            block.SetVector(BaseMapSt, scaleOffset);
-            view.Renderer.SetPropertyBlock(block, submesh);
+            var materials = view.Renderer.sharedMaterials;
+            if (submesh >= materials.Length)
+                return;
+            materials[submesh] = assets.Cell(materials[submesh], scaleOffset);
+            view.Renderer.sharedMaterials = materials;
         }
 
         private static Vector3 Abs(Vector3 v) => new Vector3(Mathf.Abs(v.x), Mathf.Abs(v.y), Mathf.Abs(v.z));

@@ -186,6 +186,8 @@ unity pipeline list          # must show "Pipeline: Installed"
 unity command                # list Editor commands
 unity doctor                 # diagnostics
 unity command script eval_file --file tools/unity-probes/ProbeBundles.cs --timeout 120   # read-only experiment
+# Performance (Play mode; eval_file needs absolute paths): MeasureTable.cs (generated 2 200 objects) or MeasureGame.cs
+# (a game from the library), then FrameReport.cs; ProfilerOn.cs + SpikeProfile.cs name what slow frames spend time on
 python -I tools/unity/playmode_tests.py [--filter Name]   # PlayMode tests with preflight compile check and watchdog
 ```
 

@@ -50,6 +50,11 @@ namespace TableWorld.View
             _meshesByPath.Remove(asset.Path);
             if (_materials.TryGetValue("img:" + assetId, out var material))
             {
+                foreach (var key in _cells.Keys.Where(k => k.Source == material).ToList())
+                {
+                    Object.Destroy(_cells[key]);
+                    _cells.Remove(key);
+                }
                 Object.Destroy(material);
                 _materials.Remove("img:" + assetId);
             }
@@ -476,6 +481,28 @@ namespace TableWorld.View
         }
 
         private readonly Dictionary<(Material, float), Material> _translucent = new Dictionary<(Material, float), Material>();
+
+        /// <summary>
+        /// <paramref name="source"/> showing one cell of its image (<c>_BaseMap_ST</c> = <paramref name="scaleOffset"/>),
+        /// shared by every piece showing that cell. A material per cell, not a property block per renderer: property
+        /// blocks take renderers out of URP's SRP Batcher, and 2 200 cards cost 11 700 draw calls and 2 000 SetPass
+        /// calls a frame (T2.8).
+        /// </summary>
+        public Material Cell(Material source, Vector4 scaleOffset)
+        {
+            if (source == null || scaleOffset == new Vector4(1f, 1f, 0f, 0f))
+                return source;
+            var key = (source, scaleOffset);
+            if (_cells.TryGetValue(key, out var material) && material != null)
+                return material;
+            material = new Material(source) { name = source.name + " (cell)" };
+            material.SetVector(BaseMapSt, scaleOffset);
+            _cells[key] = material;
+            return material;
+        }
+
+        private static readonly int BaseMapSt = Shader.PropertyToID("_BaseMap_ST");
+        private readonly Dictionary<(Material Source, Vector4 ScaleOffset), Material> _cells = new Dictionary<(Material, Vector4), Material>();
 
         private Material NewMaterial(string name, Color color, float smoothness)
         {
