@@ -86,12 +86,13 @@ namespace TableWorld.View.Net
             {
                 if (_interaction.PointerOnTable is { } pointer)
                     frame.Pointer = pointer.ToCore();
+                frame.Gaze = Gaze();
                 foreach (var view in _interaction.HeldGroup)
                     if (view != null)
                         frame.Held.Add(new HeldPose { Id = view.Id, Position = view.transform.position.ToCore(), Rotation = view.transform.rotation.eulerAngles.ToCore() });
             }
             // Millimetre and degree resolution is plenty; it also keeps an idle player quiet.
-            var key = string.Join("|", new[] { frame.Pointer is { } p ? $"{p.X:F3},{p.Z:F3}" : "-" }
+            var key = string.Join("|", new[] { frame.Pointer is { } p ? $"{p.X:F3},{p.Z:F3}" : "-", frame.Gaze is { } g ? $"{g.X:F2},{g.Y:F2},{g.Z:F2}" : "-" }
                 .Concat(frame.Held.Select(h => $"{h.Id}:{h.Position.X:F3},{h.Position.Y:F3},{h.Position.Z:F3},{h.Rotation.Y:F0},{h.Rotation.X:F0},{h.Rotation.Z:F0}")));
             if (key == _presenceKey && now - _presenceSentAt < PresenceKeepAlive)
                 return;
@@ -104,6 +105,17 @@ namespace TableWorld.View.Net
                     SendPresenceTo(client, message);
             else
                 SendPresenceTo(NetworkManager.ServerClientId, message);
+        }
+
+        /// <summary>What the centre of this player's view rests on (T7.3: their chalker's head turns to it), or a point 3 m ahead.</summary>
+        private Core.Rules.Vec3? Gaze()
+        {
+            var camera = Camera.main;
+            if (camera == null)
+                return null;
+            var ray = new Ray(camera.transform.position, camera.transform.forward);
+            var point = Physics.Raycast(ray, out var hit, 20f, ~0, QueryTriggerInteraction.Ignore) ? hit.point : ray.GetPoint(3f);
+            return point.ToCore();
         }
 
         private void OnHostPresence(ulong sender, FastBufferReader reader)

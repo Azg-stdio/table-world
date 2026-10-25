@@ -1,0 +1,29 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Style src="../Hud/Hud.uss" />
+    <ui:Style src="ChalkerLab.uss" />
+    <ui:VisualElement name="lab" class="lab" picking-mode="Ignore">
+        <ui:VisualElement name="labPanel" class="lab-panel">
+            <ui:Label text="Chalker lab" class="lab-title" />
+            <ui:Label text="Talk and it talks. It looks at your mouse. Right drag orbits, wheel zooms, Space resets the view." class="lab-hint" />
+            <ui:Label text="Personality (Tab)" class="lab-group" />
+            <ui:VisualElement name="personalities" class="lab-choices" />
+            <ui:Label text="Emotes (keys 1–9, 0, -; H holds)" class="lab-group" />
+            <ui:VisualElement name="emotes" class="lab-choices" />
+            <ui:Label text="Colour" class="lab-group" />
+            <ui:VisualElement name="colors" class="lab-choices" />
+            <ui:Label text="Voice" class="lab-group" />
+            <ui:VisualElement name="voiceModes" class="lab-choices" />
+            <ui:Button name="micButton" class="hud-button lab-choice" />
+            <ui:Button name="codecButton" class="hud-button lab-choice" />
+            <ui:VisualElement name="meter" class="lab-meter">
+                <ui:VisualElement name="meterFill" class="lab-meter-fill" />
+                <ui:VisualElement name="meterThreshold" class="lab-meter-threshold" />
+            </ui:VisualElement>
+            <ui:VisualElement class="lab-row">
+                <ui:Label text="Open mic level" class="lab-label" />
+                <ui:Slider name="thresholdSlider" low-value="-70" high-value="-20" class="settings-slider" />
+            </ui:VisualElement>
+            <ui:Label name="status" class="lab-value" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

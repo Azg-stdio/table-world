@@ -1,0 +1,116 @@
+.lab {
+    flex-grow: 1;
+    align-items: flex-start;
+    padding: 12px;
+}
+
+.lab-panel {
+    width: 340px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    background-color: rgba(16, 18, 22, 0.82);
+}
+
+.lab-title {
+    -unity-font-style: bold;
+    font-size: 20px;
+    color: rgb(240, 236, 226);
+}
+
+.lab-hint {
+    margin-top: 2px;
+    margin-bottom: 2px;
+    font-size: 13px;
+    white-space: normal;
+    color: rgba(240, 236, 226, 0.65);
+}
+
+.lab-group {
+    margin-top: 12px;
+    margin-bottom: 4px;
+    -unity-font-style: bold;
+    font-size: 15px;
+    color: rgb(240, 236, 226);
+}
+
+.lab-choices {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+/* The HUD button, packed into a wrapping grid. */
+.lab-choice {
+    margin: 0 4px 4px 0;
+    padding: 3px 9px;
+    font-size: 14px;
+}
+
+.lab-choice--on {
+    border-color: rgb(242, 196, 82);
+    color: rgb(250, 214, 140);
+}
+
+.lab-swatch {
+    width: 26px;
+    height: 26px;
+    margin: 0 6px 4px 0;
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.15);
+    border-radius: 13px;
+}
+
+.lab-swatch--on {
+    border-color: rgb(242, 196, 82);
+}
+
+.lab-meter {
+    height: 10px;
+    margin-top: 6px;
+    border-radius: 3px;
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.lab-meter-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    border-radius: 3px;
+    background-color: rgb(110, 200, 120);
+}
+
+.lab-meter-fill--talking {
+    background-color: rgb(242, 196, 82);
+}
+
+.lab-meter-threshold {
+    position: absolute;
+    top: -3px;
+    bottom: -3px;
+    width: 2px;
+    background-color: rgb(240, 236, 226);
+}
+
+.lab-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 6px;
+}
+
+.lab-label {
+    width: 110px;
+    font-size: 14px;
+    color: rgba(240, 236, 226, 0.85);
+}
+
+.lab-value {
+    margin-top: 4px;
+    font-size: 13px;
+    white-space: normal;
+    color: rgb(250, 214, 140);
+}
+
+.lab-row .settings-slider {
+    width: auto;
+    flex-grow: 1;
+}

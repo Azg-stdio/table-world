@@ -205,6 +205,7 @@ namespace TableWorld.View.Net
             }
             _network.CustomMessagingManager.RegisterNamedMessageHandler(MessageName, OnHostMessage);
             RegisterPresence(host: true);
+            RegisterVoice(host: true);
             Status = status;
             return true;
         }
@@ -221,6 +222,7 @@ namespace TableWorld.View.Net
             }
             _network.CustomMessagingManager.RegisterNamedMessageHandler(MessageName, OnClientMessage);
             RegisterPresence(host: false);
+            RegisterVoice(host: false);
             Status = status;
             return true;
         }
@@ -262,6 +264,7 @@ namespace TableWorld.View.Net
                 if (_network.CustomMessagingManager != null)
                     _network.CustomMessagingManager.UnregisterNamedMessageHandler(MessageName);
                 UnregisterPresence();
+                UnregisterVoice();
                 if (_network.IsListening)
                     _network.Shutdown();
             }

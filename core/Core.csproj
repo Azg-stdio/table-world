@@ -9,7 +9,7 @@
     <LangVersion>9.0</LangVersion>
     <AssemblyName>Core</AssemblyName>
     <RootNamespace>Core</RootNamespace>
-    <!-- Lists package dlls in ReferenceCopyLocalPaths, so CopyToUnity can pick MoonSharp's. -->
+    <!-- Lists package dlls in ReferenceCopyLocalPaths, so CopyToUnity can pick MoonSharp's and Concentus's. -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <UnityPluginDir>$(MSBuildThisFileDirectory)..\unity\Assets\Plugins\Core\</UnityPluginDir>
   </PropertyGroup>
@@ -19,6 +19,8 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <!-- Sandboxed Lua (M5, ADR 0003). Unity has no package for it: its dll is copied to Plugins with Core.dll. -->
     <PackageReference Include="MoonSharp" Version="2.0.0" />
+    <!-- Voice chat (T7.3): pure C# Opus, BSD licence, no dependencies. Copied to Plugins like MoonSharp. -->
+    <PackageReference Include="Concentus" Version="1.1.7" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,12 +28,12 @@
   </ItemGroup>
 
   <!--
-    Unity consumes Core.dll from Assets/Plugins/Core/. Core.dll and MoonSharp.Interpreter.dll are copied; Newtonsoft comes from a Unity package.
+    Unity consumes Core.dll from Assets/Plugins/Core/. Core.dll, MoonSharp.Interpreter.dll and Concentus.dll are copied; Newtonsoft comes from a Unity package.
     Debug only, so Release/CI builds never overwrite the committed dll.
   -->
   <Target Name="CopyToUnity" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug' And Exists('$(MSBuildThisFileDirectory)..\unity\Assets')">
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(UnityPluginDir)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(ReferenceCopyLocalPaths)" DestinationFolder="$(UnityPluginDir)" SkipUnchangedFiles="true" Condition="'%(Filename)' == 'MoonSharp.Interpreter'" />
+    <Copy SourceFiles="@(ReferenceCopyLocalPaths)" DestinationFolder="$(UnityPluginDir)" SkipUnchangedFiles="true" Condition="'%(Filename)' == 'MoonSharp.Interpreter' Or '%(Filename)' == 'Concentus'" />
   </Target>
 
 </Project>

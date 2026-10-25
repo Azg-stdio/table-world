@@ -182,6 +182,18 @@ namespace TableWorld.View.Hud
             Slider("Table sounds", 0f, 1f, s.TableVolume, v => s.TableVolume = v, Percent);
             Slider("Music", 0f, 1f, s.MusicVolume, v => s.MusicVolume = v, Percent);
 
+            Group("Voice");
+            Choice("Microphone", (VoiceMode[])Enum.GetValues(typeof(VoiceMode)), s.VoiceMode, v => s.VoiceMode = v,
+                v => v == VoiceMode.PushToTalk ? "Push to talk (hold T)" : v == VoiceMode.VoiceActivation ? "Open when I speak" : "Off");
+            var devices = new List<string> { "" };
+            devices.AddRange(UnityEngine.Microphone.devices);
+            if (!devices.Contains(s.Microphone))
+                devices.Add(s.Microphone);
+            Choice("Device", devices.ToArray(), s.Microphone, v => s.Microphone = v, v => v == "" ? "System default" : v);
+            Slider("Voice activation level", GameSettings.MinVoiceThresholdDb, GameSettings.MaxVoiceThresholdDb, s.VoiceThresholdDb, v => s.VoiceThresholdDb = v, v => $"{Mathf.RoundToInt(v)} dB");
+            Slider("Other players' voices", 0f, 1f, s.VoiceVolume, v => s.VoiceVolume = v, Percent);
+            Choice("Hear myself (test)", new[] { false, true }, s.HearMyself, v => s.HearMyself = v, v => v ? "On" : "Off");
+
             Group("Camera and mouse");
             Slider("Orbit sensitivity", GameSettings.MinScale, GameSettings.MaxScale, s.OrbitSensitivity, v => s.OrbitSensitivity = v, Times);
             Slider("Zoom speed", GameSettings.MinScale, GameSettings.MaxScale, s.ZoomSpeed, v => s.ZoomSpeed = v, Times);

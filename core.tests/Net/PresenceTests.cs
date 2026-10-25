@@ -13,6 +13,7 @@ namespace Core.Tests.Net
             Seat = seat,
             Sequence = seq,
             Pointer = new Vec3(0.1f, 0f, -0.2f),
+            Gaze = new Vec3(0f, 0f, 0.3f),
             Held = held.Select((id, i) => new HeldPose { Id = id, Position = new Vec3(i, 0.05f, 0f), Rotation = new Vec3(0f, 90f, 180f) }).ToList(),
         };
 
@@ -24,11 +25,13 @@ namespace Core.Tests.Net
             Assert.Equal("seat_north", decoded.Seat);
             Assert.Equal(7, decoded.Sequence);
             Assert.Equal(new Vec3(0.1f, 0f, -0.2f), decoded.Pointer);
+            Assert.Equal(new Vec3(0f, 0f, 0.3f), decoded.Gaze);
             Assert.Equal(new[] { "ace", "king" }, decoded.Held.Select(h => h.Id));
             Assert.Equal(new Vec3(0f, 90f, 180f), decoded.Held[1].Rotation);
 
             var noPointer = new PresenceFrame { Seat = "seat_south", Sequence = 1 };
             Assert.Null(PresenceCodec.Decode(PresenceCodec.Encode(noPointer))!.Pointer);
+            Assert.Null(PresenceCodec.Decode(PresenceCodec.Encode(noPointer))!.Gaze);
         }
 
         [Theory]
@@ -37,6 +40,7 @@ namespace Core.Tests.Net
         [InlineData(@"{ ""kind"": ""presence"", ""seat"": ""s"", ""pointer"": [1, 2] }")]
         [InlineData(@"{ ""kind"": ""presence"", ""seat"": ""s"", ""pointer"": [1, ""x"", 3] }")]
         [InlineData(@"{ ""kind"": ""presence"", ""seat"": ""s"", ""pointer"": [1e9, 0, 0] }")]
+        [InlineData(@"{ ""kind"": ""presence"", ""seat"": ""s"", ""gaze"": [0, ""x"", 0] }")]
         [InlineData(@"{ ""kind"": ""presence"", ""seat"": ""s"", ""held"": [ { ""id"": """", ""p"": [0, 0, 0], ""r"": [0, 0, 0] } ] }")]
         [InlineData(@"{ ""kind"": ""presence"", ""seat"": ""s"", ""held"": [ { ""id"": ""a"", ""p"": [0, 0], ""r"": [0, 0, 0] } ] }")]
         public void MalformedFrames_AreRefused(string json)

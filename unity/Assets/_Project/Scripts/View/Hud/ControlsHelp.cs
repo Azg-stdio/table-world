@@ -92,6 +92,7 @@ namespace TableWorld.View.Hud
             {
                 ("Enter, or click the chat", "Open the chat (Enter sends, Escape or a click on the table closes)"),
                 ("/roll 3d6+2 (or /r d20)", "Roll dice in the chat for everyone to see"),
+                ("Hold T", "Talk (push to talk; Settings → Voice switches to open-when-you-speak, and has a hear-yourself test)"),
                 ("Log tab", "Everything done at the table, in order"),
             }),
         };

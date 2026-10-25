@@ -2,13 +2,13 @@
 
 **Goal:** player puppets with active ragdoll physics (Peak/REPO style) and a DnD assistant that suggests, never acts.
 **Done when:** to be defined after full M3 closes.
-**Status:** todo. **Depends on:** M3.
+**Status:** in progress (T7.3 voice, placeholder chalkers; T7.4 emotes and personalities in the ChalkerLab scene). **Depends on:** M3.
 
 | Id | Task | Size | Depends on | Done check | Status |
 |---|---|---|---|---|---|
 | T7.1 ⚗ | Active ragdoll spike in PhysX: 4 networked puppets, grab objects, talk-to-move | L | T3.7 | Spike notes + ADR with go/no-go | todo |
 | T7.2 | DnD assistant: session planning, suggested lights/VFX/SFX/music that the DM confirms | L | T4.4 | Assistant proposes, nothing changes without confirmation | todo |
-| T7.3 | Chalkers (Miguel, 2026-10-24): the player character is a simple figure with a chalkboard face showing the personality the player picks; the mouth moves with their voice; eyes and face follow where the player looks | L | T7.1 | Two players see each other's chalker look where they look and talk | todo |
-| T7.4 | Emotes: a small set drawn on the chalkboard face with a body pose, from a wheel; everyone sees them | M | T7.3 | An emote shows on every screen within one round trip | todo |
+| T7.3 | Chalkers (Miguel, 2026-10-24): the player character is a simple figure with a chalkboard face showing the personality the player picks; the mouth moves with their voice; eyes and face follow where the player looks | L | T7.1 | Two players see each other's chalker look where they look and talk | in progress (2026-10-25): voice chat of our own over the session (Miguel chose it over Vivox and Steam voice): Opus via Concentus 1.1.7 (pure C#, BSD) in core with a jitter buffer (core tests: reordering, loss, stalls, a 500-frame jitter and loss simulation), push to talk on T or voice activation, mic choice, volume, "Hear myself" loopback; presence carries each player's gaze. Placeholder chalker per seat (capsule body in the seat colour, runtime-drawn chalkboard face: eyes follow the pointer, blink, mouth opens with the voice, head turns to the gaze), voice positioned at its mouth. PlayMode test with a fake microphone; checked by eye in the Editor. Left: two machines (build), the real model, personalities, echo cancellation, spectators talking, a talking indicator in the HUD |
+| T7.4 | Emotes: a small set drawn on the chalkboard face with a body pose, from a wheel; everyone sees them | M | T7.3 | An emote shows on every screen within one round trip | in progress (2026-10-25): 11 emotes (wave, laugh, nod, no, shrug, cheer, think, surprised, sad, angry, love), each a chalk face and a code-driven body pose that eases in and out (placeholder arms added), and 7 personalities (resting faces: cheerful, calm, grumpy, shy, cool, curious, sleepy) in `View/Chalkers/ChalkerEmotes.cs`. Tried in the ChalkerLab scene (`Table World/Build Chalker Lab Scene`): one chalker that talks with your microphone, looks at the mouse, with buttons and keys for personalities, emotes (H holds one mid-way), colours and voice settings. PlayMode `ChalkerTests`. Left: the emote wheel, sending emotes and the chosen personality to the other players |
 
 Detail this milestone when M3 closes; the scope above is a placeholder.

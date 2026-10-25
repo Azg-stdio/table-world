@@ -73,6 +73,13 @@ namespace TableWorld.View
             // The table's music (G27) plays on every machine.
             if (GetComponent<MusicPlayerView>() == null)
                 gameObject.AddComponent<MusicPlayerView>();
+            // Voice chat and the other players' chalkers (T7.3).
+            if (GetComponent<Voice.VoiceChat>() == null)
+            {
+                var voice = gameObject.AddComponent<Voice.VoiceChat>();
+                voice.Configure(this, GetComponent<TableInteraction>());
+                gameObject.AddComponent<Chalkers.ChalkersView>().Configure(this, GetComponent<Net.NetworkTableSession>(), voice);
+            }
             if (string.IsNullOrEmpty(_tableResource))
                 return;
             var text = Resources.Load<TextAsset>(_tableResource);

@@ -26,10 +26,12 @@ namespace Core.Net
         public long Sequence { get; set; }
         /// <summary>Where the pointer touches the table, or null when it is off the table.</summary>
         public Vec3? Pointer { get; set; }
+        /// <summary>The point at the centre of the player's view (T7.3): their chalker turns its head to it. Null when unknown.</summary>
+        public Vec3? Gaze { get; set; }
         public List<HeldPose> Held { get; set; } = new List<HeldPose>();
     }
 
-    /// <summary>Presence frames on the wire: <c>{ kind: "presence", seat, seq, pointer?, held: [{ id, p, r }] }</c>.</summary>
+    /// <summary>Presence frames on the wire: <c>{ kind: "presence", seat, seq, pointer?, gaze?, held: [{ id, p, r }] }</c>.</summary>
     public static class PresenceCodec
     {
         /// <summary>A frame carrying more held objects than this is refused (a TTS player can carry a big group, not the table).</summary>
@@ -43,6 +45,7 @@ namespace Core.Net
             ["seat"] = frame.Seat,
             ["seq"] = frame.Sequence,
             ["pointer"] = frame.Pointer is { } p ? new JArray(p.X, p.Y, p.Z) : null,
+            ["gaze"] = frame.Gaze is { } g ? new JArray(g.X, g.Y, g.Z) : null,
             ["held"] = new JArray(frame.Held.Select(h => new JObject
             {
                 ["id"] = h.Id,
@@ -62,6 +65,12 @@ namespace Core.Net
                 if (!(ReadVec(pointer) is { } point))
                     return null;
                 frame.Pointer = point;
+            }
+            if (message["gaze"] is JArray gaze)
+            {
+                if (!(ReadVec(gaze) is { } point))
+                    return null;
+                frame.Gaze = point;
             }
             if (message["held"] is JArray held)
             {

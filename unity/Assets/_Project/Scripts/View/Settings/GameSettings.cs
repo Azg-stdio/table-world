@@ -8,9 +8,10 @@ namespace TableWorld.View.Settings
 {
     public enum DisplayMode { Windowed, Borderless, Fullscreen }
     public enum Antialiasing { Off, Fxaa, Smaa }
+    public enum VoiceMode { PushToTalk, VoiceActivation, Off }
 
     /// <summary>
-    /// This machine's preferences (G13, G31): sound, camera and mouse, display. Saved as JSON in the user's data folder
+    /// This machine's preferences (G13, G31): sound, voice, camera and mouse, display. Saved as JSON in the user's data folder
     /// (<see cref="DefaultPath"/>), never with a table. Values are clamped on load, so a hand-edited file cannot break
     /// the game. <see cref="Apply"/> pushes them into the engine and the scene.
     /// </summary>
@@ -39,6 +40,19 @@ namespace TableWorld.View.Settings
         /// <summary>The table's music (TTS Music Player), 0–1, on top of the master volume.</summary>
         public float MusicVolume { get; set; } = 0.5f;
 
+        /// <summary>How this player's microphone opens (T7.3): while T is held, when they speak, or never.</summary>
+        public VoiceMode VoiceMode { get; set; } = VoiceMode.PushToTalk;
+        /// <summary>The microphone's name; empty means the system default.</summary>
+        public string Microphone { get; set; } = "";
+        /// <summary>Other players' voices, 0–1, on top of the master volume.</summary>
+        public float VoiceVolume { get; set; } = 1f;
+        /// <summary>Voice activation opens above this loudness, in dBFS.</summary>
+        public float VoiceThresholdDb { get; set; } = -45f;
+        public const float MinVoiceThresholdDb = -70f;
+        public const float MaxVoiceThresholdDb = -20f;
+        /// <summary>Plays your own voice back through the network codec, with a chalker across the table that talks with it.</summary>
+        public bool HearMyself { get; set; }
+
         /// <summary>Multipliers on the camera's speeds: orbit with the mouse, wheel zoom, and keyboard pan.</summary>
         public float OrbitSensitivity { get; set; } = 1f;
         public float ZoomSpeed { get; set; } = 1f;
@@ -65,6 +79,11 @@ namespace TableWorld.View.Settings
             MasterVolume = Clamp(MasterVolume, 0f, 1f, 1f);
             TableVolume = Clamp(TableVolume, 0f, 1f, 0.8f);
             MusicVolume = Clamp(MusicVolume, 0f, 1f, 0.5f);
+            VoiceVolume = Clamp(VoiceVolume, 0f, 1f, 1f);
+            VoiceThresholdDb = Clamp(VoiceThresholdDb, MinVoiceThresholdDb, MaxVoiceThresholdDb, -45f);
+            Microphone ??= "";
+            if (!Enum.IsDefined(typeof(VoiceMode), VoiceMode))
+                VoiceMode = VoiceMode.PushToTalk;
             OrbitSensitivity = Clamp(OrbitSensitivity, MinScale, MaxScale, 1f);
             ZoomSpeed = Clamp(ZoomSpeed, MinScale, MaxScale, 1f);
             PanSpeed = Clamp(PanSpeed, MinScale, MaxScale, 1f);
@@ -121,6 +140,11 @@ namespace TableWorld.View.Settings
             AudioListener.volume = MasterVolume;
             TableSounds.Volume = TableVolume;
             MusicPlayerView.Volume = MusicVolume;
+            Voice.VoiceChat.Mode = VoiceMode;
+            Voice.VoiceChat.Device = Microphone;
+            Voice.VoiceChat.Volume = VoiceVolume;
+            Voice.VoiceChat.ThresholdDb = VoiceThresholdDb;
+            Voice.VoiceChat.HearMyself = HearMyself;
             if (tableCamera != null)
             {
                 tableCamera.OrbitScale = OrbitSensitivity;

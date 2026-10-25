@@ -97,6 +97,7 @@ Everything below already passes automated tests on one machine (two processes, s
 - [ ] Facing (imported games, ADR 0005): sit at a seat of a game you also have in TTS. Its mat, cards, tokens, script buttons and panels read upright from that seat, as they do in TTS, and cards drawn into your hand face you. Note any piece that is upside down.
 - [ ] Music (Pokémon Sinnoh's Music Box: put a soundtrack cartridge in its slot): every player hears the music, the box's buttons pause, skip and repeat it for everyone, and Settings → Sound → Music changes only your own volume.
 - [ ] Look (first build): white cards, boards and papers show their shading under the lamp, as in the Editor (tone mapping, `Resources/Look/LookProfile`); if they are flat white, URP stripped the tone mapping from the build.
+- [ ] Voice (T7.3): hold T and talk: every other player hears you, from your chalker across the table, and its mouth moves with your voice; its head turns to where you look and its eyes follow your pointer. Try Settings → Voice → "Open when I speak" and the activation level; check that typing a T in the chat does not open the microphone. Note any echo (speakers instead of headphones), delay, or choppy sound.
 - [ ] Chat: Enter, type, Enter: everyone sees it with your seat colour; `/roll 2d6` shows the same dice for everyone; the Log tab reads the same on every screen and never names a card someone could not see; typing never flips or moves anything.
 
 **After the session**
@@ -107,4 +108,5 @@ Everything below already passes automated tests on one machine (two processes, s
 - Relay throughput was measured at about 200–240 KB/s per joining player, so custom games with large images take a while to arrive. Objects show plain colours until their image lands. The sample games use generated cards and need no download.
 - If the host quits, everyone else is disconnected; there is no host migration.
 - Undo/redo are off while playing online.
+- Voice has no echo cancellation yet: use headphones, or push to talk. Spectators (no seat) cannot talk yet.
 - Hidden zones and other players' hands hide what is inside on screen, but every machine still receives the data (as in TTS): fine among friends, not a protection against cheating.
