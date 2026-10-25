@@ -156,6 +156,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 | G32 | Shaking a held bag or deck shuffles it | verify | ✅ four quick strokes back and forth within 1.2 s while holding a deck or bag shuffles it once (then 1.5 s before another); slow moves never do (2026-10-23). TTS's exact feel to verify | P3 |
 | G33 | Protocol-level hidden information | hands and hidden zones are not sent to players who cannot see them | every client receives the whole table | P2 |
 | G34 | First person and physics characters | P toggles first person; characters (M6) | ⏭ M6 | — |
+| G46 | Selection drives the keys (Miguel, 2026-10-25) | Selecting an object outlines it in the player's colour, and from then on the keys act on the selection, not on what is under the pointer: Q / E rotate it, and F, R, L, G, delete, number keys … do the same. Clicking the table (or anywhere else) deselects; with nothing selected, Q / E turn the camera again | Keys act on the hovered object, and on the selection only for some commands; selection marker not in the seat colour | P1 |
 
 ### Required by the local mods (Pokémon first)
 
