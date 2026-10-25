@@ -62,8 +62,10 @@ namespace TableWorld.Editor
                 AssetDatabase.CreateAsset(profile, path);
             }
             TableWorld.View.EnvironmentView.FillLook(profile);
+            // Volume components are hidden sub-objects: IsSubAsset says false for them even once saved in the profile,
+            // and adding them again fails ("Adding asset to object LookProfile failed").
             foreach (var component in profile.components)
-                if (!AssetDatabase.IsSubAsset(component))
+                if (!AssetDatabase.Contains(component))
                     AssetDatabase.AddObjectToAsset(component, profile);
             EditorUtility.SetDirty(profile);
             AssetDatabase.SaveAssets();
