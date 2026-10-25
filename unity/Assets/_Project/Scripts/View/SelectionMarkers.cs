@@ -4,15 +4,20 @@ using UnityEngine;
 
 namespace TableWorld.View
 {
-    /// <summary>Thin cyan outlines on the felt under box-selected objects (TTS highlights selections).</summary>
+    /// <summary>Thin outlines on the felt under selected objects, in the selecting player's colour (TTS, G46).</summary>
     public static class SelectionMarkers
     {
         private static readonly Color Highlight = new Color(0.2f, 0.85f, 1f);
         private static readonly List<GameObject> Pool = new List<GameObject>();
         private static Material _material;
 
+        /// <summary>The outline's colour: the local player's seat colour (cyan when watching).</summary>
+        public static Color Color { get; set; } = Highlight;
+
         public static void Show(IReadOnlyList<ObjectView> views)
         {
+            if (_material != null && _material.GetColor("_BaseColor") != Color)
+                _material.SetColor("_BaseColor", Color);
             for (var i = 0; i < Pool.Count; i++)
                 if (Pool[i] != null)
                     Pool[i].SetActive(false);
@@ -38,7 +43,7 @@ namespace TableWorld.View
             if (_material == null)
             {
                 _material = new Material(RequiredShaders.Unlit) { name = "Selection" };
-                _material.SetColor("_BaseColor", Highlight);
+                _material.SetColor("_BaseColor", Color);
             }
             // A unit frame scaled to the object's footprint: four strips around a hole.
             var root = new GameObject("Selection marker");

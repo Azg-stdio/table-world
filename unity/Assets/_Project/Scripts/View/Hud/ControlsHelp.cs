@@ -28,7 +28,7 @@ namespace TableWorld.View.Hud
                 ("Left drag", "Pick up and move; release to drop (release while moving to throw)"),
                 ("Drag a deck or bag at once", "Take its top card or an item"),
                 ("Press a deck or bag, hold still, then drag", "Lift the whole deck or bag (also Shift + drag)"),
-                ("Click", "Select only"),
+                ("Click", "Select (outlined in your colour): keys like Q / E, F, R, L act on the selection until you click elsewhere"),
                 ("Left drag on empty table", "Box select; drag one of them to carry them all"),
                 ("Mouse wheel while holding", "Raise or lower what you hold"),
                 ("Right mouse while holding", "Tap down (lower it to the table)"),

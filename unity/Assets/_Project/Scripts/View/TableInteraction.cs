@@ -307,6 +307,15 @@ namespace TableWorld.View
                 return;
             DropDeadReferences();
 
+            _selection.RemoveAll(v => v == null);
+            if (_selection.Count > 0)
+            {
+                var seat = _table.Engine.State.Players.Seats.FirstOrDefault(s => s.Id == _table.LocalSeat);
+                SelectionMarkers.Color = seat != null ? ZoneViewFactory.SeatColor(seat.Color) : new Color(0.2f, 0.85f, 1f);
+                // Follow the selection as keys turn and move it.
+                SelectionMarkers.Show(_selection);
+            }
+
             var mouse = Mouse.current;
             var keyboard = Keyboard.current;
             if (mouse == null || keyboard == null || IgnoreDevices)
@@ -385,7 +394,8 @@ namespace TableWorld.View
                         GrabSelection(Hovered);
                     else
                     {
-                        ClearSelection();
+                        // The object pressed is the selection now (TTS): keys act on it until something else is clicked.
+                        SetSelection(new[] { Hovered });
                         if (IsFullContainer(Hovered.Model) && !shift)
                             _pressedContainer = Hovered;
                         else
@@ -510,18 +520,31 @@ namespace TableWorld.View
             if (_tableCamera != null)
             {
                 _tableCamera.SuppressKeys = typing;
-                _tableCamera.SuppressTurnKeys = Held != null || Hovered != null || alt;
+                _tableCamera.SuppressTurnKeys = Held != null || Hovered != null || _selection.Count > 0 || alt;
                 _tableCamera.SuppressMouse = Held != null;
                 // The wheel over a panel scrolls the panel (help, search), not the camera.
                 _tableCamera.SuppressWheel = PointerBlocked != null && PointerBlocked(pointer);
             }
         }
 
+        /// <summary>
+        /// What the keys act on (TTS, G46): what is held, else the selection, else what is under the pointer. The
+        /// selection keeps the keys until a click elsewhere clears it; with nothing at all, Q / E turn the camera.
+        /// </summary>
+        public List<ObjectView> KeyTargets()
+        {
+            _selection.RemoveAll(v => v == null);
+            if (Held != null)
+                return new List<ObjectView> { Held };
+            if (_selection.Count > 0)
+                return _selection.ToList();
+            return Hovered != null ? new List<ObjectView> { Hovered } : new List<ObjectView>();
+        }
+
         private void HandleKeys(Keyboard keyboard, Vector3? point, bool alt, bool shift, bool ctrl)
         {
-            var target = Held != null ? Held : Hovered;
-            var targets = _selection.Count > 0 && (target == null || _selection.Contains(target)) ? _selection.ToList()
-                : target != null ? new List<ObjectView> { target } : new List<ObjectView>();
+            var targets = KeyTargets();
+            var target = targets.Count > 0 ? targets[0] : null;
 
             if (ctrl)
             {
