@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Core.Rules
 {
-    public enum AssetType { Image, Model, AssetBundle, Audio }
+    public enum AssetType { Image, Model, AssetBundle, Audio, Pdf }
 
     /// <summary>
     /// A file the table needs. Paths are relative to the game package; <c>builtin:&lt;name&gt;</c> names an asset the

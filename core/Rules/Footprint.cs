@@ -31,6 +31,7 @@ namespace Core.Rules
                 Rules.Counter _ => Counter,
                 Rules.Clock _ => Clock,
                 Rules.Notecard _ => Rules.Notecard.Size,
+                Rules.Pdf pdf => pdf.Size ?? Rules.Pdf.DefaultSize,
                 _ => new Vec2(Model, Model),
             };
             var scale = obj.Transform.Scale;

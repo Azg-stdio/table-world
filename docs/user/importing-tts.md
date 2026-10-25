@@ -77,7 +77,7 @@ The notes say what the import did and what it could not do. An example, shortene
 Imported from 2918471932.json on 2026-10-24 21:14.
 5346 objects; 1180 of 1206 files found in the Tabletop Simulator cache.
 Not in the cache yet: https://steamusercontent-a.akamaihd.net/ugc/…/
-Custom_PDF 4a1b2c ('Rulebook') has no counterpart yet: kept as a placeholder.
+Tablet 4a1b2c ('Rules site') has no counterpart yet: kept as a placeholder.
 State 5c2d1e of Custom_Model has snap points; they are dropped until the state is shown.
 ```
 
@@ -85,7 +85,7 @@ State 5c2d1e of Custom_Model has snap points; they are dropped until the state i
 |---|---|---|
 | `N objects; X of Y files found` | How much came in. Every object is in the game, even when its file is not | Nothing; or download the missing files |
 | `Not in the cache yet: <address>` | A file TTS had not cached. A placeholder stands in for it | Download the missing files, or open the game in TTS once and import again |
-| `… has no counterpart yet: kept as a placeholder` | An object Table World cannot show yet (a PDF, a tablet, a text object, a bowl) | See below |
+| `… has no counterpart yet: kept as a placeholder` | An object Table World cannot show yet (a tablet, a text object, a bowl) | See below |
 | `… was inside a container; zones cannot be, so it lies on the table` | A zone was stored inside a bag in TTS | Nothing: it works on the table |
 | `State … of … has snap points; they are dropped until the state is shown` | Snap points on a state that is not showing | Nothing yet (see section 5) |
 | `The XmlUI of … does not read (…); left out` | A UI document TTS accepted but that is not valid XML | Usually harmless; tell us which game |

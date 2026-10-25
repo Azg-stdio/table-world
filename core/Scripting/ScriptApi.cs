@@ -484,6 +484,26 @@ namespace Core.Scripting
             {
                 case "UI":
                     return UiApi(script, id);
+                case "Book":
+                {
+                    // TTS's PDF component: getPage(offset) and setPage(page, offset); with offset true, page numbers count from the PDF's page offset.
+                    if (!(Engine.Find(id) is Pdf))
+                        return DynValue.Nil;
+                    var book = new Table(script);
+                    int Skip(CallbackArguments a) => a.Count > 0 && a[0].Type == DataType.Table && a[0].Table == book ? 1 : 0;
+                    DynValue BookAt(CallbackArguments a, int i) => a.Count > i + Skip(a) ? a[i + Skip(a)] : DynValue.Nil;
+                    book["getPage"] = DynValue.NewCallback((_, a) => Engine.Find(id) is Pdf pdf
+                        ? DynValue.NewNumber(pdf.Page + (BookAt(a, 0).CastToBool() ? pdf.PageOffset : 0))
+                        : DynValue.Nil);
+                    book["setPage"] = DynValue.NewCallback((_, a) =>
+                    {
+                        if (!(Engine.Find(id) is Pdf pdf) || BookAt(a, 0).Type != DataType.Number)
+                            return DynValue.False;
+                        var page = (int)BookAt(a, 0).Number - (BookAt(a, 1).CastToBool() ? pdf.PageOffset : 0);
+                        return DynValue.NewBoolean(Issue(new SetPageCommand { ObjectId = id, Page = Math.Max(0, page) }));
+                    });
+                    return DynValue.NewTable(book);
+                }
                 case "registerCollisions":
                     return CollisionMethod(id, register: true);
                 case "unregisterCollisions":

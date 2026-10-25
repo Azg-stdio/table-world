@@ -298,6 +298,19 @@ namespace Core.Engine
             return CommandResult.Success(new List<StateEvent> { new ObjectUpdated(die.Id) });
         }
 
+        private CommandResult SetPage(SetPageCommand c)
+        {
+            if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: true) is { } fail)
+                return fail;
+            if (!(obj is Pdf pdf))
+                return CommandResult.Fail("objectId", ErrorCodes.WrongObjectType, $"'{obj.Id}' is a {obj.Type}, not a PDF.");
+            // The page count is in the document, which only the views read: they show the last page for one past it.
+            if (c.Page < 0)
+                return CommandResult.Fail("page", ErrorCodes.InvalidValue, "A page number starts at 0.");
+            pdf.Page = c.Page;
+            return CommandResult.Success(new List<StateEvent> { new ObjectUpdated(pdf.Id) });
+        }
+
         private CommandResult SetCounter(SetCounterCommand c)
         {
             if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: true) is { } fail)

@@ -19,6 +19,7 @@ namespace TableWorld.View
         public const float BagRadius = 0.04f;
         public const float BagHeight = 0.08f;
         public const float BoardThickness = 0.004f;
+        public const float PdfThickness = 0.003f;
         public static readonly Vector2 BoardDefaultSize = new Vector2(0.5f, 0.5f);
         public const float FigureWidth = 0.03f;
         public const float FigureDefaultHeight = 0.05f;
@@ -178,6 +179,15 @@ namespace TableWorld.View
                     var face = assets.ImageMaterial(board.Asset, model.Tint.ToColor(new Color(0.85f, 0.8f, 0.7f)));
                     SetPrism(view, MeshFactory.ImageBox(new Vector3(size.x, BoardThickness, size.y)), face, assets.Plain(new Color(0.3f, 0.25f, 0.2f)),
                         assets.Plain(new Color(0.3f, 0.25f, 0.2f)), 0.2f);
+                    break;
+                }
+                case Pdf pdf:
+                {
+                    // A sheet of paper showing its page on top (M7 T8.8); the page is stretched to the sheet, as in TTS.
+                    var size = (pdf.Size ?? Pdf.DefaultSize).ToUnity();
+                    var paper = new Color(0.95f, 0.94f, 0.9f);
+                    SetPrism(view, MeshFactory.ImageBox(new Vector3(size.x, PdfThickness, size.y)), assets.PdfMaterial(pdf.Asset, pdf.Page, paper),
+                        assets.Plain(paper, 0.1f), assets.Plain(paper * 0.9f, 0.1f), 0.05f);
                     break;
                 }
                 case Counter _:

@@ -35,7 +35,7 @@ namespace Core.Tests.Tts
     { ""GUID"": ""z00001"", ""Name"": ""ScriptingTrigger"", ""Transform"": { ""posX"": 0, ""posY"": 2, ""posZ"": 0, ""scaleX"": 4, ""scaleY"": 2, ""scaleZ"": 4 } },
     { ""GUID"": ""t00001"", ""Name"": ""Custom_Tile"", ""CustomImage"": { ""ImageURL"": ""http://x/tile.jpg"", ""CustomTile"": { ""Type"": 1, ""Thickness"": 0.2, ""Stackable"": true } }, ""Number"": 3 },
     { ""GUID"": ""s00001"", ""Name"": ""Die_6"", ""States"": { ""2"": { ""GUID"": ""s00002"", ""Name"": ""Die_20"" } } },
-    { ""GUID"": ""p00001"", ""Name"": ""Custom_PDF"", ""Nickname"": ""Rulebook"", ""LuaScript"": ""x = 1"" } ] }";
+    { ""GUID"": ""p00001"", ""Name"": ""Tablet"", ""Nickname"": ""Rulebook"", ""LuaScript"": ""x = 1"" } ] }";
 
         [Fact]
         public void MusicPlayer_BecomesTheTablesMusic_NotPlaying()

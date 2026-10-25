@@ -323,11 +323,29 @@ namespace Core.Rules
         public static readonly Vec2 Size = new Vec2(0.11f, 0.075f);
     }
 
+    /// <summary>
+    /// A PDF lying on the table (TTS <c>Custom_PDF</c>, M7 T8.8): a sheet showing <see cref="Page"/> of its document.
+    /// Turning the page is shared (<c>SetPageCommand</c>); each machine renders the page itself.
+    /// </summary>
+    public sealed class Pdf : TableObject
+    {
+        /// <summary>A sheet of A4 when no size is given.</summary>
+        public static readonly Vec2 DefaultSize = new Vec2(0.21f, 0.297f);
+
+        public string? Asset { get; set; }
+        /// <summary>The page shown, from 0.</summary>
+        public int Page { get; set; }
+        /// <summary>TTS <c>PDFPageOffset</c>: added to page numbers shown to players and scripts that ask for it.</summary>
+        public int PageOffset { get; set; }
+        /// <summary>Metres; null means <see cref="DefaultSize"/>. The page is stretched to it, as TTS does.</summary>
+        public Vec2? Size { get; set; }
+    }
+
     public static class TableObjectTypes
     {
         public static readonly IReadOnlyDictionary<string, Type> ByName = Build(
             typeof(Card), typeof(Deck), typeof(Token), typeof(Tile), typeof(Die),
-            typeof(Model), typeof(Bag), typeof(InfiniteBag), typeof(Board), typeof(Figure), typeof(Counter), typeof(Clock), typeof(Notecard));
+            typeof(Model), typeof(Bag), typeof(InfiniteBag), typeof(Board), typeof(Figure), typeof(Counter), typeof(Clock), typeof(Notecard), typeof(Pdf));
 
         internal static IReadOnlyDictionary<string, Type> Build(params Type[] types)
         {

@@ -93,6 +93,8 @@ namespace Core.Engine
                     return $"spread {Name(c.DeckId)}";
                 case SetDieValueCommand c:
                     return $"set {Name(c.ObjectId)} to {c.Value}";
+                case SetPageCommand c:
+                    return engine.Find(c.ObjectId) is Pdf pdf ? $"turned {Name(c.ObjectId)} to page {pdf.Page + 1 + pdf.PageOffset}" : null;
                 case SetCounterCommand c:
                     return engine.Find(c.ObjectId) is Counter counter ? $"set {Name(c.ObjectId)} to {counter.Value}" : null;
                 case SetClockCommand c:

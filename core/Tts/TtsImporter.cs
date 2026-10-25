@@ -226,13 +226,14 @@ namespace Core.Tts
             {
                 AssetType.AssetBundle => ".unity3d",
                 AssetType.Model => ".obj",
+                AssetType.Pdf => ".pdf",
                 _ => Regex.IsMatch(url, @"\.jpe?g($|\?)", RegexOptions.IgnoreCase) ? ".jpg" : ".png",
             };
-            var prefix = type switch { AssetType.AssetBundle => "bundle", AssetType.Model => "mesh", _ => "img" };
+            var prefix = type switch { AssetType.AssetBundle => "bundle", AssetType.Model => "mesh", AssetType.Pdf => "pdf", _ => "img" };
             var id = idOverride ?? $"{prefix}_{ShortHash(key)}" + (columns * rows > 1 ? $"_{columns}x{rows}" : "");
             for (var n = 2; State.Assets.Any(a => a.Id == id); n++)
                 id = (idOverride ?? $"{prefix}_{ShortHash(key)}") + "_" + n;
-            var folder = type switch { AssetType.AssetBundle => "bundles", AssetType.Model => "models", _ => "images" };
+            var folder = type switch { AssetType.AssetBundle => "bundles", AssetType.Model => "models", AssetType.Pdf => "pdfs", _ => "images" };
             var asset = new ImportedAsset { Id = id, Url = url, Type = type, CacheKey = key, Path = $"{folder}/{key}{extension}" };
             _assetsByKey[lookup] = asset;
             _result.Assets.Add(asset);
@@ -435,6 +436,20 @@ namespace Core.Tts
                     return new InfiniteBag { Tint = Tint(o) };
                 case "Notecard":
                     return new Notecard();
+                case "Custom_PDF":
+                {
+                    var pdf = o["CustomPDF"] as JObject;
+                    if (!string.IsNullOrEmpty((string?)pdf?["PDFPassword"]))
+                        _result.Notes.Add($"Custom_PDF {o["GUID"]} ('{o["Nickname"]}') has a password: Table World opens it without one, so it may stay blank.");
+                    // TTS's PDF is a square of one unit at scale 1 and stretches the page to it: creators set the scale to the page's shape.
+                    return new Pdf
+                    {
+                        Asset = Asset((string?)pdf?["PDFUrl"], AssetType.Pdf),
+                        Page = Math.Max(0, (int?)pdf?["PDFPage"] ?? 0),
+                        PageOffset = (int?)pdf?["PDFPageOffset"] ?? 0,
+                        Size = new Vec2(TtsUnits.TtsUnitsToMeters, TtsUnits.TtsUnitsToMeters),
+                    };
+                }
                 case "Counter":
                     return new Counter { Value = (int?)o["Counter"]?["value"] ?? 0 };
                 case "Digital_Clock":

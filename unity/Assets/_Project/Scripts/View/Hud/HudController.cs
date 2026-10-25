@@ -31,6 +31,7 @@ namespace TableWorld.View.Hud
         private VisualElement _seatList;
         private readonly Dictionary<string, VisualElement> _seatChips = new Dictionary<string, VisualElement>();
         private EmoteWheel _emoteWheel;
+        private PdfReader _reader;
         private TableWorld.View.Voice.VoiceChat _voice;
         private VisualElement _selectionPanel;
         private Label _selectionTitle;
@@ -80,6 +81,7 @@ namespace TableWorld.View.Hud
         /// <summary>The Escape menu and settings (G13, G31).</summary>
         public EscapeMenu Escape => _escape;
         public EmoteWheel Emotes => _emoteWheel;
+        public PdfReader Reader => _reader;
 
         /// <summary>Chat and game log, bottom left (Enter).</summary>
         public ChatPanel Chat => _chat;
@@ -127,6 +129,8 @@ namespace TableWorld.View.Hud
                 _look = _look != null ? _look : LookCamera.Create(transform);
                 var camera = Camera.main != null ? Camera.main.GetComponent<TableCamera>() : null;
                 _overlay = new TableOverlay(_root, _table, _interaction, camera, _look);
+                _reader = new PdfReader(_root, _table);
+                _overlay.ReadRequested += _reader.Show;
                 _handBar = new HandBar(_root, _table, _interaction);
                 _help = new ControlsHelp(_root);
                 _interaction.Pinged += OnPing;
@@ -200,6 +204,9 @@ namespace TableWorld.View.Hud
         public bool TypingInUi()
         {
             if (_chat != null && _chat.Open)
+                return true;
+            // Reading a PDF: the arrow and Page keys turn its pages, not the camera.
+            if (_reader != null && _reader.Visible)
                 return true;
             if (_scriptUi != null && _scriptUi.Typing)
                 return true;
@@ -281,7 +288,9 @@ namespace TableWorld.View.Hud
         /// <summary>What Escape does (also called by tests).</summary>
         public void PressEscape()
         {
-            if (_gizmo != null && _gizmo.Visible)
+            if (_reader != null && _reader.Visible)
+                _reader.Hide();
+            else if (_gizmo != null && _gizmo.Visible)
                 _gizmo.Hide();
             else if (_interaction != null && _interaction.ActiveTool != TableInteraction.Tool.Grab)
                 SetTool(TableInteraction.Tool.Grab);
@@ -386,6 +395,7 @@ namespace TableWorld.View.Hud
             _chat?.Update(TypingInUi() || (_interaction != null && _interaction.IgnoreDevices));
             _players?.Update();
             _notes?.Update();
+            _reader?.Update();
             _emoteWheel?.Update(TypingInUi() || (_interaction != null && _interaction.IgnoreDevices));
             UpdateTalking();
             if (_saves?.Tick(_escape.Settings.AutosaveMinutes) is { } autosaved)

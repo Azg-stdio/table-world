@@ -80,6 +80,7 @@ namespace Core.Tts
             {
                 AssetType.AssetBundle => (new[] { "Assetbundles" }, new[] { ".unity3d" }),
                 AssetType.Model => (new[] { "Models" }, new[] { ".obj" }),
+                AssetType.Pdf => (new[] { "PDF" }, new[] { ".PDF", ".pdf" }),
                 _ => (new[] { "Images", "Images Raw" }, new[] { ".png", ".jpg", ".jpeg", ".bmp" }),
             };
             foreach (var folder in folders)

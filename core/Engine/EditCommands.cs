@@ -91,6 +91,13 @@ namespace Core.Engine
         public int Value { get; set; }
     }
 
+    /// <summary>Turns a PDF to <see cref="Page"/> (from 0) for everyone (M7 T8.8). Works on locked PDFs too.</summary>
+    public sealed class SetPageCommand : Command
+    {
+        public string ObjectId { get; set; } = "";
+        public int Page { get; set; }
+    }
+
     /// <summary>Sets a counter to <see cref="Value"/>, or adds <see cref="Add"/> to it (G27). Works on locked counters too.</summary>
     public sealed class SetCounterCommand : Command
     {

@@ -41,6 +41,9 @@ namespace TableWorld.View.Hud
         private Vector3 _menuWorldPoint;
         private ObjectView _menuTarget;
 
+        /// <summary>The player chose Read… on a PDF (M7 T8.8).</summary>
+        public event Action<ObjectView> ReadRequested;
+
         public TableOverlay(VisualElement root, TableView table, TableInteraction interaction, TableCamera camera, LookCamera look)
         {
             _root = root;
@@ -304,6 +307,16 @@ namespace TableWorld.View.Hud
                             Item(label, set);
                     }
                     break;
+                case Pdf pdf:
+                {
+                    var pages = _table.Assets?.PdfDocument(pdf.Asset)?.PageCount ?? 0;
+                    Section(pages == 0 ? "PDF · not here yet" : $"PDF · page {Mathf.Min(pdf.Page, pages - 1) + 1 + pdf.PageOffset} ({Mathf.Min(pdf.Page, pages - 1) + 1} of {pages})");
+                    if (pages > 0)
+                        Row("Page", new[] { ("◀ Previous", -1), ("Next ▶", 1) }.Select(t => (t.Item1, (Action)(() =>
+                            Run(new SetPageCommand { ObjectId = pdf.Id, Page = Mathf.Clamp(Mathf.Min(pdf.Page, pages - 1) + t.Item2, 0, pages - 1) })))));
+                    Item("Read…", () => ReadRequested?.Invoke(view));
+                    break;
+                }
                 case Counter counter:
                     Section($"Counter · {counter.Value}");
                     Row("Add", new[] { -10, -1, 1, 10 }.Select(n => (n > 0 ? $"+{n}" : $"−{-n}", (Action)(() => _interaction.AddToCounter(view, n)))));

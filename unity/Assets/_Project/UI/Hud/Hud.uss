@@ -1204,3 +1204,32 @@
     color: rgb(30, 26, 18);
     background-color: rgb(242, 196, 82);
 }
+
+/* Reading a PDF (M7 T8.8): the page fills the window above a bar of controls. */
+.pdf-reader {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    padding: 24px 24px 12px 24px;
+    background-color: rgba(10, 11, 14, 0.92);
+}
+
+.pdf-reader__page {
+    flex-grow: 1;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.pdf-reader__bar {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.pdf-reader__number {
+    margin: 0 12px;
+    font-size: 15px;
+    color: rgb(240, 236, 226);
+}

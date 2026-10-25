@@ -374,6 +374,12 @@ namespace Core.Rules
                         CheckOptionalAsset(board.Asset, $"{path}.asset", AssetType.Image);
                         CheckSize(board.Size, $"{path}.size");
                         break;
+                    case Pdf pdf:
+                        CheckOptionalAsset(pdf.Asset, $"{path}.asset", AssetType.Pdf);
+                        CheckSize(pdf.Size, $"{path}.size");
+                        if (pdf.Page < 0)
+                            Add($"{path}.page", ErrorCodes.InvalidValue, "A page number starts at 0.", "Use 0 for the first page.");
+                        break;
                     case Figure figure:
                         CheckOptionalAsset(figure.Asset, $"{path}.asset", AssetType.Image);
                         CheckPositive(figure.Height, $"{path}.height");

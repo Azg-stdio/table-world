@@ -23,6 +23,9 @@ namespace TableWorld.View
         private readonly Dictionary<string, Asset> _assets = new Dictionary<string, Asset>();
         private readonly Dictionary<string, Texture2D> _texturesByPath = new Dictionary<string, Texture2D>();
         private readonly Dictionary<string, Mesh> _meshesByPath = new Dictionary<string, Mesh>();
+        private readonly Dictionary<string, Documents.PdfDocument> _pdfsByPath = new Dictionary<string, Documents.PdfDocument>();
+        /// <summary>Rendered PDF pages, newest last; the oldest go beyond <see cref="MaxPdfPages"/>.</summary>
+        private readonly List<(string Key, Texture2D Texture)> _pdfPages = new List<(string, Texture2D)>();
         private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
         private readonly string _packageRoot;
         private readonly System.Func<Asset, byte[]> _fetch;
@@ -260,6 +263,84 @@ namespace TableWorld.View
             mesh.RecalculateBounds();
             mesh.RecalculateTangents();
             return mesh;
+        }
+
+        /// <summary>Rendered PDF pages kept at once (a page at 1 536 pixels is about 12 MB with its mipmaps).</summary>
+        public const int MaxPdfPages = 24;
+        /// <summary>Pixels along a page's longer side: on the table, and in the reader.</summary>
+        public const int PdfTablePixels = 1536;
+        public const int PdfReaderPixels = 2560;
+
+        /// <summary>
+        /// The PDF asset's document (M7 T8.8), opened once; null while it is missing (a download may be on its way) or when
+        /// it does not open.
+        /// </summary>
+        public Documents.PdfDocument PdfDocument(string assetId)
+        {
+            var asset = Find(assetId);
+            if (asset == null || asset.Type != AssetType.Pdf || asset.IsBuiltin)
+                return null;
+            if (_pdfsByPath.TryGetValue(asset.Path, out var cached))
+                return cached;
+            if (LocalCopy(asset) == null && FetchFromWeb(asset))
+                return null;
+            var bytes = (LocalCopy(asset) is { } local ? File.ReadAllBytes(local) : null) ?? _fetch?.Invoke(asset);
+            var document = bytes != null ? Documents.PdfDocument.Open(bytes, asset.Path) : null;
+            if (bytes == null && _fetch == null)
+                Debug.LogWarning($"[AssetLibrary] Missing PDF '{asset.Path}' (package: {_packageRoot ?? "none"}).");
+            if (document != null || _fetch == null)
+                _pdfsByPath[asset.Path] = document;
+            return document;
+        }
+
+        /// <summary>Page <paramref name="page"/> (from 0, kept to the document's pages) rendered <paramref name="pixels"/> long, or null.</summary>
+        public Texture2D PdfPage(string assetId, int page, int pixels)
+        {
+            var document = PdfDocument(assetId);
+            if (document == null || document.PageCount == 0)
+                return null;
+            page = Mathf.Clamp(page, 0, document.PageCount - 1);
+            var key = $"{assetId}#{page}@{pixels}";
+            var index = _pdfPages.FindIndex(p => p.Key == key);
+            if (index >= 0)
+            {
+                var known = _pdfPages[index];
+                _pdfPages.RemoveAt(index);
+                _pdfPages.Add(known);
+                return known.Texture;
+            }
+            var texture = document.Render(page, pixels);
+            if (texture == null)
+                return null;
+            _pdfPages.Add((key, texture));
+            while (_pdfPages.Count > MaxPdfPages)
+            {
+                var oldest = _pdfPages[0];
+                _pdfPages.RemoveAt(0);
+                if (_materials.TryGetValue("pdf:" + oldest.Key, out var material))
+                {
+                    Object.Destroy(material);
+                    _materials.Remove("pdf:" + oldest.Key);
+                }
+                Object.Destroy(oldest.Texture);
+            }
+            return texture;
+        }
+
+        /// <summary>A paper material showing page <paramref name="page"/> of the PDF, or plain paper while it has none.</summary>
+        public Material PdfMaterial(string assetId, int page, Color paper)
+        {
+            var texture = PdfPage(assetId, page, PdfTablePixels);
+            if (texture == null)
+                return Plain(paper, 0.1f);
+            var key = "pdf:" + _pdfPages[_pdfPages.Count - 1].Key;
+            if (!_materials.TryGetValue(key, out var material) || material == null)
+            {
+                material = NewMaterial(key, Color.white, 0.1f);
+                material.SetTexture(BaseMap, texture);
+                _materials[key] = material;
+            }
+            return material;
         }
 
         /// <summary>

@@ -223,6 +223,7 @@ namespace Core.Engine
             EndTurnCommand c => EndTurn(c),
             ScaleCommand c => Scale(c),
             DeleteCommand c => Delete(c),
+            SetPageCommand c => SetPage(c),
             CloneCommand c => Clone(c),
             SetStateCommand c => SetState(c),
             CutCommand c => Cut(c),

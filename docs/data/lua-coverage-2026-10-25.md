@@ -5,12 +5,12 @@ Source: `docs/data/mod-requirements-2026-10-23.json`. Calls weighted by how ofte
 | Mod | Calls | Covered | Share |
 |---|---|---|---|
 | Pokemon Master Trainer 3D (7 Generations) | 337 | 330 | 98% |
-| Gloomhaven - Fantasy Setup (Scripted UI) | 8051 | 8042 | 100% |
+| Gloomhaven - Fantasy Setup (Scripted UI) | 8051 | 8044 | 100% |
 | The Chimera Table | 40 | 40 | 100% |
 | Anna's Roundtable - The FE Board Game Fan Project | 0 | 0 | 100% |
 | Pokémon: Legends of Sinnoh | 6973 | 6972 | 100% |
 | Riftbound - Basic Table | 5648 | 5646 | 100% |
-| **All** | 21049 | 21030 | **100%** |
+| **All** | 21049 | 21032 | **100%** |
 
 ## Most used missing
 
@@ -19,7 +19,6 @@ Source: `docs/data/mod-requirements-2026-10-23.json`. Calls weighted by how ofte
 | `jointTo` | 2 |
 | `addAttachment` | 2 |
 | `removeAttachments` | 2 |
-| `setPage` | 2 |
 | `getTransformUp` | 1 |
 | `getTriggerEffects` | 1 |
 | `getLoopingEffects` | 1 |

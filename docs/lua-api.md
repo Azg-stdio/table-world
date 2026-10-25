@@ -174,7 +174,8 @@ set), `pass_turns` (always true) and `disable_interactations` (always false, not
 edit: `GUID`, `Nickname`, `Description`, `GMNotes`. `spawnObjectData({ data, position, rotation, scale,
 callback_function })` spawns a new object from such data (changes to those names apply) under a new id; a deck's cards
 get new ids too. Hand-made TTS data (`Name = 'Custom_Model'`, ...) is not read yet: it spawns nothing and logs why.
-`bag.reset()` empties a bag or infinite bag and keeps it. A layout zone lays out with `zone.LayoutZone.layout()`.
+A PDF's `obj.Book.getPage(offset)` and `obj.Book.setPage(page, offset)` read and turn its page for everyone (with
+`offset` true, page numbers count from the PDF's page offset). `bag.reset()` empties a bag or infinite bag and keeps it. A layout zone lays out with `zone.LayoutZone.layout()`.
 
 `onUpdate()` runs every frame on the host. `onObjectSpawn(object)` runs for every new object and `onObjectDestroy(object)`
 for every one removed (a card joining a deck too); the destroyed object is already gone, so it offers only `getGUID()`.

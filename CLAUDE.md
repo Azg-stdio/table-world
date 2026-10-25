@@ -28,6 +28,7 @@ A 3D board game simulator, positioned as "a more advanced Tabletop Simulator, wi
 | Render | **URP**. TTS AssetBundles are remapped to `URP/Lit` at load time (ADR 0001) |
 | Physics | **PhysX** (built in) |
 | Language | C# |
+| PDF | **PDFium** (`Plugins/PDFium`, from bblanchon/pdfium-binaries, no V8/XFA) through our own P/Invoke wrapper; TTS uses PDFium too, behind a paid wrapper (ADR 0007) |
 | JSON | **Newtonsoft.Json 13.x** in `core/` (Unity provides it via `com.unity.nuget.newtonsoft-json`). Not System.Text.Json |
 | UI | **UI Toolkit** (UXML/USS) for the game UI, following the `unity:ui-uitk` skill conventions. Game-defined UI is our own declarative JSON format, not TTS XmlUI; an XmlUI translator belongs to the importer (M7) |
 | AI | The game exposes an **MCP server**; the user drives it with their own Claude Code / Claude / Codex. No third-party subscription login and no API keys inside the game for now (Anthropic and OpenAI policies changed several times in 2026; review before adding that option) |

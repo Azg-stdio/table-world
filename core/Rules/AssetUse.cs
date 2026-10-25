@@ -31,6 +31,8 @@ namespace Core.Rules
                     return board.Asset == assetId;
                 case Figure figure:
                     return figure.Asset == assetId;
+                case Pdf pdf:
+                    return pdf.Asset == assetId;
                 default:
                     return false;
             }
