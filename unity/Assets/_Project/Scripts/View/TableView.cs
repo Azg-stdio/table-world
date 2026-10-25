@@ -311,6 +311,44 @@ namespace TableWorld.View
 
         private string _assetsJson;
 
+        /// <summary>
+        /// The client's prediction was rebuilt (T3.5): the same table but for <paramref name="changed"/>. Every view is
+        /// pointed at the new engine's object; only the changed ones redraw and move, objects that came or went are
+        /// spawned or removed. Respawning every view of a 2 800-object TTS table each time took seconds.
+        /// </summary>
+        public void Reconcile(GameEngine game, IReadOnlyCollection<string> changed)
+        {
+            // New files (a script named one) need a new asset library: the whole table is drawn again then.
+            if (Game == null || game.State.Assets.Count != Game.State.Assets.Count)
+            {
+                Adopt(game);
+                return;
+            }
+            Game = game;
+            var live = new HashSet<string>();
+            foreach (var obj in game.State.Objects)
+            {
+                if (obj.Container != null)
+                    continue;
+                live.Add(obj.Id);
+                if (_views.TryGetValue(obj.Id, out var view) && view != null)
+                {
+                    view.Model = obj;
+                    if (changed.Contains(obj.Id))
+                    {
+                        ObjectViewFactory.Refresh(view, Assets);
+                        if (!view.Held)
+                            view.SnapToState();
+                    }
+                }
+                else
+                    Spawn(obj);
+            }
+            foreach (var id in _views.Keys.Where(id => !live.Contains(id)).ToList())
+                Despawn(id);
+            PresentHands();
+        }
+
         /// <summary>Raised after an asset's bytes arrive and the objects were repainted (the room re-dresses the table).</summary>
         public event Action<string> AssetRefreshed;
 

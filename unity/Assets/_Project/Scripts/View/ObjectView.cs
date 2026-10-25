@@ -11,7 +11,7 @@ namespace TableWorld.View
     public sealed class ObjectView : MonoBehaviour
     {
         public string Id { get; private set; }
-        public TableObject Model { get; private set; }
+        public TableObject Model { get; internal set; }
         public Rigidbody Body { get; private set; }
         public MeshFilter Filter { get; private set; }
         public MeshRenderer Renderer { get; private set; }

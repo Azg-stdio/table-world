@@ -493,7 +493,13 @@ namespace TableWorld.View.Net
             };
             _assets.Failed += (id, why) => Debug.LogWarning($"[Net] Asset '{id}' could not be received: {why}");
             _table.FetchAsset = asset => _assets?.Read(asset.Id);
-            _client.PredictionReplaced += game => _table.Adopt(game);
+            _client.PredictionReplaced += (game, changed) =>
+            {
+                if (changed == null)
+                    _table.Adopt(game);
+                else
+                    _table.Reconcile(game, changed);
+            };
             _client.Applied += (command, result) => _table.ApplyRemote(command, result);
             _client.Ordered += OnClientOrdered;
             SendHello();

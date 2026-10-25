@@ -63,6 +63,12 @@ namespace Core.Net
 
         public long Order => _order;
 
+        /// <summary>
+        /// Orders between state hashes. A hash serializes the whole table (120 ms for a 2 800-object TTS table), so the
+        /// host sends one every this many commands; clients check their confirmed table then (T3.5).
+        /// </summary>
+        public int HashEvery { get; set; } = 32;
+
         /// <summary>Raised for every command the host executed successfully, with who sent it (the host's view applies it).</summary>
         public event Action<string, Command, CommandResult>? Executed;
 
@@ -149,7 +155,7 @@ namespace Core.Net
                 return (result, new Outgoing(origin == HostId ? null : origin, Rejection(origin, clientSeq, result.Error!)));
             _order++;
             Executed?.Invoke(origin, command, result);
-            return (result, new Outgoing(null, new JObject
+            var order = new JObject
             {
                 ["kind"] = "order",
                 ["order"] = _order,
@@ -157,8 +163,10 @@ namespace Core.Net
                 ["seq"] = clientSeq,
                 ["ok"] = true,
                 ["command"] = CommandCodec.Encode(command),
-                ["hash"] = TableJson.Hash(Game.State),
-            }));
+            };
+            if (HashEvery <= 1 || _order % HashEvery == 0)
+                order["hash"] = TableJson.Hash(Game.State);
+            return (result, new Outgoing(null, order));
         }
 
         /// <summary>A refused command changes nothing; only its sender needs to know (it may have predicted it).</summary>
@@ -184,6 +192,8 @@ namespace Core.Net
     {
         private readonly string _id;
         private readonly List<(long Seq, Command Command)> _pending = new List<(long, Command)>();
+        /// <summary>Objects the pending commands touched on the prediction (their events' objects and the command's targets).</summary>
+        private readonly HashSet<string> _touched = new HashSet<string>();
         private long _nextSeq = 1;
         private long _order;
 
@@ -197,8 +207,12 @@ namespace Core.Net
         public int Resyncs { get; private set; }
         public int Rebuilds { get; private set; }
 
-        /// <summary>Raised when <see cref="Predicted"/> is a new engine (snapshot or rebuild): views must reload from it.</summary>
-        public event Action<GameEngine>? PredictionReplaced;
+        /// <summary>
+        /// Raised when <see cref="Predicted"/> is a new engine (snapshot or rebuild), with the ids of the objects that may
+        /// differ from the previous prediction, or null when anything may (a snapshot, a mismatch): views point at the
+        /// new engine's objects and redraw those (rebuilding every view of a big table each time froze clients).
+        /// </summary>
+        public event Action<GameEngine, IReadOnlyCollection<string>?>? PredictionReplaced;
 
         /// <summary>
         /// Raised when a command ordered by the host was applied to <see cref="Predicted"/> in place (the common case:
@@ -232,6 +246,7 @@ namespace Core.Net
                 return (result, null);
             var seq = _nextSeq++;
             _pending.Add((seq, command));
+            Touch(result);
             return (result, new JObject { ["kind"] = "intent", ["seq"] = seq, ["command"] = CommandCodec.Encode(command) });
         }
 
@@ -246,7 +261,7 @@ namespace Core.Net
                     Confirmed = Copy(state, random);
                     _order = (long)message["order"]!;
                     // Commands not yet ordered stay pending and are replayed on top of the snapshot.
-                    Rebuild();
+                    Rebuild(null);
                     return null;
                 case "order":
                     if (Confirmed == null)
@@ -268,7 +283,7 @@ namespace Core.Net
                     _pending.RemoveAll(p => p.Seq == seq);
                     var e = message["error"]!;
                     Refused?.Invoke(new ValidationError((string?)e["path"] ?? "", (string?)e["code"] ?? "", (string?)e["message"] ?? ""));
-                    Rebuild();
+                    Rebuild(Array.Empty<string>());
                 }
                 return null;
             }
@@ -281,33 +296,40 @@ namespace Core.Net
             _order = order;
 
             var command = CommandCodec.Decode((JObject)message["command"]!);
-            var result = Confirmed!.Execute(command);
-            if (!result.Ok || TableJson.Hash(Confirmed.State) != (string)message["hash"]!)
+            var randomBefore = Confirmed!.Table.Random.State;
+            var result = Confirmed.Execute(command);
+            // The host's hash comes every few orders (SessionHost.HashEvery): the confirmed table is checked then.
+            var hash = (string?)message["hash"];
+            if (!result.Ok || hash != null && TableJson.Hash(Confirmed.State) != hash)
                 return Resync();
             Ordered?.Invoke((string?)message["origin"] ?? "", command, result);
 
             var wasNext = mine && _pending.Count > 0 && _pending[0].Seq == seq;
             if (mine)
                 _pending.RemoveAll(p => p.Seq == seq);
+            if (_pending.Count == 0)
+                _touched.Clear();
             if (wasNext)
             {
-                // The host ordered our oldest command next: the prediction already includes it, nothing to redo.
-                if (_pending.Count == 0 && TableJson.Hash(Predicted!.State) != TableJson.Hash(Confirmed.State))
-                    Rebuild();
+                // The host ordered our oldest command next: the prediction already includes it (the engine is
+                // deterministic, so it came out the same). With nothing left in flight, a hash check now and then.
+                if (_pending.Count == 0 && hash != null && TableJson.Hash(Predicted!.State) != hash)
+                    Rebuild(null);
                 return null;
             }
-            if (!mine && _pending.Count == 0)
+            if (!mine && (_pending.Count == 0 || Commutes(command, result, randomBefore)))
             {
-                // Nothing of ours in flight: the prediction is the confirmed table, so the command applies to it the same way.
+                // Nothing of ours in flight, or ours touch other things: the command applies to the prediction the same
+                // way, in place (rebuilding copies the whole table, 320 ms for a 2 800-object TTS table).
                 var applied = Predicted!.Execute(command);
-                if (applied.Ok && TableJson.Hash(Predicted.State) == TableJson.Hash(Confirmed.State))
+                if (applied.Ok && (_pending.Count > 0 || hash == null || TableJson.Hash(Predicted.State) == hash))
                 {
                     Applied?.Invoke(command, applied);
                     return null;
                 }
             }
-            // Someone else's command while ours are in flight (or ours out of order): replay ours on top of the new truth.
-            Rebuild();
+            // Someone else's command that meets ours (or ours out of order): replay ours on top of the new truth.
+            Rebuild(result.Events.Select(e => e.ObjectId));
             return null;
         }
 
@@ -318,14 +340,50 @@ namespace Core.Net
             return new JObject { ["kind"] = "resync" };
         }
 
-        private void Rebuild()
+        /// <summary>
+        /// Replays this client's commands in flight on a copy of the confirmed table. <paramref name="alsoChanged"/> are
+        /// objects the confirmed table changed since the prediction was made; null means anything may have.
+        /// </summary>
+        private void Rebuild(IEnumerable<string>? alsoChanged)
         {
             Rebuilds++;
+            HashSet<string>? changed = alsoChanged == null ? null : new HashSet<string>(alsoChanged.Concat(_touched));
             Predicted = Copy(Confirmed!.State, Confirmed.Table.Random.State);
+            _touched.Clear();
             foreach (var (_, command) in _pending.ToList())
-                if (!Predicted.Execute(command).Ok)
+            {
+                var replayed = Predicted.Execute(command);
+                if (replayed.Ok)
+                    Touch(replayed);
+                else
                     _pending.RemoveAll(p => p.Command == command);
-            PredictionReplaced?.Invoke(Predicted);
+            }
+            changed?.UnionWith(_touched);
+            PredictionReplaced?.Invoke(Predicted, changed);
+        }
+
+        private void Touch(CommandResult result)
+        {
+            foreach (var e in result.Events)
+                _touched.Add(e.ObjectId);
+        }
+
+        /// <summary>
+        /// True when someone else's ordered command gives the same table whether it comes before or after this client's
+        /// commands in flight: a plain gesture that draws no random number, makes or removes no object (new ids follow
+        /// the order) and touches nothing ours touched. Anything else is replayed by a rebuild.
+        /// </summary>
+        private bool Commutes(Command command, CommandResult result, ulong randomBefore)
+        {
+            if (!(command is MoveCommand || command is FlipCommand || command is LockCommand || command is PickUpCommand
+                  || command is DropCommand || command is SetPropertiesCommand || command is ScaleCommand || command is InsertCommand))
+                return false;
+            if (Confirmed!.Table.Random.State != randomBefore)
+                return false;
+            foreach (var e in result.Events)
+                if (e is ObjectAdded || e is ObjectRemoved || e.ObjectId.Length == 0 || _touched.Contains(e.ObjectId))
+                    return false;
+            return true;
         }
 
         private static GameEngine Copy(TableState state, ulong random)

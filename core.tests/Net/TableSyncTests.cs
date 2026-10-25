@@ -70,6 +70,14 @@ namespace Core.Tests.Net
                 return true;
             }
 
+            /// <summary>Delivers everything queued from <paramref name="client"/> to the host, and the host's answers.</summary>
+            public void DeliverFrom(string client)
+            {
+                while (_toHost[client].Count > 0)
+                    foreach (var outgoing in Host.Receive(client, _toHost[client].Dequeue()))
+                        Deliver(outgoing);
+            }
+
             public void Flush()
             {
                 while (Step())
@@ -249,6 +257,35 @@ namespace Core.Tests.Net
         }
 
         [Fact]
+        public void OthersCommandsOnOtherObjects_ApplyInPlace_AndAClashNamesWhatChanged()
+        {
+            var net = new Network(Game(5), 5, "a", "b");
+            net.Flush();
+            var a = net.Clients["a"];
+            var replaced = new List<IReadOnlyCollection<string>?>();
+            a.PredictionReplaced += (_, changed) => replaced.Add(changed);
+
+            // a moves the die; before the host answers, b flips the loose card: no clash, applied in place.
+            net.ClientDoes("a", new MoveCommand { ObjectId = "d6", Position = new Vec3(0.2f, 0f, 0.2f) });
+            net.ClientDoes("b", new FlipCommand { ObjectId = "loose" });
+            while (a.PendingCount > 0 || net.Step())
+                if (!net.Step())
+                    break;
+            net.Flush();
+            Assert.Empty(replaced);
+
+            // Now b moves the same die while a's move is in flight: a rebuilds, and names the die as changed.
+            net.ClientDoes("a", new MoveCommand { ObjectId = "d6", Position = new Vec3(0.3f, 0f, 0.3f) });
+            net.ClientDoes("b", new MoveCommand { ObjectId = "d6", Position = new Vec3(-0.3f, 0f, 0.1f) });
+            // Deliver b's move to the host first.
+            net.DeliverFrom("b");
+            net.Flush();
+            Assert.NotEmpty(replaced);
+            Assert.All(replaced, changed => Assert.Contains("d6", changed!));
+            Assert.Equal(TableJson.Hash(net.Host.Game.State), TableJson.Hash(a.Predicted!.State));
+        }
+
+        [Fact]
         public void DivergedClient_DetectsTheHashMismatch_AndResyncs()
         {
             var net = new Network(Game(9), 9, "a");
@@ -256,6 +293,11 @@ namespace Core.Tests.Net
             // Corrupt the client's confirmed table behind the protocol's back.
             net.Clients["a"].Confirmed!.Table.Find("d6")!.Name = "tampered";
 
+            // The hash travels every HashEvery orders: the mismatch shows at the next hashed one, not before.
+            for (var i = 1; i < net.Host.HashEvery; i++)
+                net.HostDoes(new FlipCommand { ObjectId = "loose" });
+            net.Flush();
+            Assert.Equal(0, net.Clients["a"].Resyncs);
             net.HostDoes(new FlipCommand { ObjectId = "loose" });
             net.Flush();
 
