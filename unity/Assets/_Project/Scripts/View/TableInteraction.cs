@@ -588,10 +588,21 @@ namespace TableWorld.View
             if (_digits.Length > 0 && Time.unscaledTime - _digitTime >= DigitBufferSeconds)
                 FlushDigits();
 
+            // R rolls (TTS): what is targeted, or, just after a roll, the same dice again even once they have jumped out
+            // from under the pointer, so pressing R again and again sends them higher.
+            if (keyboard.rKey.wasPressedThisFrame && !_table.Spectating)
+            {
+                if (RollDice(Held != null ? _held.ToList() : targets) == 0)
+                {
+                    if (Time.unscaledTime - _lastRollAt < RecentRollSeconds && _lastRolled.Any(v => v != null))
+                        RollDice(_lastRolled);
+                    else if (target != null)
+                        RollOrShuffle(target);
+                }
+            }
             if (target == null || _table.Spectating)
                 return;
             if (keyboard.fKey.wasPressedThisFrame) Flip(target, otherAxis: false);
-            if (keyboard.rKey.wasPressedThisFrame && RollDice(Held != null ? _held.ToList() : targets) == 0) RollOrShuffle(target);
             if (keyboard.lKey.wasPressedThisFrame) ToggleLock(target);
             if (keyboard.gKey.wasPressedThisFrame) Group(targets.Count > 1 ? targets : HeldPlusHovered());
             if (keyboard.uKey.wasPressedThisFrame && Held != null && Hovered != null) PlaceUnder(Hovered);
@@ -642,11 +653,28 @@ namespace TableWorld.View
                 var spinTarget = planar.sqrMagnitude > 1e-4f
                     ? Vector3.Cross(Vector3.up, planar).normalized * Mathf.Min(planar.magnitude / radius, MaxDieSpin)
                     : Vector3.zero;
-                _spin = Vector3.Lerp(_spin, spinTarget, 1f - Mathf.Exp(-8f * Time.fixedDeltaTime));
+                // Shaken hard, it rattles: a random axis that changes every few hundredths of a second, faster the faster
+                // the hand moves (TTS).
+                var speed = planar.magnitude;
+                if (speed > RattleSpeed)
+                {
+                    if (Time.time >= _nextRattle)
+                    {
+                        _rattleAxis = UnityEngine.Random.onUnitSphere;
+                        _nextRattle = Time.time + UnityEngine.Random.Range(0.03f, 0.08f);
+                    }
+                    spinTarget += _rattleAxis * Mathf.Min((speed - RattleSpeed) / radius * 1.5f, MaxDieSpin);
+                }
+                _spin = Vector3.Lerp(_spin, spinTarget, 1f - Mathf.Exp(-(speed > RattleSpeed ? 20f : 8f) * Time.fixedDeltaTime));
                 if (_spin.sqrMagnitude > 1e-4f)
                     primary.MoveRotation(Quaternion.AngleAxis(_spin.magnitude * Mathf.Rad2Deg * Time.fixedDeltaTime, _spin.normalized) * primary.rotation);
             }
         }
+
+        /// <summary>Hand speed above which a held die rattles at random (m/s).</summary>
+        public const float RattleSpeed = 0.25f;
+        private Vector3 _rattleAxis = Vector3.up;
+        private float _nextRattle;
 
         /// <summary>Gap kept between a held object and the top of what is under it.</summary>
         public const float AutoRaiseClearance = 0.012f;
@@ -1240,11 +1268,18 @@ namespace TableWorld.View
         /// R on several dice (selected or held together): every unlocked die rolls at once (TTS). Held dice are let go first,
         /// so they tumble where they were carried. Returns how many dice rolled.
         /// </summary>
+        /// <summary>For this long after a roll, R rolls the same dice again wherever they are (TTS spam-rolling).</summary>
+        public const float RecentRollSeconds = 1.5f;
+        private List<ObjectView> _lastRolled = new List<ObjectView>();
+        private float _lastRollAt = float.NegativeInfinity;
+
         public int RollDice(IReadOnlyCollection<ObjectView> views)
         {
             var dice = views.Where(v => v != null && v.Model is Die && !v.Model.Locked).ToList();
             if (dice.Count == 0)
                 return 0;
+            _lastRolled = dice;
+            _lastRollAt = Time.unscaledTime;
             if (dice.Any(d => _held.Contains(d)))
                 Release();
             return dice.Count(d => _table.Execute(new RollCommand { ObjectId = d.Id, Actor = _table.LocalSeat }).Ok);

@@ -52,7 +52,7 @@ namespace TableWorld.View.Hud
             ("Cards, decks, bags, dice", new[]
             {
                 ("Type a number over a deck or bag", "Draw that many to your hand (1 then 2 quickly = 12)"),
-                ("R", "Shuffle a deck or bag, roll a die; rolls every selected or held die at once"),
+                ("R", "Shuffle a deck or bag, roll a die; rolls every selected or held die at once. Press it again and again to toss dice higher"),
                 ("Shake a held deck or bag", "Shuffle it (a few quick strokes back and forth)"),
                 ("G", "Group cards into a deck"),
                 ("L", "Lock or unlock"),

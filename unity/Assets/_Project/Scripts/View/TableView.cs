@@ -1229,6 +1229,8 @@ namespace TableWorld.View
 
         private void Apply(IReadOnlyList<StateEvent> events)
         {
+            // Tossed once every event is applied: the roll's own update would otherwise put the die back at rest.
+            var tosses = new List<(ObjectView Die, int Value)>();
             foreach (var e in events)
             {
                 switch (e)
@@ -1268,8 +1270,15 @@ namespace TableWorld.View
                         RefreshGrid();
                         break;
                     case DieRolled rolled:
+                        // A free die is tossed by physics and lands on the value (R again sends it higher); a locked or
+                        // hand-held one tumbles where it is.
                         if (ViewOf(rolled.ObjectId) is { } die && isActiveAndEnabled)
-                            StartCoroutine(AnimateRoll(die, rolled.Value));
+                        {
+                            if (die.Pinned || die.InHand || die.Held || die.RemoteHolder != null)
+                                StartCoroutine(AnimateRoll(die, rolled.Value));
+                            else
+                                tosses.Add((die, rolled.Value));
+                        }
                         break;
                     case ObjectRemoved removed:
                         Despawn(removed.ObjectId);
@@ -1314,6 +1323,9 @@ namespace TableWorld.View
             }
             PresentHands();
             SyncJoints();
+            foreach (var (die, value) in tosses)
+                if (die != null)
+                    DieToss.Toss(die, value, v => ReportPose(v));
         }
 
         /// <summary>
