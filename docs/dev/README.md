@@ -4,8 +4,10 @@ For Miguel and implementing agents. Start with the system map below, then the fl
 Permanent rules live in [CLAUDE.md](../../CLAUDE.md); context, decisions and risks in [plan.md](../plan.md).
 
 - [System map](#system-map): processes, assemblies, and the boundaries between them.
-- Flows (T9.4, one page each, written as they are checked): input to command, rules games, MCP and the bridge,
-  multiplayer, asset loading, TTS import, Lua, UI.
+- Flows (T9.4, one page each):
+  - [From a gesture to the table](flows/input-to-command.md): input, `Command`, engines, state events, views.
+  - [Multiplayer](flows/multiplayer.md): host authority, prediction, rebuilds, presence, chat, files.
+  - Still to write: rules games, MCP and the bridge, asset loading, TTS import, Lua, UI.
 - Recipes (T9.5): add an effect, an MCP tool, an object type, a Lua function, a HUD panel, a PlayMode test.
 
 ## System map
