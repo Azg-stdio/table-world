@@ -82,6 +82,63 @@ namespace Core.Tests.Scripting
             Assert.Equal("three", said.Single());
         }
 
+        private static ScriptHost Host(TableEngine engine, List<string> said)
+        {
+            ScriptHost? host = null;
+            host = new ScriptHost(() => engine, c => { var r = engine.Execute(c); host!.OnCommand(c, r, c.Actor == "seat_1" ? "red" : null); return r; });
+            host.Broadcast += said.Add;
+            host.Load(0);
+            return host;
+        }
+
+        private static void Run(TableEngine engine, ScriptHost host, Command command)
+        {
+            var result = engine.Execute(command);
+            Assert.True(result.Ok, result.Error?.Message);
+            host.OnCommand(command, result, command.Actor == "seat_1" ? "red" : null);
+        }
+
+        [Fact]
+        public void ScriptingKeys_ReachTheScripts()
+        {
+            var engine = EngineFixture.Create();
+            engine.State.Scripts[ScriptHost.GlobalName] = @"
+                function onScriptingButtonDown(i, color) broadcastToAll('down ' .. i .. ' ' .. color) end
+                function onScriptingButtonUp(i, color) broadcastToAll('up ' .. i) end";
+            var said = new List<string>();
+            var host = Host(engine, said);
+            Run(engine, host, new ScriptingKeyCommand { Index = 3, Actor = "seat_1" });
+            Run(engine, host, new ScriptingKeyCommand { Index = 3, Down = false, Actor = "seat_1" });
+            Assert.Equal(new[] { "down 3 Red", "up 3" }, said);
+            Assert.False(engine.Execute(new ScriptingKeyCommand { Index = 11 }).Ok);
+        }
+
+        [Fact]
+        public void NumberTyped_RunsTheScript_WhichMayKeepTheDraw()
+        {
+            var engine = EngineFixture.Create();
+            ((Deck)engine.Find("deck")!).Script = "function onNumberTyped(color, n) broadcastToAll(color .. ' typed ' .. n) return n == 2 end";
+            var said = new List<string>();
+            var host = Host(engine, said);
+            Run(engine, host, new TypeNumberCommand { ObjectId = "deck", Number = 2, Actor = "seat_1" });
+            Assert.Equal("Red typed 2", said.Single());
+            Assert.Equal(10, ((Deck)engine.Find("deck")!).Cards.Count);
+            // Not kept: the host deals as typing a number does.
+            Run(engine, host, new TypeNumberCommand { ObjectId = "deck", Number = 3, Actor = "seat_1" });
+            Assert.Equal(7, ((Deck)engine.Find("deck")!).Cards.Count);
+        }
+
+        [Fact]
+        public void HoldingObjects_FollowPickUpsAndDrops()
+        {
+            var engine = EngineFixture.Create();
+            engine.State.Scripts[ScriptHost.GlobalName] = "function onObjectPickUp(color, o) broadcastToAll(#Player[color].getHoldingObjects() .. '') end";
+            var said = new List<string>();
+            var host = Host(engine, said);
+            Run(engine, host, new PickUpCommand { ObjectId = "d6", Actor = "seat_1" });
+            Assert.Equal("1", said.Single());
+        }
+
         [Fact]
         public void Reset_EmptiesABag()
         {

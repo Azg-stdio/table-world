@@ -376,5 +376,36 @@ end";
             Assert.AreEqual("Score: 1", table.Engine.Find("board").Buttons[1].Label);
             Assert.AreEqual(2, board.GetComponentsInChildren<ScriptButtonView>().Length, "edited buttons are redrawn, not added");
         }
+
+        /// <summary>T6.3: numpad scripting keys and a number typed over a listening object reach the host's scripts.</summary>
+        [UnityTest]
+        public IEnumerator ScriptingKeys_AndTypedNumbers_ReachTheScripts()
+        {
+            yield return SceneManager.LoadSceneAsync("Table");
+            yield return null;
+            var table = Object.FindAnyObjectByType<TableView>();
+            var interaction = Object.FindAnyObjectByType<TableInteraction>();
+            interaction.IgnoreDevices = true;
+            var session = Object.FindAnyObjectByType<NetworkTableSession>();
+            yield return new WaitForSeconds(0.3f);
+            var json = new JObject
+            {
+                ["schemaVersion"] = "0.1",
+                ["objects"] = JArray.Parse(@"[
+                  { ""id"": ""points"", ""type"": ""Token"", ""name"": ""Points"", ""script"": ""function onNumberTyped(color, n) self.setName('Points ' .. n) return true end"" } ]"),
+                ["players"] = JObject.Parse(@"{ ""seats"": [ { ""id"": ""south"", ""color"": ""red"" } ] }"),
+                ["scripts"] = new JObject { ["global"] = "function onScriptingButtonDown(i, color) broadcastToAll(color .. ' pressed ' .. i) end" },
+            };
+            Assert.IsTrue(table.Load(json.ToString(), null));
+            yield return null;
+            Assert.IsTrue(interaction.PressScriptingKey(4, down: true));
+            yield return null;
+            Assert.IsTrue(session.Chat.Entries.Any(e => e.Text == "Red pressed 4"), "the numpad key reached onScriptingButtonDown");
+            interaction.TypeDigit(table.ViewOf("points"), 1);
+            interaction.TypeDigit(table.ViewOf("points"), 2);
+            Assert.IsTrue(interaction.FlushDigits());
+            yield return null;
+            Assert.AreEqual("Points 12", table.Engine.Find("points").Name, "onNumberTyped got the typed number");
+        }
     }
 }

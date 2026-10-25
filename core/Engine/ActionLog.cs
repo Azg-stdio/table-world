@@ -122,6 +122,8 @@ namespace Core.Engine
                 case SetUiAttributesCommand _:
                 case UiEventCommand _:
                 case ClickButtonCommand _:
+                case ScriptingKeyCommand _:
+                case TypeNumberCommand _:
                     return null;
                 case SetNoteTabCommand c:
                     return c.Tab.Color == null ? $"wrote in the notebook ({c.Tab.Title})" : "wrote private notes";

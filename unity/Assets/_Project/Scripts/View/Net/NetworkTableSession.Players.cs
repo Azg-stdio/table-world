@@ -88,6 +88,9 @@ namespace TableWorld.View.Net
                 _greeted.Add(participant);
                 var seat = _seating.Seat(participant);
                 Announce($"{_roster.Of(participant).Name} joined" + (seat != null ? $" at {seat}" : " to watch"));
+                // TTS onPlayerConnect, for a player who sits down.
+                if (seat != null && _table.Engine?.State.Players.Seats.FirstOrDefault(s => s.Id == seat) is { } joined)
+                    _scripts?.OnPlayerConnect(joined.Color);
             }
             BroadcastSeating();
         }

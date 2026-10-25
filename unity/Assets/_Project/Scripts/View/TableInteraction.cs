@@ -537,6 +537,8 @@ namespace TableWorld.View
             if (keyboard.deleteKey.wasPressedThisFrame)
                 Delete(targets);
 
+            ScriptingKeys(keyboard);
+
             // Shift + digit loads a camera; digits alone draw or switch states after a 1 s pause (TTS).
             for (var n = 0; n <= 9; n++)
             {
@@ -1387,6 +1389,32 @@ namespace TableWorld.View
             _digitTime = Time.unscaledTime;
         }
 
+        /// <summary>TTS scripting buttons: numpad 1–9 are buttons 1–9 and numpad 0 is 10.</summary>
+        public static readonly Key[] ScriptingKeyMap = { Key.Numpad1, Key.Numpad2, Key.Numpad3, Key.Numpad4, Key.Numpad5, Key.Numpad6, Key.Numpad7, Key.Numpad8, Key.Numpad9, Key.Numpad0 };
+
+        /// <summary>Numpad presses and releases go to the host's scripts (onScriptingButtonDown / Up) when the table has any.</summary>
+        private void ScriptingKeys(Keyboard keyboard)
+        {
+            for (var i = 0; i < ScriptingKeyMap.Length; i++)
+            {
+                var key = keyboard[ScriptingKeyMap[i]];
+                if (key.wasPressedThisFrame)
+                    PressScriptingKey(i + 1, down: true);
+                else if (key.wasReleasedThisFrame)
+                    PressScriptingKey(i + 1, down: false);
+            }
+        }
+
+        public bool PressScriptingKey(int index, bool down)
+        {
+            if (_table.LocalSeat == null || !HasScripts())
+                return false;
+            return _table.Execute(new ScriptingKeyCommand { Index = index, Down = down, Actor = _table.LocalSeat }).Ok;
+        }
+
+        private bool HasScripts() =>
+            _table.Engine.State.Scripts.Count > 0 || _table.Engine.State.Objects.Any(o => !string.IsNullOrEmpty(o.Script));
+
         /// <summary>Acts on the buffered digits now (normally after the 1 s pause).</summary>
         public bool FlushDigits()
         {
@@ -1396,6 +1424,9 @@ namespace TableWorld.View
             _digitTarget = null;
             if (target == null || !int.TryParse(text, out var n))
                 return false;
+            // The object's script hears the number first (TTS onNumberTyped); the host then draws or switches unless it says not to.
+            if (target.Model.Script is { } script && script.Contains("onNumberTyped") && _table.LocalSeat != null)
+                return _table.Execute(new TypeNumberCommand { ObjectId = target.Id, Number = n, Actor = _table.LocalSeat }).Ok;
             // Over a counter the typed number is its new value (G27).
             if (target.Model is Counter)
                 return _table.Execute(new SetCounterCommand { ObjectId = target.Id, Value = n, Actor = _table.LocalSeat }).Ok;

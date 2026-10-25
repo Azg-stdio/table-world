@@ -413,6 +413,12 @@ end";
                 case ClickButtonCommand click:
                     Click(click, who);
                     break;
+                case ScriptingKeyCommand key:
+                    Everywhere(key.Down ? "onScriptingButtonDown" : "onScriptingButtonUp", DynValue.NewNumber(key.Index), who);
+                    break;
+                case TypeNumberCommand typedNumber:
+                    NumberTyped(typedNumber, who);
+                    break;
                 case TypeInputCommand typed:
                     Typed(typed, who);
                     break;
@@ -586,6 +592,41 @@ end";
                 Call(_global);
             foreach (var script in _objectScripts.Values.ToList())
                 Call(script);
+        }
+
+        /// <summary>
+        /// TTS <c>onNumberTyped(player_color, number, alt)</c> on the object's own script; returning true keeps what typing
+        /// does from happening. Otherwise: switch to that state, deal that many from a deck, or take that many from a bag
+        /// into the player's hand.
+        /// </summary>
+        private void NumberTyped(TypeNumberCommand c, DynValue who)
+        {
+            if (_objectScripts.TryGetValue(c.ObjectId, out var own) &&
+                CallIfDefined(own, "onNumberTyped", who, DynValue.NewNumber(c.Number), DynValue.False) is { Type: DataType.Boolean, Boolean: true })
+                return;
+            var obj = Engine.Find(c.ObjectId);
+            var seat = Engine.State.Players.Seats.FirstOrDefault(s => s.Id == c.Actor);
+            if (obj == null || c.Number <= 0)
+                return;
+            if (obj.States.ContainsKey(c.Number.ToString()))
+                _execute(new SetStateCommand { ObjectId = obj.Id, State = c.Number.ToString(), Actor = c.Actor });
+            else if (obj is Deck && seat != null)
+                _execute(new DealCommand { DeckId = obj.Id, Count = c.Number, Seats = { seat.Id }, Actor = c.Actor });
+            else if (obj is Bag && seat?.HandZone is { } handId && Engine.State.Zones.FirstOrDefault(z => z.Id == handId) is { } hand)
+                for (var i = 0; i < c.Number && _execute(new TakeCommand { ContainerId = obj.Id, Position = hand.Transform.Position, Actor = c.Actor }).Ok; i++) { }
+        }
+
+        /// <summary>
+        /// TTS <c>onPlayerConnect(player)</c>: the host calls it when someone joins at a seat (<paramref name="color"/>).
+        /// </summary>
+        public void OnPlayerConnect(string color)
+        {
+            if (ScriptCount == 0)
+                return;
+            if (_global != null)
+                CallIfDefined(_global, "onPlayerConnect", PlayerTable(_global, color));
+            foreach (var script in _objectScripts.Values.ToList())
+                CallIfDefined(script, "onPlayerConnect", PlayerTable(script, color));
         }
 
         /// <summary>A stand-in for an object that no longer exists: its GUID, and destroyed.</summary>

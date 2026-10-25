@@ -244,6 +244,9 @@ namespace Core.Scripting
                 : DynValue.NewTable(new Table(script)));
             p["getHandCount"] = DynValue.NewCallback((_, a) => DynValue.NewNumber(seat?.HandZone != null ? 1 : 0));
             p["getSelectedObjects"] = DynValue.NewCallback((_, a) => DynValue.NewTable(new Table(script)));
+            // What the player carries, from the pick-ups and drops the host has seen.
+            p["getHoldingObjects"] = DynValue.NewCallback((_, a) => List(script,
+                _heldBy.Where(h => string.Equals(h.Value, Capital(color), StringComparison.Ordinal) && Engine.Find(h.Key) != null).Select(h => h.Key)));
             // Camera and pointer control belong to each player's machine; accepted here without effect.
             foreach (var noOp in new[] { "lookAt", "attachCameraToObject", "setCameraMode", "pingTable", "clearSelectedObjects" })
                 p[noOp] = DynValue.NewCallback((_, a) => DynValue.Nil);

@@ -179,6 +179,12 @@ get new ids too. Hand-made TTS data (`Name = 'Custom_Model'`, ...) is not read y
 `onUpdate()` runs every frame on the host. `onObjectSpawn(object)` runs for every new object and `onObjectDestroy(object)`
 for every one removed (a card joining a deck too); the destroyed object is already gone, so it offers only `getGUID()`.
 
+Player input: the numpad's 1–9 and 0 are TTS's scripting buttons 1–10, heard by `onScriptingButtonDown(index, color)` and
+`onScriptingButtonUp(index, color)`. A number typed over an object whose script defines `onNumberTyped(color, number,
+alt)` goes to the host first; unless the function returns true, the host then does what typing does (switch state,
+draw from a deck, take from a bag into the hand). `Player[color].getHoldingObjects()` lists what that player carries.
+`onPlayerConnect(player)` runs when someone joins at a seat.
+
 ## Not yet (T6.3)
 
 Typing into XmlUI `InputField`s drawn on objects, joints, asset-bundle effects, and scripted forces and velocities. The

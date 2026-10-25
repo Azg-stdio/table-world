@@ -200,6 +200,12 @@ namespace Core.Engine
             SetUiAttributesCommand c => SetUiAttributes(c),
             UiEventCommand c => UiEvent(c),
             ClickButtonCommand c => ClickButton(c),
+            ScriptingKeyCommand c => c.Index >= 1 && c.Index <= ScriptingKeyCommand.MaxIndex
+                ? CommandResult.Success(new List<StateEvent>())
+                : CommandResult.Fail("index", ErrorCodes.InvalidValue, $"Scripting keys are 1 to {ScriptingKeyCommand.MaxIndex}."),
+            TypeNumberCommand c => RequireOnTable(c.ObjectId, "objectId", out _, allowLocked: true) ?? (c.Number < 0
+                ? CommandResult.Fail("number", ErrorCodes.InvalidValue, "A typed number is 0 or more.")
+                : CommandResult.Success(new List<StateEvent>())),
             DealCommand c => Deal(c),
             LockCommand c => Lock(c),
             GroupCommand c => Group(c),

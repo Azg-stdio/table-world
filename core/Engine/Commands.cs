@@ -166,6 +166,28 @@ namespace Core.Engine
         public bool Alt { get; set; }
     }
 
+    /// <summary>
+    /// A player pressed or let go of a scripting key (TTS's numpad 1–9 and 0 are scripting buttons 1–10): nothing changes;
+    /// the host's scripts hear <c>onScriptingButtonDown</c> / <c>onScriptingButtonUp</c>.
+    /// </summary>
+    public sealed class ScriptingKeyCommand : Command
+    {
+        public const int MaxIndex = 10;
+        public int Index { get; set; }
+        public bool Down { get; set; } = true;
+    }
+
+    /// <summary>
+    /// A player typed a number over an object whose script listens (TTS <c>onNumberTyped</c>): nothing changes here. The
+    /// host's script runs; unless it returns true, the host does what typing a number does (switch to that state, draw
+    /// that many cards from a deck or items from a bag into the player's hand).
+    /// </summary>
+    public sealed class TypeNumberCommand : Command
+    {
+        public string ObjectId { get; set; } = "";
+        public int Number { get; set; }
+    }
+
     /// <summary>A player picked an object up (TTS's pick up): nothing changes; table scripts hear <c>onObjectPickUp</c> (M5).</summary>
     public sealed class PickUpCommand : Command
     {

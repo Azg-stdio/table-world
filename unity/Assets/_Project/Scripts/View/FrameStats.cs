@@ -75,7 +75,7 @@ namespace TableWorld.View
                     _recorders.Where(p => p.Value.Recorder.Valid && p.Value.Recorder.Count > 0 && !p.Key.Contains("calls") && p.Key != "setpass" && p.Key != "batches" && p.Key != "shadow casters")
                         .Select(p => $"{p.Key} {p.Value.Recorder.LastValue * p.Value.Scale:F0}")));
             if (_frames.Count % 10 == 0)
-                _awake.Add(FindObjectsByType<Rigidbody>(FindObjectsSortMode.None).Count(b => !b.isKinematic && !b.IsSleeping()));
+                _awake.Add(FindObjectsByType<Rigidbody>().Count(b => !b.isKinematic && !b.IsSleeping()));
         }
 
         public string Report()

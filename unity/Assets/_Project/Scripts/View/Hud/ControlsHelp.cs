@@ -76,6 +76,7 @@ namespace TableWorld.View.Hud
                 ("Ctrl + C / Ctrl + V", "Copy / paste"),
                 ("Delete", "Delete"),
                 ("Ctrl + Z / Ctrl + Y", "Undo / redo (playing alone)"),
+                ("Numpad 1–9, 0", "Scripting keys 1–10: a scripted game may give them actions (TTS scripting buttons)"),
                 ("Right click the table → Rewind", "Host: step the whole table back in time, and forward again"),
                 ("Right click the table → Grid", "Host: squares or hexes, snapping, cell size, lines"),
                 ("Draw / Arrow / Erase (left tool bar)", "Draw on the table in your colour, drag an arrow, rub drawings out; Esc goes back to Grab"),
