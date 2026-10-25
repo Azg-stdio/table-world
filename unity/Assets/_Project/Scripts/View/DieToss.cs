@@ -31,6 +31,11 @@ namespace TableWorld.View
         /// <summary>Its centre's height over the ground at rest (the same on every face of a regular die); measured before the first toss.</summary>
         private float _restLift = -1f;
         private System.Action<ObjectView> _landed;
+        /// <summary>Where it stood when the rolling began: repeated tosses lean back toward it, so it stays put.</summary>
+        private Vector3 _home;
+        /// <summary>How hard a toss steers back toward <see cref="_home"/> (per second of distance), and the random sideways pinch.</summary>
+        public const float HomePull = 3f;
+        public const float Wobble = 0.04f;
 
         /// <summary>In the air or landing: the roll is still showing.</summary>
         public bool Busy => _flying || _landing;
@@ -52,13 +57,21 @@ namespace TableWorld.View
             _view.Animating = false;
             var body = _view.Body;
             if (!Busy && body.linearVelocity.sqrMagnitude < 1e-4f)
+            {
                 _restLift = transform.position.y - GroundBelow();
+                _home = transform.position;
+            }
+            else if (!Busy)
+                _home = transform.position;
             body.isKinematic = false;
             body.interpolation = RigidbodyInterpolation.Interpolate;
             // Added to what it already does: a second R while it is still going up sends it higher.
             var v = body.linearVelocity;
             v.y = Mathf.Min(Mathf.Max(v.y, 0f) + TossSpeed, MaxUpSpeed);
-            v += new Vector3(Random.Range(-0.12f, 0.12f), 0f, Random.Range(-0.12f, 0.12f));
+            // Sideways: back toward where the rolling began, plus a pinch of chance, so spamming R keeps it in place.
+            var back = (_home - transform.position) * HomePull;
+            v.x = back.x + Random.Range(-Wobble, Wobble);
+            v.z = back.z + Random.Range(-Wobble, Wobble);
             body.linearVelocity = v;
             body.angularVelocity = Vector3.ClampMagnitude(body.angularVelocity + Random.onUnitSphere * Random.Range(12f, 20f), MaxSpin);
             body.WakeUp();

@@ -864,15 +864,15 @@ namespace TableWorld.View
             }
         }
 
-        public const float DieSettleSpeed = 0.15f;
+        public const float DieSettleSpeed = 0.06f;
         /// <summary>Tumble (spin about a horizontal axis) above which a die is still rolling. Spin about the vertical is always damped.</summary>
-        public const float DieSettleTumble = 4f;
-        public const float DieSettleRate = 12f;
+        public const float DieSettleTumble = 2f;
+        public const float DieSettleRate = 5f;
 
         /// <summary>
         /// Dice settle assist. PhysX barely resists a die spinning about the vertical axis while flat on a face, so a thrown
-        /// die would slide in circles for seconds. Once a die rests on a face and is no longer tumbling, its slide and spin are damped
-        /// quickly; tumbling and bouncing are untouched.
+        /// die would slide in circles for seconds. Once a die rests on a face and is nearly still, its slide and spin are damped
+        /// gently (a thrown die rolls on as in TTS; Miguel found it stopped dead); tumbling and bouncing are untouched.
         /// </summary>
         private void FixedUpdate()
         {

@@ -69,5 +69,57 @@ namespace TableWorld.Tests.PlayMode
             Assert.Greater(once[0], 0.02f, "a roll tosses it up");
             Assert.Greater(thrice[0], once[0] * 1.5f, "pressing again while it is up sends it higher");
         }
+
+        [UnityTest]
+        public IEnumerator SpammingR_KeepsItWhereItWas()
+        {
+            var die = _table.ViewOf("d");
+            var home = die.transform.position;
+            var peak = new float[1];
+            yield return Roll(6, peak);
+            var drift = Vector2.Distance(new Vector2(home.x, home.z), new Vector2(die.transform.position.x, die.transform.position.z));
+            Debug.Log($"[DiceToss] six quick rolls rose {peak[0] * 100f:F1} cm and drifted {drift * 100f:F1} cm");
+            Assert.Less(drift, 0.03f, "it stays around where it was");
+        }
+
+        [UnityTest]
+        public IEnumerator ShakingSeveralDice_RattlesThemAll_AndAThrowTumbles()
+        {
+            Assert.IsTrue(_table.Load(@"{ ""schemaVersion"": ""0.1"", ""objects"": [
+                { ""id"": ""a"", ""type"": ""Die"", ""transform"": { ""position"": [-0.4, 0, 0] } },
+                { ""id"": ""b"", ""type"": ""Die"", ""transform"": { ""position"": [-0.37, 0, 0] } } ] }", null));
+            yield return new WaitForSeconds(0.8f);
+            var a = _table.ViewOf("a");
+            var b = _table.ViewOf("b");
+            _interaction.SetSelection(new[] { a, b });
+            var startA = a.transform.rotation;
+            var startB = b.transform.rotation;
+            Assert.IsTrue(_interaction.GrabSelection(a));
+            // Back and forth hard, then a throw along the table.
+            for (var t = 0f; t < 0.6f; t += Time.deltaTime)
+            {
+                _interaction.DragTo(new Vector3(-0.4f + 0.08f * Mathf.Sin(t * 30f), 0f, 0f));
+                yield return null;
+            }
+            Assert.Greater(Quaternion.Angle(startA, a.transform.rotation), 20f, "the die in the hand rattles");
+            Assert.Greater(Quaternion.Angle(startB, b.transform.rotation), 20f, "and so does the other one");
+            for (var t = 0f; t < 0.2f; t += Time.deltaTime)
+            {
+                _interaction.DragTo(Vector3.Lerp(new Vector3(-0.4f, 0f, 0f), new Vector3(0f, 0f, 0f), t / 0.2f));
+                yield return null;
+            }
+            var released = a.transform.position;
+            _interaction.Release();
+            var moving = 0f;
+            for (var t = 0f; t < 4f; t += Time.deltaTime)
+            {
+                if (a.Body.linearVelocity.magnitude > 0.01f || a.Body.angularVelocity.magnitude > 0.5f)
+                    moving = t;
+                yield return null;
+            }
+            var travel = Vector3.Distance(released, a.transform.position);
+            Debug.Log($"[DiceToss] thrown at 2 m/s: travelled {travel * 100f:F1} cm, tumbled for {moving:F2} s");
+            Assert.Greater(moving, 0.8f, "a thrown die tumbles on, it does not stop dead");
+        }
     }
 }

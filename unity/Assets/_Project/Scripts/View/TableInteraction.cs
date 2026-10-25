@@ -27,7 +27,7 @@ namespace TableWorld.View
         /// and letting go carried the hand's speed, so pieces slid on 5 cm and more (Miguel, 2026-10-25). A flick throws.
         /// </summary>
         public const float FlickSpeed = 1f;
-        public const float MaxDieThrowSpeed = 1.2f;
+        public const float MaxDieThrowSpeed = 2f;
         public const float MaxDieSpin = 40f;
         public const float FollowRate = 25f;
         public const float ScaleStep = 1.1f;
@@ -661,13 +661,19 @@ namespace TableWorld.View
                     if (Time.time >= _nextRattle)
                     {
                         _rattleAxis = UnityEngine.Random.onUnitSphere;
+                        _rattleAxes.Clear();
                         _nextRattle = Time.time + UnityEngine.Random.Range(0.03f, 0.08f);
                     }
                     spinTarget += _rattleAxis * Mathf.Min((speed - RattleSpeed) / radius * 1.5f, MaxDieSpin);
                 }
                 _spin = Vector3.Lerp(_spin, spinTarget, 1f - Mathf.Exp(-(speed > RattleSpeed ? 20f : 8f) * Time.fixedDeltaTime));
+                // Every held die turns, each on its own rattle axis, so a handful of dice clatters together.
                 if (_spin.sqrMagnitude > 1e-4f)
-                    primary.MoveRotation(Quaternion.AngleAxis(_spin.magnitude * Mathf.Rad2Deg * Time.fixedDeltaTime, _spin.normalized) * primary.rotation);
+                    foreach (var die in _held.Where(v => v != null && v.Model is Die))
+                    {
+                        var axis = die == Held || speed <= RattleSpeed ? _spin.normalized : RattleAxisOf(die);
+                        die.Body.MoveRotation(Quaternion.AngleAxis(_spin.magnitude * Mathf.Rad2Deg * Time.fixedDeltaTime, axis) * die.Body.rotation);
+                    }
             }
         }
 
@@ -675,6 +681,14 @@ namespace TableWorld.View
         public const float RattleSpeed = 0.25f;
         private Vector3 _rattleAxis = Vector3.up;
         private float _nextRattle;
+        private readonly Dictionary<ObjectView, Vector3> _rattleAxes = new Dictionary<ObjectView, Vector3>();
+
+        private Vector3 RattleAxisOf(ObjectView die)
+        {
+            if (!_rattleAxes.TryGetValue(die, out var axis))
+                _rattleAxes[die] = axis = UnityEngine.Random.onUnitSphere;
+            return axis;
+        }
 
         /// <summary>Gap kept between a held object and the top of what is under it.</summary>
         public const float AutoRaiseClearance = 0.012f;
@@ -898,7 +912,7 @@ namespace TableWorld.View
                 ReleaseOne(group[0], joinBelow: true, _velocity, _spin);
             else
                 foreach (var view in group)
-                    ReleaseOne(view, joinBelow: false, _velocity, Vector3.zero);
+                    ReleaseOne(view, joinBelow: false, _velocity, view.Model is Die ? Quaternion.AngleAxis(UnityEngine.Random.Range(-40f, 40f), Vector3.up) * _spin : Vector3.zero);
             // Table scripts hear the drop (onObjectDrop, M5) once the release is done (it changes nothing by itself), with
             // the object's pose where it was let go; one that joined a deck or stack is gone and has no drop.
             foreach (var view in group)
@@ -1016,6 +1030,16 @@ namespace TableWorld.View
                 // Dice keep the hand's motion (that is the roll); other pieces only when flicked.
                 if (!isDie && velocity.magnitude < FlickSpeed)
                     velocity = Vector3.zero;
+                // A die thrown along the table tumbles over and over as in TTS: it rolls the way it is thrown, with a
+                // little hop and some randomness (it stopped dead in half a second).
+                var planar = new Vector3(velocity.x, 0f, velocity.z);
+                if (isDie && planar.magnitude > 0.3f)
+                {
+                    var radius = Mathf.Max(0.005f, view.Renderer.bounds.extents.y);
+                    spin += Vector3.Cross(Vector3.up, planar.normalized) * (planar.magnitude / radius * 0.5f)
+                            + UnityEngine.Random.onUnitSphere * (planar.magnitude * 8f);
+                    velocity.y = Mathf.Max(velocity.y, 0.25f * planar.magnitude);
+                }
                 view.Body.linearVelocity = Vector3.ClampMagnitude(velocity, isDie ? MaxDieThrowSpeed : MaxThrowSpeed);
                 view.Body.angularVelocity = isDie ? spin : Vector3.zero;
                 view.Body.WakeUp();
