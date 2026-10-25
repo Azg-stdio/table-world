@@ -70,6 +70,8 @@ namespace TableWorld.View.Settings
         /// <summary>Frames per second when VSync is off; 0 means no limit.</summary>
         public int FrameLimit { get; set; } = 0;
         public Antialiasing Antialiasing { get; set; } = Antialiasing.Smaa;
+        /// <summary>Shadows and render scale (<see cref="GraphicsPresets"/>); Auto picks from the machine.</summary>
+        public GraphicsQuality Graphics { get; set; } = GraphicsQuality.Auto;
         /// <summary>Size of the HUD, 1 = designed size.</summary>
         public float UiScale { get; set; } = 1f;
 
@@ -97,6 +99,8 @@ namespace TableWorld.View.Settings
                 DisplayMode = DisplayMode.Borderless;
             if (!Enum.IsDefined(typeof(Antialiasing), Antialiasing))
                 Antialiasing = Antialiasing.Smaa;
+            if (!Enum.IsDefined(typeof(GraphicsQuality), Graphics))
+                Graphics = GraphicsQuality.Auto;
             if (Width < 640 || Height < 360 || Width > 16384 || Height > 16384)
                 Width = Height = 0;
             if (Array.IndexOf(FrameLimits, FrameLimit) < 0)
@@ -164,6 +168,7 @@ namespace TableWorld.View.Settings
                         _ => AntialiasingMode.None,
                     };
             }
+            GraphicsPresets.Apply(Graphics);
             QualitySettings.vSyncCount = VSync ? 1 : 0;
             Application.targetFrameRate = VSync || FrameLimit <= 0 ? -1 : FrameLimit;
             // The Editor's Game view ignores window modes and sizes; a player applies them.

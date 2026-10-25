@@ -22,6 +22,7 @@ else
         var session = new GameSession(file) { Bridge = sp.GetRequiredService<UnityBridge>() };
         var bridge = session.Bridge;
         bridge.StateReported += session.Report;
+        bridge.StateChanged += session.MarkChanged;
         // A game window that (re)connects gets the current table straight away.
         bridge.GameConnected += () => System.Threading.Tasks.Task.Run(() => session.Locked(() => { session.PushToGame(); return 0; }));
         return session;

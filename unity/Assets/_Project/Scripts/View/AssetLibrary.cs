@@ -194,7 +194,10 @@ namespace TableWorld.View
                 if (LocalCopy(asset) is { } file)
                 {
                     if (_decoding.Add(asset.Path))
+                    {
+                        _imagesAsked++;
                         Decode(asset.Path, file);
+                    }
                     return null;
                 }
                 if (FetchFromWeb(asset))
@@ -460,6 +463,7 @@ namespace TableWorld.View
                 return false;
             if (!_fetching.Add(asset.Path))
                 return true;
+            _downloadsAsked++;
             var target = Path.Combine(UrlCacheFolder, Core.Tts.TtsImporter.CacheKey(asset.Url) + Extension(asset));
             void Start()
             {
@@ -528,11 +532,18 @@ namespace TableWorld.View
         /// <summary>Images still being decoded.</summary>
         public int Decoding => _decoding.Count;
 
+        private int _imagesAsked, _downloadsAsked;
+
+        /// <summary>For the loading screen: images being prepared and files being downloaded, out of all started.</summary>
+        public (int ImagesLeft, int Images, int DownloadsLeft, int Downloads) Progress =>
+            (_decoding.Count, _imagesAsked, _fetching.Count, _downloadsAsked);
+
         /// <summary>
-        /// Images decoded at once. Each holds its full-size pixels until it is fitted (a 7151 × 3253 TTS panel is 93 MB),
-        /// and decoding a heavy table's hundreds of images all together ran the Editor out of memory.
+        /// Images decoded at once. Each holds its full-size pixels until it is baked (a 7151 × 3253 TTS panel is 93 MB),
+        /// and decoding a heavy table's hundreds of images all together ran the Editor out of memory. Baking happens on
+        /// worker threads now, so a machine with the memory and cores for it takes four at a time.
         /// </summary>
-        public const int MaxDecodes = 2;
+        public static int MaxDecodes => SystemInfo.systemMemorySize >= 12000 && SystemInfo.processorCount >= 6 ? 4 : 2;
 
         private static readonly Queue<System.Action> WaitingDecodes = new Queue<System.Action>();
         private static int _decodes;
@@ -545,30 +556,39 @@ namespace TableWorld.View
                 return;
             }
             _decodes++;
-            var request = UnityEngine.Networking.UnityWebRequestTexture.GetTexture(new System.Uri(file).AbsoluteUri, nonReadable: false);
+            // Decoded readable and without mipmaps: the baker makes those on worker threads (TextureBaker).
+            var request = UnityEngine.Networking.UnityWebRequestTexture.GetTexture(new System.Uri(file),
+                new UnityEngine.Networking.DownloadedTextureParams { flags = UnityEngine.Networking.DownloadedTextureFlags.Readable });
             request.SendWebRequest().completed += _ =>
             {
-                _decodes--;
-                if (WaitingDecodes.Count > 0)
-                    WaitingDecodes.Dequeue()();
                 Texture2D texture = null;
                 if (request.result == UnityEngine.Networking.UnityWebRequest.Result.Success)
                     texture = UnityEngine.Networking.DownloadHandlerTexture.GetContent(request);
                 else
                     Debug.LogWarning($"[AssetLibrary] '{path}' is not a PNG or JPEG image ({request.error}).");
                 request.Dispose();
-                _decoding.Remove(path);
-                if (texture != null)
+                if (texture == null)
                 {
-                    texture.name = path;
-                    texture.anisoLevel = 4;
-                    texture = Fit(texture);
+                    DecodeDone(path, null);
+                    return;
                 }
-                _texturesByPath[path] = texture;
-                if (texture != null)
-                    foreach (var id in _assets.Values.Where(a => a.Path == path).Select(a => a.Id).ToList())
-                        Decoded?.Invoke(id);
+                texture.name = path;
+                texture.anisoLevel = 4;
+                TextureBaker.Start(texture, baked => DecodeDone(path, baked));
             };
+        }
+
+        /// <summary>An image is ready (or failed): its decode slot goes to the next one, and its views redraw.</summary>
+        private void DecodeDone(string path, Texture2D texture)
+        {
+            _decodes--;
+            if (WaitingDecodes.Count > 0)
+                WaitingDecodes.Dequeue()();
+            _decoding.Remove(path);
+            _texturesByPath[path] = texture;
+            if (texture != null)
+                foreach (var id in _assets.Values.Where(a => a.Path == path).Select(a => a.Id).ToList())
+                    Decoded?.Invoke(id);
         }
 
         /// <summary>

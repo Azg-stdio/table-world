@@ -36,7 +36,7 @@ namespace TableWorld.View.Net
         {
             if (_scripts == null || IsClient || _scripts.ScriptCount == 0 || !_scripts.ListensToCollisions(view.Id))
                 return;
-            var other = collision.collider != null ? collision.collider.GetComponentInParent<ObjectView>() : null;
+            var other = collision.collider != null ? ObjectView.Of(collision.collider) : null;
             var contact = collision.contactCount > 0 ? collision.GetContact(0).point : view.transform.position;
             _scripts.OnCollision(view.Id, other != null ? other.Id : null, contact.ToCore(), collision.relativeVelocity.ToCore(), enter);
         }
@@ -53,7 +53,7 @@ namespace TableWorld.View.Net
             var seen = new HashSet<string>();
             void Add(Collider collider, Vector3 point, Vector3 normal, float at)
             {
-                var view = collider != null ? collider.GetComponentInParent<ObjectView>() : null;
+                var view = collider != null ? ObjectView.Of(collider) : null;
                 if (view != null && seen.Add(view.Id))
                     hits.Add(new PhysicsCastHit { ObjectId = view.Id, Point = point.ToCore(), Normal = normal.ToCore(), Distance = at });
             }

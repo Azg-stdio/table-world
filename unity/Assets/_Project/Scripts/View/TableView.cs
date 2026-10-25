@@ -94,11 +94,46 @@ namespace TableWorld.View
         /// <summary>Replaces the table with the one in <paramref name="json"/>. Returns false (and logs every error) when it is invalid.</summary>
         public bool Load(string json, string packageRoot)
         {
+            var steps = LoadSteps(json, packageRoot, null);
+            while (steps.MoveNext())
+            {
+            }
+            return LastLoadOk;
+        }
+
+        /// <summary>
+        /// The same load, a step per frame, for the loading screen: each step is announced (<see cref="LoadStepped"/>)
+        /// and drawn before its work blocks the frame. <see cref="LastLoadOk"/> says how it went.
+        /// </summary>
+        public IEnumerator LoadInSteps(string json, string packageRoot, string title) => LoadSteps(json, packageRoot, title ?? "Table");
+
+        /// <summary>A stepped load moved on: the table's title and what it does now (null once the table is placed and running).</summary>
+        public event Action<string, string> LoadStepped;
+
+        /// <summary>Whether the last load succeeded.</summary>
+        public bool LastLoadOk { get; private set; }
+
+        private IEnumerator LoadSteps(string json, string packageRoot, string title)
+        {
+            LastLoadOk = false;
+            if (title != null)
+            {
+                LoadStepped?.Invoke(title, "Reading the table");
+                yield return null;
+            }
             var parsed = TableJson.Parse(json);
             if (!parsed.Ok)
             {
                 Debug.LogError("[TableView] Invalid table:\n" + string.Join("\n", parsed.Errors));
-                return false;
+                if (title != null)
+                    LoadStepped?.Invoke(title, null);
+                yield break;
+            }
+            if (title != null)
+            {
+                var pieces = parsed.State.Objects.Count(o => o.Container == null);
+                LoadStepped?.Invoke(title, $"Placing {pieces:N0} {(pieces == 1 ? "object" : "objects")}");
+                yield return null;
             }
 
             _packageRoot = packageRoot;
@@ -107,6 +142,11 @@ namespace TableWorld.View
             Assets.Decoded += ShowDecoded;
             Replace(parsed.State);
             var placed = watch.ElapsedMilliseconds;
+            if (title != null && Engine.State.Scripts.Count > 0)
+            {
+                LoadStepped?.Invoke(title, "Starting the game's scripts");
+                yield return null;
+            }
             _undo.Clear();
             _redo.Clear();
             Timeline.Clear();
@@ -118,7 +158,9 @@ namespace TableWorld.View
             if (watch.ElapsedMilliseconds > 1000)
                 Debug.Log($"[TableView] Loaded {Engine.State.Objects.Count} objects in {watch.ElapsedMilliseconds} ms: placing {placed} ms, " +
                           $"recording {recorded - placed} ms, room and scripts {watch.ElapsedMilliseconds - recorded} ms.");
-            return true;
+            LastLoadOk = true;
+            if (title != null)
+                LoadStepped?.Invoke(title, null);
         }
 
         private void Replace(TableState state)
@@ -586,6 +628,27 @@ namespace TableWorld.View
             return Load(File.ReadAllText(path), _packageRoot);
         }
 
+        /// <summary>
+        /// <see cref="LoadFile"/> a step per frame, under the loading screen; <paramref name="done"/> hears whether it worked.
+        /// </summary>
+        public void LoadFileInSteps(string path, string title, Action<bool> done = null)
+        {
+            if (!File.Exists(path))
+            {
+                Debug.LogWarning($"[TableView] No save at {path}.");
+                done?.Invoke(false);
+                return;
+            }
+            var json = File.ReadAllText(path);
+            StartCoroutine(Run());
+
+            IEnumerator Run()
+            {
+                yield return LoadInSteps(json, _packageRoot, title);
+                done?.Invoke(LastLoadOk);
+            }
+        }
+
         public CommandResult Execute(Command command)
         {
             // A body that is still settling has not reported its pose yet; record it first, or the command's
@@ -722,7 +785,7 @@ namespace TableWorld.View
             var count = Physics.OverlapBoxNonAlloc(t.TransformPoint(box.center), half * 0.98f, _sunkHits, t.rotation, Physics.DefaultRaycastLayers,
                 QueryTriggerInteraction.Ignore);
             for (var i = 0; i < count; i++)
-                if (_sunkHits[i] != box && _sunkHits[i].GetComponentInParent<ObjectView>() is { } other && other != view && !other.Held && !other.InHand
+                if (_sunkHits[i] != box && ObjectView.Of(_sunkHits[i]) is { } other && other != view && !other.Held && !other.InHand
                     && !other.Animating && IsThin(other) && (!other.Body.isKinematic || other.PileHeld) && Piled(box.bounds, other.Collider.bounds))
                     yield return other;
         }
@@ -848,7 +911,7 @@ namespace TableWorld.View
                     var count = Physics.BoxCastNonAlloc(center, new Vector3(half.x * 0.9f, 0.00005f, half.z * 0.9f), Vector3.down, _supportHits, t.rotation,
                         half.y + 0.001f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
                     for (var i = 0; i < count && !supported; i++)
-                        supported = _supportHits[i].collider != box && _supportHits[i].collider.GetComponentInParent<ObjectView>() is var other
+                        supported = _supportHits[i].collider != box && ObjectView.Of(_supportHits[i].collider) is var other
                                     && (other == null || other != view && !other.Held);
                 }
                 if (supported)
@@ -1351,7 +1414,7 @@ namespace TableWorld.View
             Bounds? total = null;
             foreach (var collider in view.GetComponentsInChildren<Collider>())
             {
-                if (collider.isTrigger || collider.GetComponentInParent<ObjectView>() != view)
+                if (collider.isTrigger || ObjectView.Of(collider) != view)
                     continue;
                 var local = collider switch
                 {
@@ -1513,7 +1576,7 @@ namespace TableWorld.View
             for (var i = 0; i < count; i++)
             {
                 var hit = _supportHits[i];
-                if (hit.distance <= 0f || hit.rigidbody == view.Body || hit.collider.GetComponentInParent<ObjectView>() is { Held: true })
+                if (hit.distance <= 0f || hit.rigidbody == view.Body || ObjectView.Of(hit.collider) is { Held: true })
                     continue;
                 top = Mathf.Max(top, hit.point.y);
             }

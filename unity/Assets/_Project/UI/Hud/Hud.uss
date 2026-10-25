@@ -1240,3 +1240,77 @@
     font-size: 13px;
     color: rgb(250, 214, 140);
 }
+
+/* Loading screen: covers the table while a game loads and its images arrive. */
+.loading-screen {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(16, 18, 22);
+}
+
+.loading-card {
+    width: 520px;
+    max-width: 90%;
+    align-items: stretch;
+}
+
+.loading-title {
+    margin-bottom: 18px;
+    -unity-font-style: bold;
+    font-size: 26px;
+    -unity-text-align: middle-center;
+    white-space: normal;
+    color: rgb(240, 236, 226);
+}
+
+.loading-step {
+    margin-bottom: 8px;
+    font-size: 16px;
+    color: rgb(200, 196, 188);
+}
+
+.loading-bar {
+    height: 10px;
+    margin: 0;
+}
+
+.loading-bar .unity-progress-bar__container {
+    flex-grow: 1;
+}
+
+.loading-bar .unity-progress-bar__background {
+    flex-grow: 1;
+    border-width: 0;
+    border-radius: 5px;
+    background-color: rgb(40, 44, 52);
+}
+
+/* Our theme leaves out Unity's runtime theme, which is what places a ProgressBar's fill: place it here. */
+.loading-bar .unity-progress-bar__progress {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    border-radius: 5px;
+    background-color: rgb(51, 217, 255);
+}
+
+.loading-bar .unity-progress-bar__title-container {
+    display: none;
+}
+
+.loading-detail {
+    margin-top: 8px;
+    font-size: 13px;
+    color: rgb(150, 156, 166);
+}
+
+.loading-skip {
+    align-self: center;
+    margin: 18px 0 0 0;
+}

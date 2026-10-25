@@ -6,6 +6,7 @@
         "Unity.Netcode.Runtime",
         "Unity.Networking.Transport",
         "Unity.Collections",
+        "Unity.Burst",
         "Unity.Services.Core",
         "Unity.Services.Authentication",
         "Unity.Services.Multiplayer",

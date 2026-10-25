@@ -332,6 +332,7 @@ namespace TableWorld.View
             _tableLight.shadowStrength = 0.8f;
             _tableLight.shadowNearPlane = 0.1f;
             SetLayers(_tableLight, PiecesLayers);
+            Settings.GraphicsPresets.ApplyLights(_lamp, _tableLight);
 
             // A big table (an imported TTS game) is lit evenly from above, as TTS lights it: the lamp's spot reaches
             // about 1.8 m, and several overlapping spots made the middle several times too bright.

@@ -51,10 +51,21 @@ namespace TableWorld.Mcp
 
         public void Report(JObject document) => _reported = document;
 
+        /// <summary>The game window's table changed since the session last read it (set on the bridge's receive thread).</summary>
+        private volatile bool _stale;
+
+        public void MarkChanged() => _stale = true;
+
         public T Locked<T>(Func<T> body)
         {
             lock (_lock)
             {
+                if (_stale && Remote)
+                {
+                    _stale = false;
+                    if (Bridge!.Request(new JObject { ["type"] = "get_state" }).GetAwaiter().GetResult()?["document"] is JObject current)
+                        _reported = current;
+                }
                 if (_reported is { } reported)
                 {
                     _reported = null;

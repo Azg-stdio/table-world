@@ -200,7 +200,7 @@ namespace TableWorld.View.Hud
                     Row("Rewind", entries);
             }
             Item("Save table (F5)", () => _table.Save(TableView.SavePath(TableView.QuickSaveName)));
-            Item("Load table (F9)", () => _table.LoadFile(TableView.SavePath(TableView.QuickSaveName)));
+            Item("Load table (F9)", () => _table.LoadFileInSteps(TableView.SavePath(TableView.QuickSaveName), "Quicksave"));
         }
 
         /// <summary>Grid rows (G28): shape (or none), snapping, cell size, lines. Each choice keeps the other settings.</summary>

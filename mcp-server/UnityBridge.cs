@@ -45,6 +45,13 @@ namespace TableWorld.Mcp
         /// <summary>Raised on the receive thread when the game reports a new state (a human played in the game window).</summary>
         public event Action<JObject>? StateReported;
 
+        /// <summary>
+        /// Raised on the receive thread when the table changed in the game window. The game no longer sends the whole
+        /// table on every change (4 MB for a big imported game, every half second while pieces settle); the session asks
+        /// for it with <c>get_state</c> when a tool needs it.
+        /// </summary>
+        public event Action? StateChanged;
+
         /// <summary>Raised when a game connects, so the session can push the current document.</summary>
         public event Action? GameConnected;
 
@@ -161,6 +168,8 @@ namespace TableWorld.Mcp
             }
             if ((string?)message["type"] == "state" && message["document"] is JObject document)
                 StateReported?.Invoke(document);
+            else if ((string?)message["type"] == "changed")
+                StateChanged?.Invoke();
         }
 
         /// <summary>Minimal RFC 6455 server handshake on a raw TCP stream; checks the token in the request path.</summary>

@@ -10,6 +10,18 @@ namespace TableWorld.View
     /// </summary>
     public sealed class ObjectView : MonoBehaviour
     {
+        /// <summary>
+        /// The object a collider belongs to, or null (the table, a zone). Same as <c>GetComponentInParent</c>, without the
+        /// error object Unity allocates for every miss, which a thousand pieces settling at once turned into a stall.
+        /// </summary>
+        public static ObjectView Of(Component collider)
+        {
+            for (var t = collider != null ? collider.transform : null; t != null; t = t.parent)
+                if (t.TryGetComponent(out ObjectView view))
+                    return view;
+            return null;
+        }
+
         public string Id { get; private set; }
         public TableObject Model { get; internal set; }
         public Rigidbody Body { get; private set; }

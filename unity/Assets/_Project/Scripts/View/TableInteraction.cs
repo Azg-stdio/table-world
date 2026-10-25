@@ -560,7 +560,7 @@ namespace TableWorld.View
             if (Held == null && keyboard.f5Key.wasPressedThisFrame)
                 Debug.Log($"[Table] Saved {_table.Save(TableView.SavePath(TableView.QuickSaveName))}");
             if (Held == null && keyboard.f9Key.wasPressedThisFrame)
-                _table.LoadFile(TableView.SavePath(TableView.QuickSaveName));
+                _table.LoadFileInSteps(TableView.SavePath(TableView.QuickSaveName), "Quicksave");
             if (keyboard.spaceKey.wasPressedThisFrame)
                 _tableCamera?.ResetView();
             if (keyboard.zKey.wasPressedThisFrame && point is { } zoomAt)
@@ -1806,7 +1806,7 @@ namespace TableWorld.View
             var bestDistance = float.MaxValue;
             for (var i = 0; i < count; i++)
             {
-                var view = _hits[i].collider.GetComponentInParent<ObjectView>();
+                var view = ObjectView.Of(_hits[i].collider);
                 if (view == null || view == ignore || _held.Contains(view) || view.ZoneHidden || _hits[i].distance >= bestDistance)
                     continue;
                 best = view;
@@ -1824,7 +1824,7 @@ namespace TableWorld.View
             var bestDistance = float.MaxValue;
             for (var i = 0; i < count; i++)
             {
-                var view = _hits[i].collider.GetComponentInParent<ObjectView>();
+                var view = ObjectView.Of(_hits[i].collider);
                 if (view != null && (view == ignore || _held.Contains(view)))
                     continue;
                 if (_hits[i].distance < bestDistance)

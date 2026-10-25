@@ -147,5 +147,14 @@
             </ui:VisualElement>
             <ui:Label name="statusLabel" class="status-label hidden" picking-mode="Ignore" />
         </ui:VisualElement>
+        <ui:VisualElement name="loadingScreen" class="loading-screen hidden">
+            <ui:VisualElement class="loading-card">
+                <ui:Label name="loadingTitle" class="loading-title" />
+                <ui:Label name="loadingStep" class="loading-step" />
+                <ui:ProgressBar name="loadingBar" class="loading-bar" low-value="0" high-value="1" />
+                <ui:Label name="loadingDetail" class="loading-detail" />
+                <ui:Button name="loadingSkip" class="hud-button loading-skip hidden" text="Play now" />
+            </ui:VisualElement>
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

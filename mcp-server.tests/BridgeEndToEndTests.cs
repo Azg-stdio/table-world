@@ -50,6 +50,9 @@ namespace TableWorld.Mcp.Tests
             Assert.True((bool)(await Call("create_deck", ("id", "draw"), ("x", -0.2f)))["ok"]!);
             Assert.True((bool)(await Call("place_object", ("objectJson", "{\"id\":\"big_die\",\"type\":\"Die\",\"faces\":20,\"value\":20,\"transform\":{\"position\":[0.2,0,0]}}")))["ok"]!);
             await Task.Delay(1000);
+            // The die settled in the window (physics moved it): the game said "changed", and reading the table pulls it.
+            var seen = await Call("get_table_state");
+            Assert.Contains("big_die", seen.ToString());
 
             var repo = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
             Assert.True((bool)(await Call("load_game", ("path", Path.Combine(repo, "games", "uno-lite.json"))))["ok"]!);

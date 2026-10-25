@@ -18,8 +18,10 @@ namespace TableWorld.View.Bridge
     /// Connects the game window to an agent's MCP server (T4.5). The server writes <c>{port, token}</c> to
     /// <c>%LOCALAPPDATA%/TableWorld/bridge.json</c>; this client watches that file and (re)connects to
     /// <c>ws://127.0.0.1:port/?token=…</c>. The game is the authoritative host: the server pushes tables (<c>load</c>) and
-    /// sends play commands (<c>command</c>); every change made here (HUD, physics) is reported back as <c>state</c>.
-    /// Socket work happens on background tasks; messages are handled on the main thread in <see cref="Update"/>.
+    /// sends play commands (<c>command</c>); a change made here (HUD, physics) is announced as a small <c>changed</c>, and
+    /// the server asks for the table (<c>get_state</c>) only when a tool needs it: serializing a big imported table on
+    /// every change stalled the game. Socket work, sends included, happens on background tasks; messages are handled on
+    /// the main thread in <see cref="Update"/>.
     /// </summary>
     public sealed class BridgeClient : MonoBehaviour
     {
@@ -29,6 +31,8 @@ namespace TableWorld.View.Bridge
         [SerializeField] private TableView _table;
 
         private readonly ConcurrentQueue<JObject> _inbox = new ConcurrentQueue<JObject>();
+        private readonly ConcurrentQueue<string> _outbox = new ConcurrentQueue<string>();
+        private readonly SemaphoreSlim _outboxReady = new SemaphoreSlim(0);
         private ClientWebSocket _socket;
         private CancellationTokenSource _cancel;
         private string _endpoint;
@@ -68,7 +72,7 @@ namespace TableWorld.View.Bridge
             if (_reportAt >= 0f && Time.unscaledTime >= _reportAt && Connected)
             {
                 _reportAt = -1f;
-                Send(new JObject { ["type"] = "state", ["document"] = Document() });
+                Send(new JObject { ["type"] = "changed" });
             }
         }
 
@@ -114,6 +118,10 @@ namespace TableWorld.View.Bridge
             {
                 await socket.ConnectAsync(new Uri(endpoint), cancel.Token);
                 Debug.Log("[Bridge] Connected to the agent's MCP server.");
+                while (_outbox.TryDequeue(out _))
+                {
+                }
+                _ = SendLoop(socket, cancel.Token);
                 await Receive(socket, cancel.Token);
             }
             catch (Exception e) when (e is WebSocketException || e is OperationCanceledException || e is IOException)
@@ -148,14 +156,31 @@ namespace TableWorld.View.Bridge
             }
         }
 
+        /// <summary>Queues a message; <see cref="SendLoop"/> sends it, so the main thread never waits for the socket.</summary>
         private void Send(JObject message)
         {
-            var socket = _socket;
-            if (socket?.State != WebSocketState.Open)
+            if (_socket?.State != WebSocketState.Open)
                 return;
-            var bytes = Encoding.UTF8.GetBytes(message.ToString(Newtonsoft.Json.Formatting.None));
-            // ClientWebSocket allows one send at a time; messages are small and sent from the main thread only.
-            socket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None).Wait(2000);
+            _outbox.Enqueue(message.ToString(Newtonsoft.Json.Formatting.None));
+            _outboxReady.Release();
+        }
+
+        /// <summary>Sends queued messages one at a time (ClientWebSocket allows one send at a time) until the socket closes.</summary>
+        private async Task SendLoop(ClientWebSocket socket, CancellationToken cancel)
+        {
+            try
+            {
+                while (socket.State == WebSocketState.Open)
+                {
+                    await _outboxReady.WaitAsync(cancel);
+                    if (_outbox.TryDequeue(out var text))
+                        await socket.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes(text)), WebSocketMessageType.Text, true, cancel);
+                }
+            }
+            catch (Exception e) when (e is WebSocketException || e is OperationCanceledException || e is IOException || e is ObjectDisposedException)
+            {
+                // Closed: Connect cleans up.
+            }
         }
 
         private void Disconnect()
@@ -194,6 +219,9 @@ namespace TableWorld.View.Bridge
                         reply = Reply((string)message["id"], false, new[] { new ValidationError("command", ErrorCodes.RuleFailed, e.Message) }, new List<string>());
                     }
                     Send(reply);
+                    break;
+                case "get_state":
+                    Send(new JObject { ["id"] = (string)message["id"], ["type"] = "state", ["document"] = Document() });
                     break;
             }
         }
@@ -257,7 +285,8 @@ namespace TableWorld.View.Bridge
             ["document"] = Document(),
         };
 
-        private JObject Document() => JObject.Parse(TableJson.Serialize(_table.Engine.State, indented: false));
+        /// <summary>The table as JSON, written into the message as it is (not parsed back into a JObject first).</summary>
+        private JToken Document() => new JRaw(TableJson.Serialize(_table.Engine.State, indented: false));
 
         /// <summary>Changes made in this window (HUD, physics) are reported shortly after, batched.</summary>
         private void OnCommand(Command command, CommandResult result)

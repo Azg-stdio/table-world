@@ -18,6 +18,7 @@ namespace TableWorld.View.Hud
     public sealed class HudController : MonoBehaviour
     {
         private const string Hidden = "hidden";
+        private LoadingScreen _loading;
 
         [SerializeField] private TableView _table;
         private TableWorld.View.ScriptUi.ScriptUiView _scriptUi;
@@ -183,6 +184,7 @@ namespace TableWorld.View.Hud
 
             if (_table != null)
             {
+                _loading = new LoadingScreen(_root, _table);
                 _table.CommandExecuted += OnCommand;
                 _table.Notice += OnNotice;
                 if (_interaction != null)
@@ -197,7 +199,7 @@ namespace TableWorld.View.Hud
             if (_interaction != null)
             {
                 _interaction.PointerBlocked = IsOverUi;
-                _interaction.KeyboardBlocked = TypingInUi;
+                _interaction.KeyboardBlocked = () => TypingInUi() || (_loading?.Visible ?? false);
             }
         }
 
@@ -375,6 +377,7 @@ namespace TableWorld.View.Hud
 
         private void Update()
         {
+            _loading?.Update();
             if (_table == null || _table.Engine == null)
                 return;
             var seatsKey = $"{_table.LocalSeat}|{_table.Spectating}|{CurrentTurnSeat()}|{_table.Networked}|" +
@@ -949,10 +952,17 @@ namespace TableWorld.View.Hud
                 ShowStatus($"Could not read {entry.File}: {e.Message}", error: true);
                 return;
             }
-            var ok = _table.Load(json, entry.PackageRoot);
-            ShowStatus(ok ? $"Opened {entry.Name}" : $"{entry.Name} is not a valid game (details in the log)", error: !ok);
-            if (ok)
-                _gamesPanel.AddToClassList(Hidden);
+            _gamesPanel.AddToClassList(Hidden);
+            StartCoroutine(Open());
+
+            System.Collections.IEnumerator Open()
+            {
+                yield return _table.LoadInSteps(json, entry.PackageRoot, entry.Name);
+                var ok = _table.LastLoadOk;
+                ShowStatus(ok ? $"Opened {entry.Name}" : $"{entry.Name} is not a valid game (details in the log)", error: !ok);
+                if (!ok)
+                    _gamesPanel.RemoveFromClassList(Hidden);
+            }
         }
 
         private void Save()
@@ -961,11 +971,9 @@ namespace TableWorld.View.Hud
             ShowStatus($"Saved quicksave ({hash.Substring(7, 8)})", error: false);
         }
 
-        private void Load()
-        {
-            var ok = _table.LoadFile(TableView.SavePath(TableView.QuickSaveName));
-            ShowStatus(ok ? "Loaded quicksave" : "No quicksave yet", error: !ok);
-        }
+        private void Load() =>
+            _table.LoadFileInSteps(TableView.SavePath(TableView.QuickSaveName), "Quicksave",
+                ok => ShowStatus(ok ? "Loaded quicksave" : "No quicksave yet", error: !ok));
 
         private void ShowStatus(string text, bool error)
         {

@@ -12,7 +12,7 @@ namespace TableWorld.Tests.PlayMode
     public class TextureTests
     {
         [UnityTest]
-        public IEnumerator BigImages_AreScaledDown_AndCompressed_SmallOnesKeptAsTheyAre()
+        public IEnumerator BigImages_AreScaledDown_AndCompressed_SmallOnesKeepTheirSize()
         {
             var package = Path.Combine(Application.temporaryCachePath, "texture-test");
             Directory.CreateDirectory(package);
@@ -44,9 +44,14 @@ namespace TableWorld.Tests.PlayMode
             Assert.Greater(big.mipmapCount, 1, "with mipmaps");
             Assert.IsFalse(big.isReadable, "and its CPU copy freed");
             var odd = table.Assets.Texture("odd");
-            Assert.AreEqual(301, odd.width, "a small image keeps its size");
-            Assert.IsFalse(odd.format == TextureFormat.DXT5 || odd.format == TextureFormat.DXT1 || odd.format == TextureFormat.BC7,
-                $"301 × 203 cannot be block-compressed, so it stays as loaded ({odd.format})");
+            for (var wait = 0; wait < 300 && odd == null; wait++)
+            {
+                yield return null;
+                odd = table.Assets.Texture("odd");
+            }
+            // Block compression works on 4 × 4 blocks: a small image is resized by at most 3 pixels and compressed too.
+            Assert.AreEqual(new Vector2Int(300, 204), new Vector2Int(odd.width, odd.height), "a small image keeps its size, to the nearest 4");
+            Assert.IsTrue(odd.format == TextureFormat.DXT5 || odd.format == TextureFormat.DXT1, $"and is compressed ({odd.format})");
         }
 
         /// <summary>A PNG with a gradient, so the scaled copy has something to keep.</summary>
