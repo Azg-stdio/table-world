@@ -61,3 +61,16 @@ Last updated: 2026-10-23 (working rule 9: polish). Planning closed 2026-10-22.
 | Big tables (Gloomhaven 6 433 objects) | — | T2.8 performance pass; instancing from M1 |
 | Anthropic/OpenAI third-party client policies | changed several times in 2026 | MCP only; user brings their own client |
 | Copyrighted test content (Pokémon, Gloomhaven) | in the local collection | local only; never in repo or builds |
+
+## Ideas (Miguel, 2026-10-24; from `new-ideas.txt`)
+
+Ideas to shape later milestones; none is scheduled before the milestone it belongs to.
+
+| Idea | Where it goes | First notes |
+|---|---|---|
+| **Chalkers**: the player characters are simple figures with a chalkboard face. The face shows the personality the player picks; the mouth moves when they talk; the eyes and face follow the player's point of view | M6 (T7.1 spike, T7.3) | A chalkboard face is a texture we draw at runtime (eyes, mouth, chalk strokes): cheap, readable at a distance and easy to customise. The mouth follows voice level (Vivox or the transport's voice), the head and eyes the camera's aim, sent with presence (G1, `core/Net/Presence`) |
+| **Emotes** | M6 (T7.4) | A small set drawn on the face plus a body pose; a wheel on a key; sent like presence |
+| **Gift link**: buy the game for a friend and send a link that installs and joins (easy playtests) | Steam distribution (T0.6 onward) | Steam gifting exists; a join link can open the game through a `steam://` URL or Steam's invite (rich presence "Join game"). The Relay join code already works; a link wraps it. Check Steam's rules for a "friend's pass" before promising one |
+| **Karaoke room**: a couple of sofas and a big TV playing YouTube videos, timed with each player's ping so everyone hears it together | After M6, a social space | YouTube's terms forbid extracting the audio or video stream; an embedded official player (a web view) is the allowed way, so check terms and a Unity web view for Windows first. Sync: the host sends "playing video X from t at server time T", each client seeks to t + its clock offset (the music player's starts already go through the host, G27) |
+| **Party games** such as Keep Talking and Nobody Explodes or Avalon, fully playable | M2 rules (hidden roles, secret votes, timers), M6 voice | The rules engine needs per-seat hidden information beyond hands (roles), secret simultaneous votes and timers; Keep Talking needs per-player different screens (one sees the bomb, others the manual), which hidden zones and per-seat UI can give |
+
