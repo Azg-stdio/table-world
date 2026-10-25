@@ -30,7 +30,9 @@ else
 builder.Services
     .AddMcpServer(options => options.ServerInfo = new() { Name = "table-world", Version = Core.Version.Get() })
     .WithStdioServerTransport()
-    .WithToolsFromAssembly();
+    .WithToolsFromAssembly()
+    .WithResourcesFromAssembly()
+    .WithPromptsFromAssembly();
 
 await builder.Build().RunAsync();
 

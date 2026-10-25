@@ -24,6 +24,8 @@
   <ItemGroup>
     <!-- The agent can read the format reference through get_rules_reference. -->
     <EmbeddedResource Include="..\docs\rules-schema.md" LogicalName="rules-schema.md" />
+    <EmbeddedResource Include="..\docs\user\game-brief-template.md" LogicalName="game-brief-template.md" />
+    <EmbeddedResource Include="..\docs\user\agent-guide.md" LogicalName="agent-guide.md" />
     <InternalsVisibleTo Include="TableWorld.Mcp.Tests" />
   </ItemGroup>
 

@@ -40,6 +40,15 @@ Paste the rulebook and ask for the game, for example:
 
 Sample rulebooks to try: `docs/rulebooks/war.txt` and `docs/rulebooks/uno-lite.txt`. Finished versions of both are in `games/` (compare with what the agent builds).
 
+The server also offers ready-made **prompts**, which most agents show as slash commands or a prompt picker:
+
+- `review_rulebook`: reads your rulebook and lists what is ambiguous or missing, with the questions to answer, before
+  anything is built.
+- `build_game_from_brief`: builds the game from a filled [game brief](game-brief-template.md) or a rulebook, validates
+  it and plays a few turns.
+
+And **resources** an agent can read on its own: the rules reference, the game brief template and this guide.
+
 ## 3. How the agent works (for the agent)
 
 1. `get_rules_reference` — read it once; it is the format (objects, zones, phases, actions, effects, conditions, `$` references, events, win conditions, UI, error codes).

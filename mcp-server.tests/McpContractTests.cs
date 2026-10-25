@@ -68,6 +68,24 @@ namespace TableWorld.Mcp.Tests
         }
 
         [Fact]
+        public async Task GuidesAndPrompts_AreServed()
+        {
+            // M8 T9.11: an agent gets the rules reference, the brief template and the guide without the repository.
+            var resources = (await _server.Client.ListResourcesAsync()).Select(r => r.Uri).OrderBy(u => u).ToArray();
+            Assert.Equal(new[] { "tableworld://docs/agent-guide", "tableworld://docs/game-brief-template", "tableworld://docs/rules-reference" }, resources);
+            var brief = await _server.Client.ReadResourceAsync("tableworld://docs/game-brief-template");
+            var text = string.Concat(brief.Contents.OfType<ModelContextProtocol.Protocol.TextResourceContents>().Select(c => c.Text));
+            Assert.Contains("Game brief", text);
+
+            var prompts = (await _server.Client.ListPromptsAsync()).Select(p => p.Name).OrderBy(n => n).ToArray();
+            Assert.Equal(new[] { "build_game_from_brief", "review_rulebook" }, prompts);
+            var prompt = await _server.Client.GetPromptAsync("review_rulebook", new Dictionary<string, object?> { ["rulebook"] = "Each player draws 7 cards." });
+            var said = string.Concat(prompt.Messages.Select(m => m.Content).OfType<ModelContextProtocol.Protocol.TextContentBlock>().Select(c => c.Text));
+            Assert.Contains("Each player draws 7 cards.", said);
+            Assert.Contains("tableworld://docs/game-brief-template", said);
+        }
+
+        [Fact]
         public async Task AuthoringTools_ApplyKeepIncompleteAndRejectMalformed()
         {
             Ok(await Call("new_game", ("id", "probe"), ("name", "Probe"), ("players", 2)));
