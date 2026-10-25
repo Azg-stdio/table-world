@@ -21,7 +21,6 @@ namespace TableWorld.View.Net
 
         private readonly Dictionary<string, GameObject> _pointers = new Dictionary<string, GameObject>();
         private readonly Dictionary<string, (string Seat, Vector3 Position, Quaternion Rotation)> _carried = new Dictionary<string, (string, Vector3, Quaternion)>();
-        private readonly Dictionary<string, GameObject> _frames = new Dictionary<string, GameObject>();
         private readonly List<(string Seat, Vector3 Position, Color Color)> _shownPointers = new List<(string, Vector3, Color)>();
         private Material _unlit;
 
@@ -91,19 +90,15 @@ namespace TableWorld.View.Net
                 view.transform.SetPositionAndRotation(
                     Vector3.Lerp(view.transform.position, pair.Value.Position, k),
                     Quaternion.Slerp(view.transform.rotation, pair.Value.Rotation, k));
-                var frameMarker = FrameFor(pair.Key, ColorOf(pair.Value.Seat));
-                var bounds = view.Renderer.bounds;
-                frameMarker.transform.position = new Vector3(bounds.center.x, bounds.min.y - 0.001f, bounds.center.z);
-                frameMarker.transform.localScale = new Vector3(bounds.size.x + 0.012f, 1f, bounds.size.z + 0.012f);
-                frameMarker.SetActive(true);
+                // Outlined in the holder's colour, around its shape (TTS).
+                Outline.Set(view, "held", ColorOf(pair.Value.Seat));
             }
         }
 
         /// <summary>The holder let go: the object falls under this machine's physics until its final pose arrives.</summary>
         private void Release(string id)
         {
-            if (_frames.TryGetValue(id, out var marker) && marker != null)
-                marker.SetActive(false);
+            Outline.Set(_table.ViewOf(id), "held", null);
             var view = _table.ViewOf(id);
             if (view == null || view.RemoteHolder == null)
                 return;
@@ -156,36 +151,5 @@ namespace TableWorld.View.Net
             return root;
         }
 
-        /// <summary>A thin frame under a carried object, in the holder's colour (TTS outlines what others hold).</summary>
-        private GameObject FrameFor(string id, Color color)
-        {
-            if (_frames.TryGetValue(id, out var existing) && existing != null)
-            {
-                existing.GetComponentInChildren<Renderer>().sharedMaterial.SetColor("_BaseColor", color);
-                return existing;
-            }
-            var root = new GameObject($"Held by other {id}");
-            root.transform.SetParent(transform, false);
-            var material = Unlit(color);
-            const float w = 0.05f;
-            foreach (var (position, size) in new[]
-            {
-                (new Vector3(0f, 0f, 0.5f - w / 2f), new Vector3(1f, 0.0005f, w)),
-                (new Vector3(0f, 0f, -0.5f + w / 2f), new Vector3(1f, 0.0005f, w)),
-                (new Vector3(0.5f - w / 2f, 0f, 0f), new Vector3(w, 0.0005f, 1f)),
-                (new Vector3(-0.5f + w / 2f, 0f, 0f), new Vector3(w, 0.0005f, 1f)),
-            })
-            {
-                var strip = new GameObject("Strip");
-                strip.transform.SetParent(root.transform, false);
-                strip.transform.localPosition = position;
-                strip.AddComponent<MeshFilter>().sharedMesh = MeshFactory.Box(size);
-                var renderer = strip.AddComponent<MeshRenderer>();
-                renderer.sharedMaterial = material;
-                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            }
-            _frames[id] = root;
-            return root;
-        }
     }
 }

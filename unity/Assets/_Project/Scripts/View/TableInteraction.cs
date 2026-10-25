@@ -22,6 +22,11 @@ namespace TableWorld.View
         public const float SnapRadius = 0.04f;
         public const float RotateStep = 15f;
         public const float MaxThrowSpeed = 0.6f;
+        /// <summary>
+        /// Below this hand speed a released piece is placed, not thrown (TTS): it drops straight down. Moving the hand
+        /// and letting go carried the hand's speed, so pieces slid on 5 cm and more (Miguel, 2026-10-25). A flick throws.
+        /// </summary>
+        public const float FlickSpeed = 1f;
         public const float MaxDieThrowSpeed = 1.2f;
         public const float MaxDieSpin = 40f;
         public const float FollowRate = 25f;
@@ -308,13 +313,7 @@ namespace TableWorld.View
             DropDeadReferences();
 
             _selection.RemoveAll(v => v == null);
-            if (_selection.Count > 0)
-            {
-                var seat = _table.Engine.State.Players.Seats.FirstOrDefault(s => s.Id == _table.LocalSeat);
-                SelectionMarkers.Color = seat != null ? ZoneViewFactory.SeatColor(seat.Color) : new Color(0.2f, 0.85f, 1f);
-                // Follow the selection as keys turn and move it.
-                SelectionMarkers.Show(_selection);
-            }
+            ShowSelection();
 
             var mouse = Mouse.current;
             var keyboard = Keyboard.current;
@@ -986,6 +985,9 @@ namespace TableWorld.View
             if (!view.Body.isKinematic)
             {
                 var isDie = view.Model is Die;
+                // Dice keep the hand's motion (that is the roll); other pieces only when flicked.
+                if (!isDie && velocity.magnitude < FlickSpeed)
+                    velocity = Vector3.zero;
                 view.Body.linearVelocity = Vector3.ClampMagnitude(velocity, isDie ? MaxDieThrowSpeed : MaxThrowSpeed);
                 view.Body.angularVelocity = isDie ? spin : Vector3.zero;
                 view.Body.WakeUp();
@@ -1510,21 +1512,38 @@ namespace TableWorld.View
                 if (screen.z > 0 && rect.Contains(new Vector2(screen.x, screen.y)))
                     _selection.Add(view);
             }
-            SelectionMarkers.Show(_selection);
+            ShowSelection();
             return _selection.Count;
+        }
+
+        private readonly HashSet<ObjectView> _outlined = new HashSet<ObjectView>();
+
+        /// <summary>The selection is outlined in this player's seat colour (cyan when watching), around its 3D shape (G46).</summary>
+        private void ShowSelection()
+        {
+            var seat = _table.Engine?.State.Players.Seats.FirstOrDefault(s => s.Id == _table.LocalSeat);
+            var color = seat != null ? ZoneViewFactory.SeatColor(seat.Color) : new Color(0.2f, 0.85f, 1f);
+            foreach (var view in _outlined.Where(v => !_selection.Contains(v)).ToList())
+            {
+                Outline.Set(view, "select", null);
+                _outlined.Remove(view);
+            }
+            foreach (var view in _selection)
+                if (view != null && (_outlined.Add(view) || Outline.ColorOf(view) != color))
+                    Outline.Set(view, "select", color);
         }
 
         public void SetSelection(IEnumerable<ObjectView> views)
         {
             ClearSelection();
             _selection.AddRange(views.Where(v => v != null));
-            SelectionMarkers.Show(_selection);
+            ShowSelection();
         }
 
         public void ClearSelection()
         {
             _selection.Clear();
-            SelectionMarkers.Show(_selection);
+            ShowSelection();
         }
 
         // ---- looking ----------------------------------------------------------------------------------------------

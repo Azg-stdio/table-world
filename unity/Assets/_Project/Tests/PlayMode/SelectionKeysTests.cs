@@ -36,10 +36,12 @@ namespace TableWorld.Tests.PlayMode
             yield return null;
             Assert.IsNull(interaction.Hovered, "the pointer is not on it");
             Assert.AreEqual(new[] { "a" }, interaction.KeyTargets().Select(v => v.Id).ToArray(), "yet the keys act on the selection");
-            Assert.AreEqual(ZoneViewFactory.SeatColor("red"), SelectionMarkers.Color, "outlined in the seat's colour");
+            Assert.AreEqual(ZoneViewFactory.SeatColor("red"), Outline.ColorOf(a), "outlined in the seat's colour");
 
             interaction.ClearSelection();
+            yield return null;
             Assert.IsEmpty(interaction.KeyTargets(), "cleared: back to the camera");
+            Assert.IsNull(Outline.ColorOf(a), "and the outline goes");
         }
     }
 }
