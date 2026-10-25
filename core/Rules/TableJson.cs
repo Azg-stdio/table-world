@@ -118,6 +118,19 @@ namespace Core.Rules
             return (T)token.ToObject<TableObject>(serializer)!;
         }
 
+        /// <summary>
+        /// Deep copy of a whole table through its JSON form, for tables already valid (the sync's confirmed and predicted
+        /// engines): read straight from compact text, without the token tree, key check and validation <see cref="Parse"/>
+        /// builds and runs.
+        /// </summary>
+        public static TableState Copy(TableState state)
+        {
+            var text = Serialize(state, indented: false);
+            var serializer = JsonSerializer.Create(new JsonSerializerSettings { ContractResolver = Resolver, Converters = CreateConverters(), DateParseHandling = DateParseHandling.None });
+            using var reader = new JsonTextReader(new StringReader(text)) { DateParseHandling = DateParseHandling.None };
+            return serializer.Deserialize<TableState>(reader)!;
+        }
+
         /// <summary>Content hash of the canonical (compact) JSON: equal hashes mean equal tables.</summary>
         public static string Hash(TableState state)
         {

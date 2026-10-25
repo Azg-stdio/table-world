@@ -388,7 +388,7 @@ namespace Core.Net
 
         private static GameEngine Copy(TableState state, ulong random)
         {
-            var copy = new GameEngine(TableJson.Parse(TableJson.Serialize(state, indented: false)).State!, 1);
+            var copy = new GameEngine(TableJson.Copy(state), 1);
             copy.Table.Random.State = random;
             return copy;
         }
