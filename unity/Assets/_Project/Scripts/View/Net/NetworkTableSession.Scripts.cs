@@ -25,6 +25,7 @@ namespace TableWorld.View.Net
             _scripts.Broadcast += text => Announce(text);
             _scripts.Log += text => Debug.Log("[Lua] " + text);
             _scripts.PhysicsCast = Cast;
+            _scripts.EffectNames = (id, looping) => _table.EffectNames(id, looping);
             _table.Collided += OnCollided;
         }
 

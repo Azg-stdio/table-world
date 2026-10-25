@@ -188,5 +188,30 @@ namespace Core.Tests.Tts
             Assert.True(Footprint.Of(token).X / 2f > 2.07f * TtsUnits.TtsUnitsToMeters * 16.68f);
             Assert.True(TableJson.Parse(TableJson.Serialize(state)).Ok);
         }
+
+        [Fact]
+        public void BundleEffects_ImportPlayAndAreListed()
+        {
+            var state = TtsImporter.Import(@"{ ""ObjectStates"": [ { ""Name"": ""Custom_Assetbundle"", ""GUID"": ""pk0001"",
+                ""CustomAssetbundle"": { ""AssetbundleURL"": ""http://x/paras.unity3d"", ""LoopingEffectIndex"": 2 } } ] }").State;
+            Assert.Equal(2, state.Objects.Single().LoopingEffect);
+            state.Scripts[ScriptHost.GlobalName] = @"
+                local p = getObjectFromGUID('pk0001')
+                local fx = p.AssetBundle
+                broadcastToAll(fx.getLoopingEffectIndex() .. ' ' .. #fx.getLoopingEffects() .. ' ' .. fx.getLoopingEffects()[2].name)
+                fx.playLoopingEffect(3)
+                p.playTriggerEffect(1)
+                broadcastToAll(tostring(fx.getLoopingEffectIndex()))";
+            var engine = new TableEngine(state, 1);
+            var said = new List<string>();
+            var events = new List<StateEvent>();
+            var host = new ScriptHost(() => engine, c => { var r = engine.Execute(c); events.AddRange(r.Events); return r; });
+            host.EffectNames = (id, looping) => looping ? new[] { "Idle", "Walk", "Run", "Faint" } : new[] { "Attack", "Take Damage" };
+            host.Broadcast += said.Add;
+            host.Load(0);
+            Assert.Equal(new[] { "2 4 Walk", "3" }, said);
+            Assert.Equal(1, events.OfType<EffectTriggered>().Single().Index);
+            Assert.True(TableJson.Parse(TableJson.Serialize(engine.State)).Ok);
+        }
     }
 }

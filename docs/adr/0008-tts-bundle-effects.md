@@ -1,6 +1,6 @@
 # ADR 0008 — Play TTS asset-bundle effects through a stand-in for TTS's effects component
 
-Status: **proposed** (2026-10-25, research spike for G35; written by the agent, to be confirmed by Miguel).
+Status: **accepted** (2026-10-25, research spike for G35; implemented the same day after Miguel's go-ahead).
 
 ## Context
 
@@ -46,8 +46,11 @@ Add a stand-in class with the same identity, so Unity reads the data for us when
 - One file lives outside our asmdefs. The class name is fixed by TTS's bundles and must never be renamed.
 - Size: medium. The stand-in, the effect player, a command, the Lua calls, and a test with a local bundle (skipped
   without a TTS cache, like the other bundle tests).
-- Open: legacy `Animation` clips built with Unity 5.6 should play in 6.6, as the meshes do, but that needs checking
-  on the first figure.
+- Checked: legacy `Animation` clips built with Unity 5.6 play in 6.6. A Paras bundle reads looping [Idle, Walk, Run,
+  Faint] and trigger [Physical Attack, Special Attack, Status Attack, Take Damage]; a Master Trainer figure idles on
+  the table. `BundleEffectTests` covers it with the first cached bundle that has effects.
+- The chosen looping effect is saved on the object (`loopingEffect`, imported from `LoopingEffectIndex`); a trigger
+  effect is an event only (`EffectTriggered`), so it is not replayed on load.
 
 ## Spike record (2026-10-25)
 

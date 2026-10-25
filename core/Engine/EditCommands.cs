@@ -92,6 +92,18 @@ namespace Core.Engine
     }
 
     /// <summary>
+    /// Plays an asset-bundle effect on an object (TTS <c>playLoopingEffect</c> / <c>playTriggerEffect</c>, ADR 0008): a
+    /// looping effect stays (it is saved), a trigger effect plays once. The views know the effects; the engine only
+    /// records the choice, so every machine shows the same one.
+    /// </summary>
+    public sealed class PlayEffectCommand : Command
+    {
+        public string ObjectId { get; set; } = "";
+        public int Index { get; set; }
+        public bool Looping { get; set; } = true;
+    }
+
+    /// <summary>
     /// Holds <see cref="ObjectId"/> to <see cref="To"/> (TTS <c>jointTo</c> / <c>addAttachment</c>), or frees it when
     /// <see cref="To"/> is null. Works on locked objects too.
     /// </summary>

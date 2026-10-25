@@ -274,6 +274,9 @@
             "type": "number"
           }
         },
+        "loopingEffect": {
+          "type": "integer"
+        },
         "joint": {
           "$ref": "#/$defs/JointDef"
         },
@@ -603,6 +606,9 @@
             "type": "number"
           }
         },
+        "loopingEffect": {
+          "type": "integer"
+        },
         "joint": {
           "$ref": "#/$defs/JointDef"
         },
@@ -776,6 +782,9 @@
             "type": "number"
           }
         },
+        "loopingEffect": {
+          "type": "integer"
+        },
         "joint": {
           "$ref": "#/$defs/JointDef"
         },
@@ -902,6 +911,9 @@
           "items": {
             "type": "number"
           }
+        },
+        "loopingEffect": {
+          "type": "integer"
         },
         "joint": {
           "$ref": "#/$defs/JointDef"
@@ -1039,6 +1051,9 @@
             "type": "number"
           }
         },
+        "loopingEffect": {
+          "type": "integer"
+        },
         "joint": {
           "$ref": "#/$defs/JointDef"
         },
@@ -1158,6 +1173,9 @@
           "items": {
             "type": "number"
           }
+        },
+        "loopingEffect": {
+          "type": "integer"
         },
         "joint": {
           "$ref": "#/$defs/JointDef"
@@ -1296,6 +1314,9 @@
             "type": "number"
           }
         },
+        "loopingEffect": {
+          "type": "integer"
+        },
         "joint": {
           "$ref": "#/$defs/JointDef"
         },
@@ -1407,6 +1428,9 @@
             "type": "number"
           }
         },
+        "loopingEffect": {
+          "type": "integer"
+        },
         "joint": {
           "$ref": "#/$defs/JointDef"
         },
@@ -1517,6 +1541,9 @@
           "items": {
             "type": "number"
           }
+        },
+        "loopingEffect": {
+          "type": "integer"
         },
         "joint": {
           "$ref": "#/$defs/JointDef"
@@ -1634,6 +1661,9 @@
             "type": "number"
           }
         },
+        "loopingEffect": {
+          "type": "integer"
+        },
         "joint": {
           "$ref": "#/$defs/JointDef"
         },
@@ -1745,6 +1775,9 @@
             "type": "number"
           }
         },
+        "loopingEffect": {
+          "type": "integer"
+        },
         "joint": {
           "$ref": "#/$defs/JointDef"
         },
@@ -1852,6 +1885,9 @@
           "items": {
             "type": "number"
           }
+        },
+        "loopingEffect": {
+          "type": "integer"
         },
         "joint": {
           "$ref": "#/$defs/JointDef"
@@ -1974,6 +2010,9 @@
             "type": "number"
           }
         },
+        "loopingEffect": {
+          "type": "integer"
+        },
         "joint": {
           "$ref": "#/$defs/JointDef"
         },
@@ -2078,6 +2117,9 @@
           "items": {
             "type": "number"
           }
+        },
+        "loopingEffect": {
+          "type": "integer"
         },
         "joint": {
           "$ref": "#/$defs/JointDef"

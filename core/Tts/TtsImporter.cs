@@ -52,9 +52,9 @@ namespace Core.Tts
         /// <summary>
         /// The importer's version, recorded in each package (<c>import.json</c>). Raise it when an import would come out
         /// different (a new object type, a mapping fixed), so games imported before are offered a re-import.
-        /// 2: PDFs (T8.8) and import.json. 3: model bags keep their image; textured models keep their tint; states keep their snap points; bowls; custom table image and sky; attached objects (ChildObjects). 4: custom tokens at TTS's size.
+        /// 2: PDFs (T8.8) and import.json. 3: model bags keep their image; textured models keep their tint; states keep their snap points; bowls; custom table image and sky; attached objects (ChildObjects). 4: custom tokens at TTS's size. 5: bundles' looping effect.
         /// </summary>
-        public const int Version = 4;
+        public const int Version = 5;
 
         public static ImportResult Import(string saveJson, Func<string, (int Width, int Height)?>? imageSize = null) =>
             new TtsImporter { _imageSize = imageSize }.Run(JObject.Parse(saveJson));
@@ -551,6 +551,8 @@ namespace Core.Tts
         {
             var bundle = o["CustomAssetbundle"] as JObject;
             var model = new Model { Asset = Asset((string?)bundle?["AssetbundleURL"], AssetType.AssetBundle) ?? BuiltinAsset("placeholder") };
+            if ((int?)bundle?["LoopingEffectIndex"] is { } looping && looping > 0)
+                model.LoopingEffect = looping;
             if ((string?)bundle?["AssetbundleSecondaryURL"] is { Length: > 0 } secondary)
                 model.TtsExtra = new JObject { ["secondaryBundle"] = Asset(secondary, AssetType.AssetBundle) };
             return model;

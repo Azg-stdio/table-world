@@ -39,6 +39,13 @@ namespace Core.Engine
         public ObjectRemoved(string objectId) : base(objectId) { }
     }
 
+    /// <summary>A one-off asset-bundle effect (TTS trigger effect <see cref="Index"/>) plays on the object (ADR 0008).</summary>
+    public sealed class EffectTriggered : StateEvent
+    {
+        public EffectTriggered(string objectId, int index) : base(objectId) => Index = index;
+        public int Index { get; }
+    }
+
     /// <summary>Transform, lock, die value, deck contents or any other field of an existing object changed.</summary>
     public sealed class ObjectUpdated : StateEvent
     {

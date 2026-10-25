@@ -111,6 +111,8 @@ namespace TableWorld.View
 
         /// <summary>The seat of another player carrying this object right now (live presence), or null.</summary>
         public string RemoteHolder { get; internal set; }
+        /// <summary>The looping effect its asset bundle shows now (ADR 0008); -1 before the first.</summary>
+        public int ShownLoopingEffect { get; set; } = -1;
 
         /// <summary>Where the hand presentation wants this card; <see cref="TableView"/> glides it there.</summary>
         internal Vector3 HandPosition;

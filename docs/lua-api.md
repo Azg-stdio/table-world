@@ -83,8 +83,9 @@ API returns are Vectors and Colors.
 | `setState(n)`, `getStates()` | switches state and returns the object in its new state (`SetState`) |
 | `getCustomObject()`, `setCustomObject({ image, face, back, mesh, diffuse })` | its files, by web address (`SetCustom`; each machine fetches a new address itself, as in TTS). `spawnObject({ type = 'Custom_Model' })` then `setCustomObject` works; `reload()` is not needed |
 | `isSmoothMoving()`, `reload()` | false; itself |
-| `AssetBundle.playLoopingEffect`, `playTriggerEffect`, `getLoopingEffects`, `getTriggerEffects`; `getComponent(name).get / set`, `getComponents`, `getChildren` | accepted without effect (asset-bundle effects come with M4; Unity components are not scripted) |
-| `playLoopingEffect`, `playTriggerEffect`, `setVelocity`, `getVelocity`, `addForce`, `addTorque`, `highlightOn`, `highlightOff` | accepted, no effect yet (asset-bundle effects come with M4; physics is not script-driven) |
+| `AssetBundle.playLoopingEffect(i)`, `playTriggerEffect(i)`, `getLoopingEffects()`, `getTriggerEffects()`, `getLoopingEffectIndex()`, and the same calls on the object | the bundle's effects (ADR 0008): a looping effect stays and is saved, a trigger plays once, for every player; the lists are `{ { index, name }, ... }`, empty while the bundle is not loaded |
+| `getComponent(name).get / set`, `getComponents`, `getChildren` | accepted without effect (Unity components are not scripted) |
+| `setVelocity`, `getVelocity`, `addForce`, `addTorque`, `highlightOn`, `highlightOff` | accepted, no effect yet (physics is not script-driven) |
 
 ### Buttons
 
@@ -193,5 +194,5 @@ draw from a deck, take from a bag into the hand). `Player[color].getHoldingObjec
 
 ## Not yet (T6.3)
 
-Typing into XmlUI `InputField`s drawn on objects, asset-bundle effects, and scripted forces and velocities. The
+Typing into XmlUI `InputField`s drawn on objects, and scripted forces and velocities. The
 coverage of the local mods is measured by `tools/tts-analysis/lua_coverage.py` (T6.4).

@@ -433,6 +433,19 @@ namespace TableWorld.View
             }
         }
 
+        /// <summary>
+        /// A TTS bundle shows its looping effect (Idle by default; ADR 0008) and switches when the table chooses another.
+        /// </summary>
+        private static void ShowLoopingEffect(ObjectView view)
+        {
+            var effects = view.transform.Find("Bundle")?.GetComponentInChildren<ITtsBundleEffects>(true);
+            var index = view.Model.LoopingEffect ?? 0;
+            if (effects == null || effects.LoopingCount == 0 || view.ShownLoopingEffect == index)
+                return;
+            view.ShownLoopingEffect = index;
+            effects.PlayLooping(Mathf.Min(index, effects.LoopingCount - 1));
+        }
+
         /// <summary>A model's own mesh (one material) with a convex collider of its shape.</summary>
         private static void SetModel(ObjectView view, Mesh mesh, Material material, float mass)
         {
@@ -459,8 +472,12 @@ namespace TableWorld.View
             view.Filter.sharedMesh = null;
             view.Body.mass = mass;
             if (view.transform.Find("Bundle") != null)
+            {
+                ShowLoopingEffect(view);
                 return;
+            }
             var copy = Bundles.Attach(view.transform, prefab);
+            ShowLoopingEffect(view);
             if (view.Collider != null && view.Collider.transform == view.transform)
                 Object.Destroy(view.Collider);
             var colliders = copy.GetComponentsInChildren<Collider>(true);

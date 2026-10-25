@@ -83,6 +83,9 @@ namespace Core.Rules
         /// <summary>RGB or RGBA multiplier, 0–1 (TTS <c>ColorDiffuse</c>).</summary>
         public float[]? Tint { get; set; }
 
+        /// <summary>The looping effect an asset-bundle object shows (TTS <c>LoopingEffectIndex</c>, from 0); null is the first.</summary>
+        public int? LoopingEffect { get; set; }
+
         /// <summary>Fixed to another object (TTS <c>jointTo</c>, or attached with <c>addAttachment</c>); null when free.</summary>
         public JointDef? Joint { get; set; }
 

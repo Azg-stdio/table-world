@@ -78,6 +78,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `hideWhenFaceDown` | boolean |  |
 | `grid` | boolean |  |
 | `tint` | array of number |  |
+| `loopingEffect` | integer |  |
 | `joint` | [JointDef](#jointdef) |  |
 | `states` | map of [TableObject](#tableobject) |  |
 | `script` | string |  |
@@ -177,6 +178,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `hideWhenFaceDown` | boolean |  |
 | `grid` | boolean |  |
 | `tint` | array of number |  |
+| `loopingEffect` | integer |  |
 | `joint` | [JointDef](#jointdef) |  |
 | `states` | map of [TableObject](#tableobject) |  |
 | `script` | string |  |
@@ -229,6 +231,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `hideWhenFaceDown` | boolean |  |
 | `grid` | boolean |  |
 | `tint` | array of number |  |
+| `loopingEffect` | integer |  |
 | `joint` | [JointDef](#jointdef) |  |
 | `states` | map of [TableObject](#tableobject) |  |
 | `script` | string |  |
@@ -265,6 +268,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `hideWhenFaceDown` | boolean |  |
 | `grid` | boolean |  |
 | `tint` | array of number |  |
+| `loopingEffect` | integer |  |
 | `joint` | [JointDef](#jointdef) |  |
 | `states` | map of [TableObject](#tableobject) |  |
 | `script` | string |  |
@@ -302,6 +306,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `hideWhenFaceDown` | boolean |  |
 | `grid` | boolean |  |
 | `tint` | array of number |  |
+| `loopingEffect` | integer |  |
 | `joint` | [JointDef](#jointdef) |  |
 | `states` | map of [TableObject](#tableobject) |  |
 | `script` | string |  |
@@ -336,6 +341,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `hideWhenFaceDown` | boolean |  |
 | `grid` | boolean |  |
 | `tint` | array of number |  |
+| `loopingEffect` | integer |  |
 | `joint` | [JointDef](#jointdef) |  |
 | `states` | map of [TableObject](#tableobject) |  |
 | `script` | string |  |
@@ -371,6 +377,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `hideWhenFaceDown` | boolean |  |
 | `grid` | boolean |  |
 | `tint` | array of number |  |
+| `loopingEffect` | integer |  |
 | `joint` | [JointDef](#jointdef) |  |
 | `states` | map of [TableObject](#tableobject) |  |
 | `script` | string |  |
@@ -403,6 +410,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `hideWhenFaceDown` | boolean |  |
 | `grid` | boolean |  |
 | `tint` | array of number |  |
+| `loopingEffect` | integer |  |
 | `joint` | [JointDef](#jointdef) |  |
 | `states` | map of [TableObject](#tableobject) |  |
 | `script` | string |  |
@@ -435,6 +443,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `hideWhenFaceDown` | boolean |  |
 | `grid` | boolean |  |
 | `tint` | array of number |  |
+| `loopingEffect` | integer |  |
 | `joint` | [JointDef](#jointdef) |  |
 | `states` | map of [TableObject](#tableobject) |  |
 | `script` | string |  |
@@ -467,6 +476,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `hideWhenFaceDown` | boolean |  |
 | `grid` | boolean |  |
 | `tint` | array of number |  |
+| `loopingEffect` | integer |  |
 | `joint` | [JointDef](#jointdef) |  |
 | `states` | map of [TableObject](#tableobject) |  |
 | `script` | string |  |
@@ -499,6 +509,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `hideWhenFaceDown` | boolean |  |
 | `grid` | boolean |  |
 | `tint` | array of number |  |
+| `loopingEffect` | integer |  |
 | `joint` | [JointDef](#jointdef) |  |
 | `states` | map of [TableObject](#tableobject) |  |
 | `script` | string |  |
@@ -530,6 +541,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `hideWhenFaceDown` | boolean |  |
 | `grid` | boolean |  |
 | `tint` | array of number |  |
+| `loopingEffect` | integer |  |
 | `joint` | [JointDef](#jointdef) |  |
 | `states` | map of [TableObject](#tableobject) |  |
 | `script` | string |  |
@@ -564,6 +576,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `hideWhenFaceDown` | boolean |  |
 | `grid` | boolean |  |
 | `tint` | array of number |  |
+| `loopingEffect` | integer |  |
 | `joint` | [JointDef](#jointdef) |  |
 | `states` | map of [TableObject](#tableobject) |  |
 | `script` | string |  |
@@ -594,6 +607,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `hideWhenFaceDown` | boolean |  |
 | `grid` | boolean |  |
 | `tint` | array of number |  |
+| `loopingEffect` | integer |  |
 | `joint` | [JointDef](#jointdef) |  |
 | `states` | map of [TableObject](#tableobject) |  |
 | `script` | string |  |

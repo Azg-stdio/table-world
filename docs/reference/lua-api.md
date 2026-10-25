@@ -112,6 +112,7 @@ On every object a script gets (`getObjectFromGUID`, `self`, event arguments). Fu
 | `getInvisibleTo` | function |
 | `getJoints` | function |
 | `getLock` | function |
+| `getLoopingEffects` | function |
 | `getLuaScript` | function |
 | `getName` | function |
 | `getObjects` | function |
@@ -123,6 +124,7 @@ On every object a script gets (`getObjectFromGUID`, `self`, event arguments). Fu
 | `getStates` | function |
 | `getTable` | function |
 | `getTags` | function |
+| `getTriggerEffects` | function |
 | `getValue` | function |
 | `getVar` | function |
 | `getVelocity` | function |

@@ -1269,6 +1269,10 @@ namespace TableWorld.View
                                 ApplyPhysicsMode(each);
                         RefreshGrid();
                         break;
+                    case EffectTriggered effect:
+                        if (ViewOf(effect.ObjectId)?.transform.Find("Bundle")?.GetComponentInChildren<ITtsBundleEffects>(true) is { } effects)
+                            effects.PlayTrigger(effect.Index);
+                        break;
                     case DieRolled rolled:
                         // A free die is tossed by physics and lands on the value (R again sends it higher); a locked or
                         // hand-held one tumbles where it is.
@@ -1332,6 +1336,18 @@ namespace TableWorld.View
         /// Physics follows the table's joints (TTS jointTo, attachments): a fixed joint from each held object's body to
         /// the one it is held to; none where the table has none. Hinge and spring hold like fixed for now.
         /// </summary>
+        /// <summary>The effect names of an asset-bundle object (ADR 0008), for scripts; null when its bundle is not shown.</summary>
+        public IReadOnlyList<string> EffectNames(string objectId, bool looping)
+        {
+            if (!(ViewOf(objectId)?.transform.Find("Bundle")?.GetComponentInChildren<ITtsBundleEffects>(true) is { } effects))
+                return null;
+            var count = looping ? effects.LoopingCount : effects.TriggerCount;
+            var names = new List<string>(count);
+            for (var i = 0; i < count; i++)
+                names.Add(looping ? effects.LoopingName(i) : effects.TriggerName(i));
+            return names;
+        }
+
         public void SyncJoints()
         {
             if (Engine == null)

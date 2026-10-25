@@ -971,11 +971,16 @@ namespace Core.Scripting
                             list[i + 1] = DynValue.NewTable(WriteButton(script, o.Buttons[i], i));
                         return DynValue.NewTable(list);
                     });
-                // Effects of TTS asset bundles (M4) and physics velocity are not simulated here: the calls are accepted and do nothing.
+                // Asset-bundle effects (ADR 0008), also reachable straight on the object as older scripts call them.
                 case "playLoopingEffect":
-                    return DynValue.NewCallback((_, a) => DynValue.Nil);
+                    return Fn((o, a) => At(a, 0).Type == DataType.Number ? Do(new PlayEffectCommand { ObjectId = id, Index = (int)At(a, 0).Number }) : DynValue.False);
                 case "playTriggerEffect":
-                    return DynValue.NewCallback((_, a) => DynValue.Nil);
+                    return Fn((o, a) => At(a, 0).Type == DataType.Number ? Do(new PlayEffectCommand { ObjectId = id, Index = (int)At(a, 0).Number, Looping = false }) : DynValue.False);
+                case "getLoopingEffects":
+                    return Fn((o, a) => Effects(script, id, looping: true));
+                case "getTriggerEffects":
+                    return Fn((o, a) => Effects(script, id, looping: false));
+                // Physics velocity is not simulated here: the calls are accepted and do nothing.
                 case "setVelocity":
                     return DynValue.NewCallback((_, a) => DynValue.Nil);
                 case "addForce":
@@ -990,7 +995,7 @@ namespace Core.Scripting
                     return DynValue.NewCallback((_, a) => DynValue.NewTable(Vector(script, new Vec3(0f, 0f, 0f))));
                 // Asset-bundle effects (M4) and Unity components are not scripted yet: accepted, without effect.
                 case "AssetBundle":
-                    return DynValue.NewTable(EffectsStub(script));
+                    return DynValue.NewTable(EffectsOf(script, id));
                 case "getComponent":
                     return DynValue.NewCallback((_, a) =>
                     {
@@ -1022,15 +1027,40 @@ namespace Core.Scripting
 
         private const float TtsUnitsToMeters = Core.Tts.TtsUnits.TtsUnitsToMeters;
 
-        /// <summary>An object's <c>AssetBundle</c>: its effect calls are accepted without effect until M4.</summary>
-        private static Table EffectsStub(Script script)
+        /// <summary>
+        /// The effect names of an asset-bundle object, from the views (only they open bundles): (looping or trigger) →
+        /// names in order. Null, or no names, when the bundle is not loaded or has none.
+        /// </summary>
+        public Func<string, bool, IReadOnlyList<string>?>? EffectNames { get; set; }
+
+        /// <summary>TTS's effect list: <c>{ { index = 0, name = "Idle" }, ... }</c>.</summary>
+        private DynValue Effects(Script script, string id, bool looping)
+        {
+            var list = new Table(script);
+            var names = EffectNames?.Invoke(id, looping) ?? Array.Empty<string>();
+            for (var i = 0; i < names.Count; i++)
+            {
+                var entry = new Table(script);
+                entry["index"] = i;
+                entry["name"] = names[i];
+                list[i + 1] = entry;
+            }
+            return DynValue.NewTable(list);
+        }
+
+        /// <summary>An object's <c>AssetBundle</c> member (TTS): its effects, played for everyone (ADR 0008).</summary>
+        private Table EffectsOf(Script script, string id)
         {
             var bundle = new Table(script);
-            foreach (var noOp in new[] { "playLoopingEffect", "playTriggerEffect" })
-                bundle[noOp] = DynValue.NewCallback((_, a) => DynValue.Nil);
-            foreach (var empty in new[] { "getLoopingEffects", "getTriggerEffects" })
-                bundle[empty] = DynValue.NewCallback((_, a) => DynValue.NewTable(new Table(script)));
-            bundle["getLoopingEffectIndex"] = DynValue.NewCallback((_, a) => DynValue.NewNumber(0));
+            int Skip(CallbackArguments a) => a.Count > 0 && a[0].Type == DataType.Table && a[0].Table == bundle ? 1 : 0;
+            DynValue Arg0(CallbackArguments a) => a.Count > Skip(a) ? a[Skip(a)] : DynValue.Nil;
+            bundle["playLoopingEffect"] = DynValue.NewCallback((_, a) => Arg0(a).Type == DataType.Number
+                ? DynValue.NewBoolean(Issue(new PlayEffectCommand { ObjectId = id, Index = (int)Arg0(a).Number })) : DynValue.False);
+            bundle["playTriggerEffect"] = DynValue.NewCallback((_, a) => Arg0(a).Type == DataType.Number
+                ? DynValue.NewBoolean(Issue(new PlayEffectCommand { ObjectId = id, Index = (int)Arg0(a).Number, Looping = false })) : DynValue.False);
+            bundle["getLoopingEffects"] = DynValue.NewCallback((_, a) => Effects(script, id, looping: true));
+            bundle["getTriggerEffects"] = DynValue.NewCallback((_, a) => Effects(script, id, looping: false));
+            bundle["getLoopingEffectIndex"] = DynValue.NewCallback((_, a) => DynValue.NewNumber(Engine.Find(id)?.LoopingEffect ?? 0));
             return bundle;
         }
 

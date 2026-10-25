@@ -297,6 +297,18 @@ namespace Core.Engine
             return CommandResult.Success(new List<StateEvent> { new ObjectUpdated(die.Id) });
         }
 
+        private CommandResult PlayEffect(PlayEffectCommand c)
+        {
+            if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: true) is { } fail)
+                return fail;
+            if (c.Index < 0)
+                return CommandResult.Fail("index", ErrorCodes.InvalidValue, "Effects are numbered from 0.");
+            if (!c.Looping)
+                return CommandResult.Success(new List<StateEvent> { new EffectTriggered(obj.Id, c.Index) });
+            obj.LoopingEffect = c.Index == 0 ? (int?)null : c.Index;
+            return CommandResult.Success(new List<StateEvent> { new ObjectUpdated(obj.Id) });
+        }
+
         private CommandResult SetJoint(SetJointCommand c)
         {
             if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: true) is { } fail)
