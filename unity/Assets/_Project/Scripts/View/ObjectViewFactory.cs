@@ -166,6 +166,10 @@ namespace TableWorld.View
                     // A TTS asset bundle (Custom_Assetbundle, M4): the bundle's own model, materials and colliders.
                     SetBundle(view, prefab, 0.05f);
                     break;
+                case Model bowl when assets.Find(bowl.Asset)?.Path == Asset.BuiltinPrefix + "bowl" && assets.Mesh(bowl.Asset) is { } bowlMesh:
+                    SetModel(view, bowlMesh, assets.Plain(model.Tint.ToColor(Ivory), 0.4f), 0.15f);
+                    BowlColliders(view);
+                    break;
                 case Model modelObject when assets.Mesh(modelObject.Asset) is { } modelMesh:
                 {
                     // A custom model (TTS Custom_Model, G38): its OBJ mesh with its diffuse image.
@@ -396,6 +400,35 @@ namespace TableWorld.View
                 meshCollider.convex = true;
                 if (meshCollider.sharedMesh != mesh)
                     meshCollider.sharedMesh = mesh;
+            }
+        }
+
+        /// <summary>
+        /// A bowl holds pieces in its hollow: its own collider is a thin base, and a ring of wall boxes stands around it
+        /// (child colliders of the same body, made once). A convex hull would fill the bowl and push pieces out.
+        /// </summary>
+        private static void BowlColliders(ObjectView view)
+        {
+            const int walls = 16;
+            if (view.Collider is MeshCollider collider)
+                collider.sharedMesh = MeshFactory.Cylinder(Builtin.BuiltinModels.BowlRadius * 0.6f, Builtin.BuiltinModels.BowlWall * 2f, 24);
+            if (view.transform.Find("Bowl walls") != null)
+                return;
+            var ring = new GameObject("Bowl walls").transform;
+            ring.SetParent(view.transform, false);
+            const float r = Builtin.BuiltinModels.BowlRadius, h = Builtin.BuiltinModels.BowlHeight;
+            for (var i = 0; i < walls; i++)
+            {
+                var angle = i * 360f / walls;
+                var wall = new GameObject($"Wall {i}");
+                wall.transform.SetParent(ring, false);
+                // Leaning out like the bowl's side, from its floor's edge to its rim.
+                var mid = Quaternion.Euler(0f, angle, 0f) * new Vector3(0f, 0f, 0.8f * r);
+                wall.transform.localPosition = new Vector3(mid.x, h * 0.5f, mid.z);
+                wall.transform.localRotation = Quaternion.Euler(-28f, angle, 0f);
+                var box = wall.AddComponent<BoxCollider>();
+                box.size = new Vector3(2f * Mathf.PI * r / walls * 1.1f, h * 1.15f, Builtin.BuiltinModels.BowlWall * 2f);
+                box.sharedMaterial = view.Collider != null ? view.Collider.sharedMaterial : null;
             }
         }
 

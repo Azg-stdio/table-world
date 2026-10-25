@@ -52,7 +52,7 @@ namespace Core.Tts
         /// <summary>
         /// The importer's version, recorded in each package (<c>import.json</c>). Raise it when an import would come out
         /// different (a new object type, a mapping fixed), so games imported before are offered a re-import.
-        /// 2: PDFs (T8.8) and import.json. 3: model bags keep their image; textured models keep their tint; states keep their snap points.
+        /// 2: PDFs (T8.8) and import.json. 3: model bags keep their image; textured models keep their tint; states keep their snap points; bowls.
         /// </summary>
         public const int Version = 3;
 
@@ -474,6 +474,8 @@ namespace Core.Tts
                 case "PlayerPawn":
                 case "Chess_Pawn":
                     return Builtin("pawn", o);
+                case "Bowl":
+                    return Builtin("bowl", o);
             }
             if (name.StartsWith("Die_", StringComparison.Ordinal) && int.TryParse(new string(name.Substring(4).TakeWhile(char.IsDigit).ToArray()), out var n) && Die.SupportedFaces.Contains(n))
                 return new Die { Faces = n, Tint = Tint(o) };

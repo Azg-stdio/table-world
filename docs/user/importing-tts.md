@@ -86,7 +86,7 @@ Tablet 4a1b2c ('Rules site') has no counterpart yet: kept as a placeholder.
 |---|---|---|
 | `N objects; X of Y files found` | How much came in. Every object is in the game, even when its file is not | Nothing; or download the missing files |
 | `Not in the cache yet: <address>` | A file TTS had not cached. A placeholder stands in for it | Download the missing files, or open the game in TTS once and import again |
-| `… has no counterpart yet: kept as a placeholder` | An object Table World cannot show yet (a tablet, a text object, a bowl) | See below |
+| `… has no counterpart yet: kept as a placeholder` | An object Table World cannot show yet (a tablet, a text object) | See below |
 | `… was inside a container; zones cannot be, so it lies on the table` | A zone was stored inside a bag in TTS | Nothing: it works on the table |
 | `The XmlUI of … does not read (…); left out` | A UI document TTS accepted but that is not valid XML | Usually harmless; tell us which game |
 
@@ -98,7 +98,7 @@ become the real object once Table World supports it.
 
 | Feature | Today |
 |---|---|
-| Tablets, text objects, bowls | Placeholders |
+| Tablets, text objects | Placeholders |
 | Lua | More than 99.9 % of the calls in the tested games work. Missing: typing into text fields drawn on objects, joints, AssetBundle effects (accepted, do nothing), and scripted forces and velocities |
 | Chat for one colour (`broadcastToColor`) | Reaches everyone |
 | Fog of war that reveals around pieces | A hidden zone only |
