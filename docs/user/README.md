@@ -1,6 +1,6 @@
 # Player and designer docs
 
-> Status: in progress. The pages below exist today; getting started, importing TTS games, preparing assets and
+> Status: in progress. The pages below exist today; getting started, preparing assets and
 > troubleshooting are being written as the features they describe are finished.
 
 | Page | What it is for |
@@ -10,8 +10,9 @@
 | [Agent guide](agent-guide.md) | The instructions for the agent itself (the server also serves them) |
 | [MCP tools by job](mcp-tools-guide.md) | Every tool of the server grouped by job, each with an example that a test runs against the server |
 | [Game brief template](game-brief-template.md) | Everything your agent needs about your game in one document, so it builds it with fewer questions |
+| [Importing Tabletop Simulator games](importing-tts.md) | Importing the TTS games on your computer, missing files, reading `import-notes.txt`, known limits, privacy, and a TTS → Table World glossary |
 | [Rules and scripting](rules-and-scripting.md) | The rules format in game terms, using War and UNO-lite, and Lua scripting: events, script UI, the sandbox, differences from TTS |
 | Example briefs: [War](examples/war-brief.md), [Match the Pile](examples/uno-lite-brief.md) | The template filled in for the two sample rulebooks |
 
 Coming next: getting started (install, first table, controls, hosting and joining),
-importing Tabletop Simulator games, preparing assets, and troubleshooting.
+preparing assets, and troubleshooting.
