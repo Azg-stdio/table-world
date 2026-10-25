@@ -71,5 +71,24 @@ namespace Core.Tests.Tts
             Assert.Contains(parsed.Errors, e => e.Path.EndsWith(".page"));
             Assert.Contains(parsed.Errors, e => e.Path.EndsWith(".asset"));
         }
+
+        [Fact]
+        public void ModelBags_KeepTheirImage()
+        {
+            var save = @"{ ""ObjectStates"": [ { ""Name"": ""Custom_Model_Bag"", ""GUID"": ""b00001"", ""ColorDiffuse"": { ""r"": 0.5, ""g"": 0.4, ""b"": 0.3 },
+                ""CustomMesh"": { ""MeshURL"": ""http://x/bag.obj"", ""DiffuseURL"": ""http://x/bag.png"" } } ] }";
+            var result = TtsImporter.Import(save);
+            var bag = result.State.Objects.OfType<Bag>().Single();
+            Assert.Equal(AssetType.Image, result.State.Assets.Single(a => a.Id == bag.DiffuseAsset).Type);
+            Assert.Equal(new[] { 0.5f, 0.4f, 0.3f }, bag.Tint);
+            Assert.True(TableJson.Parse(TableJson.Serialize(result.State)).Ok);
+
+            // A textured custom model keeps its tint too (TTS multiplies the image by it); white stays no tint.
+            var models = TtsImporter.Import(@"{ ""ObjectStates"": [
+                { ""Name"": ""Custom_Model"", ""GUID"": ""m00001"", ""ColorDiffuse"": { ""r"": 0.49, ""g"": 0.39, ""b"": 0.29 }, ""CustomMesh"": { ""MeshURL"": ""http://x/hex.obj"", ""DiffuseURL"": ""http://x/white.png"" } },
+                { ""Name"": ""Custom_Model"", ""GUID"": ""m00002"", ""ColorDiffuse"": { ""r"": 1.0, ""g"": 1.0, ""b"": 1.0 }, ""CustomMesh"": { ""MeshURL"": ""http://x/hex.obj"", ""DiffuseURL"": ""http://x/white.png"" } } ] }").State;
+            Assert.Equal(new[] { 0.49f, 0.39f, 0.29f }, models.Objects.Single(o => o.Id == "m00001").Tint);
+            Assert.Null(models.Objects.Single(o => o.Id == "m00002").Tint);
+        }
     }
 }

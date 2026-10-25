@@ -1233,3 +1233,10 @@
     font-size: 15px;
     color: rgb(240, 236, 226);
 }
+
+/* An action under a game in the Games list (download its missing files, re-import it). */
+.menu-item--sub {
+    margin-left: 18px;
+    font-size: 13px;
+    color: rgb(250, 214, 140);
+}

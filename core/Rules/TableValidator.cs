@@ -369,6 +369,7 @@ namespace Core.Rules
                         break;
                     case Bag bag:
                         CheckOptionalAsset(bag.Asset, $"{path}.asset", AssetType.Model, AssetType.AssetBundle);
+                        CheckOptionalAsset(bag.DiffuseAsset, $"{path}.diffuseAsset", AssetType.Image);
                         break;
                     case Board board:
                         CheckOptionalAsset(board.Asset, $"{path}.asset", AssetType.Image);

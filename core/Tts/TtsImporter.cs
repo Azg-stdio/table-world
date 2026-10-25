@@ -49,6 +49,13 @@ namespace Core.Tts
         /// Reads a save. <paramref name="imageSize"/> gives an image's pixel size by its URL when the file is at hand (the
         /// TTS cache): tiles then get their true proportions, and pieces lying on them can be placed on top.
         /// </summary>
+        /// <summary>
+        /// The importer's version, recorded in each package (<c>import.json</c>). Raise it when an import would come out
+        /// different (a new object type, a mapping fixed), so games imported before are offered a re-import.
+        /// 2: PDFs (T8.8) and import.json. 3: model bags keep their image; textured models keep their tint.
+        /// </summary>
+        public const int Version = 3;
+
         public static ImportResult Import(string saveJson, Func<string, (int Width, int Height)?>? imageSize = null) =>
             new TtsImporter { _imageSize = imageSize }.Run(JObject.Parse(saveJson));
 
@@ -418,6 +425,7 @@ namespace Core.Tts
                 {
                     var bag = name.Contains("Infinite") ? new InfiniteBag() : new Bag();
                     bag.Asset = Asset((string?)o["CustomMesh"]?["MeshURL"], AssetType.Model);
+                    bag.DiffuseAsset = Asset((string?)o["CustomMesh"]?["DiffuseURL"], AssetType.Image);
                     bag.Tint = Tint(o);
                     return bag;
                 }
@@ -502,8 +510,8 @@ namespace Core.Tts
                 Material = ((int?)mesh?["MaterialIndex"] ?? 0) switch { 1 => ModelMaterial.Wood, 2 => ModelMaterial.Metal, 3 => ModelMaterial.Cardboard, 4 => ModelMaterial.Glass, _ => ModelMaterial.Plastic },
                 Kind = ((int?)mesh?["TypeIndex"] ?? 0) switch { 1 => ModelKind.Figurine, 2 => ModelKind.Dice, 3 => ModelKind.Coin, 4 => ModelKind.Board, 5 => ModelKind.Chip, _ => ModelKind.Generic },
             };
-            if (model.DiffuseAsset == null)
-                model.Tint = Tint(o);
+            // TTS multiplies a custom model's image by its tint (white is neutral): Sinnoh colours its map hexes this way.
+            model.Tint = Tint(o) is { } tint && !(tint.Length == 3 && tint.All(v => v > 0.995f)) ? tint : null;
             return model;
         }
 

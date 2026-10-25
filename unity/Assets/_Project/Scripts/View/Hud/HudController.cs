@@ -783,6 +783,7 @@ namespace TableWorld.View.Hud
                 var button = new Button(() => OpenGame(entry)) { text = entry.Name };
                 button.AddToClassList("menu-item");
                 list.Add(button);
+                ImportActions(list, entry);
             }
             ListTtsSaves(list);
             _gamesPanel.Q<Label>("gamesHint").text = $"Your own games: put a .json file, or a folder with table.json and its images, in {GameLibrary.UserFolder}";
@@ -790,31 +791,54 @@ namespace TableWorld.View.Hud
         }
 
         private bool _importing;
-        private (string Name, string Folder, Core.Tts.TtsPackage.Report Report)? _lastImport;
+
+        /// <summary>
+        /// Under an imported game: download the files its import could not find, and re-import it when the importer has
+        /// improved since (T8.2). Both read what the import recorded in the game's folder, so they work any time.
+        /// </summary>
+        private void ImportActions(ScrollView list, GameLibrary.Entry entry)
+        {
+            var folder = entry.PackageRoot;
+            if (_importing || !Core.Tts.TtsPackage.IsImport(folder))
+                return;
+            var missing = Core.Tts.TtsPackage.ReadInfo(folder)?.MissingNow(folder);
+            if (missing != null && missing.Count > 0)
+                list.Add(ImportAction($"Download its {missing.Count} missing files", () => DownloadMissing(entry.Name, folder, missing)));
+            if (Core.Tts.TtsPackage.Outdated(folder) && Core.Tts.TtsPackage.SourceOf(folder, Core.Tts.TtsPackage.DefaultFolder) is { } source)
+                list.Add(ImportAction("Re-import it (made by an older importer)", () => Reimport(entry.Name, source, folder)));
+        }
+
+        private static Button ImportAction(string text, System.Action clicked)
+        {
+            var button = new Button(clicked) { text = text };
+            button.AddToClassList("menu-item");
+            button.AddToClassList("menu-item--sub");
+            return button;
+        }
 
         /// <summary>
         /// Fetches what the TTS cache lacked (T8.2): the files the save names, from where TTS would fetch them, a few at
         /// a time; a stopped download resumes next time. The game shows them when it is opened again.
         /// </summary>
-        private async void DownloadMissing((string Name, string Folder, Core.Tts.TtsPackage.Report Report) import)
+        private async void DownloadMissing(string name, string folder, List<(string Url, string Path)> missing)
         {
             if (_importing)
                 return;
             _importing = true;
-            var files = import.Report.Missing.Select(m => (m.Url, System.IO.Path.Combine(import.Folder, m.Path))).ToList();
-            var progress = new System.Progress<(int Done, int Total)>(p => ShowStatus($"Downloading {import.Name}: {p.Done} of {p.Total} files", error: false));
+            CloseGamesPanel();
+            var files = missing.Select(m => (m.Url, System.IO.Path.Combine(folder, m.Path))).ToList();
+            var progress = new System.Progress<(int Done, int Total)>(p => ShowStatus($"Downloading {name}: {p.Done} of {p.Total} files", error: false));
             try
             {
                 var result = await new Core.Tts.AssetDownloader().Download(files, progress);
                 var failed = result.Failed.Count > 0 ? $"; {result.Failed.Count} could not be fetched (listed in the log)" : "";
                 foreach (var (url, reason) in result.Failed.Take(50))
                     Debug.LogWarning($"[Import] {url}: {reason}");
-                ShowStatus($"{import.Name}: {result.Downloaded} files downloaded ({result.Bytes / (1024 * 1024)} MB){failed}. Open it from Games to see them.", error: false);
-                import.Report.Missing.RemoveAll(m => System.IO.File.Exists(System.IO.Path.Combine(import.Folder, m.Path)));
+                ShowStatus($"{name}: {result.Downloaded} files downloaded ({result.Bytes / (1024 * 1024)} MB){failed}. Open it from Games to see them.", error: false);
             }
             catch (System.Exception e)
             {
-                ShowStatus($"Downloading {import.Name} stopped: {e.Message}", error: true);
+                ShowStatus($"Downloading {name} stopped: {e.Message}", error: true);
             }
             finally
             {
@@ -837,15 +861,9 @@ namespace TableWorld.View.Hud
             var title = new Label("Import from Tabletop Simulator");
             title.AddToClassList("selection-title");
             list.Add(title);
-            if (_lastImport is { } last && last.Report.Missing.Count > 0 && !_importing)
-            {
-                var download = new Button(() => DownloadMissing(last)) { text = $"Download the {last.Report.Missing.Count} missing files of {last.Name}" };
-                download.AddToClassList("menu-item");
-                list.Add(download);
-            }
             foreach (var save in saves)
             {
-                var button = new Button(() => ImportTts(save, folder)) { text = save.Name };
+                var button = new Button(() => ImportTts(save, folder)) { text = save.Label };
                 button.AddToClassList("menu-item");
                 list.Add(button);
             }
@@ -857,12 +875,12 @@ namespace TableWorld.View.Hud
                 return;
             _importing = true;
             ShowStatus($"Importing {save.Name}…", error: false);
-            var target = System.IO.Path.Combine(GameLibrary.UserFolder, Core.Tts.TtsPackage.FolderName(save.Name));
+            var target = System.IO.Path.Combine(GameLibrary.UserFolder, save.FolderName);
             try
             {
                 // Big saves and their files take seconds: off the main thread, back here to report.
                 var report = await System.Threading.Tasks.Task.Run(() => Core.Tts.TtsPackage.Write(save.File, ttsFolder, target));
-                _lastImport = (save.Name, target, report);
+
                 var missing = report.Missing.Count > 0 ? $"; {report.Missing.Count} files not in the TTS cache (they show as placeholders)" : "";
                 ShowStatus($"Imported {save.Name}: {report.Objects} objects, {report.Copied} files{missing}. It is in Games.", error: false);
                 if (!_gamesPanel.ClassListContains(Hidden))
@@ -880,6 +898,37 @@ namespace TableWorld.View.Hud
             {
                 _importing = false;
             }
+        }
+
+        /// <summary>Imports a game's save again into its own folder, with what the importer does now.</summary>
+        private async void Reimport(string name, string source, string folder)
+        {
+            if (_importing)
+                return;
+            _importing = true;
+            CloseGamesPanel();
+            ShowStatus($"Re-importing {name}…", error: false);
+            try
+            {
+                var report = await System.Threading.Tasks.Task.Run(() => Core.Tts.TtsPackage.Write(source, Core.Tts.TtsPackage.DefaultFolder, folder));
+                var missing = report.Missing.Count > 0 ? $"; {report.Missing.Count} files still missing (Games offers to download them)" : "";
+                ShowStatus($"Re-imported {name}: {report.Objects} objects{missing}.", error: false);
+            }
+            catch (System.Exception e)
+            {
+                ShowStatus($"Could not re-import {name}: {e.Message}", error: true);
+                Debug.LogException(e);
+            }
+            finally
+            {
+                _importing = false;
+            }
+        }
+
+        private void CloseGamesPanel()
+        {
+            if (_gamesPanel != null)
+                _gamesPanel.AddToClassList(Hidden);
         }
 
         private void OpenGame(GameLibrary.Entry entry)

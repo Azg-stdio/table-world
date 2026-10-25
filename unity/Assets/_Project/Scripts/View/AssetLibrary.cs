@@ -64,6 +64,11 @@ namespace TableWorld.View
                 }
                 Object.Destroy(page.Texture);
             }
+            foreach (var key in _materials.Keys.Where(k => k.StartsWith("img:" + assetId + ":", System.StringComparison.Ordinal)).ToList())
+            {
+                Object.Destroy(_materials[key]);
+                _materials.Remove(key);
+            }
             if (_materials.TryGetValue("img:" + assetId, out var material))
             {
                 foreach (var key in _cells.Keys.Where(k => k.Source == material).ToList())
@@ -80,6 +85,28 @@ namespace TableWorld.View
         public void Register(Asset asset) => _assets[asset.Id] = asset;
 
         public Asset Find(string assetId) => assetId != null && _assets.TryGetValue(assetId, out var a) ? a : null;
+
+        /// <summary>
+        /// The image of <paramref name="assetId"/> multiplied by <paramref name="tint"/>, as TTS colours a custom model's
+        /// texture with its <c>ColorDiffuse</c> (Sinnoh's map hexes are one white image in a dozen tints). One material
+        /// per image and tint; plain <paramref name="tint"/> while the image is missing.
+        /// </summary>
+        public Material TintedImageMaterial(string assetId, Color tint)
+        {
+            if (Mathf.Abs(tint.r - 1f) + Mathf.Abs(tint.g - 1f) + Mathf.Abs(tint.b - 1f) < 0.01f)
+                return ImageMaterial(assetId, tint);
+            var texture = Texture(assetId);
+            if (texture == null)
+                return Plain(tint);
+            var key = $"img:{assetId}:{ColorUtility.ToHtmlStringRGB(tint)}";
+            if (!_materials.TryGetValue(key, out var material) || material == null)
+            {
+                material = NewMaterial(key, new Color(tint.r, tint.g, tint.b, 1f), 0.25f);
+                material.SetTexture(BaseMap, texture);
+                _materials[key] = material;
+            }
+            return material;
+        }
 
         /// <summary>Material showing the whole image of <paramref name="assetId"/>, or a plain material when it has none.</summary>
         public Material ImageMaterial(string assetId, Color fallback)

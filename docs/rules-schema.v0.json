@@ -1288,6 +1288,9 @@
         },
         "asset": {
           "type": "string"
+        },
+        "diffuseAsset": {
+          "type": "string"
         }
       },
       "additionalProperties": false,
@@ -1392,6 +1395,9 @@
           "type": "object"
         },
         "asset": {
+          "type": "string"
+        },
+        "diffuseAsset": {
           "type": "string"
         }
       },

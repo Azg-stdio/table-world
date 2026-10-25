@@ -145,11 +145,56 @@ namespace Core.Tests.Tts
                 Assert.Contains("Not in the cache yet: http://x/tile.jpg", File.ReadAllText(Path.Combine(package, "import-notes.txt")));
                 Assert.Equal("Sample (TTS)", TtsPackage.FolderName("Sample"));
                 Assert.Equal("ab (TTS)", TtsPackage.FolderName("a:b?"));
+
+                // The package records the import: source, kind, version and what is still missing.
+                var info = TtsPackage.ReadInfo(package)!;
+                Assert.Equal(TtsImporter.Version, info.Importer);
+                Assert.Equal(TtsPackage.SaveKind.Workshop, info.Kind);
+                Assert.Equal(Path.GetFullPath(saves[0].File), info.Source);
+                Assert.Equal(report.Missing.Count, info.MissingNow(package).Count);
+                var first = info.Missing[0];
+                Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(package, first.Path))!);
+                File.WriteAllBytes(Path.Combine(package, first.Path), new byte[] { 1 });
+                Assert.Equal(report.Missing.Count - 1, info.MissingNow(package).Count); // a downloaded file is no longer missing
+                Assert.False(TtsPackage.Outdated(package));
+                Assert.Equal(info.Source, TtsPackage.SourceOf(package, tts));
+
+                // An import from before import.json is outdated, and its source is found from its notes.
+                File.Delete(Path.Combine(package, TtsPackage.InfoFile));
+                Assert.True(TtsPackage.Outdated(package));
+                Assert.Equal(Path.GetFullPath(saves[0].File), Path.GetFullPath(TtsPackage.SourceOf(package, tts)!));
             }
             finally
             {
                 if (Directory.Exists(tts)) Directory.Delete(tts, true);
                 if (Directory.Exists(package)) Directory.Delete(package, true);
+            }
+        }
+
+        [Fact]
+        public void Saves_SayWhereTheyComeFrom_AndImportIntoTheirOwnFolders()
+        {
+            var tts = Path.Combine(Path.GetTempPath(), "tw-tts-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                Directory.CreateDirectory(Path.Combine(tts, "Mods", "Workshop"));
+                Directory.CreateDirectory(Path.Combine(tts, "Saves"));
+                File.WriteAllText(Path.Combine(tts, "Mods", "Workshop", "123.json"), Save);
+                File.WriteAllText(Path.Combine(tts, "Saves", "TS_AutoSave_2.json"), Save);
+                File.WriteAllText(Path.Combine(tts, "Saves", "TS_Save_7.json"), Save);
+                File.SetLastWriteTime(Path.Combine(tts, "Saves", "TS_AutoSave_2.json"), new DateTime(2026, 3, 28, 20, 26, 0));
+
+                var saves = TtsPackage.Find(tts);
+                Assert.Equal(new[] { TtsPackage.SaveKind.Workshop, TtsPackage.SaveKind.Save, TtsPackage.SaveKind.Autosave }, saves.Select(s => s.Kind));
+                Assert.Equal("Sample · Workshop", saves[0].Label);
+                Assert.StartsWith("Sample · TTS autosave, 28 ", saves[2].Label);
+                Assert.EndsWith(" 20:26", saves[2].Label);
+                Assert.Equal(3, saves.Select(s => s.FolderName).Distinct().Count());
+                Assert.Equal("Sample (TTS)", saves[0].FolderName);
+            }
+            finally
+            {
+                if (Directory.Exists(tts)) Directory.Delete(tts, true);
             }
         }
 

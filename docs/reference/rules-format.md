@@ -363,6 +363,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `scriptUi` | array of [UiNode](#uinode) |  |
 | `ttsExtra` | object |  |
 | `asset` | string |  |
+| `diffuseAsset` | string |  |
 
 ### InfiniteBag
 
@@ -393,6 +394,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `scriptUi` | array of [UiNode](#uinode) |  |
 | `ttsExtra` | object |  |
 | `asset` | string |  |
+| `diffuseAsset` | string |  |
 
 ### Board
 

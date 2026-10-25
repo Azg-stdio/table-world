@@ -150,8 +150,10 @@ namespace TableWorld.View
                     SetBundle(view, bagPrefab, 0.05f);
                     break;
                 case Bag bag when bag.Asset != null && assets.Mesh(bag.Asset) is { } bagMesh:
-                    // A bag with its own model (TTS Custom_Model_Bag): the model's mesh, untextured until the importer maps its image.
-                    SetModel(view, bagMesh, assets.Plain(model.Tint.ToColor(bag is InfiniteBag ? InfiniteBagCloth : BagCloth), 0.1f), 0.05f);
+                    // A bag with its own model (TTS Custom_Model_Bag): the model's mesh with its image, tinted as TTS does.
+                    SetModel(view, bagMesh, bag.DiffuseAsset != null
+                        ? assets.TintedImageMaterial(bag.DiffuseAsset, model.Tint.ToColor(Color.white))
+                        : assets.Plain(model.Tint.ToColor(bag is InfiniteBag ? InfiniteBagCloth : BagCloth), 0.1f), 0.05f);
                     break;
                 case Bag bag:
                 {
@@ -168,7 +170,7 @@ namespace TableWorld.View
                 {
                     // A custom model (TTS Custom_Model, G38): its OBJ mesh with its diffuse image.
                     var skin = modelObject.DiffuseAsset != null
-                        ? assets.ImageMaterial(modelObject.DiffuseAsset, model.Tint.ToColor(Color.white))
+                        ? assets.TintedImageMaterial(modelObject.DiffuseAsset, model.Tint.ToColor(Color.white))
                         : assets.Plain(model.Tint.ToColor(Ivory), modelObject.Material == ModelMaterial.Metal ? 0.7f : 0.3f);
                     SetModel(view, modelMesh, skin, 0.05f);
                     break;

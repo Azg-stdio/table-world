@@ -26,7 +26,7 @@ namespace Core.Rules
                 case Model model:
                     return model.Asset == assetId || model.DiffuseAsset == assetId;
                 case Bag bag:
-                    return bag.Asset == assetId;
+                    return bag.Asset == assetId || bag.DiffuseAsset == assetId;
                 case Board board:
                     return board.Asset == assetId;
                 case Figure figure:

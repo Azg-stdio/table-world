@@ -258,6 +258,8 @@ namespace Core.Rules
     {
         /// <summary>Optional model asset for the bag's look; null means the default bag.</summary>
         public string? Asset { get; set; }
+        /// <summary>The image on the bag's model (TTS <c>Custom_Model_Bag</c>'s diffuse), tinted by the bag's tint.</summary>
+        public string? DiffuseAsset { get; set; }
     }
 
     /// <summary>A bag that clones its single template object on every take.</summary>
