@@ -174,6 +174,11 @@ set), `pass_turns` (always true) and `disable_interactations` (always false, not
 edit: `GUID`, `Nickname`, `Description`, `GMNotes`. `spawnObjectData({ data, position, rotation, scale,
 callback_function })` spawns a new object from such data (changes to those names apply) under a new id; a deck's cards
 get new ids too. Hand-made TTS data (`Name = 'Custom_Model'`, ...) is not read yet: it spawns nothing and logs why.
+Joints: `obj.jointTo(other, { type = "Fixed", collision = false })` holds an object to another so they move
+together; `obj.jointTo()` frees it; `obj.getJoints()` lists it. Hinge and spring hold like fixed for now.
+Attachments: `obj.addAttachment(other)` makes `other` part of `obj` (grabbing it takes `obj`), `obj.getAttachments()`
+lists them and `obj.removeAttachments()` frees them and returns them.
+
 A PDF's `obj.Book.getPage(offset)` and `obj.Book.setPage(page, offset)` read and turn its page for everyone (with
 `offset` true, page numbers count from the PDF's page offset). `bag.reset()` empties a bag or infinite bag and keeps it. A layout zone lays out with `zone.LayoutZone.layout()`.
 
@@ -188,5 +193,5 @@ draw from a deck, take from a bag into the hand). `Player[color].getHoldingObjec
 
 ## Not yet (T6.3)
 
-Typing into XmlUI `InputField`s drawn on objects, joints, asset-bundle effects, and scripted forces and velocities. The
+Typing into XmlUI `InputField`s drawn on objects, asset-bundle effects, and scripted forces and velocities. The
 coverage of the local mods is measured by `tools/tts-analysis/lua_coverage.py` (T6.4).

@@ -274,6 +274,9 @@
             "type": "number"
           }
         },
+        "joint": {
+          "$ref": "#/$defs/JointDef"
+        },
         "states": {
           "type": "object",
           "additionalProperties": {
@@ -362,6 +365,28 @@
           },
           "minItems": 3,
           "maxItems": 3
+        }
+      },
+      "additionalProperties": false
+    },
+    "JointDef": {
+      "type": "object",
+      "properties": {
+        "to": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "fixed",
+            "hinge",
+            "spring"
+          ]
+        },
+        "collision": {
+          "type": "boolean"
+        },
+        "attached": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false
@@ -578,6 +603,9 @@
             "type": "number"
           }
         },
+        "joint": {
+          "$ref": "#/$defs/JointDef"
+        },
         "states": {
           "type": "object",
           "additionalProperties": {
@@ -748,6 +776,9 @@
             "type": "number"
           }
         },
+        "joint": {
+          "$ref": "#/$defs/JointDef"
+        },
         "states": {
           "type": "object",
           "additionalProperties": {
@@ -868,6 +899,9 @@
           "items": {
             "type": "number"
           }
+        },
+        "joint": {
+          "$ref": "#/$defs/JointDef"
         },
         "states": {
           "type": "object",
@@ -1002,6 +1036,9 @@
             "type": "number"
           }
         },
+        "joint": {
+          "$ref": "#/$defs/JointDef"
+        },
         "states": {
           "type": "object",
           "additionalProperties": {
@@ -1118,6 +1155,9 @@
           "items": {
             "type": "number"
           }
+        },
+        "joint": {
+          "$ref": "#/$defs/JointDef"
         },
         "states": {
           "type": "object",
@@ -1253,6 +1293,9 @@
             "type": "number"
           }
         },
+        "joint": {
+          "$ref": "#/$defs/JointDef"
+        },
         "states": {
           "type": "object",
           "additionalProperties": {
@@ -1361,6 +1404,9 @@
             "type": "number"
           }
         },
+        "joint": {
+          "$ref": "#/$defs/JointDef"
+        },
         "states": {
           "type": "object",
           "additionalProperties": {
@@ -1468,6 +1514,9 @@
           "items": {
             "type": "number"
           }
+        },
+        "joint": {
+          "$ref": "#/$defs/JointDef"
         },
         "states": {
           "type": "object",
@@ -1582,6 +1631,9 @@
             "type": "number"
           }
         },
+        "joint": {
+          "$ref": "#/$defs/JointDef"
+        },
         "states": {
           "type": "object",
           "additionalProperties": {
@@ -1690,6 +1742,9 @@
             "type": "number"
           }
         },
+        "joint": {
+          "$ref": "#/$defs/JointDef"
+        },
         "states": {
           "type": "object",
           "additionalProperties": {
@@ -1794,6 +1849,9 @@
           "items": {
             "type": "number"
           }
+        },
+        "joint": {
+          "$ref": "#/$defs/JointDef"
         },
         "states": {
           "type": "object",
@@ -1913,6 +1971,9 @@
             "type": "number"
           }
         },
+        "joint": {
+          "$ref": "#/$defs/JointDef"
+        },
         "states": {
           "type": "object",
           "additionalProperties": {
@@ -2014,6 +2075,9 @@
           "items": {
             "type": "number"
           }
+        },
+        "joint": {
+          "$ref": "#/$defs/JointDef"
         },
         "states": {
           "type": "object",

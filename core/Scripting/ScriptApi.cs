@@ -558,6 +558,48 @@ namespace Core.Scripting
                             n++;
                         return DynValue.NewNumber(n);
                     });
+                case "jointTo":
+                    // TTS jointTo(other, { type, collision, ... }); jointTo() with nothing frees it.
+                    return Fn((o, a) =>
+                    {
+                        if (At(a, 0).Type != DataType.Table)
+                            return Do(new SetJointCommand { ObjectId = id });
+                        var other = At(a, 0).Table.Get("guid").CastToString();
+                        var p = At(a, 1).Type == DataType.Table ? At(a, 1).Table : null;
+                        var type = (p?.Get("type").CastToString() ?? "Fixed") switch { "Hinge" => JointType.Hinge, "Spring" => JointType.Spring, _ => JointType.Fixed };
+                        return other == null ? DynValue.False : Do(new SetJointCommand { ObjectId = id, To = other, Type = type, Collision = p?.Get("collision").CastToBool() ?? false });
+                    });
+                case "getJoints":
+                    return Fn((o, a) =>
+                    {
+                        var list = new Table(script);
+                        if (o.Joint is { } joint)
+                        {
+                            var entry = new Table(script);
+                            entry["type"] = joint.Type.ToString();
+                            entry["joint_object_guid"] = joint.To;
+                            entry["collision"] = joint.Collision;
+                            list[1] = entry;
+                        }
+                        return DynValue.NewTable(list);
+                    });
+                case "addAttachment":
+                    return Fn((o, a) =>
+                    {
+                        var other = At(a, 0).Type == DataType.Table ? At(a, 0).Table.Get("guid").CastToString() : null;
+                        return other == null ? DynValue.False : Do(new SetJointCommand { ObjectId = other, To = id, Attached = true });
+                    });
+                case "getAttachments":
+                    return Fn((o, a) => List(script, Engine.State.Objects.Where(x => x.Joint is { Attached: true } j && j.To == id).Select(x => x.Id)));
+                case "removeAttachments":
+                    // TTS gives back the objects it let go of.
+                    return Fn((o, a) =>
+                    {
+                        var freed = Engine.State.Objects.Where(x => x.Joint is { Attached: true } j && j.To == id).Select(x => x.Id).ToList();
+                        foreach (var other in freed)
+                            Issue(new SetJointCommand { ObjectId = other });
+                        return List(script, freed);
+                    });
                 case "getData":
                     // TTS object data: our own object JSON, with the TTS names scripts read and edit.
                     return Fn((o, a) => DynValue.NewTable(DataOf(script, o)));

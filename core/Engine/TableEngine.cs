@@ -224,6 +224,7 @@ namespace Core.Engine
             ScaleCommand c => Scale(c),
             DeleteCommand c => Delete(c),
             SetPageCommand c => SetPage(c),
+            SetJointCommand c => SetJoint(c),
             CloneCommand c => Clone(c),
             SetStateCommand c => SetState(c),
             CutCommand c => Cut(c),
@@ -1061,6 +1062,9 @@ namespace Core.Engine
                 _usedIds.Remove(state.Id);
             foreach (var zone in State.Zones.Where(z => z.Parent == obj.Id))
                 zone.Parent = null;
+            // What was held to it is free now.
+            foreach (var held in State.Objects.Where(o => o.Joint?.To == obj.Id))
+                held.Joint = null;
         }
 
         private void ClaimIds(TableObject obj)

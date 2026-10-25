@@ -91,6 +91,19 @@ namespace Core.Engine
         public int Value { get; set; }
     }
 
+    /// <summary>
+    /// Holds <see cref="ObjectId"/> to <see cref="To"/> (TTS <c>jointTo</c> / <c>addAttachment</c>), or frees it when
+    /// <see cref="To"/> is null. Works on locked objects too.
+    /// </summary>
+    public sealed class SetJointCommand : Command
+    {
+        public string ObjectId { get; set; } = "";
+        public string? To { get; set; }
+        public JointType Type { get; set; }
+        public bool Collision { get; set; }
+        public bool Attached { get; set; }
+    }
+
     /// <summary>Turns a PDF to <see cref="Page"/> (from 0) for everyone (M7 T8.8). Works on locked PDFs too.</summary>
     public sealed class SetPageCommand : Command
     {

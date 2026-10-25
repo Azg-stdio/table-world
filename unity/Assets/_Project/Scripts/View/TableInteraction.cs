@@ -670,6 +670,9 @@ namespace TableWorld.View
         {
             if (Held != null || view == null || _table.Spectating)
                 return false;
+            // An attached piece is part of what it is attached to (TTS addAttachment): that is what the hand takes.
+            if (view.Model.Joint is { Attached: true } attached && _table.ViewOf(attached.To) is { } whole)
+                view = whole;
 
             var model = view.Model;
             var isFullContainer = IsFullContainer(model);

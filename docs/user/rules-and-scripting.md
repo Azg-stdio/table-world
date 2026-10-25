@@ -245,7 +245,6 @@ Scripts are safe to run from a game someone sent you:
   unchanged.
 - Not yet supported:
   - typing into XmlUI input fields drawn on objects;
-  - joints;
   - asset-bundle effects;
   - scripted forces and velocities.
 

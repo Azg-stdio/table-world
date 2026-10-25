@@ -320,6 +320,9 @@ namespace Core.Rules
                     CheckObject(pair.Value, statePath, isState: true);
                 }
 
+                if (obj.Joint is { } joint && (joint.To == obj.Id || !_objects.ContainsKey(joint.To)))
+                    Add($"{path}.joint.to", ErrorCodes.UnknownObject, $"'{obj.Id}' is joined to '{joint.To}', which is not another object on the table.", "Join it to another object, or remove the joint.");
+
                 switch (obj)
                 {
                     case Card card:

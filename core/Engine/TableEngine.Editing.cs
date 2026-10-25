@@ -297,6 +297,23 @@ namespace Core.Engine
             return CommandResult.Success(new List<StateEvent> { new ObjectUpdated(die.Id) });
         }
 
+        private CommandResult SetJoint(SetJointCommand c)
+        {
+            if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: true) is { } fail)
+                return fail;
+            if (c.To == null)
+                obj.Joint = null;
+            else
+            {
+                if (c.To == obj.Id)
+                    return CommandResult.Fail("to", ErrorCodes.InvalidValue, "An object cannot be joined to itself.");
+                if (RequireOnTable(c.To, "to", out var target, allowLocked: true) is { } missing)
+                    return missing;
+                obj.Joint = new JointDef { To = target.Id, Type = c.Type, Collision = c.Collision, Attached = c.Attached };
+            }
+            return CommandResult.Success(new List<StateEvent> { new ObjectUpdated(obj.Id) });
+        }
+
         private CommandResult SetPage(SetPageCommand c)
         {
             if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: true) is { } fail)

@@ -52,7 +52,7 @@ namespace Core.Tts
         /// <summary>
         /// The importer's version, recorded in each package (<c>import.json</c>). Raise it when an import would come out
         /// different (a new object type, a mapping fixed), so games imported before are offered a re-import.
-        /// 2: PDFs (T8.8) and import.json. 3: model bags keep their image; textured models keep their tint; states keep their snap points; bowls; custom table image and sky.
+        /// 2: PDFs (T8.8) and import.json. 3: model bags keep their image; textured models keep their tint; states keep their snap points; bowls; custom table image and sky; attached objects (ChildObjects).
         /// </summary>
         public const int Version = 3;
 
@@ -318,6 +318,20 @@ namespace Core.Tts
                 foreach (var child in o["ContainedObjects"] as JArray ?? new JArray())
                     if (child is JObject inner)
                         Convert(inner, obj.Id);
+            // Attached objects (TTS ChildObjects, addAttachment) lie where they are on it, held to it. Their transform
+            // in the save is relative to it.
+            if (!isState)
+                foreach (var child in o["ChildObjects"] as JArray ?? new JArray())
+                    if (child is JObject attached && Convert(attached, container) is { } part)
+                    {
+                        var local = attached["Transform"] as JObject;
+                        float F(string key, float fallback = 0f) => local?[key] is JToken v && v.Type != JTokenType.Null ? (float)v : fallback;
+                        var offset = new Vec3(F("posX") * TtsUnits.TtsUnitsToMeters * obj.Transform.Scale.X, F("posY") * TtsUnits.TtsUnitsToMeters * obj.Transform.Scale.Y,
+                            F("posZ") * TtsUnits.TtsUnitsToMeters * obj.Transform.Scale.Z);
+                        part.Transform.Position = Geometry.Add(obj.Transform.Position, Geometry.Rotate(obj.Transform.Rotation, offset));
+                        part.Transform.Rotation = Geometry.Add(obj.Transform.Rotation, new Vec3(F("rotX"), F("rotY"), F("rotZ")));
+                        part.Joint = new JointDef { To = obj.Id, Attached = true };
+                    }
             return obj;
         }
 

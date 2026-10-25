@@ -124,6 +124,7 @@ namespace Core.Engine
                 case SetUiAttributesCommand _:
                 case UiEventCommand _:
                 case ClickButtonCommand _:
+                case SetJointCommand _:
                 case ScriptingKeyCommand _:
                 case TypeNumberCommand _:
                     return null;

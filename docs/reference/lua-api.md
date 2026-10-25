@@ -80,6 +80,7 @@ On every object a script gets (`getObjectFromGUID`, `self`, event arguments). Fu
 |---|---|
 | `AssetBundle` | value |
 | `UI` | value |
+| `addAttachment` | function |
 | `addForce` | function |
 | `addTag` | function |
 | `addTorque` | function |
@@ -95,6 +96,7 @@ On every object a script gets (`getObjectFromGUID`, `self`, event arguments). Fu
 | `editButton` | function |
 | `editInput` | function |
 | `flip` | function |
+| `getAttachments` | function |
 | `getBounds` | function |
 | `getBoundsNormalized` | function |
 | `getButtons` | function |
@@ -108,6 +110,7 @@ On every object a script gets (`getObjectFromGUID`, `self`, event arguments). Fu
 | `getGMNotes` | function |
 | `getInputs` | function |
 | `getInvisibleTo` | function |
+| `getJoints` | function |
 | `getLock` | function |
 | `getLuaScript` | function |
 | `getName` | function |
@@ -132,6 +135,7 @@ On every object a script gets (`getObjectFromGUID`, `self`, event arguments). Fu
 | `isDestroyed` | function |
 | `isSmoothMoving` | function |
 | `is_face_down` | value |
+| `jointTo` | function |
 | `loading_custom` | value |
 | `lock` | function |
 | `mass` | value |
@@ -143,6 +147,7 @@ On every object a script gets (`getObjectFromGUID`, `self`, event arguments). Fu
 | `randomize` | function |
 | `registerCollisions` | function |
 | `reload` | function |
+| `removeAttachments` | function |
 | `removeButton` | function |
 | `removeInput` | function |
 | `removeTag` | function |

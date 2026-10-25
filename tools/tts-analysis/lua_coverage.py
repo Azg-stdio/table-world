@@ -49,7 +49,7 @@ IMPLEMENTED = {
     "onObjectRandomize", "onRandomize", "onPlayerTurn",
     "getData", "spawnObjectData", "reset", "layout", "onUpdate", "onObjectSpawn", "onObjectDestroy",
     "onScriptingButtonDown", "onScriptingButtonUp", "onNumberTyped", "getHoldingObjects", "onPlayerConnect",
-    "setPage", "getPage",
+    "setPage", "getPage", "jointTo", "getJoints", "addAttachment", "getAttachments", "removeAttachments",
 }
 
 # Lua built-ins and string/table/math library names the analyzer may count as methods; they are provided by MoonSharp.

@@ -99,7 +99,7 @@ become the real object once Table World supports it.
 | Feature | Today |
 |---|---|
 | Tablets, text objects | Placeholders |
-| Lua | More than 99.9 % of the calls in the tested games work. Missing: typing into text fields drawn on objects, joints, AssetBundle effects (accepted, do nothing), and scripted forces and velocities |
+| Lua | More than 99.9 % of the calls in the tested games work. Missing: typing into text fields drawn on objects, AssetBundle effects (accepted, do nothing), and scripted forces and velocities |
 | Chat for one colour (`broadcastToColor`) | Reaches everyone |
 | Fog of war that reveals around pieces | A hidden zone only |
 | Physics | Table World's own: pieces behave like TTS's but not identically |

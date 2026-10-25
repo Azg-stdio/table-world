@@ -83,6 +83,9 @@ namespace Core.Rules
         /// <summary>RGB or RGBA multiplier, 0–1 (TTS <c>ColorDiffuse</c>).</summary>
         public float[]? Tint { get; set; }
 
+        /// <summary>Fixed to another object (TTS <c>jointTo</c>, or attached with <c>addAttachment</c>); null when free.</summary>
+        public JointDef? Joint { get; set; }
+
         /// <summary>Alternate states keyed by state number, TTS-style. The object itself is the active state.</summary>
         public Dictionary<string, TableObject> States { get; set; } = new Dictionary<string, TableObject>();
 
@@ -341,6 +344,22 @@ namespace Core.Rules
         public int PageOffset { get; set; }
         /// <summary>Metres; null means <see cref="DefaultSize"/>. The page is stretched to it, as TTS does.</summary>
         public Vec2? Size { get; set; }
+    }
+
+    /// <summary>TTS joint types. Hinge and spring hold like a fixed joint for now (the local mods only use fixed).</summary>
+    public enum JointType { Fixed, Hinge, Spring }
+
+    /// <summary>
+    /// One object held to another (TTS joints and attachments): it moves with <see cref="To"/>. <see cref="Attached"/>
+    /// makes it part of the other (TTS <c>addAttachment</c>, saves' <c>ChildObjects</c>): grabbing it grabs that one.
+    /// </summary>
+    public sealed class JointDef
+    {
+        public string To { get; set; } = "";
+        public JointType Type { get; set; }
+        /// <summary>The two still collide with each other (TTS <c>collision</c>).</summary>
+        public bool Collision { get; set; }
+        public bool Attached { get; set; }
     }
 
     public static class TableObjectTypes

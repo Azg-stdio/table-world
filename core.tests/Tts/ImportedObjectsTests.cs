@@ -134,5 +134,47 @@ namespace Core.Tests.Tts
             Assert.Null(plain.Environment?.SkyAsset);
             Assert.Null(plain.Environment?.Table.FeltAsset);
         }
+
+        [Fact]
+        public void Attachments_ImportHeldToTheirObject_AndScriptsJoinAndFree()
+        {
+            var save = @"{ ""ObjectStates"": [ { ""Name"": ""Custom_Model_Bag"", ""GUID"": ""boss01"", ""Nickname"": ""Medeus"",
+                ""Transform"": { ""posX"": 10, ""posY"": 1, ""posZ"": 0, ""rotX"": 0, ""rotY"": 90, ""rotZ"": 0, ""scaleX"": 1, ""scaleY"": 1, ""scaleZ"": 1 },
+                ""CustomMesh"": { ""MeshURL"": ""http://x/boss.obj"" },
+                ""ChildObjects"": [ { ""Name"": ""Custom_Token"", ""GUID"": ""tok001"",
+                    ""Transform"": { ""posX"": 0, ""posY"": 0, ""posZ"": 1, ""rotX"": 0, ""rotY"": 0, ""rotZ"": 0, ""scaleX"": 1, ""scaleY"": 1, ""scaleZ"": 1 } } ] },
+                { ""Name"": ""Custom_Token"", ""GUID"": ""chip01"" }, { ""Name"": ""Custom_Token"", ""GUID"": ""mon001"" } ] }";
+            var state = TtsImporter.Import(save).State;
+            var token = state.Objects.Single(o => o.Id == "tok001");
+            Assert.Equal("boss01", token.Joint!.To);
+            Assert.True(token.Joint.Attached);
+            Assert.Null(token.Container);
+            // One unit along the boss's turned +Z: yaw 90 points it along +X.
+            var boss = state.Objects.Single(o => o.Id == "boss01").Transform.Position;
+            Assert.Equal(boss.X + TtsUnits.TtsUnitsToMeters, token.Transform.Position.X, 3);
+            Assert.True(TableJson.Parse(TableJson.Serialize(state)).Ok);
+
+            state.Scripts[ScriptHost.GlobalName] = @"
+                local mon, chip, boss = getObjectFromGUID('mon001'), getObjectFromGUID('chip01'), getObjectFromGUID('boss01')
+                mon.jointTo(chip, { type = 'Fixed', collision = false })
+                broadcastToAll(mon.getJoints()[1].joint_object_guid .. ' ' .. #boss.getAttachments())
+                boss.addAttachment(chip)
+                local freed = boss.removeAttachments()
+                mon.jointTo()
+                broadcastToAll(#freed .. ' ' .. #mon.getJoints())";
+            var engine = new TableEngine(state, 1);
+            var said = new List<string>();
+            var host = new ScriptHost(() => engine, c => engine.Execute(c));
+            host.Broadcast += said.Add;
+            host.Load(0);
+            Assert.Equal(new[] { "chip01 1", "2 0" }, said);
+            Assert.All(engine.State.Objects, o => Assert.Null(o.Joint));
+            Assert.False(engine.Execute(new SetJointCommand { ObjectId = "mon001", To = "mon001" }).Ok);
+
+            // Deleting what something is held to frees it.
+            Assert.True(engine.Execute(new SetJointCommand { ObjectId = "mon001", To = "chip01" }).Ok);
+            Assert.True(engine.Execute(new DeleteCommand { ObjectId = "chip01" }).Ok);
+            Assert.Null(engine.Find("mon001")!.Joint);
+        }
     }
 }

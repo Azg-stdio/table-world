@@ -402,6 +402,7 @@ namespace TableWorld.View
             RefreshGrid();
             RefreshDrawings();
             PresentHands();
+            SyncJoints();
         }
 
         private Transform _drawings;
@@ -1312,6 +1313,34 @@ namespace TableWorld.View
                 }
             }
             PresentHands();
+            SyncJoints();
+        }
+
+        /// <summary>
+        /// Physics follows the table's joints (TTS jointTo, attachments): a fixed joint from each held object's body to
+        /// the one it is held to; none where the table has none. Hinge and spring hold like fixed for now.
+        /// </summary>
+        public void SyncJoints()
+        {
+            if (Engine == null)
+                return;
+            foreach (var view in _views.Values)
+            {
+                if (view == null)
+                    continue;
+                var existing = view.GetComponent<FixedJoint>();
+                var target = view.Model.Joint is { } joint ? ViewOf(joint.To) : null;
+                if (target == null)
+                {
+                    if (existing != null)
+                        Destroy(existing);
+                    continue;
+                }
+                var fixedJoint = existing != null ? existing : view.gameObject.AddComponent<FixedJoint>();
+                if (fixedJoint.connectedBody != target.Body)
+                    fixedJoint.connectedBody = target.Body;
+                fixedJoint.enableCollision = view.Model.Joint.Collision;
+            }
         }
 
         private void Spawn(TableObject obj)
