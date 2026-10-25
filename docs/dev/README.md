@@ -7,7 +7,12 @@ Permanent rules live in [CLAUDE.md](../../CLAUDE.md); context, decisions and ris
 - Flows (T9.4, one page each):
   - [From a gesture to the table](flows/input-to-command.md): input, `Command`, engines, state events, views.
   - [Multiplayer](flows/multiplayer.md): host authority, prediction, rebuilds, presence, chat, files.
-  - Still to write: rules games, MCP and the bridge, asset loading, TTS import, Lua, UI.
+  - [A rules game](flows/rules-games.md): transactions, phases, actions, effects, wins.
+  - [The MCP server and the game window](flows/mcp-and-bridge.md): tools, the document, the local bridge.
+  - [Loading assets](flows/assets.md): package, caches, the web, decoding, bundles.
+  - [Importing a Tabletop Simulator game](flows/tts-import.md): save to package, conventions, placeholders.
+  - [Lua scripts](flows/lua.md): the sandbox, events, timers, the API.
+  - [User interface](flows/ui.md): HUD, declarative game UI, script UI, buttons.
 - Recipes (T9.5): add an effect, an MCP tool, an object type, a Lua function, a HUD panel, a PlayMode test.
 
 ## System map
