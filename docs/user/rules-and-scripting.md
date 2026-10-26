@@ -95,6 +95,24 @@ them in `get_table_state`. A player never has to know the rules to play correctl
 
 **An action happens completely or not at all.** If any effect fails, the table goes back to how it was.
 
+**Secret choices.** Many games have everyone choose at once and then show: pick a space, bid, play a card face down.
+Mark the action `"secret": true`. Performing it records the player's choice and runs nothing; the others see only that
+the player has chosen. A `reveal` effect later shows every recorded choice and runs each one's effects, in turn order
+from the current player, as if that player had just performed it. The usual shape is a phase everyone acts in, which
+reveals when it ends:
+
+```json
+{ "id": "pick_space", "name": "Pick a space", "actor": "any", "secret": true, "limitPerPhase": 1,
+  "params": [ { "name": "space", "type": "choice", "options": ["dungeon", "shop", "tower", "event"] } ],
+  "effects": [ { "move": { "object": "$actor.figure", "to": "$param.space" } } ] }
+
+{ "id": "choose", "actions": ["pick_space"], "advanceWhen": { "allPlayersActed": true },
+  "onExit": [ { "reveal": {} } ] }
+```
+
+`{ "reveal": { "action": "pick_space" } }` shows only that action's choices. A choice is checked when it is made (its
+parameters and preconditions), so a player cannot pick something illegal and be found out later.
+
 ## 4. Naming things: `$` references
 
 Rules rarely name one card. They say "the actor's deck" or "the top card of the discard pile". A `$` reference names
@@ -118,7 +136,8 @@ pile, is empty, and comparisons with it are false.
 ## 5. Effects and conditions
 
 **Effects** change the table: `move`, `deal`, `shuffle`, `flip`, `lock`, `roll`, `setVariable`, `setResource`,
-`message`, `endTurn`, `endPhase`, `gotoPhase` and `win`, plus `if` and `forEach` to build logic from them.
+`message`, `endTurn`, `endPhase`, `gotoPhase` and `win`, plus `if` and `forEach` to build logic from them, `reveal` for
+secret choices (section 3) and `lua` to call a script (section 8).
 
 **Conditions** ask questions: `zoneCount`, `compare`, `variable`, `resource`, `isCurrentPlayer`, `objectIn` and
 `hasTag`, combined with `and`, `or` and `not`.
@@ -227,6 +246,48 @@ The [Lua API](../lua-api.md) lists them all.
 
 **Script UI:** scripts can make buttons and text fields on objects (`createButton`, `createInput`), and screen panels
 in TTS's XmlUI (`UI.setXml`, `UI.setAttribute`, `onClick` handlers).
+
+### Lua inside the rules
+
+A rule can hand a step to Lua with the `lua` effect. It calls a function of the global script with one table: `actor`
+(who performs the action), `params` (the action's choices), `it` (inside a `forEach`) and `args` (from the effect):
+
+```json
+{ "id": "fight", "name": "Fight the monster", "actor": "current",
+  "effects": [ { "lua": { "call": "fight", "args": { "health": 24 } } }, { "endTurn": {} } ] }
+```
+
+```lua
+function fight(ctx)
+  local dice = Game.roll(2, 6)
+  local total = dice[1] + dice[2] + Game.getResource(ctx.actor, "strength")
+  Game.log(ctx.actor .. " rolled " .. total)
+  if total > ctx.args.health then
+    Game.addResource(ctx.actor, "gold", 5)
+  else
+    Game.addResource(ctx.actor, "gold", -2)
+  end
+end
+```
+
+The function is part of the action: if it fails, or returns `false` or a reason (`return "Not enough gold."`), the
+whole action is undone and the player sees the reason. The `Game` table reads and changes the game in play:
+
+| Function | What it does |
+|---|---|
+| `Game.getResource(seat, id)`, `Game.setResource(seat, id, value)`, `Game.addResource(seat, id, delta)` | A player's resource (clamped to its min and max) |
+| `Game.getVariable(name)`, `Game.setVariable(name, value)` | A game variable: numbers, text, or tables |
+| `Game.getCurrentSeat()`, `Game.getPhase()`, `Game.getTurn()`, `Game.getSeats()`, `Game.getSeatColor(seat)` | Where the game is |
+| `Game.endTurn()`, `Game.endPhase()`, `Game.gotoPhase(id)` | Move the game on (after the action's effects) |
+| `Game.win(seat)`, `Game.isStarted()`, `Game.isOver()`, `Game.getWinner()` | The end of the game |
+| `Game.perform(seat, action, params)` | Perform an action as a player, from a button or an event (not from inside another action) |
+| `Game.getLegalActions(seat)` | The actions a player may perform now |
+| `Game.roll(count, sides)` | Dice for the script's own sums, as a list |
+| `Game.log(text)` | A line in the game log |
+
+The rest of the Lua API works too: a fight function can move a monster card, deal rewards or flip a token. Outside an
+action (a button, `onObjectDrop`), the `Game` functions are moves of their own, sent to every player like any move.
+Your agent sets scripts with `set_script` and tries them with `run_lua`, which runs against a copy of the table.
 
 ### The sandbox
 

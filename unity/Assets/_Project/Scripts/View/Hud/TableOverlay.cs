@@ -354,6 +354,7 @@ namespace TableWorld.View.Hud
                 Item("Exact position…", () => GizmoRequested(view));
             Item("Rotate 90° (E ×6)", () => _interaction.Rotate(view, 90f));
             Item(model.Locked ? "Unlock" : "Lock", () => _interaction.ToggleLock(view));
+            HideEntry(model);
             Item("Copy (Ctrl+C)", () => _interaction.Copy(new[] { view }));
             Item("Duplicate", () => Run(new CloneCommand { ObjectId = model.Id }));
             Row("Scale", new[] { ("−", (Action)(() => _interaction.Scale(new[] { view }, 1f / TableInteraction.ScaleStep))), ("+", (Action)(() => _interaction.Scale(new[] { view }, TableInteraction.ScaleStep))) });
@@ -361,6 +362,23 @@ namespace TableWorld.View.Hud
             Toggles(view);
             Rename(view);
             Item("Delete (Del)", () => _interaction.Delete(new[] { view }));
+        }
+
+        /// <summary>
+        /// Hide from others (a secret chip or bid: only you see it, until you show it) and Show to everyone. Others cannot
+        /// see or pick up a piece hidden from them.
+        /// </summary>
+        private void HideEntry(TableObject model)
+        {
+            if (_table.Spectating || _table.LocalSeat == null)
+                return;
+            var seats = _table.Engine.State.Players.Seats;
+            var mine = seats.FirstOrDefault(s => s.Id == _table.LocalSeat)?.Color?.ToLowerInvariant();
+            var others = seats.Select(s => s.Color.ToLowerInvariant()).Where(c => c != mine).Distinct().ToList();
+            if (model.InvisibleTo.Count == 0)
+                Item("Hide from others", () => Run(new SetPropertiesCommand { ObjectId = model.Id, InvisibleTo = others }));
+            else
+                Item("Show to everyone", () => Run(new SetPropertiesCommand { ObjectId = model.Id, InvisibleTo = new List<string>() }));
         }
 
         /// <summary>Layout and randomize zones under <paramref name="point"/> (G18): Lay out / Randomize.</summary>
@@ -502,7 +520,8 @@ namespace TableWorld.View.Hud
                 for (var i = 0; i < result.DeckContents.Count; i++)
                 {
                     var card = result.DeckContents[i];
-                    var face = _images.Face(_table.Assets, card.FaceAsset ?? deck.FaceAsset, card.FaceIndex);
+                    var (faceAsset, faceIndex) = _table.Assets.Face(deck, card);
+                    var face = _images.Face(_table.Assets, faceAsset, faceIndex);
                     grid.Add(SearchCell(container, card.Name ?? card.Id ?? $"Card {i + 1}", card.Id, i, face));
                 }
             }

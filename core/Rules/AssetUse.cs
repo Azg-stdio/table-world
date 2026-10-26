@@ -9,12 +9,15 @@ namespace Core.Rules
             switch (obj)
             {
                 case Card card:
-                    return card.FaceAsset == assetId || card.BackAsset == assetId;
+                    return card.FaceAsset == assetId || card.BackAsset == assetId || card.Text?.Art == assetId ||
+                           TextFaces.IsTextId(assetId) && (TextFaces.FaceId(card) == assetId || TextFaces.BackId(card) == assetId);
                 case Deck deck:
                     if (deck.FaceAsset == assetId || deck.BackAsset == assetId)
                         return true;
+                    var text = TextFaces.IsTextId(assetId);
                     foreach (var entry in deck.Cards)
-                        if (entry.FaceAsset == assetId || entry.BackAsset == assetId)
+                        if (entry.FaceAsset == assetId || entry.BackAsset == assetId || entry.Text?.Art == assetId ||
+                            text && (TextFaces.FaceId(deck, entry) == assetId || TextFaces.BackId(deck, entry) == assetId))
                             return true;
                     return false;
                 case Token token:

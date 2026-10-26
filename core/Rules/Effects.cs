@@ -120,6 +120,27 @@ namespace Core.Rules
         public string? Store { get; set; }
     }
 
+    /// <summary>
+    /// Shows the secret choices made so far (of <see cref="Action"/> only, when set) and runs each one's effects, in turn
+    /// order from the current seat, with <c>$actor</c> and <c>$param</c> bound to that seat's choice.
+    /// </summary>
+    public sealed class RevealEffect : Effect
+    {
+        public string? Action { get; set; }
+    }
+
+    /// <summary>
+    /// Calls the global Lua function <see cref="Call"/> with one table: <c>actor</c>, <c>params</c> (the action's
+    /// parameters), <c>it</c> (inside forEach) and <c>args</c> (<see cref="Args"/>). The function changes the game through
+    /// the Lua <c>Game</c> API and the table through the usual object API; returning <c>false, "reason"</c> refuses the
+    /// action and rolls it back.
+    /// </summary>
+    public sealed class LuaEffect : Effect
+    {
+        public string Call { get; set; } = "";
+        public JObject? Args { get; set; }
+    }
+
     public static class EffectKinds
     {
         public static readonly IReadOnlyDictionary<string, Type> ByName = new Dictionary<string, Type>
@@ -139,6 +160,8 @@ namespace Core.Rules
             ["win"] = typeof(WinEffect),
             ["lock"] = typeof(LockEffect),
             ["roll"] = typeof(RollEffect),
+            ["reveal"] = typeof(RevealEffect),
+            ["lua"] = typeof(LuaEffect),
         };
 
         private static readonly Dictionary<Type, string> Names = ByName.ToDictionary(p => p.Value, p => p.Key);

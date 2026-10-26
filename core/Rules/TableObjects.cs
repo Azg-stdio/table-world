@@ -150,6 +150,16 @@ namespace Core.Rules
 
         /// <summary>Free-form card data for rule conditions, e.g. <c>{ "rank": 11, "suit": "hearts" }</c>.</summary>
         public JObject? Meta { get; set; }
+
+        /// <summary>Words drawn on the face when <see cref="FaceAsset"/> is empty.</summary>
+        public CardText? Text { get; set; }
+        /// <summary>Colours of a text face, and of the back when <see cref="BackAsset"/> is empty.</summary>
+        public CardStyle? Style { get; set; }
+
+        /// <summary>The face is drawn from <see cref="Text"/>, not an image.</summary>
+        [JsonIgnore] public bool TextFace => Text != null && string.IsNullOrEmpty(FaceAsset);
+        /// <summary>The back is drawn from <see cref="Style"/> (or the default style), not an image.</summary>
+        [JsonIgnore] public bool TextBack => string.IsNullOrEmpty(BackAsset) && (Text != null || Style != null);
     }
 
     /// <summary>One card inside a <see cref="Deck"/>. Unset asset fields fall back to the deck's defaults.</summary>
@@ -170,6 +180,10 @@ namespace Core.Rules
         public JObject? Meta { get; set; }
         public string? Script { get; set; }
         public JObject? TtsExtra { get; set; }
+        /// <summary>Words drawn on the face when neither the card nor the deck has a face image (<see cref="CardText"/>).</summary>
+        public CardText? Text { get; set; }
+        /// <summary>This card's own look; null follows the deck's <see cref="Deck.Style"/>.</summary>
+        public CardStyle? Style { get; set; }
     }
 
     /// <summary>An ordered stack of cards. <c>Cards[0]</c> is the top (the card a draw takes), same as TTS <c>DeckIDs[0]</c>.</summary>
@@ -179,6 +193,8 @@ namespace Core.Rules
         public string BackAsset { get; set; } = "";
         public int BackIndex { get; set; }
         public Vec2? Size { get; set; }
+        /// <summary>How its text cards look, and the back of every card when <see cref="BackAsset"/> is empty.</summary>
+        public CardStyle? Style { get; set; }
         public List<DeckCard> Cards { get; set; } = new List<DeckCard>();
     }
 

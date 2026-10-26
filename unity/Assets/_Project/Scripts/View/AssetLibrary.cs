@@ -48,6 +48,7 @@ namespace TableWorld.View
             if (_texturesByPath.TryGetValue(asset.Path, out var texture) && texture != null)
                 Object.Destroy(texture);
             _texturesByPath.Remove(asset.Path);
+            RedrawTextWithArt(asset.Path);
             if (_meshesByPath.TryGetValue(asset.Path, out var mesh) && mesh != null)
                 Object.Destroy(mesh);
             _meshesByPath.Remove(asset.Path);
@@ -64,6 +65,12 @@ namespace TableWorld.View
                 }
                 Object.Destroy(page.Texture);
             }
+            DropMaterials(assetId);
+        }
+
+        /// <summary>Destroys the materials made for an image (tinted copies and per-cell copies too).</summary>
+        private void DropMaterials(string assetId)
+        {
             foreach (var key in _materials.Keys.Where(k => k.StartsWith("img:" + assetId + ":", System.StringComparison.Ordinal)).ToList())
             {
                 Object.Destroy(_materials[key]);
@@ -174,6 +181,8 @@ namespace TableWorld.View
 
         public Texture2D Texture(string assetId)
         {
+            if (TextFaces.IsTextId(assetId))
+                return TextTexture(assetId);
             var asset = Find(assetId);
             if (asset == null || asset.Type != AssetType.Image)
                 return null;
@@ -220,6 +229,79 @@ namespace TableWorld.View
             if (texture != null || _fetch == null)
                 _texturesByPath[asset.Path] = texture;
             return texture;
+        }
+
+        // ---- text cards (drawn by TextCardPainter) -------------------------------------------------------------------
+
+        private readonly Dictionary<string, TextCardPainter.Request> _textCards = new Dictionary<string, TextCardPainter.Request>();
+        private readonly HashSet<string> _painting = new HashSet<string>();
+
+        /// <summary>The image a card's face shows and its cell: its face image, or the drawing of its words.</summary>
+        public (string AssetId, int Index) Face(Card card) =>
+            TextFaces.FaceId(card) is { } id ? (DefineText(id, card.Text, card.Style, card.Size ?? Card.DefaultSize), 0) : (card.FaceAsset, card.FaceIndex);
+
+        public (string AssetId, int Index) Back(Card card) =>
+            TextFaces.BackId(card) is { } id ? (DefineText(id, null, card.Style, card.Size ?? Card.DefaultSize), 0) : (card.BackAsset, card.BackIndex);
+
+        public (string AssetId, int Index) Face(Deck deck, DeckCard entry) =>
+            TextFaces.FaceId(deck, entry) is { } id
+                ? (DefineText(id, entry.Text, entry.Style ?? deck.Style, deck.Size ?? Card.DefaultSize), 0)
+                : (entry.FaceAsset ?? deck.FaceAsset, entry.FaceIndex);
+
+        public (string AssetId, int Index) Back(Deck deck, DeckCard entry) =>
+            TextFaces.BackId(deck, entry) is { } id
+                ? (DefineText(id, null, entry.Style ?? deck.Style, deck.Size ?? Card.DefaultSize), 0)
+                : (entry.BackAsset ?? deck.BackAsset, entry.BackIndex ?? deck.BackIndex);
+
+        /// <summary>Remembers what a text drawing shows, so <see cref="Texture"/> can have it drawn when it is first needed.</summary>
+        private string DefineText(string id, CardText text, CardStyle style, Vec2 size)
+        {
+            if (!_textCards.ContainsKey(id))
+            {
+                var art = text?.Art;
+                _textCards[id] = new TextCardPainter.Request
+                {
+                    Id = id, Text = text?.Clone(), Style = style?.Clone(), Aspect = TextFaces.Aspect(size),
+                    Art = () => art != null ? Texture(art) : null,
+                    ArtCell = art != null ? CellScaleOffset(art, text.ArtIndex) : Vector4.zero,
+                    // Still loading: decoding, downloading, or (a network client) not received yet.
+                    ArtPending = () => Find(art) is { } image && !_texturesByPath.ContainsKey(image.Path),
+                };
+            }
+            return id;
+        }
+
+        private Texture2D TextTexture(string id)
+        {
+            if (_texturesByPath.TryGetValue(id, out var drawn))
+                return drawn;
+            if (!_textCards.TryGetValue(id, out var request) || !_painting.Add(id))
+                return null;
+            _imagesAsked++;
+            request.Done = texture =>
+            {
+                _painting.Remove(id);
+                _texturesByPath[id] = texture;
+                if (texture != null)
+                    Decoded?.Invoke(id);
+            };
+            TextCardPainter.Paint(request);
+            return null;
+        }
+
+        /// <summary>Text faces drawn before their art arrived are drawn again with it.</summary>
+        private void RedrawTextWithArt(string artPath)
+        {
+            foreach (var pair in _textCards)
+            {
+                var art = pair.Value.Text?.Art;
+                if (art == null || Find(art)?.Path != artPath || !_texturesByPath.TryGetValue(pair.Key, out var stale))
+                    continue;
+                _texturesByPath.Remove(pair.Key);
+                DropMaterials(pair.Key);
+                if (stale != null)
+                    Object.Destroy(stale);
+            }
         }
 
         /// <summary>Largest side of a loaded image (M4 T5.2); bigger ones are scaled down, keeping their proportions.</summary>
@@ -587,6 +669,8 @@ namespace TableWorld.View
                 WaitingDecodes.Dequeue()();
             _decoding.Remove(path);
             _texturesByPath[path] = texture;
+            if (texture != null)
+                RedrawTextWithArt(path);
             if (texture != null)
                 foreach (var id in _assets.Values.Where(a => a.Path == path).Select(a => a.Id).ToList())
                     Decoded?.Invoke(id);

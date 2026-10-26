@@ -219,6 +219,12 @@ namespace Core.Engine
         /// <summary>Cards dealt to each seat, in dealing order; a deal stops early when the deck runs out.</summary>
         public IReadOnlyDictionary<string, List<string>>? Dealt { get; internal set; }
 
+        /// <summary>
+        /// A rules command ran Lua (a <c>lua</c> effect). Only the host runs scripts, so peers replaying the command cannot
+        /// reproduce it: the host sends its state hash with this order and peers whose table differs ask for the table.
+        /// </summary>
+        public bool ScriptsRan { get; internal set; }
+
         private CommandResult(ValidationError? error, IReadOnlyList<StateEvent> events)
         {
             Error = error;
@@ -236,6 +242,7 @@ namespace Core.Engine
                 DeckContents = DeckContents,
                 BagContents = BagContents,
                 Dealt = Dealt,
+                ScriptsRan = ScriptsRan,
             };
             return copy;
         }

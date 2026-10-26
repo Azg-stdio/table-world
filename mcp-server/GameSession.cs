@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Core.Engine;
 using Core.Rules;
+using Core.Scripting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -16,7 +17,6 @@ namespace TableWorld.Mcp
     /// </summary>
     public sealed class GameSession
     {
-        public static readonly string[] DefaultColors = { "red", "blue", "green", "yellow" };
         private static readonly string[] Suits = { "clubs", "diamonds", "hearts", "spades" };
         private static readonly string[] Ranks = { "ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king" };
 
@@ -24,6 +24,62 @@ namespace TableWorld.Mcp
 
         public TableState Document { get; private set; } = new TableState();
         public GameEngine? Game { get; private set; }
+
+        /// <summary>The Lua of a game running here (headless): the global script and object scripts, as the game's host runs them.</summary>
+        private ScriptHost? _scripts;
+        /// <summary>What the scripts printed or broadcast since the last reply.</summary>
+        private readonly List<string> _scriptLines = new List<string>();
+
+        /// <summary>Starts the table's scripts for <paramref name="game"/>; rules lua effects call them.</summary>
+        private void StartScripts(GameEngine game)
+        {
+            var host = new ScriptHost(() => Game?.Table, command =>
+            {
+                var result = Game!.Execute(command);
+                _scripts?.OnCommand(command, result, null);
+                return result;
+            });
+            host.RulesEngine = () => Game;
+            host.Log += line => _scriptLines.Add("[Lua] " + line);
+            host.Broadcast += line => _scriptLines.Add(line);
+            game.Scripts = host;
+            _scripts = host;
+            host.Load(0);
+        }
+
+        /// <summary>The scripts' lines since the last call.</summary>
+        public List<string> DrainScriptLines()
+        {
+            var lines = new List<string>(_scriptLines);
+            _scriptLines.Clear();
+            return lines;
+        }
+
+        /// <summary>
+        /// Runs <paramref name="code"/> against a copy of the table as it is now (the game in play, or the setup), with its
+        /// scripts loaded: nothing changes in the real game. Returns the error or null, what the code returned, what it
+        /// printed, and the copy afterwards.
+        /// </summary>
+        public (string? Error, string? Value, List<string> Lines, TableState After) TryLua(string code)
+        {
+            var copy = TableJson.Parse(TableJson.Serialize(Current)).State!;
+            var game = new GameEngine(copy, Seed);
+            var lines = new List<string>();
+            var host = new ScriptHost(() => game.Table, command =>
+            {
+                var result = game.Execute(command);
+                if (!result.Ok)
+                    lines.Add($"[refused] {command.GetType().Name.Replace("Command", "")}: {result.Error!.Message}");
+                return result;
+            });
+            host.RulesEngine = () => game;
+            host.Log += line => lines.Add(line);
+            host.Broadcast += line => lines.Add(line);
+            game.Scripts = host;
+            host.Load(0);
+            var error = host.RunChunk(code, out var value);
+            return (error, value, lines, game.State);
+        }
         public string? FilePath { get; private set; }
         public ulong Seed { get; set; } = (ulong)DateTime.UtcNow.Ticks;
 
@@ -138,8 +194,9 @@ namespace TableWorld.Mcp
         /// <summary>A new empty game: standard deck assets, seats around the table, one hand zone per seat.</summary>
         public EditResult NewGame(string id, string name, int players, int minPlayers, int maxPlayers, string? description)
         {
-            if (players < 1 || players > 4)
-                return EditResult.Rejected(new ValidationError("players", ErrorCodes.InvalidValue, "players must be 1 to 4 in v0.", "Use 2 for a two-player game."));
+            if (players < 1 || players > SeatLayout.MaxSeats)
+                return EditResult.Rejected(new ValidationError("players", ErrorCodes.InvalidValue, $"players must be 1 to {SeatLayout.MaxSeats}.",
+                    "Use the number of seats at the table; more people can still join a session and watch."));
             if (GamesFolder != null)
                 FilePath = NewGameFile(id);
             var doc = new TableState
@@ -151,22 +208,112 @@ namespace TableWorld.Mcp
                     new Asset { Id = "std_back", Type = AssetType.Image, Path = "builtin:standard_back" },
                 },
             };
-            // South, north, east, west. Each hand faces its seat; y = 0.05 keeps cards inside the zone box.
-            var seats = new[] { ("south", 0f, -0.42f, 0f, 0.6f), ("north", 0f, 0.42f, 180f, 0.6f), ("east", 0.68f, 0f, 270f, 0.5f), ("west", -0.68f, 0f, 90f, 0.5f) };
-            for (var i = 0; i < players; i++)
+            // Each hand faces its seat; five seats or more need a bigger table, which the environment carries.
+            var (tableSize, places) = SeatLayout.Arrange(players);
+            if (tableSize != TableLookDef.DefaultSize)
+                doc.Environment = new EnvironmentDef { Table = { Size = tableSize } };
+            foreach (var place in places)
             {
-                var (where, x, z, yaw, width) = seats[i];
-                var seatId = $"seat_{where}";
-                var hand = new HandZone { Id = $"hand_{where}", Owner = seatId, Size = new Vec3(width, 0.1f, 0.12f) };
-                hand.Transform.Position = new Vec3(x, 0.05f, z);
-                hand.Transform.Rotation = new Vec3(0, yaw, 0);
+                var hand = new HandZone { Id = place.HandId, Owner = place.SeatId, Size = new Vec3(place.Width, 0.1f, 0.12f) };
+                hand.Transform.Position = place.Position;
+                hand.Transform.Rotation = new Vec3(0, place.Yaw, 0);
                 doc.Zones.Add(hand);
-                doc.Players.Seats.Add(new Seat { Id = seatId, Color = DefaultColors[i], HandZone = hand.Id });
+                doc.Players.Seats.Add(new Seat { Id = place.SeatId, Color = place.Color, HandZone = hand.Id });
             }
             Game = null;
             Document = doc;
             return Commit(Array.Empty<ValidationError>());
         }
+
+        /// <summary>File types the game loads, by extension, and the asset type each one is.</summary>
+        public static readonly IReadOnlyDictionary<string, string> AssetExtensions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            [".png"] = "image", [".jpg"] = "image", [".jpeg"] = "image",
+            [".obj"] = "model",
+            [".mp3"] = "audio", [".ogg"] = "audio", [".wav"] = "audio",
+            [".pdf"] = "pdf",
+            [".unity3d"] = "assetBundle",
+        };
+
+        /// <summary>
+        /// Brings a file into the game and returns its path relative to the game file. A file already in the game file's
+        /// folder is used where it is; any other is copied into <c>&lt;game&gt;-assets/</c> next to the game file, so the game
+        /// keeps working when the original moves and the host can send it to players who join.
+        /// </summary>
+        public string ImportAssetFile(string source)
+        {
+            if (FilePath == null)
+                throw new EditException(new ValidationError("path", ErrorCodes.MissingField, "The game has no file yet, so there is nowhere to keep its images.",
+                    "Call save_game with a path first, e.g. games/my-game.json."));
+            var full = Path.GetFullPath(source);
+            if (!File.Exists(full))
+                throw new EditException(new ValidationError("path", ErrorCodes.InvalidPath, $"No file at {full}.", "Pass the full path of an existing file."));
+            if (!AssetExtensions.ContainsKey(Path.GetExtension(full)))
+                throw new EditException(new ValidationError("path", ErrorCodes.InvalidValue, $"The game cannot load {Path.GetExtension(full)} files.",
+                    "Use " + string.Join(", ", AssetExtensions.Keys) + "; convert other images to PNG or JPEG."));
+            var root = Path.GetDirectoryName(FilePath)!;
+            var relative = Path.GetRelativePath(root, full).Replace('\\', '/');
+            if (Asset.IsSafePath(relative))
+                return relative;
+
+            var folder = Path.GetFileNameWithoutExtension(FilePath) + "-assets";
+            Directory.CreateDirectory(Path.Combine(root, folder));
+            var name = Path.GetFileNameWithoutExtension(full);
+            var extension = Path.GetExtension(full).ToLowerInvariant();
+            var target = Path.Combine(root, folder, name + extension);
+            // Another file of the same name is kept: this one gets a number. The same file again is not copied twice.
+            for (var n = 2; File.Exists(target) && !SameBytes(target, full); n++)
+                target = Path.Combine(root, folder, $"{name}-{n}{extension}");
+            if (!File.Exists(target))
+                File.Copy(full, target);
+            return Path.GetRelativePath(root, target).Replace('\\', '/');
+        }
+
+        private static bool SameBytes(string a, string b)
+        {
+            var ia = new FileInfo(a);
+            var ib = new FileInfo(b);
+            return ia.Length == ib.Length && File.ReadAllBytes(a).AsSpan().SequenceEqual(File.ReadAllBytes(b));
+        }
+
+        /// <summary>Width and height of a PNG or JPEG from its header, or null.</summary>
+        public static (int Width, int Height)? ImageSize(string file)
+        {
+            try
+            {
+                using var stream = File.OpenRead(file);
+                var head = new byte[32];
+                if (stream.Read(head, 0, head.Length) < 24)
+                    return null;
+                if (head[0] == 0x89 && head[1] == (byte)'P' && head[2] == (byte)'N' && head[3] == (byte)'G')
+                    return (BigEndian(head, 16), BigEndian(head, 20));
+                if (head[0] != 0xFF || head[1] != 0xD8)
+                    return null;
+                // JPEG: walk the segments to the frame header (SOF0–SOF15 except DHT, JPG and DAC).
+                stream.Position = 2;
+                var marker = new byte[4];
+                while (stream.Read(marker, 0, 4) == 4 && marker[0] == 0xFF)
+                {
+                    var type = marker[1];
+                    var length = (marker[2] << 8) | marker[3];
+                    if (type >= 0xC0 && type <= 0xCF && type != 0xC4 && type != 0xC8 && type != 0xCC)
+                    {
+                        var frame = new byte[5];
+                        if (stream.Read(frame, 0, 5) < 5)
+                            return null;
+                        return ((frame[3] << 8) | frame[4], (frame[1] << 8) | frame[2]);
+                    }
+                    stream.Position += length - 2;
+                }
+                return null;
+            }
+            catch (IOException)
+            {
+                return null;
+            }
+        }
+
+        private static int BigEndian(byte[] b, int at) => (b[at] << 24) | (b[at + 1] << 16) | (b[at + 2] << 8) | b[at + 3];
 
         /// <summary>Applies a change to the document's JSON and keeps it unless the result is malformed.</summary>
         public EditResult Edit(Action<JObject> change)
@@ -189,6 +336,21 @@ namespace TableWorld.Mcp
             Game = null;
             Document = parsed.State;
             return Commit(parsed.Errors);
+        }
+
+        /// <summary>A card id from a title: lowercase letters and digits joined by underscores ("Escudo Pesado" → escudo_pesado).</summary>
+        public static string Slug(string text)
+        {
+            var normalized = text.Normalize(System.Text.NormalizationForm.FormD);
+            var chars = new System.Text.StringBuilder();
+            foreach (var c in normalized)
+            {
+                if (System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) == System.Globalization.UnicodeCategory.NonSpacingMark)
+                    continue;
+                chars.Append(char.IsLetterOrDigit(c) && c < 128 ? char.ToLowerInvariant(c) : '_');
+            }
+            var slug = System.Text.RegularExpressions.Regex.Replace(chars.ToString(), "_+", "_").Trim('_');
+            return slug.Length == 0 ? "card" : slug;
         }
 
         public static JObject ParseObject(string json, string what)
@@ -255,11 +417,12 @@ namespace TableWorld.Mcp
             }
             var copy = TableJson.Parse(TableJson.Serialize(Document)).State!;
             Game = new GameEngine(copy, Seed);
+            StartScripts(Game);
             var result = Game.Execute(new StartGameCommand());
             if (!result.Ok)
                 Game = null;
             Changed?.Invoke(Current);
-            return PlayResult.From(result);
+            return PlayResult.From(result, DrainScriptLines());
         }
 
         public PlayResult Execute(Command command)
@@ -281,9 +444,11 @@ namespace TableWorld.Mcp
             if (Game == null)
                 return PlayResult.Refused(new ValidationError("", ErrorCodes.GameNotStarted, "No game is running.", "Call start_game first."));
             var result = Game.Execute(command);
+            if (result.Ok)
+                _scripts?.OnCommand(command, result, null);
             if (result.Ok || result.StateRestored)
                 Changed?.Invoke(Current);
-            return PlayResult.From(result);
+            return PlayResult.From(result, DrainScriptLines());
         }
 
         /// <summary>
@@ -357,6 +522,7 @@ namespace TableWorld.Mcp
             {
                 // A saved game in progress: resume it as is.
                 Game = new GameEngine(Document, Seed);
+                StartScripts(Game);
                 Document = TableJson.Parse(TableJson.Serialize(Document)).State!;
                 Document.Session = null;
             }
@@ -407,9 +573,9 @@ namespace TableWorld.Mcp
             Messages = messages;
         }
 
-        public static PlayResult From(CommandResult result) => new PlayResult(result,
+        public static PlayResult From(CommandResult result, IEnumerable<string>? scriptLines = null) => new PlayResult(result,
             result.Ok ? Array.Empty<ValidationError>() : new[] { result.Error! },
-            result.Events.OfType<GameMessage>().Select(m => m.Text).ToList());
+            result.Events.OfType<GameMessage>().Select(m => m.Text).Concat(scriptLines ?? Enumerable.Empty<string>()).ToList());
 
         /// <summary>A command the game window executed.</summary>
         public static PlayResult Remote(IReadOnlyList<string> messages) => new PlayResult(null, Array.Empty<ValidationError>(), messages);

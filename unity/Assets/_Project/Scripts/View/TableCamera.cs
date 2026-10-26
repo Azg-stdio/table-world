@@ -73,11 +73,16 @@ namespace TableWorld.View
         public float PanScale { get; set; } = 1f;
         public bool InvertOrbitY { get; set; }
 
-        /// <summary>Lets the camera reach all of a table of this size (big TTS tables need more than the default).</summary>
+        /// <summary>
+        /// Lets the camera reach all of a table of this size (big TTS tables need more than the default), and starts the
+        /// view further back on a bigger table (a 12-seat table is 2.7 m wide), up to twice the scene's distance.
+        /// </summary>
         public void FitTable(Vector2 size)
         {
             _pivotExtents = new Vector2(Mathf.Max(1.2f, size.x / 2f + 0.4f), Mathf.Max(0.9f, size.y / 2f + 0.4f));
             _maxDistance = Mathf.Max(4f, Mathf.Max(size.x, size.y) * 1.3f);
+            var scale = Mathf.Max(size.x / TableGeometry.DefaultSize.x, size.y / TableGeometry.DefaultSize.y);
+            _home.Distance = Mathf.Min(_maxDistance, _sceneDistance * Mathf.Clamp(scale, 1f, 2f));
         }
 
         public void Configure(Vector3 pivot, float yaw, float pitch, float distance, Vector2 pivotExtents)
@@ -110,13 +115,19 @@ namespace TableWorld.View
             SetView(_home);
         }
 
-        /// <summary>Turns the starting view to look across the table from <paramref name="seatPoint"/> (a seat's hand zone). Space returns here.</summary>
-        public void FaceFrom(Vector3 seatPoint)
+        /// <summary>
+        /// Turns the starting view to look across the table from <paramref name="seatPoint"/> (a seat's hand zone). Space
+        /// returns here. With the hand's <paramref name="handYaw"/> the view faces straight out from the seat's edge, as in
+        /// TTS, instead of at the centre (they differ for seats away from the middle of a side, on tables of five or more);
+        /// a yaw that points well away from the table (an imported hand turned its own way) is ignored.
+        /// </summary>
+        public void FaceFrom(Vector3 seatPoint, float? handYaw = null)
         {
             var across = new Vector3(_home.Pivot.x - seatPoint.x, 0f, _home.Pivot.z - seatPoint.z);
             if (across.sqrMagnitude < 1e-6f)
                 return;
-            _home.Yaw = Mathf.Atan2(across.x, across.z) * Mathf.Rad2Deg;
+            var towardCentre = Mathf.Atan2(across.x, across.z) * Mathf.Rad2Deg;
+            _home.Yaw = handYaw is { } yaw && Mathf.Abs(Mathf.DeltaAngle(yaw, towardCentre)) < 60f ? yaw : towardCentre;
             ResetView();
         }
 
@@ -158,9 +169,13 @@ namespace TableWorld.View
             return true;
         }
 
+        /// <summary>The starting distance the scene was built with, for the default table.</summary>
+        private float _sceneDistance;
+
         private void Awake()
         {
             _home = Current;
+            _sceneDistance = _distance;
             Apply();
         }
 

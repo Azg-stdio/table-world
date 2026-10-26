@@ -328,9 +328,13 @@ namespace Core.Rules
                 switch (obj)
                 {
                     case Card card:
-                        CheckSheetCell(card.FaceAsset, card.FaceIndex, $"{path}.faceAsset", $"{path}.faceIndex");
-                        CheckSheetCell(card.BackAsset, card.BackIndex, $"{path}.backAsset", $"{path}.backIndex");
+                        if (!card.TextFace)
+                            CheckSheetCell(card.FaceAsset, card.FaceIndex, $"{path}.faceAsset", $"{path}.faceIndex");
+                        if (!card.TextBack)
+                            CheckSheetCell(card.BackAsset, card.BackIndex, $"{path}.backAsset", $"{path}.backIndex");
                         CheckSize(card.Size, $"{path}.size");
+                        CheckCardText(card.Text, $"{path}.text");
+                        CheckCardStyle(card.Style, $"{path}.style");
                         break;
                     case Deck deck:
                         CheckSize(deck.Size, $"{path}.size");
@@ -338,6 +342,7 @@ namespace Core.Rules
                             CheckAssetRef(deck.FaceAsset, $"{path}.faceAsset", AssetType.Image);
                         if (deck.BackAsset.Length > 0)
                             CheckSheetCell(deck.BackAsset, deck.BackIndex, $"{path}.backAsset", $"{path}.backIndex");
+                        CheckCardStyle(deck.Style, $"{path}.style");
                         for (var j = 0; j < deck.Cards.Count; j++)
                             CheckDeckCard(deck, deck.Cards[j], $"{path}.cards[{j}]");
                         break;
@@ -400,17 +405,27 @@ namespace Core.Rules
             private void CheckDeckCard(Deck deck, DeckCard card, string path)
             {
                 // Deck-level asset problems are reported once on the deck, not again for every card that inherits them.
+                CheckCardText(card.Text, $"{path}.text");
+                CheckCardStyle(card.Style, $"{path}.style");
                 var face = card.FaceAsset ?? deck.FaceAsset;
+                // A text card needs no face image: the game draws its face.
                 if (face.Length == 0)
-                    Add($"{path}.faceAsset", ErrorCodes.MissingField, "This card has no face asset.", "Set 'faceAsset' on the deck or on the card.");
+                {
+                    if (card.Text == null)
+                        Add($"{path}.faceAsset", ErrorCodes.MissingField, "This card has no face asset.", "Set 'faceAsset' on the deck or on the card, or give the card 'text' to print words on it.");
+                }
                 else if (card.FaceAsset != null)
                     CheckSheetCell(face, card.FaceIndex, $"{path}.faceAsset", $"{path}.faceIndex");
                 else if (_assets.TryGetValue(face, out var deckFace) && deckFace.Type == AssetType.Image)
                     CheckCellIndex(deckFace, card.FaceIndex, $"{path}.faceIndex");
 
                 var back = card.BackAsset ?? deck.BackAsset;
+                // Without a back image, a text card or a styled one draws its back from the style (or the default one).
                 if (back.Length == 0)
-                    Add($"{path}.backAsset", ErrorCodes.MissingField, "This card has no back asset.", "Set 'backAsset' on the deck or on the card.");
+                {
+                    if (card.Text == null && (card.Style ?? deck.Style) == null)
+                        Add($"{path}.backAsset", ErrorCodes.MissingField, "This card has no back asset.", "Set 'backAsset' on the deck or on the card, or a deck 'style' to draw a back.");
+                }
                 else if (card.BackAsset != null)
                     CheckSheetCell(back, card.BackIndex ?? deck.BackIndex, $"{path}.backAsset", $"{path}.backIndex");
                 else if (card.BackIndex != null && _assets.TryGetValue(back, out var deckBack) && deckBack.Type == AssetType.Image)
@@ -496,6 +511,23 @@ namespace Core.Rules
                 CheckColor(env.Table.FeltColor, $"{path}.table.feltColor");
                 CheckColor(env.Table.WoodColor, $"{path}.table.woodColor");
                 CheckOptionalAsset(env.Table.FeltAsset, $"{path}.table.feltAsset", AssetType.Image);
+            }
+
+            private void CheckCardText(CardText? text, string path)
+            {
+                if (text?.Art is { } art && CheckAssetRef(art, $"{path}.art", AssetType.Image))
+                    CheckCellIndex(_assets[art], text.ArtIndex, $"{path}.artIndex");
+            }
+
+            private void CheckCardStyle(CardStyle? style, string path)
+            {
+                if (style == null)
+                    return;
+                CheckColor(style.Paper, $"{path}.paper");
+                CheckColor(style.Ink, $"{path}.ink");
+                CheckColor(style.Accent, $"{path}.accent");
+                CheckColor(style.BackPaper, $"{path}.backPaper");
+                CheckColor(style.BackInk, $"{path}.backInk");
             }
 
             private void CheckColor(float[]? color, string path)

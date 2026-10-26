@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using Core.Engine;
@@ -17,6 +18,7 @@ namespace TableWorld.Mcp
         {
             "flip", "rotate", "move", "lock", "unlock", "shuffle", "roll", "set_die_value", "cut", "split", "spread",
             "take", "insert", "group", "delete", "clone", "set_state", "scale", "rename", "lay_out", "randomize",
+            "hide", "show", "blind_round",
         };
 
         [McpServerTool(Name = "table_action"), Description(
@@ -26,15 +28,19 @@ namespace TableWorld.Mcp
             "take (from a deck or bag; value = index from the top, or other = card id; from a stack, value = how many pieces; x, z = where), insert (other = deck/bag/card to put it into; value 1 = at the bottom), " +
             "group (other = comma-separated ids to gather with it into a deck), delete, clone (x, z), set_state (other = state key), " +
             "scale (value = factor), rename (other = new name, text = description), " +
-            "lay_out (target = a LayoutZone id: arrange what is in it), randomize (target = a RandomizeZone id: shuffle where things in it lie).")]
+            "lay_out (target = a LayoutZone id: arrange what is in it), randomize (target = a RandomizeZone id: shuffle where things in it lie), " +
+            "hide (only seat sees it, or nobody without seat: a hidden chip or bid), show (everyone sees it again), " +
+            "blind_round (target 'table'; value 1 starts a blind round in which whatever each seat moves is hidden from the others, value 0 reveals everything moved in it). " +
+            "seat = the seat doing it (blind moves only count when a seat makes them).")]
         public static string TableAction(GameSession session,
-            [Description("One of: " + "flip, rotate, move, lock, unlock, shuffle, roll, set_die_value, cut, split, spread, take, insert, group, delete, clone, set_state, scale, rename, lay_out, randomize")] string action,
+            [Description("One of: " + "flip, rotate, move, lock, unlock, shuffle, roll, set_die_value, cut, split, spread, take, insert, group, delete, clone, set_state, scale, rename, lay_out, randomize, hide, show, blind_round")] string action,
             [Description("The object (or deck/bag) id.")] string target,
             [Description("Number argument (degrees, cards, piles, die value, index, factor) as described for the action.")] double? value = null,
             [Description("Text argument (another id, ids, state key or name) as described for the action.")] string? other = null,
             [Description("Position x in metres (table centre is 0, the table is 1.6 x 1.0).")] float? x = null,
             [Description("Position z in metres (south seat at z = -0.5).")] float? z = null,
-            [Description("Description, for rename.")] string? text = null) =>
+            [Description("Description, for rename.")] string? text = null,
+            [Description("Seat id doing it, as that player's hands.")] string? seat = null) =>
             session.Locked(() =>
             {
                 Vec3? At() => x.HasValue && z.HasValue ? new Vec3(x.Value, 0f, z.Value) : (Vec3?)null;
@@ -68,8 +74,17 @@ namespace TableWorld.Mcp
                     "set_state" => new SetStateCommand { ObjectId = target, State = other ?? "" },
                     "scale" => new ScaleCommand { ObjectId = target, Factor = (float)(value ?? 1.1) },
                     "rename" => new SetPropertiesCommand { ObjectId = target, Name = other, Description = text },
+                    "hide" => new SetPropertiesCommand
+                    {
+                        ObjectId = target,
+                        InvisibleTo = session.Current.Players.Seats.Where(s => s.Id != seat).Select(s => s.Color).Distinct().ToList(),
+                    },
+                    "show" => new SetPropertiesCommand { ObjectId = target, InvisibleTo = new List<string>() },
+                    "blind_round" => new BlindRoundCommand { On = value != 0 },
                     _ => null,
                 };
+                if (command != null)
+                    command.Actor = seat;
                 if (command == null)
                 {
                     var error = obj == null && (action == "rotate" || action == "move")

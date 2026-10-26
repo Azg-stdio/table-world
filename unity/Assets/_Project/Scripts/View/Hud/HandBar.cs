@@ -76,6 +76,9 @@ namespace TableWorld.View.Hud
             if (_reveal > 0.1f)
                 _openReveal = _reveal;
             _table = table;
+            // A card image that arrives later (decoded, downloaded, or a text card drawn) shows at once.
+            if (_table != null)
+                _table.AssetRefreshed += _ => _shownKey = null;
             _interaction = interaction;
             if (_interaction != null)
             {
@@ -199,7 +202,7 @@ namespace TableWorld.View.Hud
             var cards = HandCards(out _);
             // Hidden while the player carries one of its cards, so the bar shows where it can go back.
             var held = _interaction != null ? _interaction.Held?.Id : null;
-            var key = $"{_table.LocalSeat}|{held}|" + string.Join(",", cards.Select(c => c.Id + ":" + ((Card)c).FaceAsset + ((Card)c).FaceIndex));
+            var key = $"{_table.LocalSeat}|{held}|" + string.Join(",", cards.Select(c => c.Id + ":" + ((Card)c).FaceAsset + ((Card)c).FaceIndex + TextFaces.FaceId((Card)c)));
             if (key == _shownKey && _spritesFor == _table.Assets)
                 return;
             _shownKey = key;
@@ -230,7 +233,8 @@ namespace TableWorld.View.Hud
                 var element = new VisualElement { name = "hand-" + card.Id };
                 element.AddToClassList("hand-card");
                 // Runtime card images (cells of a sprite sheet) can only be set from code.
-                if (_images.Face(_table.Assets, card.FaceAsset, card.FaceIndex) is { } sprite)
+                var (faceAsset, faceIndex) = _table.Assets.Face(card);
+                if (_images.Face(_table.Assets, faceAsset, faceIndex) is { } sprite)
                     element.style.backgroundImage = new StyleBackground(sprite);
                 element.style.width = cardWidth;
                 element.style.height = _cardHeight;

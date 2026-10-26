@@ -245,6 +245,7 @@ namespace Core.Engine
                 BackAsset = deck.BackAsset,
                 BackIndex = deck.BackIndex,
                 Size = deck.Size,
+                Style = deck.Style?.Clone(),
                 Cards = deck.Cards.GetRange(start, count),
             };
             deck.Cards.RemoveRange(start, count);

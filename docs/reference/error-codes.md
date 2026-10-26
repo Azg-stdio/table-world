@@ -40,6 +40,7 @@ name: agents and tests match on them.
 | `precondition_failed` | `PreconditionFailed` |
 | `rule_failed` | `RuleFailed` |
 | `rules_loop` | `RulesLoop` |
+| `script_failed` | `ScriptFailed` |
 | `unknown_action` | `UnknownAction` |
 | `unknown_asset` | `UnknownAsset` |
 | `unknown_command` | `UnknownCommand` |

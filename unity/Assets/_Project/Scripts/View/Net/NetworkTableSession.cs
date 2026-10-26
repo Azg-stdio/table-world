@@ -121,6 +121,9 @@ namespace TableWorld.View.Net
         private ISession _relay;
         private RelayLobby.Handler _relayHandler;
 
+        /// <summary>People who may join a Relay session beyond the seats: they watch, talk and take a seat that frees up.</summary>
+        public const int ExtraPeople = 8;
+
         /// <summary>The code friends type to join, while hosting over Relay.</summary>
         public string JoinCode { get; private set; }
 
@@ -132,7 +135,7 @@ namespace TableWorld.View.Net
             var handler = NewRelayHandler(host: true);
             try
             {
-                var session = await RelayLobby.HostAsync(handler, Mathf.Max(2, _table.Engine.State.Players.Seats.Count));
+                var session = await RelayLobby.HostAsync(handler, Mathf.Max(2, _table.Engine.State.Players.Seats.Count) + ExtraPeople);
                 _relay = session;
                 JoinCode = session.Code;
                 Status = HostStatus();

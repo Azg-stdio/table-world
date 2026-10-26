@@ -77,6 +77,8 @@ namespace Core.Rules
         public const string InvalidParam = "invalid_param";
         public const string RulesLoop = "rules_loop";
         public const string RuleFailed = "rule_failed";
+        /// <summary>A <c>lua</c> effect names a function the global script does not define, or the function refused.</summary>
+        public const string ScriptFailed = "script_failed";
 
         // Engine (command) errors.
         public const string UnknownCommand = "unknown_command";

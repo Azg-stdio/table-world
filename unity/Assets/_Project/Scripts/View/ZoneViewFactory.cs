@@ -90,6 +90,8 @@ namespace TableWorld.View
                 case "teal": return new Color(0.15f, 0.7f, 0.7f);
                 case "white": return new Color(0.95f, 0.95f, 0.95f);
                 case "brown": return new Color(0.5f, 0.32f, 0.18f);
+                case "lime": return new Color(0.65f, 0.85f, 0.15f);
+                case "maroon": return new Color(0.5f, 0.08f, 0.15f);
             }
             return ColorUtility.TryParseHtmlString(name ?? "", out var parsed) ? parsed : Color.white;
         }

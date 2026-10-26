@@ -87,9 +87,9 @@ namespace TableWorld.Mcp.Tests
             var tools = (await _server.Client.ListToolsAsync()).Select(t => t.Name).OrderBy(n => n).ToArray();
             var expected = new[]
             {
-                "add_action", "add_event", "add_phase", "add_resource", "ask_host", "create_deck", "deal", "define_zone",
+                "add_action", "add_asset", "add_event", "add_phase", "add_resource", "ask_host", "create_deck", "create_text_deck", "deal", "define_zone",
                 "get_rules_document", "get_rules_reference", "get_table_state", "load_game", "new_game", "perform_action",
-                "place_object", "remove", "reset_game", "save_game", "set_rules_document", "set_turn", "set_variables",
+                "place_object", "remove", "reset_game", "run_lua", "save_game", "set_rules_document", "set_script", "set_turn", "set_variables",
                 "set_win_condition", "start_game", "table_action", "validate_rules",
             };
             Assert.Equal(expected, tools);
@@ -100,7 +100,7 @@ namespace TableWorld.Mcp.Tests
         {
             // M8 T9.11: an agent gets the rules reference, the brief template and the guide without the repository.
             var resources = (await _server.Client.ListResourcesAsync()).Select(r => r.Uri).OrderBy(u => u).ToArray();
-            Assert.Equal(new[] { "tableworld://docs/agent-guide", "tableworld://docs/game-brief-template", "tableworld://docs/rules-reference" }, resources);
+            Assert.Equal(new[] { "tableworld://docs/agent-guide", "tableworld://docs/game-brief-template", "tableworld://docs/rules-and-scripting", "tableworld://docs/rules-reference" }, resources);
             var brief = await _server.Client.ReadResourceAsync("tableworld://docs/game-brief-template");
             var text = string.Concat(brief.Contents.OfType<ModelContextProtocol.Protocol.TextResourceContents>().Select(c => c.Text));
             Assert.Contains("Game brief", text);
@@ -146,6 +146,168 @@ namespace TableWorld.Mcp.Tests
             var doc = await Call("get_rules_document");
             Assert.DoesNotContain(doc["objects"]!, o => (string?)o["id"] == "d6");
             Ok(await Call("set_rules_document", ("documentJson", doc.ToString())));
+        }
+
+        [Fact]
+        public async Task NewGame_SeatsUpToTwelve_OnATableThatGrows()
+        {
+            Ok(await Call("new_game", ("id", "party"), ("name", "Party"), ("players", 12)));
+            var doc = await Call("get_rules_document");
+            Assert.Equal(12, doc["players"]!["seats"]!.Count());
+            Assert.Equal("seat_12", (string?)doc["players"]!["seats"]![11]!["id"]);
+            Assert.True((float)doc["environment"]!["table"]!["size"]![0]! > 1.6f);
+            Ok(await Call("validate_rules"));
+
+            var tooMany = await Call("new_game", ("id", "crowd"), ("name", "Crowd"), ("players", 13));
+            Assert.False((bool)tooMany["ok"]!);
+            Assert.Equal("players", (string?)tooMany["errors"]![0]!["path"]);
+        }
+
+        [Fact]
+        public async Task AddAsset_CopiesTheFileNextToTheGame_AndDecksUseIt()
+        {
+            var outside = Path.Combine(Path.GetTempPath(), "tw-asset-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(outside);
+            try
+            {
+                // A PNG header is all the size check reads: 1000 x 600 px, a 5 x 3 sheet of 200 x 200 cells.
+                var png = new byte[] { 0x89, (byte)'P', (byte)'N', (byte)'G', 13, 10, 26, 10, 0, 0, 0, 13, (byte)'I', (byte)'H', (byte)'D', (byte)'R', 0, 0, 0x03, 0xE8, 0, 0, 0x02, 0x58, 8, 6, 0, 0, 0 };
+                var sheet = Path.Combine(outside, "Monsters.png");
+                File.WriteAllBytes(sheet, png);
+
+                var game = await Call("new_game", ("id", "art"), ("name", "Art"), ("players", 3));
+                var root = Path.GetDirectoryName((string)game["savedTo"]!)!;
+                var added = await Call("add_asset", ("id", "monsters"), ("path", sheet), ("columns", 5), ("rows", 3));
+                Ok(added);
+                Assert.Equal("art-assets/Monsters.png", (string?)added["asset"]!["path"]);
+                Assert.Equal(1000, (int)added["asset"]!["width"]!);
+                Assert.Equal(200, (int)added["cell"]!["height"]!);
+                Assert.True(File.Exists(Path.Combine(root, "art-assets", "Monsters.png")));
+
+                // The same file again is not copied twice; a different file of the same name gets a number.
+                Ok(await Call("add_asset", ("id", "monsters"), ("path", sheet), ("columns", 5), ("rows", 3)));
+                File.WriteAllBytes(sheet, png.Concat(new byte[] { 1 }).ToArray());
+                Assert.Equal("art-assets/Monsters-2.png", (string?)(await Call("add_asset", ("id", "monsters_b"), ("path", sheet)))["asset"]!["path"]);
+
+                Ok(await Call("create_deck", ("id", "deck"), ("cards", "[{\"id\":\"grumo\",\"faceIndex\":0},{\"id\":\"troll\",\"faceIndex\":14}]"), ("faceAsset", "monsters"), ("backAsset", "monsters_b")));
+                var doc = await Call("get_rules_document");
+                Assert.Equal("monsters", (string?)doc["objects"]!.First(o => (string?)o["id"] == "deck")["faceAsset"]);
+                Assert.Equal(5, (int)doc["assets"]!.First(a => (string?)a["id"] == "monsters")["columns"]!);
+                Ok(await Call("validate_rules"));
+
+                var missing = await Call("add_asset", ("id", "x"), ("path", Path.Combine(outside, "nope.png")));
+                Assert.Equal("invalid_path", (string?)missing["errors"]![0]!["code"]);
+                File.WriteAllText(Path.Combine(outside, "card.webp"), "");
+                Assert.Equal("invalid_value", (string?)(await Call("add_asset", ("id", "x"), ("path", Path.Combine(outside, "card.webp"))))["errors"]![0]!["code"]);
+            }
+            finally
+            {
+                Directory.Delete(outside, recursive: true);
+            }
+        }
+
+        [Fact]
+        public async Task CreateTextDeck_PrintsWords_WithCopiesAndStyles()
+        {
+            Ok(await Call("new_game", ("id", "words"), ("name", "Words"), ("players", 3)));
+            var cards = "[{\"title\":\"Escudo Pesado\",\"kind\":\"Equipamiento\",\"body\":\"Ataque +X.\",\"footer\":\"Precio 10 · Maná 3\",\"count\":3,\"meta\":{\"price\":10}}," +
+                        "{\"id\":\"night\",\"title\":\"Noche Normal\",\"style\":{\"paper\":[0.1,0.1,0.2],\"ink\":[1,1,1]}}]";
+            var style = "{\"accent\":[0.6,0.4,0.1],\"backLabel\":\"EQUIPAMIENTO\"}";
+            Ok(await Call("create_text_deck", ("id", "gear"), ("cards", cards), ("style", style), ("x", 0.3)));
+            var deck = (await Call("get_rules_document"))["objects"]!.First(o => (string?)o["id"] == "gear");
+            var ids = deck["cards"]!.Select(c => (string?)c["id"]).ToArray();
+            Assert.Equal(new[] { "escudo_pesado", "escudo_pesado_2", "escudo_pesado_3", "night" }, ids);
+            Assert.Equal("Escudo Pesado", (string?)deck["cards"]![1]!["name"]);
+            Assert.Equal("Precio 10 · Maná 3", (string?)deck["cards"]![2]!["text"]!["footer"]);
+            Assert.Equal(10, (int)deck["cards"]![0]!["meta"]!["price"]!);
+            Assert.Equal("EQUIPAMIENTO", (string?)deck["style"]!["backLabel"]);
+            Assert.NotNull(deck["cards"]![3]!["style"]);
+            Ok(await Call("validate_rules"));
+
+            var state = await Call("get_table_state");
+            Assert.Contains("gear", state.ToString());
+        }
+
+        [Fact]
+        public async Task HiddenPlay_HideShowBlindRound_AndSecretChoices()
+        {
+            Ok(await Call("new_game", ("id", "hidden"), ("name", "Hidden"), ("players", 3)));
+            Ok(await Call("place_object", ("objectJson", "{\"id\":\"chip\",\"type\":\"Token\",\"transform\":{\"position\":[0.1,0,0]}}")));
+            Ok(await Call("place_object", ("objectJson", "{\"id\":\"worker\",\"type\":\"Token\",\"transform\":{\"position\":[-0.1,0,0]}}")));
+
+            async Task<JToken> Object(string id) => (await Call("get_rules_document"))["objects"]!.First(o => (string?)o["id"] == id);
+            Ok(await Call("table_action", ("action", "hide"), ("target", "chip"), ("seat", "seat_south")));
+            Assert.Equal(new[] { "blue", "green" }, (await Object("chip"))["invisibleTo"]!.Select(c => (string)c!));
+            Ok(await Call("table_action", ("action", "show"), ("target", "chip")));
+            Assert.Null((await Object("chip"))["invisibleTo"]);
+
+            Ok(await Call("table_action", ("action", "blind_round"), ("target", "table"), ("value", 1)));
+            Ok(await Call("table_action", ("action", "move"), ("target", "worker"), ("x", 0.3f), ("z", 0.1f), ("seat", "seat_north")));
+            Assert.Equal(new[] { "red", "green" }, (await Object("worker"))["invisibleTo"]!.Select(c => (string)c!));
+            Ok(await Call("table_action", ("action", "blind_round"), ("target", "table"), ("value", 0)));
+            Assert.Null((await Object("worker"))["invisibleTo"]);
+
+            // Rules: everyone picks a space in secret; the phase ends when all have, and its onExit reveals.
+            Ok(await Call("add_resource", ("resourceJson", "{\"id\":\"space\",\"initial\":0}")));
+            Ok(await Call("add_action", ("actionJson", "{\"id\":\"pick\",\"actor\":\"any\",\"secret\":true,\"limitPerPhase\":1,\"params\":[{\"name\":\"space\",\"type\":\"choice\",\"options\":[\"1\",\"2\"]}],\"effects\":[{\"setResource\":{\"player\":\"$actor\",\"resource\":\"space\",\"value\":\"$param.space\"}}]}")));
+            Ok(await Call("add_action", ("actionJson", "{\"id\":\"done\",\"actor\":\"current\",\"effects\":[{\"endTurn\":{}}]}")));
+            Ok(await Call("add_phase", ("phaseJson", "{\"id\":\"choose\",\"actions\":[\"pick\"],\"advanceWhen\":{\"allPlayersActed\":true},\"onExit\":[{\"reveal\":{}}]}")));
+            Ok(await Call("add_phase", ("phaseJson", "{\"id\":\"act\",\"actions\":[\"done\"],\"advanceWhen\":{\"currentPlayerEnds\":true}}")));
+            Ok(await Call("validate_rules"));
+            Ok(await Call("start_game", ("seed", 3L)));
+            Ok(await Call("perform_action", ("seat", "seat_east"), ("action", "pick"), ("paramsJson", "{\"space\":\"2\"}")));
+            var mid = await Call("get_rules_document");
+            Assert.Equal(0, (double)mid["session"]!["resources"]!["seat_east"]!["space"]!);
+            Ok(await Call("perform_action", ("seat", "seat_south"), ("action", "pick"), ("paramsJson", "{\"space\":\"1\"}")));
+            Ok(await Call("perform_action", ("seat", "seat_north"), ("action", "pick"), ("paramsJson", "{\"space\":\"1\"}")));
+            var after = await Call("get_rules_document");
+            Assert.Equal(2, (double)after["session"]!["resources"]!["seat_east"]!["space"]!);
+            Assert.Equal("act", (string?)after["session"]!["phase"]);
+            Ok(await Call("reset_game"));
+        }
+
+        [Fact]
+        public async Task Lua_SetChecked_TriedOnACopy_AndCalledByTheRules()
+        {
+            Ok(await Call("new_game", ("id", "scripted"), ("name", "Scripted"), ("players", 2)));
+            var broken = await Call("set_script", ("target", "global"), ("code", "function fight(ctx"));
+            Assert.False((bool)broken["ok"]!);
+            Assert.Equal("script_failed", (string?)broken["errors"]![0]!["code"]);
+
+            Ok(await Call("set_script", ("target", "global"), ("code",
+                "function fight(ctx)\n  if Game.getResource(ctx.actor, 'gold') < ctx.args.cost then return 'Not enough gold.' end\n" +
+                "  Game.addResource(ctx.actor, 'gold', -ctx.args.cost)\n  Game.addResource(ctx.actor, 'wins', 1)\n  print('fought')\nend")));
+            Ok(await Call("add_resource", ("resourceJson", "{\"id\":\"gold\",\"initial\":3}")));
+            Ok(await Call("add_resource", ("resourceJson", "{\"id\":\"wins\",\"initial\":0}")));
+            Ok(await Call("add_action", ("actionJson", "{\"id\":\"fight\",\"actor\":\"current\",\"effects\":[{\"lua\":{\"call\":\"fight\",\"args\":{\"cost\":2}}},{\"endTurn\":{}}]}")));
+            Ok(await Call("add_phase", ("phaseJson", "{\"id\":\"main\",\"actions\":[\"fight\"],\"advanceWhen\":{\"currentPlayerEnds\":true}}")));
+            Ok(await Call("validate_rules"));
+
+            // Tried on a copy before the game starts: the setup has no session, so the function reports no gold.
+            var tried = await Call("run_lua", ("code", "return 1 + 2"));
+            Ok(tried);
+            Assert.Equal("3", (string?)tried["returned"]);
+
+            Ok(await Call("start_game", ("seed", 1L)));
+            var copy = await Call("run_lua", ("code", "fight({actor='seat_south', params={}, args={cost=2}}) return Game.getResource('seat_south','gold')"));
+            Assert.Equal("1", (string?)copy["returned"]);
+            Assert.Contains(copy["printed"]!, l => ((string?)l)!.Contains("fought"));
+            // The real game did not change.
+            Assert.Equal(3, (double)(await Call("get_rules_document"))["session"]!["resources"]!["seat_south"]!["gold"]!);
+
+            var played = await Call("perform_action", ("seat", "seat_south"), ("action", "fight"));
+            Ok(played);
+            Assert.Contains(played["messages"]!, l => ((string?)l)!.Contains("fought"));
+            var session = (await Call("get_rules_document"))["session"]!;
+            Assert.Equal(1, (double)session["resources"]!["seat_south"]!["gold"]!);
+            Assert.Equal(1, (double)session["resources"]!["seat_south"]!["wins"]!);
+
+            // seat_south's second fight finds 1 gold for a cost of 2: refused, and rolled back.
+            Ok(await Call("perform_action", ("seat", "seat_north"), ("action", "fight")));
+            var refused = await Call("perform_action", ("seat", "seat_south"), ("action", "fight"));
+            Assert.False((bool)refused["ok"]!);
+            Assert.Equal("Not enough gold.", (string?)refused["errors"]![0]!["message"]);
+            Ok(await Call("reset_game"));
         }
 
         [Fact]

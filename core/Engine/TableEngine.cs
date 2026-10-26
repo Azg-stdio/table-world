@@ -106,7 +106,59 @@ namespace Core.Engine
         public CommandResult Execute(Command command)
         {
             var result = Dispatch(command);
-            return result.Ok ? result.WithEvents(WithZoneEvents(result.Events)) : result;
+            if (!result.Ok)
+                return result;
+            var events = WithZoneEvents(result.Events);
+            if (State.Blind != null && command.Actor != null && command is MoveCommand or TakeCommand or FlipCommand or DropCommand or DealCommand)
+                HideBlindMoves(command.Actor, events);
+            return result.WithEvents(events);
+        }
+
+        private CommandResult SetBlindRound(BlindRoundCommand c)
+        {
+            var events = new List<StateEvent> { new TableSettingsChanged() };
+            if (c.On)
+            {
+                // Starting again while one runs keeps what is hidden.
+                State.Blind ??= new BlindRound();
+                events.Add(new GameMessage($"{c.Actor ?? "The host"} started a blind round: what each player moves stays hidden until the reveal."));
+                return CommandResult.Success(events);
+            }
+            if (State.Blind is { } blind)
+            {
+                foreach (var pair in blind.Before)
+                    if (_objects.TryGetValue(pair.Key, out var obj))
+                    {
+                        obj.InvisibleTo = pair.Value;
+                        events.Add(new ObjectUpdated(obj.Id));
+                    }
+                events.Add(new GameMessage($"{c.Actor ?? "The host"} revealed the blind round ({blind.Before.Count} piece{(blind.Before.Count == 1 ? "" : "s")})."));
+            }
+            State.Blind = null;
+            return CommandResult.Success(events);
+        }
+
+        /// <summary>In a blind round: what <paramref name="seat"/> just moved is seen only by that seat until the reveal.</summary>
+        private void HideBlindMoves(string seat, List<StateEvent> events)
+        {
+            var blind = State.Blind!;
+            var mine = State.Players.Seats.FirstOrDefault(s => s.Id == seat)?.Color?.ToLowerInvariant();
+            if (mine == null)
+                return;
+            var others = State.Players.Seats.Select(s => s.Color.ToLowerInvariant()).Where(c => c != mine).Distinct().ToList();
+            var touched = events.Where(e => e is ObjectUpdated or ObjectAdded or ContainerChanged).Select(e => e.ObjectId)
+                .Where(id => id.Length > 0).Distinct().ToList();
+            foreach (var id in touched)
+            {
+                // Cards in a hand are hidden by the hand already; pieces inside a bag are not on the table.
+                if (!_objects.TryGetValue(id, out var obj) || obj.Container != null || ZonesOf(id).Any(z => State.Zones.FirstOrDefault(x => x.Id == z) is HandZone))
+                    continue;
+                if (!blind.Before.ContainsKey(id))
+                    blind.Before[id] = new List<string>(obj.InvisibleTo);
+                blind.MovedBy[id] = seat;
+                obj.InvisibleTo = blind.Before[id].Concat(others).Distinct().ToList();
+                events.Add(new ObjectUpdated(id));
+            }
         }
 
         private List<StateEvent> WithZoneEvents(IReadOnlyList<StateEvent> events)
@@ -211,6 +263,7 @@ namespace Core.Engine
             GroupCommand c => Group(c),
             RollCommand c => Roll(c),
             SetPhysicsCommand c => SetPhysics(c),
+            BlindRoundCommand c => SetBlindRound(c),
             SetGridCommand c => SetGrid(c),
             SetLightingCommand c => SetLighting(c),
             MoveZoneCommand c => MoveZone(c),
@@ -954,6 +1007,7 @@ namespace Core.Engine
                 BackAsset = card?.BackAsset ?? "",
                 BackIndex = card?.BackIndex ?? 0,
                 Size = card?.Size,
+                Style = card?.Style?.Clone(),
             };
             deck.Transform.Position = at.Transform.Position;
             deck.Transform.Rotation = at.Transform.Rotation;
@@ -1005,6 +1059,8 @@ namespace Core.Engine
                 Meta = entry.Meta,
                 Script = entry.Script,
                 TtsExtra = entry.TtsExtra,
+                Text = entry.Text?.Clone(),
+                Style = (entry.Style ?? deck.Style)?.Clone(),
             };
             // A card is the deck's size (TTS mods scale whole decks: Pokémon Sinnoh's cards are 1.5).
             card.Transform.Scale = deck.Transform.Scale;
@@ -1026,6 +1082,8 @@ namespace Core.Engine
             Meta = card.Meta,
             Script = card.Script,
             TtsExtra = card.TtsExtra,
+            Text = card.Text?.Clone(),
+            Style = CardStyle.Same(card.Style, deck.Style) ? null : card.Style?.Clone(),
         };
 
         /// <summary>Re-expresses an entry of <paramref name="from"/> relative to the defaults of <paramref name="to"/>.</summary>
@@ -1034,6 +1092,7 @@ namespace Core.Engine
             var face = entry.FaceAsset ?? from.FaceAsset;
             var back = entry.BackAsset ?? from.BackAsset;
             var backIndex = entry.BackIndex ?? from.BackIndex;
+            var style = entry.Style ?? from.Style;
             return new DeckCard
             {
                 Id = entry.Id,
@@ -1048,6 +1107,8 @@ namespace Core.Engine
                 Meta = entry.Meta,
                 Script = entry.Script,
                 TtsExtra = entry.TtsExtra,
+                Text = entry.Text,
+                Style = CardStyle.Same(style, to.Style) ? null : style,
             };
         }
 

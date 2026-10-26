@@ -14,6 +14,7 @@ namespace TableWorld.Mcp
         public const string RulesReferenceUri = "tableworld://docs/rules-reference";
         public const string BriefTemplateUri = "tableworld://docs/game-brief-template";
         public const string AgentGuideUri = "tableworld://docs/agent-guide";
+        public const string ScriptingUri = "tableworld://docs/rules-and-scripting";
 
         [McpServerResource(UriTemplate = RulesReferenceUri, Name = "rules_reference", MimeType = "text/markdown"),
          Description("The rules format: objects, zones, phases, actions, effects, conditions, references, events, win conditions and error codes. The same text as the get_rules_reference tool.")]
@@ -26,6 +27,10 @@ namespace TableWorld.Mcp
         [McpServerResource(UriTemplate = AgentGuideUri, Name = "agent_guide", MimeType = "text/markdown"),
          Description("How to work with Table World: the build loop, what trips agents up, troubleshooting.")]
         public static string AgentGuide() => Embedded("agent-guide.md");
+
+        [McpServerResource(UriTemplate = ScriptingUri, Name = "rules_and_scripting", MimeType = "text/markdown"),
+         Description("Rules and scripting for designers: phases, actions, secret choices, effects, and Lua (the Game API, lua effects, the sandbox).")]
+        public static string Scripting() => Embedded("rules-and-scripting.md");
 
         internal static string Embedded(string name)
         {

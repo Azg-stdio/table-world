@@ -26,6 +26,8 @@ namespace TableWorld.View.Hud
         [SerializeField] private TableInteraction _interaction;
         [SerializeField] private TableWorld.View.Net.NetworkTableSession _session;
         private Label _netStatus;
+        private Button _blindButton;
+        private string _shownBlind;
 
         private VisualElement _root;
         private Label _turnLabel;
@@ -166,6 +168,9 @@ namespace TableWorld.View.Hud
             }
 
             _root.Q<Button>("saveButton").clicked += Save;
+            _blindButton = _root.Q<Button>("blindButton");
+            if (_blindButton != null)
+                _blindButton.clicked += ToggleBlindRound;
             _netStatus = _root.Q<Label>("netStatus");
             var address = _root.Q<TextField>("netAddress");
             _root.Q<Button>("hostButton").clicked += () => _session?.StartHost(Port(address.value));
@@ -364,7 +369,7 @@ namespace TableWorld.View.Hud
             _facedSeat = key;
             var camera = Camera.main != null ? Camera.main.GetComponent<TableCamera>() : null;
             if (camera != null)
-                camera.FaceFrom(hand.Transform.Position.ToUnity());
+                camera.FaceFrom(hand.Transform.Position.ToUnity(), hand.Transform.Rotation.Y);
         }
 
         private void OnDisable()
@@ -409,6 +414,7 @@ namespace TableWorld.View.Hud
                 _shownSelection = null;
             }
             FaceLocalSeat();
+            RefreshBlindRound();
             RefreshSelection();
             _overlay?.Update();
             _handBar?.Update();
@@ -433,6 +439,35 @@ namespace TableWorld.View.Hud
                 RefreshGame();
                 _gameUi.Refresh();
             }
+        }
+
+        /// <summary>
+        /// Blind round: until the reveal, what each player moves is hidden from the others (BlindRound). The button starts
+        /// one, and while it runs shows how many pieces are hidden and reveals them.
+        /// </summary>
+        private void ToggleBlindRound()
+        {
+            var running = _table.Engine.State.Blind != null;
+            var result = _table.Execute(new Core.Engine.BlindRoundCommand { On = !running, Actor = _table.LocalSeat });
+            if (!result.Ok)
+                ShowStatus(result.Error.Message, error: true);
+        }
+
+        private void RefreshBlindRound()
+        {
+            if (_blindButton == null)
+                return;
+            var blind = _table.Engine.State.Blind;
+            var key = blind == null ? "" : blind.MovedBy.Count + "|" + _table.Spectating;
+            if (key == _shownBlind && _blindButton.ClassListContains("hidden") == _table.Spectating)
+                return;
+            _shownBlind = key;
+            _blindButton.EnableInClassList("hidden", _table.Spectating);
+            _blindButton.EnableInClassList("hud-button--blind", blind != null);
+            _blindButton.text = blind == null ? "Blind round" : $"Reveal ({blind.MovedBy.Count})";
+            _blindButton.tooltip = blind == null
+                ? "Start a blind round: until the reveal, what each player moves stays hidden from the others."
+                : "Reveal everything moved in this blind round.";
         }
 
         /// <summary>A seat chip glows while its player talks; your own while your microphone sends.</summary>

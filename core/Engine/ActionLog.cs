@@ -147,8 +147,14 @@ namespace Core.Engine
                            (c.Grid.Snapping != GridSnapping.Off ? $", snapping to {c.Grid.Snapping.ToString().ToLowerInvariant()}" : "");
                 case StartGameCommand _:
                     return "started the game";
+                case PerformActionCommand c when engine.State.Actions.FirstOrDefault(a => a.Id == c.ActionId) is { Secret: true }:
+                    return "chose in secret";
                 case PerformActionCommand c:
                     return $"did {engine.State.Actions.FirstOrDefault(a => a.Id == c.ActionId)?.Name ?? c.ActionId}";
+                case BlindRoundCommand { On: true }:
+                    return "started a blind round";
+                case BlindRoundCommand _:
+                    return "revealed the blind round";
                 default:
                     return null;
             }

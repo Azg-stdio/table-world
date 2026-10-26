@@ -76,6 +76,11 @@ Everything below already passes automated tests on one machine (two processes, s
 - [ ] Hovering a deck or bag shows how many cards or items it holds.
 - [ ] Rolling several dice at once (select or pick them up together, R) reads clearly for everyone.
 - [ ] Hidden zone (the sample table's dark block on the left belongs to the north seat): the north player sees the Ace of hearts inside, the south player sees only the block; dropping a card in hides it from the other seat.
+- [ ] Blind round (top bar): after one person starts it, whatever each friend moves vanishes for the others and stays visible to the mover; Reveal (n) shows everything on every screen.
+- [ ] Hide from others (right click a piece): the friends no longer see it or can pick it up; Show to everyone brings it back.
+- [ ] A game with more than 4 seats (5–12): every friend's camera starts behind their own hand, and friends beyond the seats can still join, watch and talk.
+- [ ] Text cards (a deck made with create_text_deck): faces and backs are readable on the table, in the hand and in Search on every screen.
+- [ ] A rules action that runs Lua: every screen ends with the same result (clients catch up after a moment).
 - [ ] Physics modes (host: right-click the felt → Physics): with semi-lock nothing gets knocked over, with locked dropped pieces stay exactly where they are put; friends see the same; a friend has no Physics row.
 - [ ] Free-play turns (host: right-click the felt → Turns: In order): everyone sees whose turn it is, only that player has End turn, and "Your turn" shows up when it comes round.
 - [ ] Counter and timer (sample table: Score on the right, Turn timer on the left): everyone sees the same score; a running timer shows about the same time on every screen and rings for everyone at zero.

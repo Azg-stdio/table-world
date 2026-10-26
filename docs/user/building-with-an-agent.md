@@ -15,8 +15,8 @@ subscription; the agent runs on your account.
 
 | It can | It cannot (yet) |
 |---|---|
-| Set up tables: decks (the built-in French deck or your own cards), tokens, tiles, dice, bags, boards and zones | Draw your card art: you supply the images |
-| Write the rules: turns, phases, actions with choices, conditions, scores, events and win conditions | Check what a Lua script does: `validate_rules` checks the rules format, and scripts are tested by playing ([rules and scripting](rules-and-scripting.md)) |
+| Set up tables: decks (the built-in French deck, your own card images, or text-only cards the game prints for you), tokens, tiles, dice, bags, boards and zones, for up to 12 seats | Draw your card art: text cards print words, pictures come from you |
+| Write the rules: turns, phases, actions with choices, secret simultaneous choices, conditions, scores, events and win conditions, and Lua for what the format cannot say | Prove a Lua script right: `validate_rules` checks the rules format and that called functions exist; `run_lua` tries a script on a copy of the table ([rules and scripting](rules-and-scripting.md)) |
 | Check the rules, explain each problem, and suggest a fix | Decide what your rulebook means: when the rulebook is unclear, the agent asks you |
 | Start a game and play it, as any seat, through the same rules a player's buttons use | Play online for you: online games are hosted from the game window |
 | Show the table live in the Table World window while it builds | |

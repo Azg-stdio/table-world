@@ -337,6 +337,12 @@ namespace Core.Engine
         public string ZoneId { get; set; } = "";
     }
 
+    /// <summary>Starts a blind round (<see cref="BlindRound"/>), or ends it and reveals every piece moved in it.</summary>
+    public sealed class BlindRoundCommand : Command
+    {
+        public bool On { get; set; }
+    }
+
     /// <summary>Sets how the table simulates objects (TTS: Options > Physics). Host only.</summary>
     public sealed class SetPhysicsCommand : Command, IHostCommand
     {

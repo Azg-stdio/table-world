@@ -1,0 +1,82 @@
+/* Text cards: faces and backs the game draws from words (TextCardPainter), one per cell of an offscreen panel. Colours come from each card's style, set in code. */
+.tc-face {
+    position: absolute;
+    border-width: 10px;
+    overflow: hidden;
+}
+
+.tc-band {
+    flex-direction: row;
+    align-items: center;
+    min-height: 64px;
+    padding: 6px 14px;
+}
+
+.tc-title {
+    flex-grow: 1;
+    flex-shrink: 1;
+    -unity-font-style: bold;
+    white-space: normal;
+}
+
+.tc-corner {
+    min-width: 48px;
+    margin-left: 8px;
+    padding: 2px 10px;
+    border-radius: 18px;
+    font-size: 30px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.tc-kind {
+    padding: 4px 16px 0 16px;
+    font-size: 26px;
+    -unity-font-style: italic;
+}
+
+.tc-art {
+    height: 42%;
+    margin: 8px 14px 0 14px;
+    border-width: 2px;
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+.tc-body {
+    flex-grow: 1;
+    flex-shrink: 1;
+    padding: 10px 20px;
+    white-space: normal;
+    -unity-text-align: middle-center;
+    overflow: hidden;
+}
+
+.tc-footer {
+    padding: 6px 14px;
+    font-size: 26px;
+    -unity-text-align: middle-center;
+}
+
+.tc-back {
+    position: absolute;
+    align-items: center;
+    justify-content: center;
+}
+
+.tc-back-frame {
+    position: absolute;
+    left: 18px;
+    top: 18px;
+    right: 18px;
+    bottom: 18px;
+    border-width: 6px;
+    border-radius: 20px;
+}
+
+.tc-back-label {
+    margin: 0 44px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    white-space: normal;
+    letter-spacing: 4px;
+}

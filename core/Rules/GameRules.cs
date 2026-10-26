@@ -86,6 +86,19 @@ namespace Core.Rules
         public List<Effect> Effects { get; set; } = new List<Effect>();
         /// <summary>How many times one seat may perform it per phase visit; null is unlimited.</summary>
         public int? LimitPerPhase { get; set; }
+        /// <summary>
+        /// Chosen in secret (simultaneous choices: everyone picks a space, then all are shown): performing it only records
+        /// the seat's choice, which others cannot see, and its effects run when a <c>reveal</c> effect shows the choices.
+        /// </summary>
+        public bool Secret { get; set; }
+    }
+
+    /// <summary>A secret action a seat performed, waiting for a <c>reveal</c>.</summary>
+    public sealed class SecretChoice
+    {
+        public string Seat { get; set; } = "";
+        public string Action { get; set; } = "";
+        public Dictionary<string, string> Params { get; set; } = new Dictionary<string, string>();
     }
 
     public enum WinCheck { AnyCommand, TurnEnd }
@@ -115,6 +128,8 @@ namespace Core.Rules
         public Dictionary<string, JToken> Variables { get; set; } = new Dictionary<string, JToken>();
         /// <summary>seat → resource → value.</summary>
         public Dictionary<string, Dictionary<string, double>> Resources { get; set; } = new Dictionary<string, Dictionary<string, double>>();
+        /// <summary>Secret choices made and not yet revealed, in the order they were made.</summary>
+        public List<SecretChoice> Secrets { get; set; } = new List<SecretChoice>();
         /// <summary>Messages from <c>message</c> effects, oldest first (last 50).</summary>
         public List<string> Log { get; set; } = new List<string>();
         /// <summary>Random generator state, so a saved game continues the same sequence.</summary>

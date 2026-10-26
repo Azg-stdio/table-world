@@ -86,6 +86,19 @@ namespace Core.Rules
     /// Free-play turns (TTS "Turns", G22): whose turn it is, without a rules file. A game with rules runs its own turns
     /// (<see cref="TableState.Turn"/>) and leaves this off.
     /// </summary>
+    /// <summary>
+    /// A blind round: until the reveal, whatever a seat moves, flips, turns or takes is invisible to the other seats, so
+    /// everyone commits a move without seeing the others' (place your worker, bid with chips, then show). The reveal
+    /// gives every piece back the visibility it had before the round.
+    /// </summary>
+    public sealed class BlindRound
+    {
+        /// <summary>Object id → the seat that last moved it in this round.</summary>
+        public Dictionary<string, string> MovedBy { get; set; } = new Dictionary<string, string>();
+        /// <summary>Object id → the colours it was invisible to before the round.</summary>
+        public Dictionary<string, List<string>> Before { get; set; } = new Dictionary<string, List<string>>();
+    }
+
     public sealed class FreeTurns
     {
         public bool Enabled { get; set; }
@@ -132,6 +145,8 @@ namespace Core.Rules
         public FreeTurns? FreeTurns { get; set; }
         /// <summary>How objects are simulated (G19). Saved with the table; only the host changes it.</summary>
         public PhysicsMode Physics { get; set; }
+        /// <summary>A blind round in progress (<see cref="BlindRound"/>); null when none.</summary>
+        public BlindRound? Blind { get; set; }
         /// <summary>The table grid (G28): lines and snapping; null means none. Only the host changes it.</summary>
         public GridDef? Grid { get; set; }
         /// <summary>The table's music (G27, TTS Music Player); null means none. Only the host changes it.</summary>

@@ -130,6 +130,7 @@
             <ui:Button name="gamesButton" class="hud-button" text="Games" />
             <ui:Button name="playersButton" class="hud-button hidden" text="Players" />
             <ui:Button name="notesButton" class="hud-button" text="Notes" />
+            <ui:Button name="blindButton" class="hud-button" text="Blind round" />
             <ui:Button name="helpButton" class="hud-button" text="Controls" />
             <ui:Label name="netStatus" class="seat-name net-status" />
             <ui:TextField name="netAddress" class="net-address" value="127.0.0.1:7777" />

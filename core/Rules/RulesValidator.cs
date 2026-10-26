@@ -245,6 +245,23 @@ namespace Core.Rules
                 case WinEffect win:
                     Seat(win.Player, $"{path}.player");
                     break;
+                case LuaEffect lua:
+                    if (string.IsNullOrWhiteSpace(lua.Call))
+                        Add($"{path}.call", ErrorCodes.MissingField, "A lua effect needs the name of a global Lua function to call.");
+                    else if (!_state.Scripts.TryGetValue("global", out var global) ||
+                             !System.Text.RegularExpressions.Regex.IsMatch(global, $@"(function\s+{System.Text.RegularExpressions.Regex.Escape(lua.Call)}\s*\(|\b{System.Text.RegularExpressions.Regex.Escape(lua.Call)}\s*=\s*function\b)"))
+                        Add($"{path}.call", ErrorCodes.ScriptFailed, $"The global script defines no function '{lua.Call}'.",
+                            $"Add 'function {lua.Call}(ctx) ... end' to scripts.global (set_script).");
+                    break;
+                case RevealEffect reveal when reveal.Action != null:
+                    var secret = _state.Actions.FirstOrDefault(a => a.Id == reveal.Action);
+                    if (secret == null)
+                        Add($"{path}.action", ErrorCodes.UnknownAction, $"Action '{reveal.Action}' does not exist.",
+                            Suggest.OneOf(reveal.Action, _state.Actions.Where(a => a.Secret).Select(a => a.Id), "a secret action"));
+                    else if (!secret.Secret)
+                        Add($"{path}.action", ErrorCodes.InvalidValue, $"Action '{reveal.Action}' is not secret, so there is nothing to reveal.",
+                            "Set \"secret\": true on the action, or leave out reveal's action to reveal every secret choice.");
+                    break;
             }
         }
 

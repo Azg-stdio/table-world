@@ -172,7 +172,8 @@ namespace Core.Net
                 ["ok"] = true,
                 ["command"] = CommandCodec.Encode(command),
             };
-            if (HashEvery <= 1 || _order % HashEvery == 0)
+            // Lua ran inside the command: peers cannot replay it (they do not run scripts), so they check at once.
+            if (HashEvery <= 1 || _order % HashEvery == 0 || result.ScriptsRan)
                 order["hash"] = TableJson.Hash(Game.State);
             return (result, new Outgoing(null, order));
         }

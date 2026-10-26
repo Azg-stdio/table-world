@@ -22,17 +22,17 @@ namespace TableWorld.Mcp
 
         // ---- authoring ----------------------------------------------------------------------------------------------
 
-        [McpServerTool(Name = "new_game"), Description("Start a new game document: name, player seats (seat_south, seat_north, seat_east, seat_west, each with a hand zone hand_<side>), and the builtin standard deck images. Replaces the current document.")]
+        [McpServerTool(Name = "new_game"), Description("Start a new game document: name, player seats with a hand zone each, and the builtin standard deck images. Up to 4 seats are seat_south, seat_north, seat_east, seat_west (hands hand_<side>) on a 1.6 x 1.0 m table; 5 to 12 seats are seat_1..seat_N clockwise from the south side (hands hand_<n>, seat list order is turn order) on a table that grows to fit them. get_table_state shows where each hand lies. People beyond the seats can still join a session and watch. Replaces the current document.")]
         public static string NewGame(GameSession session,
             [Description("Short id, lowercase, e.g. 'war'.")] string id,
             [Description("Display name.")] string name,
-            [Description("Number of seats to create (1-4).")] int players = 2,
+            [Description("Number of seats to create (1-12).")] int players = 2,
             [Description("Minimum players the game supports.")] int? minPlayers = null,
             [Description("Maximum players the game supports.")] int? maxPlayers = null,
             [Description("One-paragraph summary of the rules.")] string? description = null) =>
             session.Locked(() => Reply(session.NewGame(id, name, players, minPlayers ?? players, maxPlayers ?? players, description), session));
 
-        [McpServerTool(Name = "create_deck"), Description("Create a deck of cards on the table. cards: 'standard52' or 'standard54' (with jokers) for the builtin French deck (card meta: rank 2-14 aces high, suit, color), or a JSON array of cards {id, name, faceIndex, meta}. Tag a deck '<role>:<seatId>' (e.g. 'deck:seat_south') so rules can say $actor.deck.")]
+        [McpServerTool(Name = "create_deck"), Description("Create a deck of cards on the table. cards: 'standard52' or 'standard54' (with jokers) for the builtin French deck (card meta: rank 2-14 aces high, suit, color), or a JSON array of cards {id, name, faceIndex, meta}; for your own art, add_asset a sprite sheet (columns x rows) and pass it as faceAsset, faceIndex counting left to right, top to bottom. Tag a deck '<role>:<seatId>' (e.g. 'deck:seat_south') so rules can say $actor.deck.")]
         public static string CreateDeck(GameSession session,
             [Description("Deck id.")] string id,
             [Description("'standard52', 'standard54', or a JSON array of cards.")] string cards = "standard52",
@@ -40,7 +40,9 @@ namespace TableWorld.Mcp
             [Description("Position on the table in metres; the table is 1.6 x 1.0, centre 0,0, south seat at z = -0.5.")] float x = 0,
             [Description("Position z in metres.")] float z = 0,
             [Description("true to place it face up (discard piles), false for a face-down draw pile.")] bool faceUp = false,
-            [Description("Comma-separated tags, e.g. 'deck:seat_south'.")] string? tags = null) =>
+            [Description("Comma-separated tags, e.g. 'deck:seat_south'.")] string? tags = null,
+            [Description("Image asset (from add_asset) the cards' faceIndex points into; default the builtin French deck.")] string? faceAsset = null,
+            [Description("Image asset for the card backs; default the builtin blue back.")] string? backAsset = null) =>
             session.Locked(() => Reply(session.Edit(doc =>
             {
                 var cardArray = cards switch
@@ -51,13 +53,152 @@ namespace TableWorld.Mcp
                 };
                 var deck = new JObject
                 {
-                    ["id"] = id, ["type"] = "Deck", ["faceAsset"] = "std_deck", ["backAsset"] = "std_back",
+                    ["id"] = id, ["type"] = "Deck", ["faceAsset"] = faceAsset ?? "std_deck", ["backAsset"] = backAsset ?? "std_back",
                     ["transform"] = Transform(x, z, faceUp ? 0 : 180), ["cards"] = cardArray,
                 };
                 if (name != null) deck["name"] = name;
                 if (Tags(tags) is { } t) deck["tags"] = t;
                 Upsert(doc, "objects", deck);
             }), session));
+
+        [McpServerTool(Name = "create_text_deck"), Description("Create a deck of text cards: no images needed, the game prints each card's words (title, kind line, body, footer, a corner value, optional art image) and draws the back from the style, with backLabel naming the pile (e.g. 'EQUIPMENT'). cards: JSON array of {id?, title, kind?, body?, footer?, corner?, art? (asset id), artIndex?, count? (copies, default 1), meta?, tags?, style?}; copies get ids <id>_2, <id>_3... style: {paper, ink, accent, backPaper, backInk: [r,g,b] 0-1, backLabel}; a card's own style overrides the deck's (e.g. dark night cards in a day/night deck). Card name is the title and description the body, so tooltips and search show them. Ask the host how each deck should look when the rulebook does not say.")]
+        public static string CreateTextDeck(GameSession session,
+            [Description("Deck id.")] string id,
+            [Description("JSON array of cards.")] string cards,
+            [Description("Display name.")] string? name = null,
+            [Description("JSON style for every card: {\"paper\":[r,g,b],\"ink\":[r,g,b],\"accent\":[r,g,b],\"backPaper\":[r,g,b],\"backInk\":[r,g,b],\"backLabel\":\"EQUIPMENT\"}.")] string? style = null,
+            [Description("Image asset for the backs instead of the drawn back.")] string? backAsset = null,
+            [Description("Position x in metres (table centre is 0).")] float x = 0,
+            [Description("Position z in metres.")] float z = 0,
+            [Description("true to place it face up.")] bool faceUp = false,
+            [Description("Comma-separated tags, e.g. 'deck:seat_south'.")] string? tags = null) =>
+            session.Locked(() => Reply(session.Edit(doc =>
+            {
+                var entries = new JArray();
+                var used = new HashSet<string>();
+                var source = GameSession.ParseArray(cards, "cards");
+                for (var i = 0; i < source.Count; i++)
+                {
+                    if (source[i] is not JObject card)
+                        throw new EditException(new ValidationError($"cards[{i}]", ErrorCodes.InvalidValue, "Each card is a JSON object."));
+                    var title = (string?)card["title"];
+                    var baseId = (string?)card["id"] ?? GameSession.Slug(title ?? $"{id}_card_{i + 1}");
+                    var copies = (int?)card["count"] ?? 1;
+                    if (copies < 1 || copies > 100)
+                        throw new EditException(new ValidationError($"cards[{i}].count", ErrorCodes.InvalidValue, "count is 1 to 100 copies."));
+                    var text = new JObject();
+                    foreach (var field in new[] { "title", "kind", "body", "footer", "corner", "art", "artIndex" })
+                        if (card[field] is { } value)
+                            text[field] = value;
+                    for (var copy = 1; copy <= copies; copy++)
+                    {
+                        var cardId = copy == 1 ? baseId : $"{baseId}_{copy}";
+                        for (var n = 2; !used.Add(cardId); n++)
+                            cardId = $"{baseId}_{copies + n}";
+                        var entry = new JObject { ["id"] = cardId, ["text"] = text.DeepClone() };
+                        if (title != null) entry["name"] = title;
+                        if (card["body"] is { } body) entry["description"] = body;
+                        foreach (var field in new[] { "meta", "tags", "style" })
+                            if (card[field] is { } value)
+                                entry[field] = value.DeepClone();
+                        entries.Add(entry);
+                    }
+                }
+                var deck = new JObject
+                {
+                    ["id"] = id, ["type"] = "Deck", ["faceAsset"] = "", ["backAsset"] = backAsset ?? "",
+                    ["transform"] = Transform(x, z, faceUp ? 0 : 180), ["cards"] = entries,
+                };
+                if (style != null) deck["style"] = GameSession.ParseObject(style, "style");
+                if (name != null) deck["name"] = name;
+                if (Tags(tags) is { } t) deck["tags"] = t;
+                Upsert(doc, "objects", deck);
+            }), session));
+
+        [McpServerTool(Name = "set_script"), Description("Set Lua for the table: target 'global' for the global script (rules call its functions with lua effects: {\"lua\":{\"call\":\"fight\",\"args\":{...}}}), or an object id for that object's script (buttons, onDrop...). The Lua API is TTS's (objects, UI, Wait, events) plus Game: Game.getResource(seat,id), Game.setResource/addResource(seat,id,value), Game.getVariable/setVariable(name,value), Game.getCurrentSeat(), Game.getPhase(), Game.getSeats(), Game.endTurn(), Game.endPhase(), Game.gotoPhase(id), Game.win(seat), Game.log(text), Game.perform(seat,action,params), Game.roll(count,sides). A function called by a lua effect gets ctx {actor, params, args, it}; returning false or a reason string refuses the action and rolls it back. The code is checked for syntax errors; try it with run_lua. See resource tableworld://docs/rules-and-scripting.")]
+        public static string SetScript(GameSession session,
+            [Description("'global' or an object id.")] string target,
+            [Description("The Lua source; empty removes it.")] string code) =>
+            session.Locked(() =>
+            {
+                if (code.Length > 0 && Core.Scripting.ScriptHost.CheckSyntax(code) is { } syntax)
+                    return Json(new { ok = false, errors = new[] { new { path = "code", code = ErrorCodes.ScriptFailed, message = syntax, suggestion = (string?)"Fix the Lua and send it again." } } });
+                return Reply(session.Edit(doc =>
+                {
+                    if (target == "global")
+                    {
+                        var scripts = doc["scripts"] as JObject ?? new JObject();
+                        if (code.Length == 0) scripts.Remove("global");
+                        else scripts["global"] = code;
+                        doc["scripts"] = scripts;
+                        return;
+                    }
+                    var obj = (doc["objects"] as JArray)?.FirstOrDefault(o => (string?)o["id"] == target)
+                        ?? throw new EditException(new ValidationError("target", ErrorCodes.UnknownObject, $"Object '{target}' does not exist.", "Use 'global' or an object id."));
+                    if (code.Length == 0) ((JObject)obj).Remove("script");
+                    else obj["script"] = code;
+                }), session);
+            });
+
+        [McpServerTool(Name = "run_lua"), Description("Try Lua against a copy of the table as it is now (the game in play, or the setup), with the table's scripts loaded: call your functions, read Game.getResource, move objects. Nothing changes in the real game. Returns what the code returned, what it printed, refused commands, and the copy's resources, variables and phase afterwards.")]
+        public static string RunLua(GameSession session, [Description("Lua to run, e.g. 'return fight({actor=\"seat_south\", params={}, args={cost=2}})'.")] string code) =>
+            session.Locked(() =>
+            {
+                var (error, value, lines, after) = session.TryLua(code);
+                return Json(new
+                {
+                    ok = error == null, error, returned = value, printed = lines,
+                    after = after.Session == null ? null : new { phase = after.Session.Phase, currentSeat = after.Session.CurrentSeat, resources = after.Session.Resources, variables = after.Session.Variables, log = after.Session.Log.TakeLast(10) },
+                });
+            });
+
+        [McpServerTool(Name = "add_asset"), Description("Add a file the table uses: an image (PNG, JPEG) for cards, tokens, tiles and boards, a sprite sheet of card faces (give columns and rows), an OBJ model, audio (MP3, OGG, WAV) or a PDF. The file is copied next to the game file, so it travels with the game and is sent to players who join; or pass url for a file on the web. Then refer to the id: create_deck faceAsset/backAsset, an object's asset/faceAsset/imageAsset. Replaces an asset with the same id. Images reply with their pixel size.")]
+        public static string AddAsset(GameSession session,
+            [Description("Asset id, e.g. 'monsters' or 'board'.")] string id,
+            [Description("Full path of the file on this computer.")] string? path = null,
+            [Description("Web address of the file, instead of path.")] string? url = null,
+            [Description("image, model, audio, pdf or assetBundle; default from the file's extension.")] string? type = null,
+            [Description("For a sprite sheet: cards per row.")] int? columns = null,
+            [Description("For a sprite sheet: rows of cards.")] int? rows = null) =>
+            session.Locked(() =>
+            {
+                string? stored = null;
+                var result = session.Edit(doc =>
+                {
+                    if ((path == null) == (url == null))
+                        throw new EditException(new ValidationError("path", ErrorCodes.MissingField, "Give either path or url.", "path is a file on this computer; url a web address."));
+                    var asset = new JObject { ["id"] = id };
+                    if (path != null)
+                    {
+                        stored = session.ImportAssetFile(path);
+                        asset["path"] = stored;
+                    }
+                    var extension = System.IO.Path.GetExtension(path ?? url!.Split('?')[0]);
+                    if (url != null)
+                    {
+                        if (!Asset.IsWebAddress(url))
+                            throw new EditException(new ValidationError("url", ErrorCodes.InvalidValue, $"'{url}' is not an http or https address."));
+                        // Where the package would hold it; each machine fetches the address itself while it does not.
+                        var folder = session.FilePath != null ? System.IO.Path.GetFileNameWithoutExtension(session.FilePath) + "-assets" : "assets";
+                        asset["path"] = $"{folder}/{id}{(extension.Length > 0 ? extension : ".png")}";
+                        asset["url"] = url;
+                    }
+                    asset["type"] = type ?? (GameSession.AssetExtensions.TryGetValue(extension, out var inferred) ? inferred : "image");
+                    if (columns != null) asset["columns"] = columns;
+                    if (rows != null) asset["rows"] = rows;
+                    Upsert(doc, "assets", asset);
+                });
+                if (!result.Ok || stored == null)
+                    return Reply(result, session);
+                var file = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(session.FilePath!)!, stored);
+                var size = GameSession.ImageSize(file);
+                return Json(new
+                {
+                    ok = true, problems = Errors(result.Errors), asset = new { id, path = stored, width = size?.Width, height = size?.Height },
+                    cell = size != null && columns > 0 && rows > 0 ? new { width = size.Value.Width / columns, height = size.Value.Height / rows } : null,
+                    savedTo = session.FilePath,
+                });
+            });
 
         [McpServerTool(Name = "place_object"), Description("Place any table object from JSON: Card, Deck, Token, Tile, Die, Bag, InfiniteBag, Board, Figure, Model. Example: {\"id\":\"d6\",\"type\":\"Die\",\"faces\":6,\"transform\":{\"position\":[0.3,0,0]}}. Replaces an object with the same id. " + Format)]
         public static string PlaceObject(GameSession session, [Description("The object as JSON.")] string objectJson) =>

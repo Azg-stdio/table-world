@@ -89,6 +89,10 @@ namespace TableWorld.View.Net
                 return;
             if (_scripts == null)
                 StartScripts();
+            // The rules' lua effects call this host's global script; clients' engines have none and resync instead.
+            _scripts.RulesEngine = () => _table != null ? _table.Game : null;
+            if (_table.Game != null)
+                _table.Game.Scripts = _scripts;
             _scripts.Load(Time.unscaledTimeAsDouble);
         }
 

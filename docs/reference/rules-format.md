@@ -8,7 +8,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 
 ## Types
 
-[TableState](#tablestate) · [Asset](#asset) · [TableObject](#tableobject) · [Card](#card) · [TableTransform](#tabletransform) · [JointDef](#jointdef) · [ButtonDef](#buttondef) · [InputDef](#inputdef) · [UiNode](#uinode) · [Deck](#deck) · [DeckCard](#deckcard) · [Token](#token) · [Tile](#tile) · [Die](#die) · [Model](#model) · [Bag](#bag) · [InfiniteBag](#infinitebag) · [Board](#board) · [Figure](#figure) · [Counter](#counter) · [Clock](#clock) · [Notecard](#notecard) · [Pdf](#pdf) · [Zone](#zone) · [HandZone](#handzone) · [HiddenZone](#hiddenzone) · [ScriptingZone](#scriptingzone) · [SnapPoint](#snappoint) · [LayoutZone](#layoutzone) · [RandomizeZone](#randomizezone) · [Players](#players) · [Seat](#seat) · [EnvironmentDef](#environmentdef) · [LightingDef](#lightingdef) · [TableLookDef](#tablelookdef) · [FreeTurns](#freeturns) · [GridDef](#griddef) · [MusicState](#musicstate) · [MusicTrack](#musictrack) · [NoteTab](#notetab) · [DrawingDef](#drawingdef) · [GameInfo](#gameinfo) · [ResourceDef](#resourcedef) · [TurnDef](#turndef) · [PhaseDef](#phasedef) · [Effect](#effect) · [MoveEffect](#moveeffect) · [DealEffect](#dealeffect) · [ShuffleEffect](#shuffleeffect) · [FlipEffect](#flipeffect) · [SetVariableEffect](#setvariableeffect) · [SetResourceEffect](#setresourceeffect) · [IfEffect](#ifeffect) · [Condition](#condition) · [ZoneCountCondition](#zonecountcondition) · [CompareCondition](#comparecondition) · [VariableCondition](#variablecondition) · [ResourceCondition](#resourcecondition) · [IsCurrentPlayerCondition](#iscurrentplayercondition) · [ObjectInCondition](#objectincondition) · [HasTagCondition](#hastagcondition) · [ForEachEffect](#foreacheffect) · [MessageEffect](#messageeffect) · [EndTurnEffect](#endturneffect) · [EndPhaseEffect](#endphaseeffect) · [GotoPhaseEffect](#gotophaseeffect) · [WinEffect](#wineffect) · [LockEffect](#lockeffect) · [RollEffect](#rolleffect) · [AdvanceRule](#advancerule) · [ActionDef](#actiondef) · [ParamDef](#paramdef) · [ParamFilter](#paramfilter) · [WinCondition](#wincondition) · [UiDef](#uidef) · [PanelDef](#paneldef) · [UiElementDef](#uielementdef) · [Session](#session)
+[TableState](#tablestate) · [Asset](#asset) · [TableObject](#tableobject) · [Card](#card) · [TableTransform](#tabletransform) · [JointDef](#jointdef) · [ButtonDef](#buttondef) · [InputDef](#inputdef) · [UiNode](#uinode) · [CardText](#cardtext) · [CardStyle](#cardstyle) · [Deck](#deck) · [DeckCard](#deckcard) · [Token](#token) · [Tile](#tile) · [Die](#die) · [Model](#model) · [Bag](#bag) · [InfiniteBag](#infinitebag) · [Board](#board) · [Figure](#figure) · [Counter](#counter) · [Clock](#clock) · [Notecard](#notecard) · [Pdf](#pdf) · [Zone](#zone) · [HandZone](#handzone) · [HiddenZone](#hiddenzone) · [ScriptingZone](#scriptingzone) · [SnapPoint](#snappoint) · [LayoutZone](#layoutzone) · [RandomizeZone](#randomizezone) · [Players](#players) · [Seat](#seat) · [EnvironmentDef](#environmentdef) · [LightingDef](#lightingdef) · [TableLookDef](#tablelookdef) · [FreeTurns](#freeturns) · [BlindRound](#blindround) · [GridDef](#griddef) · [MusicState](#musicstate) · [MusicTrack](#musictrack) · [NoteTab](#notetab) · [DrawingDef](#drawingdef) · [GameInfo](#gameinfo) · [ResourceDef](#resourcedef) · [TurnDef](#turndef) · [PhaseDef](#phasedef) · [Effect](#effect) · [MoveEffect](#moveeffect) · [DealEffect](#dealeffect) · [ShuffleEffect](#shuffleeffect) · [FlipEffect](#flipeffect) · [SetVariableEffect](#setvariableeffect) · [SetResourceEffect](#setresourceeffect) · [IfEffect](#ifeffect) · [Condition](#condition) · [ZoneCountCondition](#zonecountcondition) · [CompareCondition](#comparecondition) · [VariableCondition](#variablecondition) · [ResourceCondition](#resourcecondition) · [IsCurrentPlayerCondition](#iscurrentplayercondition) · [ObjectInCondition](#objectincondition) · [HasTagCondition](#hastagcondition) · [ForEachEffect](#foreacheffect) · [MessageEffect](#messageeffect) · [EndTurnEffect](#endturneffect) · [EndPhaseEffect](#endphaseeffect) · [GotoPhaseEffect](#gotophaseeffect) · [WinEffect](#wineffect) · [LockEffect](#lockeffect) · [RollEffect](#rolleffect) · [RevealEffect](#revealeffect) · [LuaEffect](#luaeffect) · [AdvanceRule](#advancerule) · [ActionDef](#actiondef) · [ParamDef](#paramdef) · [ParamFilter](#paramfilter) · [WinCondition](#wincondition) · [UiDef](#uidef) · [PanelDef](#paneldef) · [UiElementDef](#uielementdef) · [Session](#session) · [SecretChoice](#secretchoice)
 
 ### TableState
 
@@ -22,6 +22,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `environment` | [EnvironmentDef](#environmentdef) |  |
 | `freeTurns` | [FreeTurns](#freeturns) |  |
 | `physics` | one of `full`, `semiLock`, `locked` |  |
+| `blind` | [BlindRound](#blindround) |  |
 | `grid` | [GridDef](#griddef) |  |
 | `music` | [MusicState](#musicstate) |  |
 | `notebook` | array of [NoteTab](#notetab) |  |
@@ -93,6 +94,8 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `backIndex` | integer |  |
 | `size` | array of number |  |
 | `meta` | object |  |
+| `text` | [CardText](#cardtext) |  |
+| `style` | [CardStyle](#cardstyle) |  |
 
 ### TableTransform
 
@@ -157,6 +160,29 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `id` | string |  |
 | `active` | boolean |  |
 
+### CardText
+
+| Field | Type | Required |
+|---|---|---|
+| `title` | string |  |
+| `kind` | string |  |
+| `body` | string |  |
+| `footer` | string |  |
+| `corner` | string |  |
+| `art` | string |  |
+| `artIndex` | integer |  |
+
+### CardStyle
+
+| Field | Type | Required |
+|---|---|---|
+| `paper` | array of number |  |
+| `ink` | array of number |  |
+| `accent` | array of number |  |
+| `backPaper` | array of number |  |
+| `backInk` | array of number |  |
+| `backLabel` | string |  |
+
 ### Deck
 
 | Field | Type | Required |
@@ -191,6 +217,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `backAsset` | string |  |
 | `backIndex` | integer |  |
 | `size` | array of number |  |
+| `style` | [CardStyle](#cardstyle) |  |
 | `cards` | array of [DeckCard](#deckcard) |  |
 
 ### DeckCard
@@ -209,6 +236,8 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `meta` | object |  |
 | `script` | string |  |
 | `ttsExtra` | object |  |
+| `text` | [CardText](#cardtext) |  |
+| `style` | [CardStyle](#cardstyle) |  |
 
 ### Token
 
@@ -785,6 +814,13 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `skipEmptyHands` | boolean |  |
 | `count` | integer |  |
 
+### BlindRound
+
+| Field | Type | Required |
+|---|---|---|
+| `movedBy` | map of string |  |
+| `before` | map of array of string |  |
+
 ### GridDef
 
 | Field | Type | Required |
@@ -880,7 +916,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 
 ### Effect
 
-object or object or object or object or object or object or object or object or object or object or object or object or object or object or object
+object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object
 
 ### MoveEffect
 
@@ -1049,6 +1085,19 @@ object or object or object or object or object or object or object or object or 
 | `object` | string |  |
 | `store` | string |  |
 
+### RevealEffect
+
+| Field | Type | Required |
+|---|---|---|
+| `action` | string |  |
+
+### LuaEffect
+
+| Field | Type | Required |
+|---|---|---|
+| `call` | string |  |
+| `args` | object |  |
+
 ### AdvanceRule
 
 | Field | Type | Required |
@@ -1069,6 +1118,7 @@ object or object or object or object or object or object or object or object or 
 | `preconditions` | array of [Condition](#condition) |  |
 | `effects` | array of [Effect](#effect) |  |
 | `limitPerPhase` | integer |  |
+| `secret` | boolean |  |
 
 ### ParamDef
 
@@ -1137,5 +1187,14 @@ object or object or object or object or object or object or object or object or 
 | `actionCounts` | map of integer |  |
 | `variables` | map of any |  |
 | `resources` | map of map of number |  |
+| `secrets` | array of [SecretChoice](#secretchoice) |  |
 | `log` | array of string |  |
 | `randomState` | integer |  |
+
+### SecretChoice
+
+| Field | Type | Required |
+|---|---|---|
+| `seat` | string |  |
+| `action` | string |  |
+| `params` | map of string |  |

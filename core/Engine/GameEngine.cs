@@ -20,12 +20,18 @@ namespace Core.Engine
 
         private Context _ctx = new Context();
         private List<StateEvent> _events = new List<StateEvent>();
+        /// <summary>A rules command (and its transaction) is running: script changes join it.</summary>
+        private bool _inRules;
+        private bool _scriptsRan;
         private string? _pendingGoto;
         private bool _pendingEndPhase;
         private bool _pendingEndTurn;
 
         public TableEngine Table { get; }
         public TableState State => Table.State;
+
+        /// <summary>The host's Lua, which <c>lua</c> effects call; null on peers that do not run scripts.</summary>
+        public IRulesScripts? Scripts { get; set; }
         public Session? Session => State.Session;
 
         public GameEngine(TableState state, ulong seed)
@@ -42,7 +48,20 @@ namespace Core.Engine
                 case StartGameCommand start:
                     return Transaction(() => StartGame(start));
                 case PerformActionCommand perform:
+                    if (_inRules)
+                        return CommandResult.Fail("", ErrorCodes.ScriptFailed, "A rules action cannot start another one from inside its own Lua.",
+                            "Change the game with Game.setResource, Game.endTurn and the like instead of Game.perform here.");
                     return Transaction(() => Perform(perform));
+                case ScriptRulesCommand change when _inRules:
+                    return Nested(() => ApplyScriptChange(change));
+                case ScriptRulesCommand change:
+                    return Transaction(() =>
+                    {
+                        RequireRunning();
+                        ApplyScriptChange(change);
+                        AdvanceLoop();
+                        CheckWins(WinCheck.AnyCommand);
+                    });
                 default:
                     var result = Table.Execute(command);
                     if (result.Ok && Session is { Started: true, Over: false })
@@ -91,12 +110,16 @@ namespace Core.Engine
             _events = new List<StateEvent>();
             _pendingGoto = null;
             _pendingEndPhase = _pendingEndTurn = false;
+            _scriptsRan = false;
+            _inRules = true;
             try
             {
                 body();
                 SaveRandom();
                 var events = _events;
-                return CommandResult.Success(events);
+                var success = CommandResult.Success(events);
+                success.ScriptsRan = _scriptsRan;
+                return success;
             }
             catch (RuleException e)
             {
@@ -113,6 +136,10 @@ namespace Core.Engine
                 var fail = CommandResult.Fail(e.Error.Path, e.Error.Code, e.Error.Message, e.Error.Suggestion);
                 fail.StateRestored = mutated;
                 return fail;
+            }
+            finally
+            {
+                _inRules = false;
             }
         }
 
@@ -174,7 +201,15 @@ namespace Core.Engine
                     throw new RuleException($"preconditions[{i}]", ErrorCodes.PreconditionFailed,
                         $"Action '{action.Id}' is not possible now: precondition {i} ({action.Preconditions[i].Kind}) does not hold.");
 
-            RunEffects(action.Effects);
+            if (action.Secret)
+            {
+                // Recorded, not run: a later choice of the same action replaces it until the reveal.
+                session.Secrets.RemoveAll(s => s.Seat == seat && s.Action == action.Id);
+                session.Secrets.Add(new SecretChoice { Seat = seat, Action = action.Id, Params = new Dictionary<string, string>(command.Params) });
+                Log($"{seat} chose in secret.");
+            }
+            else
+                RunEffects(action.Effects);
             if (!session.Acted.Contains(seat))
                 session.Acted.Add(seat);
             var key = $"{seat}/{action.Id}";
@@ -388,12 +423,121 @@ namespace Core.Engine
                     break;
                 }
                 case MessageEffect message: Log(Template(message.Text)); break;
+                case RevealEffect reveal: Reveal(reveal.Action); break;
+                case LuaEffect lua:
+                {
+                    // Peers without scripts skip it; the host's state hash then sets their table right.
+                    if (Scripts == null)
+                        break;
+                    _scriptsRan = true;
+                    var call = new RuleCall
+                    {
+                        Actor = _ctx.Actor, Params = _ctx.Params, Args = lua.Args,
+                        It = _ctx.It switch { Seat seat => seat.Id, TableObject obj => obj.Id, string id => id, _ => null },
+                        Execute = command => command is ScriptRulesCommand or PerformActionCommand ? Execute(command) : Nested(() => TableCommand(command)),
+                    };
+                    if (Scripts.CallRule(lua.Call, call) is { } refusal)
+                        throw new RuleException("lua", ErrorCodes.ScriptFailed, refusal);
+                    break;
+                }
                 case EndTurnEffect _: _pendingEndTurn = true; break;
                 case EndPhaseEffect _: _pendingEndPhase = true; break;
                 case GotoPhaseEffect go: _pendingGoto = go.Phase; break;
                 case WinEffect win: Win(ResolveSeat(win.Player, "win.player")); break;
                 default: throw new RuleException(effect.Kind, ErrorCodes.RuleFailed, $"Effect '{effect.Kind}' is not supported.");
             }
+        }
+
+        /// <summary>Runs a change inside the rules command in progress: its events join the command's; a refusal is a result, not a throw.</summary>
+        private CommandResult Nested(Action change)
+        {
+            var before = _events.Count;
+            try
+            {
+                change();
+                return CommandResult.Success(_events.Skip(before).ToList());
+            }
+            catch (RuleException e)
+            {
+                return CommandResult.Fail(e.Error.Path, e.Error.Code, e.Error.Message, e.Error.Suggestion);
+            }
+        }
+
+        private void ApplyScriptChange(ScriptRulesCommand c)
+        {
+            var session = Session ?? throw new RuleException("", ErrorCodes.GameNotStarted, "The game has not started.", "Send start_game first.");
+            string SeatOf() => c.Seat != null && State.Players.Seats.Any(s => s.Id == c.Seat)
+                ? c.Seat
+                : throw new RuleException("seat", ErrorCodes.UnknownSeat, $"Seat '{c.Seat}' does not exist.");
+            switch (c.Op)
+            {
+                case "setResource":
+                case "addResource":
+                {
+                    var seat = SeatOf();
+                    var def = State.Resources.FirstOrDefault(r => r.Id == c.Name)
+                        ?? throw new RuleException("name", ErrorCodes.UnknownResource, $"Resource '{c.Name}' does not exist.",
+                            Suggest.OneOf(c.Name ?? "", State.Resources.Select(r => r.Id), "a resource id"));
+                    var values = session.Resources[seat];
+                    var next = c.Op == "addResource" ? values[def.Id] + Number(c.Value) : Number(c.Value);
+                    if (def.Min is { } min) next = Math.Max(min, next);
+                    if (def.Max is { } max) next = Math.Min(max, next);
+                    values[def.Id] = next;
+                    break;
+                }
+                case "setVariable":
+                    if (string.IsNullOrEmpty(c.Name))
+                        throw new RuleException("name", ErrorCodes.MissingField, "setVariable needs a name.");
+                    session.Variables[c.Name!] = c.Value?.DeepClone() ?? JValue.CreateNull();
+                    break;
+                case "endTurn": _pendingEndTurn = true; break;
+                case "endPhase": _pendingEndPhase = true; break;
+                case "gotoPhase":
+                    if (State.Phases.All(p => p.Id != c.Name))
+                        throw new RuleException("name", ErrorCodes.UnknownPhase, $"Phase '{c.Name}' does not exist.");
+                    _pendingGoto = c.Name;
+                    break;
+                case "win": Win(SeatOf()); break;
+                case "log": Log((string?)c.Value ?? ""); break;
+                default:
+                    throw new RuleException("op", ErrorCodes.InvalidValue, $"Unknown script change '{c.Op}'.");
+            }
+        }
+
+        private void Reveal(string? actionId)
+        {
+            var session = Session!;
+            var order = TurnOrderFrom(session.CurrentSeat);
+            var shown = session.Secrets.Where(s => actionId == null || s.Action == actionId)
+                .OrderBy(s => order.IndexOf(s.Seat)).ToList();
+            session.Secrets.RemoveAll(shown.Contains);
+            var outer = _ctx;
+            foreach (var choice in shown)
+            {
+                if (session.Over)
+                    break;
+                var action = State.Actions.FirstOrDefault(a => a.Id == choice.Action);
+                if (action == null)
+                    continue;
+                var what = choice.Params.Count == 0 ? "" : " (" + string.Join(", ", choice.Params.Select(p => $"{p.Key}: {p.Value}")) + ")";
+                Log($"{choice.Seat} chose {action.Name ?? action.Id}{what}.");
+                _ctx = new Context { Actor = choice.Seat, Params = choice.Params };
+                RunEffects(action.Effects);
+            }
+            _ctx = outer;
+        }
+
+        /// <summary>Every seat in turn order, starting at <paramref name="first"/>.</summary>
+        private List<string> TurnOrderFrom(string? first)
+        {
+            var order = new List<string>();
+            var seat = first ?? State.Players.Seats.FirstOrDefault()?.Id;
+            for (var i = 0; seat != null && i < State.Players.Seats.Count; i++)
+            {
+                order.Add(seat);
+                seat = NextSeat(seat);
+            }
+            return order;
         }
 
         private void Move(MoveEffect move)

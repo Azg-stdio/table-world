@@ -16,6 +16,19 @@ Add or replace a player action: {"id":"draw_card","name":"Draw","actor":"current
 |---|---|---|---|
 | `actionJson` | string | required | The action as JSON. |
 
+### `add_asset`
+
+Add a file the table uses: an image (PNG, JPEG) for cards, tokens, tiles and boards, a sprite sheet of card faces (give columns and rows), an OBJ model, audio (MP3, OGG, WAV) or a PDF. The file is copied next to the game file, so it travels with the game and is sent to players who join; or pass url for a file on the web. Then refer to the id: create_deck faceAsset/backAsset, an object's asset/faceAsset/imageAsset. Replaces an asset with the same id. Images reply with their pixel size.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `id` | string | required | Asset id, e.g. 'monsters' or 'board'. |
+| `path` | string | none | Full path of the file on this computer. |
+| `url` | string | none | Web address of the file, instead of path. |
+| `type` | string | none | image, model, audio, pdf or assetBundle; default from the file's extension. |
+| `columns` | integer | none | For a sprite sheet: cards per row. |
+| `rows` | integer | none | For a sprite sheet: rows of cards. |
+
 ### `add_event`
 
 Set the effects run on an event: onGameStart (setup: shuffle, deal), onTurnStart, onTurnEnd. Example effects: [{"shuffle":{"object":"deck"}},{"deal":{"from":"deck","count":7,"toZone":"$it.hand"}}].
@@ -53,7 +66,7 @@ Use when the rulebook is ambiguous or silent. Do not guess: call this with the q
 
 ### `create_deck`
 
-Create a deck of cards on the table. cards: 'standard52' or 'standard54' (with jokers) for the builtin French deck (card meta: rank 2-14 aces high, suit, color), or a JSON array of cards {id, name, faceIndex, meta}. Tag a deck '<role>:<seatId>' (e.g. 'deck:seat_south') so rules can say $actor.deck.
+Create a deck of cards on the table. cards: 'standard52' or 'standard54' (with jokers) for the builtin French deck (card meta: rank 2-14 aces high, suit, color), or a JSON array of cards {id, name, faceIndex, meta}; for your own art, add_asset a sprite sheet (columns x rows) and pass it as faceAsset, faceIndex counting left to right, top to bottom. Tag a deck '<role>:<seatId>' (e.g. 'deck:seat_south') so rules can say $actor.deck.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
@@ -63,6 +76,24 @@ Create a deck of cards on the table. cards: 'standard52' or 'standard54' (with j
 | `x` | number | `0` | Position on the table in metres; the table is 1.6 x 1.0, centre 0,0, south seat at z = -0.5. |
 | `z` | number | `0` | Position z in metres. |
 | `faceUp` | boolean | `false` | true to place it face up (discard piles), false for a face-down draw pile. |
+| `tags` | string | none | Comma-separated tags, e.g. 'deck:seat_south'. |
+| `faceAsset` | string | none | Image asset (from add_asset) the cards' faceIndex points into; default the builtin French deck. |
+| `backAsset` | string | none | Image asset for the card backs; default the builtin blue back. |
+
+### `create_text_deck`
+
+Create a deck of text cards: no images needed, the game prints each card's words (title, kind line, body, footer, a corner value, optional art image) and draws the back from the style, with backLabel naming the pile (e.g. 'EQUIPMENT'). cards: JSON array of {id?, title, kind?, body?, footer?, corner?, art? (asset id), artIndex?, count? (copies, default 1), meta?, tags?, style?}; copies get ids <id>_2, <id>_3... style: {paper, ink, accent, backPaper, backInk: [r,g,b] 0-1, backLabel}; a card's own style overrides the deck's (e.g. dark night cards in a day/night deck). Card name is the title and description the body, so tooltips and search show them. Ask the host how each deck should look when the rulebook does not say.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `id` | string | required | Deck id. |
+| `cards` | string | required | JSON array of cards. |
+| `name` | string | none | Display name. |
+| `style` | string | none | JSON style for every card: {"paper":[r,g,b],"ink":[r,g,b],"accent":[r,g,b],"backPaper":[r,g,b],"backInk":[r,g,b],"backLabel":"EQUIPMENT"}. |
+| `backAsset` | string | none | Image asset for the backs instead of the drawn back. |
+| `x` | number | `0` | Position x in metres (table centre is 0). |
+| `z` | number | `0` | Position z in metres. |
+| `faceUp` | boolean | `false` | true to place it face up. |
 | `tags` | string | none | Comma-separated tags, e.g. 'deck:seat_south'. |
 
 ### `deal`
@@ -105,13 +136,13 @@ Load a game document (or a saved game in progress) from a JSON file.
 
 ### `new_game`
 
-Start a new game document: name, player seats (seat_south, seat_north, seat_east, seat_west, each with a hand zone hand_<side>), and the builtin standard deck images. Replaces the current document.
+Start a new game document: name, player seats with a hand zone each, and the builtin standard deck images. Up to 4 seats are seat_south, seat_north, seat_east, seat_west (hands hand_<side>) on a 1.6 x 1.0 m table; 5 to 12 seats are seat_1..seat_N clockwise from the south side (hands hand_<n>, seat list order is turn order) on a table that grows to fit them. get_table_state shows where each hand lies. People beyond the seats can still join a session and watch. Replaces the current document.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `id` | string | required | Short id, lowercase, e.g. 'war'. |
 | `name` | string | required | Display name. |
-| `players` | integer | `2` | Number of seats to create (1-4). |
+| `players` | integer | `2` | Number of seats to create (1-12). |
 | `minPlayers` | integer | none | Minimum players the game supports. |
 | `maxPlayers` | integer | none | Maximum players the game supports. |
 | `description` | string | none | One-paragraph summary of the rules. |
@@ -147,6 +178,14 @@ Remove something by id from a collection: objects, zones, phases, actions, resou
 
 Stop the running game and go back to the authored setup.
 
+### `run_lua`
+
+Try Lua against a copy of the table as it is now (the game in play, or the setup), with the table's scripts loaded: call your functions, read Game.getResource, move objects. Nothing changes in the real game. Returns what the code returned, what it printed, refused commands, and the copy's resources, variables and phase afterwards.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `code` | string | required | Lua to run, e.g. 'return fight({actor="seat_south", params={}, args={cost=2}})'. |
+
 ### `save_game`
 
 Save the game document (with the session if a game is running) to a JSON file.
@@ -162,6 +201,15 @@ Replace the whole game document with JSON (for large edits). Malformed documents
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `documentJson` | string | required | The full document as JSON. |
+
+### `set_script`
+
+Set Lua for the table: target 'global' for the global script (rules call its functions with lua effects: {"lua":{"call":"fight","args":{...}}}), or an object id for that object's script (buttons, onDrop...). The Lua API is TTS's (objects, UI, Wait, events) plus Game: Game.getResource(seat,id), Game.setResource/addResource(seat,id,value), Game.getVariable/setVariable(name,value), Game.getCurrentSeat(), Game.getPhase(), Game.getSeats(), Game.endTurn(), Game.endPhase(), Game.gotoPhase(id), Game.win(seat), Game.log(text), Game.perform(seat,action,params), Game.roll(count,sides). A function called by a lua effect gets ctx {actor, params, args, it}; returning false or a reason string refuses the action and rolls it back. The code is checked for syntax errors; try it with run_lua. See resource tableworld://docs/rules-and-scripting.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `target` | string | required | 'global' or an object id. |
+| `code` | string | required | The Lua source; empty removes it. |
 
 ### `set_turn`
 
@@ -206,14 +254,15 @@ Check the whole game document. Returns every problem with its path, code, messag
 
 ### `table_action`
 
-Do something physical on the table, like a player's hands (outside the rules): flip, rotate (value = degrees about the vertical), move (x, z), lock, unlock, shuffle (deck or bag), roll (die), set_die_value (value), cut (value = cards, default half), split (value = piles), spread (deck into a row), take (from a deck or bag; value = index from the top, or other = card id; from a stack, value = how many pieces; x, z = where), insert (other = deck/bag/card to put it into; value 1 = at the bottom), group (other = comma-separated ids to gather with it into a deck), delete, clone (x, z), set_state (other = state key), scale (value = factor), rename (other = new name, text = description), lay_out (target = a LayoutZone id: arrange what is in it), randomize (target = a RandomizeZone id: shuffle where things in it lie).
+Do something physical on the table, like a player's hands (outside the rules): flip, rotate (value = degrees about the vertical), move (x, z), lock, unlock, shuffle (deck or bag), roll (die), set_die_value (value), cut (value = cards, default half), split (value = piles), spread (deck into a row), take (from a deck or bag; value = index from the top, or other = card id; from a stack, value = how many pieces; x, z = where), insert (other = deck/bag/card to put it into; value 1 = at the bottom), group (other = comma-separated ids to gather with it into a deck), delete, clone (x, z), set_state (other = state key), scale (value = factor), rename (other = new name, text = description), lay_out (target = a LayoutZone id: arrange what is in it), randomize (target = a RandomizeZone id: shuffle where things in it lie), hide (only seat sees it, or nobody without seat: a hidden chip or bid), show (everyone sees it again), blind_round (target 'table'; value 1 starts a blind round in which whatever each seat moves is hidden from the others, value 0 reveals everything moved in it). seat = the seat doing it (blind moves only count when a seat makes them).
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `action` | string | required | One of: flip, rotate, move, lock, unlock, shuffle, roll, set_die_value, cut, split, spread, take, insert, group, delete, clone, set_state, scale, rename, lay_out, randomize |
+| `action` | string | required | One of: flip, rotate, move, lock, unlock, shuffle, roll, set_die_value, cut, split, spread, take, insert, group, delete, clone, set_state, scale, rename, lay_out, randomize, hide, show, blind_round |
 | `target` | string | required | The object (or deck/bag) id. |
 | `value` | number | none | Number argument (degrees, cards, piles, die value, index, factor) as described for the action. |
 | `other` | string | none | Text argument (another id, ids, state key or name) as described for the action. |
 | `x` | number | none | Position x in metres (table centre is 0, the table is 1.6 x 1.0). |
 | `z` | number | none | Position z in metres (south seat at z = -0.5). |
 | `text` | string | none | Description, for rename. |
+| `seat` | string | none | Seat id doing it, as that player's hands. |

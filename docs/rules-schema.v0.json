@@ -44,6 +44,9 @@
             "locked"
           ]
         },
+        "blind": {
+          "$ref": "#/$defs/BlindRound"
+        },
         "grid": {
           "$ref": "#/$defs/GridDef"
         },
@@ -335,6 +338,12 @@
         },
         "meta": {
           "type": "object"
+        },
+        "text": {
+          "$ref": "#/$defs/CardText"
+        },
+        "style": {
+          "$ref": "#/$defs/CardStyle"
         }
       },
       "additionalProperties": false,
@@ -543,6 +552,72 @@
       },
       "additionalProperties": false
     },
+    "CardText": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "body": {
+          "type": "string"
+        },
+        "footer": {
+          "type": "string"
+        },
+        "corner": {
+          "type": "string"
+        },
+        "art": {
+          "type": "string"
+        },
+        "artIndex": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CardStyle": {
+      "type": "object",
+      "properties": {
+        "paper": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "ink": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "accent": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "backPaper": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "backInk": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "backLabel": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
     "Deck": {
       "type": "object",
       "properties": {
@@ -662,6 +737,9 @@
           "minItems": 2,
           "maxItems": 2
         },
+        "style": {
+          "$ref": "#/$defs/CardStyle"
+        },
         "cards": {
           "type": "array",
           "items": {
@@ -715,6 +793,12 @@
         },
         "ttsExtra": {
           "type": "object"
+        },
+        "text": {
+          "$ref": "#/$defs/CardText"
+        },
+        "style": {
+          "$ref": "#/$defs/CardStyle"
         }
       },
       "additionalProperties": false
@@ -2708,6 +2792,27 @@
       },
       "additionalProperties": false
     },
+    "BlindRound": {
+      "type": "object",
+      "properties": {
+        "movedBy": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "before": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "GridDef": {
       "type": "object",
       "properties": {
@@ -3125,6 +3230,30 @@
           },
           "required": [
             "roll"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "reveal": {
+              "$ref": "#/$defs/RevealEffect"
+            }
+          },
+          "required": [
+            "reveal"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "lua": {
+              "$ref": "#/$defs/LuaEffect"
+            }
+          },
+          "required": [
+            "lua"
           ],
           "additionalProperties": false
         }
@@ -3547,6 +3676,27 @@
       },
       "additionalProperties": false
     },
+    "RevealEffect": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "LuaEffect": {
+      "type": "object",
+      "properties": {
+        "call": {
+          "type": "string"
+        },
+        "args": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
     "AdvanceRule": {
       "type": "object",
       "properties": {
@@ -3600,6 +3750,9 @@
         },
         "limitPerPhase": {
           "type": "integer"
+        },
+        "secret": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false
@@ -3793,6 +3946,12 @@
             }
           }
         },
+        "secrets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SecretChoice"
+          }
+        },
         "log": {
           "type": "array",
           "items": {
@@ -3802,6 +3961,24 @@
         "randomState": {
           "type": "integer",
           "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "SecretChoice": {
+      "type": "object",
+      "properties": {
+        "seat": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "params": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       },
       "additionalProperties": false

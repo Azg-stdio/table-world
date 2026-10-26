@@ -32,7 +32,7 @@ namespace Core.Scripting
         public const int MaxDepth = 4;
 
         private readonly Func<TableEngine?> _engine;
-        private readonly Func<Command, CommandResult> _execute;
+        private Func<Command, CommandResult> _execute;
         private readonly Dictionary<string, Script> _objectScripts = new Dictionary<string, Script>();
         private Script? _global;
         private int _depth;

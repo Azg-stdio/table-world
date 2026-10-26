@@ -198,6 +198,7 @@ namespace Core.Scripting
             g["Player"] = PlayerApi(script);
             g["Physics"] = PhysicsApi(script);
             g["Turns"] = TurnsApi(script);
+            g["Game"] = GameApi(script);
             g["Grid"] = GridApi(script);
             g["MusicPlayer"] = MusicApi(script);
             g["Lighting"] = LightingApi(script);

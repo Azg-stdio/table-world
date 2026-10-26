@@ -26,8 +26,11 @@ a path, a code, a message and usually a suggestion. When a change is kept but th
 get_rules_reference
 ```
 
-**`new_game`**: a new, empty game with its seats. Seats are named `seat_south`, `seat_north`, `seat_east` and
-`seat_west`, and each one has a hand zone (`hand_south`, ...).
+**`new_game`**: a new, empty game with its seats, 1 to 12. Up to four seats are named `seat_south`, `seat_north`,
+`seat_east` and `seat_west`, each with a hand zone (`hand_south`, ...), on the 1.6 × 1.0 m table. Five or more are
+`seat_1` to `seat_12` in clockwise order from the south side (hands `hand_1`, ...; that order is the turn order), and
+the table grows so every hand has room. More people than seats can join a session online: they watch, talk and take a
+seat when one frees up.
 
 ```call
 new_game {"id": "high-card-race", "name": "High Card Race", "players": 2,
@@ -49,6 +52,40 @@ ask_host {"question": "The rules say 'a high card scores'. Which ranks are high?
 
 ```call
 create_deck {"id": "draw", "name": "Draw pile", "cards": "standard52", "x": 0, "z": 0}
+```
+
+**`create_text_deck`**: a deck of cards made only of words, for prototyping before there is any art. The game prints
+each card: a title band (with an optional value in the corner), a kind line, the rules text, a footer, and optionally
+an image from `add_asset`. The back is drawn from the deck's style with a word naming the pile, so players can tell
+the decks apart. `count` makes copies; a card's own `style` overrides the deck's.
+
+```call
+create_text_deck {"id": "gear", "name": "Equipment", "x": 0.4, "z": 0.2, "style": {"accent": [0.6, 0.4, 0.1], "backLabel": "EQUIPMENT"}, "cards": [{"title": "Sword", "kind": "Equipment", "body": "Attack +1.", "footer": "Price 4", "count": 3}, {"title": "Heavy Shield", "kind": "Equipment", "body": "Attack +X (X = one die of another player).", "corner": "10"}]}
+```
+
+**`set_script`**: Lua for the table, for what the rules format cannot say: the global script (`target` `global`),
+whose functions rules call with a `lua` effect, or an object's script (buttons, reactions to drops). The code is
+checked for syntax errors first. [Rules and scripting](rules-and-scripting.md) explains the `Game` functions.
+
+```call
+set_script {"target": "global", "code": "function bonus(ctx)\n  Game.log(ctx.actor .. ' gets a bonus')\nend"}
+```
+
+**`run_lua`**: tries Lua against a copy of the table as it is now, with the table's scripts loaded, and shows what it
+returned and printed. Nothing changes in the real game, so the agent can test a function before a rule calls it.
+
+```call
+run_lua {"code": "return #Game.getSeats()"}
+```
+
+**`add_asset`**: a file the table uses: card art, a sprite sheet of card faces (give `columns` and `rows`), a board
+or token image, an OBJ model, music or a PDF. With `path` (a file on your computer) the file is copied into a
+`<game>-assets` folder next to the game file, so the game keeps working if you move the original and players who join
+receive it; with `url` the game downloads it. Images reply with their size in pixels, and a sheet with the size of one
+card, so the agent can size the cards to match. Use the id as a deck's `faceAsset` or `backAsset`, or an object's image.
+
+```call
+add_asset {"id": "board_art", "url": "https://example.com/board.png"}
 ```
 
 **`place_object`**: any other object: tokens, tiles, dice, bags, boards, figures, models.

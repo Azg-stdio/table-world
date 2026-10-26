@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace Core.Engine
 {
@@ -13,6 +14,20 @@ namespace Core.Engine
         public string ActionId { get; set; } = "";
         /// <summary>Parameter name → value (an object id, a seat id, a number or a choice).</summary>
         public Dictionary<string, string> Params { get; set; } = new Dictionary<string, string>();
+    }
+
+    /// <summary>
+    /// A table script's change to the game in play (the Lua <c>Game</c> API): <see cref="Op"/> is <c>setResource</c>,
+    /// <c>addResource</c>, <c>setVariable</c>, <c>endTurn</c>, <c>endPhase</c>, <c>gotoPhase</c>, <c>win</c> or <c>log</c>.
+    /// Inside a <c>lua</c> effect it joins that action's transaction; from elsewhere (a button) it is a command of its own,
+    /// sent to every peer like any other. Only the host's scripts issue it.
+    /// </summary>
+    public sealed class ScriptRulesCommand : Command, IHostCommand
+    {
+        public string Op { get; set; } = "";
+        public string? Seat { get; set; }
+        public string? Name { get; set; }
+        public JToken? Value { get; set; }
     }
 
     /// <summary>An action a seat may perform now, with every parameter combination that passes its preconditions.</summary>

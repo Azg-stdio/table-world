@@ -279,13 +279,13 @@ namespace TableWorld.View
         {
             var size = (card.Size ?? Card.DefaultSize).ToUnity();
             var mesh = MeshFactory.ImageBox(new Vector3(size.x, CardThickness, size.y));
-            // A card in another player's hand shows its back on both sides.
-            var faceAsset = view.HideFace ? card.BackAsset : card.FaceAsset;
-            var faceIndex = view.HideFace ? card.BackIndex : card.FaceIndex;
-            SetPrism(view, mesh, assets.ImageMaterial(faceAsset, Ivory), assets.ImageMaterial(card.BackAsset, Ivory), assets.Plain(CardEdge), CardMass);
+            // A card in another player's hand shows its back on both sides. Text cards show drawings of their words.
+            var back = assets.Back(card);
+            var (faceAsset, faceIndex) = view.HideFace ? back : assets.Face(card);
+            SetPrism(view, mesh, assets.ImageMaterial(faceAsset, Ivory), assets.ImageMaterial(back.AssetId, Ivory), assets.Plain(CardEdge), CardMass);
             SetCell(view, assets, MeshFactory.TopSubmesh, assets.CellScaleOffset(faceAsset, faceIndex));
             UseCardPhysics(view);
-            SetCell(view, assets, MeshFactory.BottomSubmesh, assets.CellScaleOffset(card.BackAsset, card.BackIndex));
+            SetCell(view, assets, MeshFactory.BottomSubmesh, assets.CellScaleOffset(back.AssetId, back.Index));
         }
 
         /// <summary>
@@ -309,14 +309,13 @@ namespace TableWorld.View
 
             var faceSideCard = deck.IsFaceUp ? deck.Cards[0] : deck.Cards[count - 1];
             var backSideCard = deck.IsFaceUp ? deck.Cards[count - 1] : deck.Cards[0];
-            var faceAsset = faceSideCard.FaceAsset ?? deck.FaceAsset;
-            var backAsset = backSideCard.BackAsset ?? deck.BackAsset;
-            var backIndex = backSideCard.BackIndex ?? deck.BackIndex;
+            var (faceAsset, faceIndex) = assets.Face(deck, faceSideCard);
+            var (backAsset, backIndex) = assets.Back(deck, backSideCard);
             SetPrism(view, mesh, assets.ImageMaterial(faceAsset, Ivory), assets.ImageMaterial(backAsset, Ivory), assets.Plain(CardEdge), CardMass * count);
             UseCardPhysics(view);
             view.Renderer.enabled = true;
             view.Collider.isTrigger = false;
-            SetCell(view, assets, MeshFactory.TopSubmesh, assets.CellScaleOffset(faceAsset, faceSideCard.FaceIndex));
+            SetCell(view, assets, MeshFactory.TopSubmesh, assets.CellScaleOffset(faceAsset, faceIndex));
             SetCell(view, assets, MeshFactory.BottomSubmesh, assets.CellScaleOffset(backAsset, backIndex));
         }
 
