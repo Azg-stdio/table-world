@@ -3915,6 +3915,12 @@
         "turn": {
           "type": "integer"
         },
+        "players": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "currentSeat": {
           "type": "string"
         },

@@ -119,6 +119,8 @@ namespace Core.Rules
         public bool Over { get; set; }
         public string? Winner { get; set; }
         public int Turn { get; set; }
+        /// <summary>Seats playing this game, in seat order; empty means every seat (games saved before seats were chosen).</summary>
+        public List<string> Players { get; set; } = new List<string>();
         public string? CurrentSeat { get; set; }
         public string? Phase { get; set; }
         /// <summary>Seats that acted in the current phase visit.</summary>

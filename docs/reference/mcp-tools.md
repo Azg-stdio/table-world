@@ -136,7 +136,7 @@ Load a game document (or a saved game in progress) from a JSON file.
 
 ### `new_game`
 
-Start a new game document: name, player seats with a hand zone each, and the builtin standard deck images. Up to 4 seats are seat_south, seat_north, seat_east, seat_west (hands hand_<side>) on a 1.6 x 1.0 m table; 5 to 12 seats are seat_1..seat_N clockwise from the south side (hands hand_<n>, seat list order is turn order) on a table that grows to fit them. get_table_state shows where each hand lies. People beyond the seats can still join a session and watch. Replaces the current document.
+Start a new game document: name, player seats with a hand zone each, and the builtin standard deck images. Up to 4 seats are seat_south, seat_north, seat_east, seat_west (hands hand_<side>) on a 1.6 x 1.0 m table; 5 to 12 seats are seat_1..seat_N clockwise from the south side (hands hand_<n>, seat list order is turn order) on a table that grows to fit them. get_table_state shows where each hand lies. Make one table for every player count: players = the most players, minPlayers = the fewest; start_game then picks who plays. People beyond the seats can still join a session and watch. Replaces the current document.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
@@ -251,11 +251,13 @@ Add a win condition: {"when":{condition with $player},"winner":"$player","checkA
 
 ### `start_game`
 
-Start playing the game: runs onGameStart (shuffle, deal) and the first turn. The document must validate.
+Start playing the game: runs onGameStart (shuffle, deal) and the first turn, with the seats that play. A table keeps every seat it has (make a 3-6 player game with 6 seats, once); seats or players picks who plays this time, and empty seats are left out of turns, deals and forEach. The document must validate.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `seed` | Int64 | none | Optional seed for a reproducible game. |
+| `seats` | string | none | Comma-separated seat ids that play; empty for every seat. |
+| `players` | integer | none | How many play, spread evenly around the table (instead of seats). |
 
 ### `validate_rules`
 

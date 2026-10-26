@@ -27,9 +27,10 @@ namespace Core.Rules
         private void Run()
         {
             var seats = _state.Players.Seats.Count;
-            if (_state.Game != null && (seats < _state.Game.MinPlayers || seats > _state.Game.MaxPlayers))
+            // A table may have more seats than players (a 3–6 player game has six); the game starts with those seated.
+            if (_state.Game != null && (seats < _state.Game.MinPlayers || _state.Game.MaxPlayers < _state.Game.MinPlayers))
                 Add("players.seats", ErrorCodes.PlayerCount, $"{seats} seats, but the game takes {_state.Game.MinPlayers}–{_state.Game.MaxPlayers} players.",
-                    "Add or remove seats, or change game.minPlayers/maxPlayers.");
+                    "Give the table at least minPlayers seats (new_game players = the most players), and keep minPlayers ≤ maxPlayers.");
 
             var hasRules = _state.Turn != null || _state.Phases.Count > 0 || _state.Actions.Count > 0;
             if (!hasRules)

@@ -33,6 +33,7 @@ name: agents and tests match on them.
 | `no_hand_zone` | `NoHandZone` |
 | `no_rules` | `NoRules` |
 | `not_on_table` | `NotOnTable` |
+| `not_playing` | `NotPlaying` |
 | `not_your_seat` | `NotYourSeat` |
 | `not_your_turn` | `NotYourTurn` |
 | `object_locked` | `ObjectLocked` |

@@ -158,6 +158,17 @@ namespace TableWorld.Mcp.Tests
             Assert.True((float)doc["environment"]!["table"]!["size"]![0]! > 1.6f);
             Ok(await Call("validate_rules"));
 
+            // One table for 3–6 players, started with three of its six seats.
+            Ok(await Call("new_game", ("id", "flexible"), ("name", "Flexible"), ("players", 6), ("minPlayers", 3)));
+            Ok(await Call("add_action", ("actionJson", "{\"id\":\"pass\",\"actor\":\"current\",\"effects\":[{\"endTurn\":{}}]}")));
+            Ok(await Call("add_phase", ("phaseJson", "{\"id\":\"main\",\"actions\":[\"pass\"],\"advanceWhen\":{\"currentPlayerEnds\":true}}")));
+            Ok(await Call("start_game", ("players", 3)));
+            var started = await Call("get_rules_document");
+            Assert.Equal(new[] { "seat_1", "seat_3", "seat_5" }, started["session"]!["players"]!.Select(p => (string)p!));
+            Ok(await Call("perform_action", ("seat", "seat_1"), ("action", "pass")));
+            Assert.Equal("seat_3", (string?)(await Call("get_rules_document"))["session"]!["currentSeat"]);
+            Ok(await Call("reset_game"));
+
             var tooMany = await Call("new_game", ("id", "crowd"), ("name", "Crowd"), ("players", 13));
             Assert.False((bool)tooMany["ok"]!);
             Assert.Equal("players", (string?)tooMany["errors"]![0]!["path"]);

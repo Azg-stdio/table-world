@@ -315,7 +315,10 @@ namespace TableWorld.View.Bridge
             switch ((string)command["kind"])
             {
                 case "start":
-                    engineCommand = new StartGameCommand();
+                    var start = new StartGameCommand();
+                    if (command["seats"] is JArray startSeats)
+                        start.Seats.AddRange(startSeats.Select(s => (string)s));
+                    engineCommand = start;
                     break;
                 case "perform":
                     var perform = new PerformActionCommand { Actor = (string)command["seat"], ActionId = (string)command["action"] };

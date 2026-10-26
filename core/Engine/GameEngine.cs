@@ -149,23 +149,31 @@ namespace Core.Engine
                 throw new RuleException("", ErrorCodes.NoRules, "This table has no rules (turn and phases).", "Add a turn and phases, or play freely.");
             if (Session is { Started: true })
                 throw new RuleException("", ErrorCodes.GameAlreadyStarted, "The game has already started.");
-            var seats = State.Players.Seats;
-            if (seats.Count == 0)
+            if (State.Players.Seats.Count == 0)
                 throw new RuleException("players.seats", ErrorCodes.PlayerCount, "The game needs seats.");
+            foreach (var id in command.Seats.Where(id => State.Players.Seats.All(s => s.Id != id)))
+                throw new RuleException("seats", ErrorCodes.UnknownSeat, $"Seat '{id}' does not exist.");
+            var seats = command.Seats.Count == 0 ? State.Players.Seats : State.Players.Seats.Where(s => command.Seats.Contains(s.Id)).ToList();
             if (State.Game != null && (seats.Count < State.Game.MinPlayers || seats.Count > State.Game.MaxPlayers))
-                throw new RuleException("players.seats", ErrorCodes.PlayerCount, $"{seats.Count} seats; the game takes {State.Game.MinPlayers}–{State.Game.MaxPlayers}.");
+                throw new RuleException("players.seats", ErrorCodes.PlayerCount,
+                    $"{seats.Count} {(seats.Count == 1 ? "player" : "players")}; the game takes {State.Game.MinPlayers}–{State.Game.MaxPlayers}.",
+                    command.Seats.Count == 0 ? "Choose the seats that play (start_game seats), or change game.minPlayers/maxPlayers." : null);
 
             var turn = State.Turn!;
             var session = new Session { Started = true, Turn = 1 };
+            if (command.Seats.Count > 0)
+                session.Players = seats.Select(s => s.Id).ToList();
             foreach (var pair in State.Variables)
                 session.Variables[pair.Key] = pair.Value.DeepClone();
-            foreach (var seat in seats)
+            // Every seat gets resources, so rules naming an empty seat still read zero rather than fail.
+            foreach (var seat in State.Players.Seats)
                 session.Resources[seat.Id] = State.Resources.ToDictionary(r => r.Id, r => r.Initial);
             session.CurrentSeat = turn.StartingPlayer switch
             {
                 "first" => seats[0].Id,
                 "random" => seats[Table.Random.Next(seats.Count)].Id,
-                _ => turn.StartingPlayer,
+                _ when seats.Any(s => s.Id == turn.StartingPlayer) => turn.StartingPlayer,
+                _ => seats[0].Id,
             };
             State.Session = session;
 
@@ -223,6 +231,8 @@ namespace Core.Engine
             var session = Session!;
             if (State.Players.Seats.All(s => s.Id != seat))
                 return new RuleException("actor", ErrorCodes.UnknownSeat, $"Seat '{seat}' does not exist.");
+            if (Playing.All(s => s.Id != seat))
+                return new RuleException("actor", ErrorCodes.NotPlaying, $"{seat} is not playing this game.", "Only the seats the game started with can act.");
             if (CurrentPhase() is not { } phase || !phase.Actions.Contains(action.Id))
                 return new RuleException("actionId", ErrorCodes.ActionNotAvailable, $"'{action.Id}' is not allowed in phase '{session.Phase}'.",
                     CurrentPhase() is { } p && p.Actions.Count > 0 ? $"Allowed now: {string.Join(", ", p.Actions)}." : null);
@@ -289,7 +299,7 @@ namespace Core.Engine
                 var rule = phase.AdvanceWhen;
                 var advance = _pendingEndPhase
                     || rule != null && (rule.Immediate
-                        || rule.AllPlayersActed && State.Players.Seats.All(s => session.Acted.Contains(s.Id))
+                        || rule.AllPlayersActed && Playing.All(s => session.Acted.Contains(s.Id))
                         || rule.Condition != null && WithContext(new Context { Actor = session.CurrentSeat }, () => Holds(rule.Condition)));
                 if (!advance)
                     return;
@@ -319,9 +329,14 @@ namespace Core.Engine
             EnterPhase(State.Turn!.Phases[0]);
         }
 
+        /// <summary>The seats playing this game, in seat order: those it started with, or every seat.</summary>
+        public List<Seat> Playing => Session?.Players is { Count: > 0 } players
+            ? State.Players.Seats.Where(s => players.Contains(s.Id)).ToList()
+            : State.Players.Seats;
+
         private string NextSeat(string seat)
         {
-            var seats = State.Players.Seats;
+            var seats = Playing;
             var i = seats.FindIndex(s => s.Id == seat);
             var step = State.Turn?.Order == TurnOrder.Counterclockwise ? seats.Count - 1 : 1;
             return seats[(i + step) % seats.Count].Id;
@@ -340,7 +355,7 @@ namespace Core.Engine
                 return;
             foreach (var win in State.WinConditions.Where(w => w.CheckAfter == when && w.When != null))
             {
-                foreach (var seat in State.Players.Seats)
+                foreach (var seat in Playing)
                 {
                     var holds = WithContext(new Context { Actor = session.CurrentSeat, Player = seat.Id }, () => Holds(win.When!));
                     if (!holds)
@@ -416,7 +431,7 @@ namespace Core.Engine
                 case ForEachEffect each:
                 {
                     var items = each.Players
-                        ? State.Players.Seats.Select(s => (object)s).ToList()
+                        ? Playing.Select(s => (object)s).ToList()
                         : ItemsIn(ResolveTarget(each.ObjectsIn!, "forEach.objectsIn")).ToList();
                     foreach (var item in items)
                         WithContext(_ctx.With(it: item), () => RunEffects(each.Do));
@@ -531,8 +546,8 @@ namespace Core.Engine
         private List<string> TurnOrderFrom(string? first)
         {
             var order = new List<string>();
-            var seat = first ?? State.Players.Seats.FirstOrDefault()?.Id;
-            for (var i = 0; seat != null && i < State.Players.Seats.Count; i++)
+            var seat = first ?? Playing.FirstOrDefault()?.Id;
+            for (var i = 0; seat != null && i < Playing.Count; i++)
             {
                 order.Add(seat);
                 seat = NextSeat(seat);
@@ -568,7 +583,7 @@ namespace Core.Engine
         {
             var source = ResolveTarget(deal.From, "deal.from");
             var seats = deal.Seats.Count == 0
-                ? State.Players.Seats.Select(s => s.Id).ToList()
+                ? Playing.Select(s => s.Id).ToList()
                 : deal.Seats.Select((s, i) => ResolveSeat(s, $"deal.seats[{i}]")).ToList();
             for (var round = 0; round < deal.Count; round++)
             {
@@ -998,7 +1013,7 @@ namespace Core.Engine
         {
             switch (param.Type)
             {
-                case ParamType.Seat: return State.Players.Seats.Any(s => s.Id == value);
+                case ParamType.Seat: return Playing.Any(s => s.Id == value);
                 case ParamType.Number: return double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out _);
                 case ParamType.Choice: return param.Options.Contains(value);
                 default: return Candidates(param, seat).Contains(value);
@@ -1035,7 +1050,7 @@ namespace Core.Engine
                 var values = param.Type switch
                 {
                     ParamType.Object => Candidates(param, seat),
-                    ParamType.Seat => State.Players.Seats.Select(s => s.Id).ToList(),
+                    ParamType.Seat => Playing.Select(s => s.Id).ToList(),
                     ParamType.Choice => param.Options,
                     _ => new List<string>(),   // free numbers cannot be enumerated
                 };

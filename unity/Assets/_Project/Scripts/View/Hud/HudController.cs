@@ -470,6 +470,39 @@ namespace TableWorld.View.Hud
                 : "Reveal everything moved in this blind round.";
         }
 
+        /// <summary>
+        /// Start: online, with the seats people sit in; alone (hot seat), one button per player count the game takes, the
+        /// players spread evenly around the table. A table keeps all its seats; the empty ones sit the game out.
+        /// </summary>
+        private void AddStartButtons(TableState state)
+        {
+            var seats = state.Players.Seats.Select(s => s.Id).ToList();
+            var min = Mathf.Max(1, state.Game?.MinPlayers ?? seats.Count);
+            var max = Mathf.Min(seats.Count, state.Game?.MaxPlayers > 0 ? state.Game.MaxPlayers : seats.Count);
+            void Start(List<string> playing)
+            {
+                var result = _table.Execute(new StartGameCommand { Seats = playing });
+                if (!result.Ok)
+                    ShowStatus(result.Error.Message, error: true);
+            }
+            if (_table.Networked && _session != null)
+            {
+                var seated = seats.Where(s => _session.Occupants.ContainsKey(s)).ToList();
+                AddGameButton($"Start game ({seated.Count} {(seated.Count == 1 ? "player" : "players")})", () => Start(seated));
+                return;
+            }
+            if (min >= max)
+            {
+                AddGameButton("Start game", () => Start(SeatLayout.Spread(seats, max)));
+                return;
+            }
+            for (var n = min; n <= max; n++)
+            {
+                var count = n;
+                AddGameButton($"Start: {n} players", () => Start(SeatLayout.Spread(seats, count)));
+            }
+        }
+
         /// <summary>A seat chip glows while its player talks; your own while your microphone sends.</summary>
         private void UpdateTalking()
         {
@@ -525,7 +558,7 @@ namespace TableWorld.View.Hud
             _gameLog.EnableInClassList(Hidden, string.IsNullOrEmpty(_gameLog.text));
             if (session == null)
             {
-                AddGameButton("Start game", () => _table.Execute(new StartGameCommand()));
+                AddStartButtons(state);
                 return;
             }
             var count = 0;
@@ -632,6 +665,9 @@ namespace TableWorld.View.Hud
                     chip.AddToClassList("seat-chip--local");
                 if (seat.Id == CurrentTurnSeat())
                     chip.AddToClassList("seat-chip--turn");
+                // A seat the game started without sits it out.
+                if (_table.Game?.Session is { Started: true } && _table.Game.Playing.All(p => p.Id != seat.Id))
+                    chip.AddToClassList("seat-chip--out");
                 var sitter = occupants != null && occupants.TryGetValue(seat.Id, out var occupant) ? occupant : null;
                 var takenByOther = sitter != null && seat.Id != local;
                 chip.AddToClassList(takenByOther ? "seat-chip--taken" : "seat-chip--free");

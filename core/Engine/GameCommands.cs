@@ -6,6 +6,11 @@ namespace Core.Engine
     /// <summary>Starts the game described by the table's rules: session, onGameStart, first turn.</summary>
     public sealed class StartGameCommand : Command
     {
+        /// <summary>
+        /// The seats that play, in any order (turn order follows the table's seat list); empty means every seat. A table
+        /// keeps all its seats: a 3–6 player game has six, and starts with the people sitting at it.
+        /// </summary>
+        public List<string> Seats { get; set; } = new List<string>();
     }
 
     /// <summary>Performs a rules action (docs/rules-schema.md, "Actions") as <see cref="Command.Actor"/>.</summary>

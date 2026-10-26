@@ -1181,6 +1181,7 @@ object or object or object or object or object or object or object or object or 
 | `over` | boolean |  |
 | `winner` | string |  |
 | `turn` | integer |  |
+| `players` | array of string |  |
 | `currentSeat` | string |  |
 | `phase` | string |  |
 | `acted` | array of string |  |

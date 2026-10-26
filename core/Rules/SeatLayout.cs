@@ -43,6 +43,19 @@ namespace Core.Rules
             public float Width { get; set; }
         }
 
+        /// <summary>
+        /// <paramref name="players"/> of <paramref name="seats"/> (in seat order, which goes around the table) spread as
+        /// evenly as they go: 3 players at a 6-seat table sit at every other seat, not side by side.
+        /// </summary>
+        public static List<string> Spread(IReadOnlyList<string> seats, int players)
+        {
+            var chosen = new List<string>();
+            players = Math.Max(0, Math.Min(players, seats.Count));
+            for (var i = 0; i < players; i++)
+                chosen.Add(seats[(int)Math.Floor(i * (double)seats.Count / players)]);
+            return chosen;
+        }
+
         /// <summary>The table size (width × depth, metres) and the places for <paramref name="seats"/> seats (1 to <see cref="MaxSeats"/>).</summary>
         public static (Vec2 TableSize, List<Place> Places) Arrange(int seats)
         {

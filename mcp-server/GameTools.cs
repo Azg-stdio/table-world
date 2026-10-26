@@ -23,7 +23,7 @@ namespace TableWorld.Mcp
 
         // ---- authoring ----------------------------------------------------------------------------------------------
 
-        [McpServerTool(Name = "new_game"), Description("Start a new game document: name, player seats with a hand zone each, and the builtin standard deck images. Up to 4 seats are seat_south, seat_north, seat_east, seat_west (hands hand_<side>) on a 1.6 x 1.0 m table; 5 to 12 seats are seat_1..seat_N clockwise from the south side (hands hand_<n>, seat list order is turn order) on a table that grows to fit them. get_table_state shows where each hand lies. People beyond the seats can still join a session and watch. Replaces the current document.")]
+        [McpServerTool(Name = "new_game"), Description("Start a new game document: name, player seats with a hand zone each, and the builtin standard deck images. Up to 4 seats are seat_south, seat_north, seat_east, seat_west (hands hand_<side>) on a 1.6 x 1.0 m table; 5 to 12 seats are seat_1..seat_N clockwise from the south side (hands hand_<n>, seat list order is turn order) on a table that grows to fit them. get_table_state shows where each hand lies. Make one table for every player count: players = the most players, minPlayers = the fewest; start_game then picks who plays. People beyond the seats can still join a session and watch. Replaces the current document.")]
         public static string NewGame(GameSession session,
             [Description("Short id, lowercase, e.g. 'war'.")] string id,
             [Description("Display name.")] string name,
@@ -356,13 +356,19 @@ namespace TableWorld.Mcp
 
         // ---- play -------------------------------------------------------------------------------------------------
 
-        [McpServerTool(Name = "start_game"), Description("Start playing the game: runs onGameStart (shuffle, deal) and the first turn. The document must validate.")]
-        public static string StartGame(GameSession session, [Description("Optional seed for a reproducible game.")] long? seed = null) =>
+        [McpServerTool(Name = "start_game"), Description("Start playing the game: runs onGameStart (shuffle, deal) and the first turn, with the seats that play. A table keeps every seat it has (make a 3-6 player game with 6 seats, once); seats or players picks who plays this time, and empty seats are left out of turns, deals and forEach. The document must validate.")]
+        public static string StartGame(GameSession session,
+            [Description("Optional seed for a reproducible game.")] long? seed = null,
+            [Description("Comma-separated seat ids that play; empty for every seat.")] string? seats = null,
+            [Description("How many play, spread evenly around the table (instead of seats).")] int? players = null) =>
             session.Locked(() =>
             {
                 if (seed is { } s)
                     session.Seed = (ulong)s;
-                return PlayReply(session.Start(), session);
+                var all = session.Current.Players.Seats.Select(x => x.Id).ToList();
+                var chosen = players is { } n ? SeatLayout.Spread(all, n)
+                    : (seats ?? "").Split(',').Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
+                return PlayReply(session.Start(chosen), session);
             });
 
         [McpServerTool(Name = "perform_action"), Description("Perform a rules action as a seat, e.g. seat 'seat_south', action 'play_card', params {\"card\":\"queen_hearts\"}. get_table_state lists the legal actions and their parameter values.")]

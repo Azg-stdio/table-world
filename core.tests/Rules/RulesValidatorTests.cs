@@ -91,8 +91,11 @@ namespace Core.Tests.Rules
         [Fact]
         public void PlayerCount()
         {
-            var json = MiniGame.Json(MiniGame.Action("")).Replace(@"""maxPlayers"": 2", @"""maxPlayers"": 1").Replace(@"""minPlayers"": 2", @"""minPlayers"": 1");
+            // Fewer seats than the fewest players the game takes; more seats than players is fine (they sit out).
+            var json = MiniGame.Json(MiniGame.Action("")).Replace(@"""maxPlayers"": 2", @"""maxPlayers"": 4").Replace(@"""minPlayers"": 2", @"""minPlayers"": 3");
             Single(json, ErrorCodes.PlayerCount);
+            var spare = MiniGame.Json(MiniGame.Action("")).Replace(@"""maxPlayers"": 2", @"""maxPlayers"": 1").Replace(@"""minPlayers"": 2", @"""minPlayers"": 1");
+            Assert.DoesNotContain(TableValidator.Validate(TableJson.Parse(spare).State!), e => e.Code == ErrorCodes.PlayerCount);
         }
 
         [Fact]

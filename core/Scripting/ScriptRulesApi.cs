@@ -129,7 +129,8 @@ namespace Core.Scripting
             t["getCurrentSeat"] = Fn(_ => Game()?.Session?.CurrentSeat is { } s ? DynValue.NewString(s) : DynValue.Nil);
             t["getPhase"] = Fn(_ => Game()?.Session?.Phase is { } p ? DynValue.NewString(p) : DynValue.Nil);
             t["getTurn"] = Fn(_ => DynValue.NewNumber(Game()?.Session?.Turn ?? 0));
-            t["getSeats"] = Fn(_ => List(script, Engine.State.Players.Seats.Select(s => s.Id)));
+            // The seats in the game (those it started with), in turn order; the empty ones are left out.
+            t["getSeats"] = Fn(_ => List(script, (Game()?.Playing ?? Engine.State.Players.Seats).Select(s => s.Id)));
             t["getSeatColor"] = Fn(args => Engine.State.Players.Seats.FirstOrDefault(s => s.Id == Arg(args, 0))?.Color is { } c ? DynValue.NewString(c) : DynValue.Nil);
             t["getResource"] = Fn(args =>
                 Game()?.Session?.Resources is { } all && Arg(args, 0) is { } seat && all.TryGetValue(seat, out var values) &&

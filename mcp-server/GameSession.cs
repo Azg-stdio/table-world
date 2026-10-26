@@ -422,20 +422,21 @@ namespace TableWorld.Mcp
 
         // ---- play ---------------------------------------------------------------------------------------------------
 
-        public PlayResult Start()
+        public PlayResult Start(IReadOnlyList<string>? seats = null)
         {
+            seats ??= Array.Empty<string>();
             var problems = Validate();
             if (problems.Count > 0)
                 return PlayResult.Refused(problems.ToArray());
             if (Remote)
             {
                 PushToGame();
-                return RemoteCommand(new JObject { ["kind"] = "start", ["seed"] = (long)Seed });
+                return RemoteCommand(new JObject { ["kind"] = "start", ["seed"] = (long)Seed, ["seats"] = new JArray(seats) });
             }
             var copy = TableJson.Parse(TableJson.Serialize(Document)).State!;
             Game = new GameEngine(copy, Seed);
             StartScripts(Game);
-            var result = Game.Execute(new StartGameCommand());
+            var result = Game.Execute(new StartGameCommand { Seats = seats.ToList() });
             if (!result.Ok)
                 Game = null;
             Changed?.Invoke(Current);

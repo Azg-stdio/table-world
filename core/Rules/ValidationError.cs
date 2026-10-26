@@ -79,6 +79,8 @@ namespace Core.Rules
         public const string RuleFailed = "rule_failed";
         /// <summary>A <c>lua</c> effect names a function the global script does not define, or the function refused.</summary>
         public const string ScriptFailed = "script_failed";
+        /// <summary>A seat that is at the table but not in the game being played (it started without that seat).</summary>
+        public const string NotPlaying = "not_playing";
 
         // Engine (command) errors.
         public const string UnknownCommand = "unknown_command";
