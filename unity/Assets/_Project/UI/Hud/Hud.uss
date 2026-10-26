@@ -435,11 +435,48 @@
     bottom: 33%;
 }
 
+/* A game panel is a window: its bar (name, fold button) moves it; a moved one leaves its anchor. */
+.game-ui-titlebar {
+    flex-direction: row;
+    align-items: center;
+    margin: -4px -4px 4px -4px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+.game-ui-titlebar:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
 .game-ui-title {
+    flex-grow: 1;
     -unity-font-style: bold;
     font-size: 17px;
     color: rgb(240, 236, 226);
-    margin-bottom: 6px;
+}
+
+.game-ui-fold {
+    width: 24px;
+    height: 22px;
+    margin: 0 0 0 6px;
+    padding: 0;
+    border-width: 0;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: rgb(240, 236, 226);
+    font-size: 16px;
+    -unity-text-align: middle-center;
+}
+
+.game-ui-fold:hover {
+    background-color: rgba(255, 255, 255, 0.22);
+}
+
+.game-ui-panel--placed {
+    right: auto;
+    bottom: auto;
+    translate: 0 0;
 }
 
 .game-ui-label {

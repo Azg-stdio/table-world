@@ -39,20 +39,134 @@ namespace TableWorld.View.Hud
                 var root = new VisualElement();
                 root.AddToClassList("game-ui-panel");
                 root.AddToClassList("game-ui-panel--" + Kebab(panel.Anchor.ToString()));
-                if (panel.Title != null)
-                {
-                    var title = new Label(panel.Title);
-                    title.AddToClassList("game-ui-title");
-                    root.Add(title);
-                }
+                var body = new VisualElement();
+                body.AddToClassList("game-ui-body");
+                root.Add(TitleBar(root, body, panel));
                 foreach (var def in panel.Elements)
                 {
                     var element = Create(def);
-                    root.Add(element);
+                    body.Add(element);
                     _bound.Add((def, element));
                 }
+                root.Add(body);
                 _layer.Add(root);
                 _panels.Add((panel, root));
+                Restore(root, body, panel);
+            }
+        }
+
+        // ---- windows: a game's panels move and fold like windows, each player as they like ------------------------
+
+        private string PrefKey(PanelDef panel) => $"tw.panel.{_table.Engine?.State.Game?.Id ?? "table"}.{panel.Id}";
+
+        /// <summary>
+        /// The window's bar: the panel's name (what it shows: "Inventory"), dragged to move the window, and a button at
+        /// the right that folds the window to its bar and opens it again.
+        /// </summary>
+        private VisualElement TitleBar(VisualElement root, VisualElement body, PanelDef panel)
+        {
+            var bar = new VisualElement { tooltip = "Drag to move" };
+            bar.AddToClassList("game-ui-titlebar");
+            var title = new Label(panel.Title ?? Names.Humanize(panel.Id));
+            title.AddToClassList("game-ui-title");
+            var fold = new Button { text = "\u2013", tooltip = "Fold or open" };
+            fold.AddToClassList("game-ui-fold");
+            fold.clicked += () =>
+            {
+                var folded = !body.ClassListContains("hidden");
+                body.EnableInClassList("hidden", folded);
+                fold.text = folded ? "+" : "\u2013";
+                Save(root, body, panel);
+            };
+            bar.Add(title);
+            bar.Add(fold);
+
+            Vector2? grab = null;
+            bar.RegisterCallback<PointerDownEvent>(e =>
+            {
+                if (e.button != 0 || e.target == fold)
+                    return;
+                var at = root.worldBound.position;
+                grab = (Vector2)e.position - at;
+                PlaceAt(root, at);
+                bar.CapturePointer(e.pointerId);
+                e.StopPropagation();
+            });
+            bar.RegisterCallback<PointerMoveEvent>(e =>
+            {
+                if (grab is not { } offset || root.parent == null)
+                    return;
+                var area = root.parent.worldBound;
+                var to = (Vector2)e.position - offset - area.position;
+                // Kept on screen: at least the bar stays reachable.
+                to.x = Mathf.Clamp(to.x, 0f, Mathf.Max(0f, area.width - root.worldBound.width));
+                to.y = Mathf.Clamp(to.y, 0f, Mathf.Max(0f, area.height - bar.worldBound.height));
+                PlaceAt(root, to + area.position);
+            });
+            bar.RegisterCallback<PointerUpEvent>(e =>
+            {
+                if (grab == null)
+                    return;
+                grab = null;
+                if (bar.HasPointerCapture(e.pointerId))
+                    bar.ReleasePointer(e.pointerId);
+                Save(root, body, panel);
+            });
+            return bar;
+        }
+
+        /// <summary>Puts a window at a panel position (it leaves its anchor; where a player drags it is set from code).</summary>
+        private static void PlaceAt(VisualElement root, Vector2 worldPosition)
+        {
+            var origin = root.parent?.worldBound.position ?? Vector2.zero;
+            root.AddToClassList("game-ui-panel--placed");
+            root.style.left = worldPosition.x - origin.x;
+            root.style.top = worldPosition.y - origin.y;
+        }
+
+        private void Save(VisualElement root, VisualElement body, PanelDef panel)
+        {
+            try
+            {
+                var placed = root.ClassListContains("game-ui-panel--placed");
+                var x = placed ? root.resolvedStyle.left : float.NaN;
+                var y = placed ? root.resolvedStyle.top : float.NaN;
+                PlayerPrefs.SetString(PrefKey(panel), string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}|{1}|{2}",
+                    x, y, body.ClassListContains("hidden") ? 1 : 0));
+            }
+            catch (System.Exception)
+            {
+                // A window that cannot remember its place opens at its anchor next time.
+            }
+        }
+
+        private void Restore(VisualElement root, VisualElement body, PanelDef panel)
+        {
+            string saved;
+            try
+            {
+                saved = PlayerPrefs.GetString(PrefKey(panel), "");
+            }
+            catch (System.Exception)
+            {
+                return;
+            }
+            var parts = saved.Split('|');
+            if (parts.Length != 3)
+                return;
+            var culture = System.Globalization.CultureInfo.InvariantCulture;
+            if (float.TryParse(parts[0], System.Globalization.NumberStyles.Float, culture, out var x) && !float.IsNaN(x) &&
+                float.TryParse(parts[1], System.Globalization.NumberStyles.Float, culture, out var y) && !float.IsNaN(y))
+            {
+                root.AddToClassList("game-ui-panel--placed");
+                root.style.left = x;
+                root.style.top = y;
+            }
+            if (parts[2] == "1")
+            {
+                body.AddToClassList("hidden");
+                if (root.Q<Button>(className: "game-ui-fold") is { } fold)
+                    fold.text = "+";
             }
         }
 
