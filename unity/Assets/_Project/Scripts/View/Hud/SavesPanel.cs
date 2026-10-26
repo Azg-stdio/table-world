@@ -86,11 +86,8 @@ namespace TableWorld.View.Hud
             text.Add(detail);
             row.Add(text);
 
-            var load = new Button(() =>
-            {
-                var ok = _library.Load(entry, out var error);
-                _tell(ok ? $"Loaded {entry.Name}" : error, !ok);
-            }) { text = "Load" };
+            var load = new Button(() => _library.LoadInSteps(entry, (ok, error) => _tell(ok ? $"Loaded {entry.Name}" : error, !ok)))
+                { text = "Load" };
             load.AddToClassList("hud-button");
             load.SetEnabled(_library.CanSave);
             row.Add(load);

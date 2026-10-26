@@ -20,7 +20,12 @@ namespace Core.Scripting
         public const string GlobalName = "global";
         /// <summary>Instructions a script runs between checks, and at most per call (an event, a timer, a load).</summary>
         public const int Slice = 10_000;
-        public const long MaxSteps = 2_000_000;
+        /// <summary>
+        /// Longest a call may run before it is taken for an endless loop and stopped. A limit on time, not instructions:
+        /// TTS has none, and a real setup (Pokémon Sinnoh's Start Game places a hundred tokens against hundreds of wild
+        /// areas) runs millions of instructions in well under a second.
+        /// </summary>
+        public static readonly TimeSpan MaxRunTime = TimeSpan.FromSeconds(5);
         /// <summary>Longest string <c>string.rep</c> and concatenation helpers may build.</summary>
         public const int MaxStringLength = 1_000_000;
         /// <summary>Scripts reacting to commands their own commands caused stop this deep.</summary>
@@ -195,7 +200,7 @@ namespace Core.Scripting
 
         /// <summary>
         /// Runs <paramref name="function"/> as a coroutine that yields every <see cref="Slice"/> instructions, giving up
-        /// after <see cref="MaxSteps"/>; false (logged) when it failed or ran too long.
+        /// after <see cref="MaxRunTime"/>; false (logged) when it failed or ran too long.
         /// </summary>
         private bool Run(Script script, DynValue function, string label, DynValue[] args) => RunFor(script, function, label, args, out _);
 
@@ -269,14 +274,13 @@ end";
                 var call = new DynValue[args.Length + 1];
                 call[0] = function;
                 Array.Copy(args, 0, call, 1, args.Length);
+                var clock = System.Diagnostics.Stopwatch.StartNew();
                 var reply = thread.Resume(call);
-                long steps = Slice;
                 while (thread.State == CoroutineState.ForceSuspended)
                 {
-                    steps += Slice;
-                    if (steps > MaxSteps)
+                    if (clock.Elapsed > MaxRunTime)
                     {
-                        Log?.Invoke($"[{label}] stopped: it ran more than {MaxSteps:N0} steps (an endless loop?).");
+                        Log?.Invoke($"[{label}] stopped: it ran more than {MaxRunTime.TotalSeconds:0} s (an endless loop?).");
                         return false;
                     }
                     reply = thread.Resume();
@@ -323,14 +327,13 @@ end";
                 }
                 var thread = script.CreateCoroutine(function).Coroutine;
                 thread.AutoYieldCounter = Slice;
+                var clock = System.Diagnostics.Stopwatch.StartNew();
                 result = thread.Resume(args);
-                long steps = Slice;
                 while (thread.State == CoroutineState.ForceSuspended)
                 {
-                    steps += Slice;
-                    if (steps > MaxSteps)
+                    if (clock.Elapsed > MaxRunTime)
                     {
-                        Log?.Invoke($"[{label}] stopped: it ran more than {MaxSteps:N0} steps (an endless loop?).");
+                        Log?.Invoke($"[{label}] stopped: it ran more than {MaxRunTime.TotalSeconds:0} s (an endless loop?).");
                         return false;
                     }
                     result = thread.Resume();
@@ -718,14 +721,13 @@ end";
                 try
                 {
                     thread.AutoYieldCounter = Slice;
+                    var clock = System.Diagnostics.Stopwatch.StartNew();
                     thread.Resume();
-                    long steps = Slice;
                     while (thread.State == CoroutineState.ForceSuspended)
                     {
-                        steps += Slice;
-                        if (steps > MaxSteps)
+                        if (clock.Elapsed > MaxRunTime)
                         {
-                            Log?.Invoke($"[{label}] stopped: a coroutine ran more than {MaxSteps:N0} steps in one frame.");
+                            Log?.Invoke($"[{label}] stopped: a coroutine ran more than {MaxRunTime.TotalSeconds:0} s in one frame.");
                             break;
                         }
                         thread.Resume();

@@ -42,6 +42,8 @@ flowchart LR
   draws the same tree.
 - **Orientation follows TTS** (ADR 0005): buttons and inputs read upright from +Z at rotation 0; object XmlUI from −Z.
   Buttons in the same place draw in the order the script made them (TTS's outlined-text trick).
+- **Script buttons and inputs are redrawn once per frame** (`TableView.DrawScriptControls`, end of the frame and end of
+  a load): a script that makes and edits dozens of buttons used to rebuild every world-space panel after each call.
 - **The UI font atlases grow during play**; commit their growth and never revert them under a running Editor
   (CLAUDE.md §4).
 

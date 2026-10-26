@@ -34,7 +34,7 @@ namespace TableWorld.View
         {
             if (view == null)
                 return;
-            var outline = view.GetComponent<Outline>();
+            view.TryGetComponent(out Outline outline);
             if (color == null)
             {
                 if (outline == null)
@@ -50,7 +50,7 @@ namespace TableWorld.View
             outline._reasons.Add((reason, color.Value));
         }
 
-        public static Color? ColorOf(ObjectView view) => view != null && view.GetComponent<Outline>() is { } outline ? outline.Color : null;
+        public static Color? ColorOf(ObjectView view) => view != null && view.TryGetComponent(out Outline outline) ? outline.Color : null;
 
         private void Awake() => _view = GetComponent<ObjectView>();
 
@@ -59,7 +59,7 @@ namespace TableWorld.View
         {
             if (_view.Filter != null)
                 yield return _view.Filter;
-            if (_view.Base != null && _view.Base.GetComponent<MeshFilter>() is { } stand)
+            if (_view.Base != null && _view.Base.TryGetComponent(out MeshFilter stand))
                 yield return stand;
             if (transform.Find("Bundle") is { } bundle)
                 foreach (var part in bundle.GetComponentsInChildren<MeshFilter>())

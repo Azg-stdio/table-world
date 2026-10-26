@@ -13,6 +13,7 @@ namespace TableWorld.Editor
     {
         public const float ContactOffset = 0.001f;
         public const float FixedTimestep = 0.01f;
+        public const float MaxCatchUp = 0.1f;
         public const int SolverIterations = 12;
         public const int SolverVelocityIterations = 4;
         public const float SleepThreshold = 0.0005f;
@@ -81,6 +82,9 @@ namespace TableWorld.Editor
             Physics.sleepThreshold = SleepThreshold;
             // Setting Time.fixedDeltaTime alone does not reach the disk; dirtying the TimeManager makes SaveAssets write it.
             Time.fixedDeltaTime = FixedTimestep;
+            // After a long frame (a load, a slow machine) physics catches up at most this far, ten steps at 100 Hz: the
+            // default third of a second ran 33 steps in the next frame, making it long too.
+            Time.maximumDeltaTime = MaxCatchUp;
             EditorUtility.SetDirty(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TimeManager.asset")[0]);
             // A networked table must keep exchanging messages while its window is in the background.
             PlayerSettings.runInBackground = true;

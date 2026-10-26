@@ -234,7 +234,7 @@ Scripts are safe to run from a game someone sent you:
 
 - They run only on the host, the player who loaded the game. Everyone else sees the result.
 - They reach only the table: no files, no network, no other programs (`io`, `os`, `load` and `require` do not exist).
-- Each call stops after 2 000 000 Lua instructions, so an endless loop cannot freeze the game. Errors are logged and
+- A call still running after 5 seconds is stopped, so an endless loop cannot freeze the game. Errors are logged and
   never stop play.
 - Everything a script does goes through the same commands a player's hands use, so it stays in sync for every
   player and can be saved and replayed.

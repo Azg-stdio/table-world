@@ -7,11 +7,11 @@ follow Tabletop Simulator: positions are in TTS units with the table surface at 
 Where scripts live: the table's global script is `scripts["global"]`; an object's script is its `script` field; a zone's
 (TTS scripting triggers have them) is the zone's `script`. Inside an object or zone script, `self` is that object or zone.
 An object inside a bag or deck is not in play: its script starts when it comes out (and runs `onLoad`) and stops when it
-goes back in, as in TTS. Scripts may move locked objects (`setPosition`, `setRotation`); players cannot.
+goes back in, as in TTS. Scripts may move, scale and bag locked objects (`setPosition`, `setRotation`, `scale`, `putObject`); players cannot.
 
 ## Limits
 
-Each call runs at most 2 000 000 Lua instructions; `string.rep` builds at most 1 000 000 characters; scripts reacting to
+A call still running after 5 seconds is stopped as an endless loop; `string.rep` builds at most 1 000 000 characters; scripts reacting to
 their own changes stop 4 levels deep; `io`, `os` (except time), `load`, `dofile` and `require` do not exist. Errors are
 logged on the host and never stop the game.
 

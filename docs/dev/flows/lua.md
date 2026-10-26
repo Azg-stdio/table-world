@@ -34,7 +34,7 @@ sequenceDiagram
 ## Rules worth knowing
 
 - **The sandbox**: no `io`, `os.execute`, `load`, `dofile` or `require`; `string.rep` is capped; every call runs with
-  a step budget (10 000 per slice, 2 000 000 per call) and an endless loop is stopped, not the host.
+  a step budget (it yields every 10 000 instructions) and a call still running after 5 s is stopped as an endless loop, not the host.
 - **One runner coroutine per script.** Making a MoonSharp coroutine costs about 0.25 ms; each script keeps one that
   calls every function under `pcall` and still yields every slice. A call made while it runs (a handler whose command
   wakes another handler of the same script) gets a coroutine of its own.

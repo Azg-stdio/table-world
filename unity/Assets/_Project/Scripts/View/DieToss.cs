@@ -43,7 +43,7 @@ namespace TableWorld.View
         /// <summary>Tosses <paramref name="view"/> to land on <paramref name="value"/>; <paramref name="landed"/> hears when it is down.</summary>
         public static void Toss(ObjectView view, int value, System.Action<ObjectView> landed)
         {
-            var toss = view.GetComponent<DieToss>() ?? view.gameObject.AddComponent<DieToss>();
+            var toss = view.TryGetComponent(out DieToss existing) ? existing : view.gameObject.AddComponent<DieToss>();
             toss._landed = landed;
             toss.Throw(value);
         }

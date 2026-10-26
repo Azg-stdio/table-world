@@ -202,7 +202,7 @@ namespace TableWorld.View
                 {
                     // A block with a glowing display on top (G27).
                     var size = model is Counter ? CounterSize : ClockSize;
-                    var readout = view.GetComponent<Readout>() ?? view.gameObject.AddComponent<Readout>();
+                    var readout = view.TryGetComponent(out Readout existing) ? existing : view.gameObject.AddComponent<Readout>();
                     readout.Init(view);
                     var case_ = assets.Plain(model.Tint.ToColor(DisplayCase), 0.5f);
                     SetPrism(view, MeshFactory.Box(size), readout.Material, case_, case_, 0.06f);

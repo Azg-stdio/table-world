@@ -153,11 +153,20 @@ namespace TableWorld.View
             Timeline.Record(TableJson.Serialize(Engine.State, indented: false), Time.unscaledTimeAsDouble);
             _loadedAt = Time.time;
             var recorded = watch.ElapsedMilliseconds;
-            Loaded?.Invoke();
+            // Each reaction to the load timed on its own (the room, the scripts' onLoad, the HUD), for the slow-load line.
+            var reactions = new List<string>();
+            foreach (var handler in Loaded?.GetInvocationList() ?? Array.Empty<Delegate>())
+            {
+                var started = watch.ElapsedMilliseconds;
+                ((Action)handler)();
+                if (watch.ElapsedMilliseconds - started >= 50)
+                    reactions.Add($"{handler.Method.DeclaringType?.Name}.{handler.Method.Name} {watch.ElapsedMilliseconds - started} ms");
+            }
             // A slow load says where the time went (placing objects, or what reacts to it: room, scripts).
             if (watch.ElapsedMilliseconds > 1000)
                 Debug.Log($"[TableView] Loaded {Engine.State.Objects.Count} objects in {watch.ElapsedMilliseconds} ms: placing {placed} ms, " +
-                          $"recording {recorded - placed} ms, room and scripts {watch.ElapsedMilliseconds - recorded} ms.");
+                          $"recording {recorded - placed} ms, reactions {watch.ElapsedMilliseconds - recorded} ms ({string.Join(", ", reactions)}).");
+            DrawScriptControls();
             LastLoadOk = true;
             if (title != null)
                 LoadStepped?.Invoke(title, null);
@@ -631,7 +640,7 @@ namespace TableWorld.View
         /// <summary>
         /// <see cref="LoadFile"/> a step per frame, under the loading screen; <paramref name="done"/> hears whether it worked.
         /// </summary>
-        public void LoadFileInSteps(string path, string title, Action<bool> done = null)
+        public void LoadFileInSteps(string path, string title, Action<bool> done = null, string packageRoot = null)
         {
             if (!File.Exists(path))
             {
@@ -644,7 +653,7 @@ namespace TableWorld.View
 
             IEnumerator Run()
             {
-                yield return LoadInSteps(json, _packageRoot, title);
+                yield return LoadInSteps(json, packageRoot ?? _packageRoot, title);
                 done?.Invoke(LastLoadOk);
             }
         }
@@ -729,8 +738,29 @@ namespace TableWorld.View
         /// Physics moves free objects; the state learns their final pose here. When a body falls asleep (or has been
         /// awake too long) and its pose differs from the state, a <see cref="MoveCommand"/> records it.
         /// </summary>
+        /// <summary>
+        /// Objects whose script buttons or inputs changed this frame. Each is redrawn once, at the end of the frame: a
+        /// script making 16 buttons and editing each rebuilt every button world-space panel after every call (Pokémon
+        /// Sinnoh's six bag panels built thousands while loading).
+        /// </summary>
+        private readonly HashSet<string> _buttonsToDraw = new HashSet<string>();
+        private readonly HashSet<string> _inputsToDraw = new HashSet<string>();
+
+        private void DrawScriptControls()
+        {
+            foreach (var id in _buttonsToDraw)
+                if (ViewOf(id) is { } view)
+                    ScriptButtonsView.Refresh(view);
+            _buttonsToDraw.Clear();
+            foreach (var id in _inputsToDraw)
+                if (ViewOf(id) is { } view)
+                    ScriptInputsView.Refresh(view);
+            _inputsToDraw.Clear();
+        }
+
         private void LateUpdate()
         {
+            DrawScriptControls();
             if (Engine == null)
                 return;
             RecordTimeline();
@@ -1319,12 +1349,10 @@ namespace TableWorld.View
                         RespawnZone(moved.ObjectId);
                         break;
                     case ButtonsChanged buttons:
-                        if (ViewOf(buttons.ObjectId) is { } withButtons)
-                            ScriptButtonsView.Refresh(withButtons);
+                        _buttonsToDraw.Add(buttons.ObjectId);
                         break;
                     case InputsChanged inputs:
-                        if (ViewOf(inputs.ObjectId) is { } withInputs)
-                            ScriptInputsView.Refresh(withInputs);
+                        _inputsToDraw.Add(inputs.ObjectId);
                         break;
                     case TableSettingsChanged _:
                         foreach (var each in _views.Values)
@@ -1455,7 +1483,7 @@ namespace TableWorld.View
             var view = ViewOf(objectId);
             if (view == null || view.Body == null || view.Held || view.InHand)
                 return false;
-            if (view.Animating || view.GetComponent<DieToss>() is { Busy: true } || _awakeSince.ContainsKey(objectId))
+            if (view.Animating || (view.TryGetComponent(out DieToss toss) && toss.Busy) || _awakeSince.ContainsKey(objectId))
                 return true;
             return !view.Body.isKinematic && !view.Body.IsSleeping()
                 && (view.Body.linearVelocity.magnitude > StillSpeed || view.Body.angularVelocity.magnitude > StillSpin);
@@ -1488,7 +1516,7 @@ namespace TableWorld.View
             {
                 if (view == null)
                     continue;
-                var existing = view.GetComponent<FixedJoint>();
+                view.TryGetComponent(out FixedJoint existing);
                 var target = view.Model.Joint is { } joint ? ViewOf(joint.To) : null;
                 if (target == null)
                 {
@@ -1511,7 +1539,7 @@ namespace TableWorld.View
             view.ImpactHandler = OnImpact;
             view.CollisionHandler = (v, c, enter) => Collided?.Invoke(v, c, enter);
             ApplyPhysicsMode(view);
-            if (view.GetComponent<Readout>() is { } readout)
+            if (view.TryGetComponent(out Readout readout))
                 readout.TimerDone = OnTimerDone;
             _views[obj.Id] = view;
         }

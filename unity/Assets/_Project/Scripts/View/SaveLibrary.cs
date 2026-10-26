@@ -137,6 +137,28 @@ namespace TableWorld.View
             return true;
         }
 
+        /// <summary><see cref="Load"/> under the loading screen; <paramref name="done"/> hears whether it worked and why not.</summary>
+        public void LoadInSteps(Entry entry, Action<bool, string> done)
+        {
+            if (!CanSave)
+            {
+                done(false, "Only the host loads a table.");
+                return;
+            }
+            if (!System.IO.File.Exists(entry.File))
+            {
+                done(false, "That save is gone.");
+                return;
+            }
+            var root = entry.PackageRoot != null && Directory.Exists(entry.PackageRoot) ? entry.PackageRoot : _table.PackageRoot;
+            _table.LoadFileInSteps(entry.File, entry.Name, ok =>
+            {
+                if (ok)
+                    _savedChanges = _table.Changes;
+                done(ok, ok ? null : $"{entry.Name} is not a valid table (details in the log).");
+            }, root);
+        }
+
         public void Delete(Entry entry)
         {
             System.IO.File.Delete(entry.File);

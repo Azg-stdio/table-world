@@ -326,7 +326,7 @@ namespace TableWorld.View
             var ray = _camera.ScreenPointToRay(pointer);
             var hoverHit = default(RaycastHit);
             Hovered = overUi ? null : RaycastObject(ray, Held, out hoverHit);
-            var button = Hovered != null && Held == null && hoverHit.collider != null ? hoverHit.collider.GetComponent<ScriptButtonView>() : null;
+            var button = Hovered != null && Held == null && hoverHit.collider != null && hoverHit.collider.TryGetComponent(out ScriptButtonView hit) ? hit : null;
             if (button != HoveredButton)
             {
                 if (HoveredButton != null)
@@ -369,7 +369,7 @@ namespace TableWorld.View
                 ClickButton(HoveredButton, alt: false);
             // Left button on a script input: type into it (M5).
             else if (mouse.leftButton.wasPressedThisFrame && Held == null && !overUi && _tool == Tool.Grab && !tab && Hovered != null &&
-                     hoverHit.collider != null && hoverHit.collider.GetComponent<ScriptInputView>() is { } input)
+                     hoverHit.collider != null && hoverHit.collider.TryGetComponent(out ScriptInputView input))
                 InputEditRequested?.Invoke(input, pointer);
             // Left button on a clickable part of a script's UI on an object (M5).
             else if (mouse.leftButton.wasPressedThisFrame && Held == null && !overUi && _tool == Tool.Grab && !tab && UseObjectUi(ray, "-1"))
@@ -1314,7 +1314,7 @@ namespace TableWorld.View
         {
             if (!(view.Model is Clock clock) || clock.Mode == ClockMode.Clock)
                 return false;
-            var shown = view.GetComponent<Readout>()?.CurrentSeconds ?? clock.Seconds;
+            var shown = view.TryGetComponent(out Readout readout) ? readout.CurrentSeconds : clock.Seconds;
             return _table.Execute(new SetClockCommand { ObjectId = view.Id, Seconds = shown, Running = !clock.Running, Actor = _table.LocalSeat }).Ok;
         }
 
@@ -1775,7 +1775,7 @@ namespace TableWorld.View
             for (var i = 0; i < count; i++)
             {
                 var hit = _hits[i];
-                if (hit.collider.GetComponent<TableWorld.View.ScriptUi.ObjectUiSurface>() is { } surface)
+                if (hit.collider.TryGetComponent(out TableWorld.View.ScriptUi.ObjectUiSurface surface))
                 {
                     if (hit.distance < bestDistance)
                     {

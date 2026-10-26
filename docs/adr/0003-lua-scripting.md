@@ -32,7 +32,8 @@ Two questions are open: **where** scripts run, and **how** they change the table
   (the global one, `scripts["global"]`, and each object's `script`), with `CoreModules.Preset_SoftSandbox` (no `io`, no
   `os` beyond time, no `load`, `dofile` or `require`).
 - Every call (top level, event, timer, `call` between scripts) runs as a coroutine that yields every 10 000 instructions
-  and is abandoned after 2 000 000; `string.rep` refuses strings over 1 000 000 characters; scripts reacting to the
+  and is abandoned after 5 s of running (2 000 000 instructions until 2026-10-25, which stopped Pokémon Sinnoh's real
+  Start Game setup halfway); `string.rep` refuses strings over 1 000 000 characters; scripts reacting to the
   commands their own commands caused stop 4 levels deep. Errors and stops are logged, never thrown into the host.
 - Scripts **read** the host's table directly and **change** it only by issuing ordinary commands (`setPosition` → `MoveCommand`,
   `flip` → `FlipCommand`, `takeObject` → `TakeCommand`, …) through the host's route, so changes are validated, ordered,
