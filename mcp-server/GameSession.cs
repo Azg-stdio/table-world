@@ -47,6 +47,23 @@ namespace TableWorld.Mcp
             host.Load(0);
         }
 
+        /// <summary>
+        /// Asks the game window for a picture of the table (<c>view</c>: seat, top, object, current). Null with the reason
+        /// when there is no window or it did not answer.
+        /// </summary>
+        public (byte[]? Jpeg, int Width, int Height, string? Error) Screenshot(string view, string? seat, string? target, int width)
+        {
+            if (!Remote)
+                return (null, 0, 0, "No game window is connected, so there is nothing to look at. Start Table World (in the Editor, press Play) and it connects within a few seconds.");
+            var reply = Bridge!.Request(new JObject { ["type"] = "screenshot", ["view"] = view, ["seat"] = seat, ["target"] = target, ["width"] = width })
+                .GetAwaiter().GetResult();
+            if (reply == null)
+                return (null, 0, 0, "The game window did not answer within 10 s.");
+            if ((bool?)reply["ok"] != true)
+                return (null, 0, 0, (string?)reply["error"] ?? "The game window could not take the picture.");
+            return (Convert.FromBase64String((string)reply["image"]!), (int?)reply["width"] ?? 0, (int?)reply["height"] ?? 0, null);
+        }
+
         /// <summary>The scripts' lines since the last call.</summary>
         public List<string> DrainScriptLines()
         {

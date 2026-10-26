@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Core.Rules;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -64,6 +65,20 @@ namespace TableWorld.View
         private Shader _lit;
 
         public Light Lamp => _lamp;
+
+        /// <summary>The pendant lamp's shade and cord: hidden while the camera looks down from above them (top-down view).</summary>
+        private GameObject _fixture;
+        private readonly List<Renderer> _fixtureParts = new List<Renderer>();
+
+        private void LateUpdate()
+        {
+            if (_fixture == null || _camera == null)
+                return;
+            var above = _camera.transform.position.y > LampHeight;
+            foreach (var part in _fixtureParts)
+                if (part != null && part.forceRenderingOff != above)
+                    part.forceRenderingOff = above;
+        }
         public Light TableLight => _tableLight;
         public GameObject Room => _room;
 
@@ -309,6 +324,7 @@ namespace TableWorld.View
 
             // The lamp: a shade over the table and a warm spot that lights the whole table and casts soft shadows.
             var shade = Cone("Lamp Shade", new Vector3(0f, LampHeight + 0.08f, 0f), 0.22f, 0.16f, new Color(0.12f, 0.1f, 0.08f));
+            _fixture = shade;
             Box("Lamp Cord", new Vector3(0f, (LampHeight + 0.16f + CeilingY) / 2f, 0f), new Vector3(0.008f, CeilingY - LampHeight - 0.16f, 0.008f), new Color(0.05f, 0.05f, 0.05f), 0f);
             var bulb = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             bulb.name = "Bulb";
@@ -332,6 +348,11 @@ namespace TableWorld.View
                     if (part.name == "Lamp Cord")
                         part.gameObject.SetActive(false);
             }
+
+            _fixtureParts.Clear();
+            foreach (Transform part in _room.transform)
+                if (part.name == "Lamp Cord" || part.name == "Lamp Shade")
+                    _fixtureParts.AddRange(part.GetComponentsInChildren<Renderer>(true));
 
             var lampGo = new GameObject("Lamp Light");
             lampGo.transform.SetParent(_room.transform, false);

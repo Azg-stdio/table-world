@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Core.Engine;
 using Core.Rules;
+using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -114,6 +115,23 @@ namespace TableWorld.Mcp
                 if (Tags(tags) is { } t) deck["tags"] = t;
                 Upsert(doc, "objects", deck);
             }), session));
+
+        [McpServerTool(Name = "screenshot"), Description("Look at the table in the game window: returns a picture with the HUD. view: 'seat' (as that seat's player sits, default the first seat), 'top' (the whole table from above), 'object' (target up close: check a card's face, a token's size), 'current' (what is on screen). Use it after placing things to check positions, facing, sizes and readability; needs the game window open.")]
+        public static IEnumerable<ContentBlock> Screenshot(GameSession session,
+            [Description("seat, top, object or current.")] string view = "seat",
+            [Description("For view 'seat': the seat id.")] string? seat = null,
+            [Description("For view 'object': the object id.")] string? target = null,
+            [Description("Picture width in pixels (320-2560).")] int width = 1280)
+        {
+            var (jpeg, w, h, error) = session.Screenshot(view, seat, target, width);
+            if (jpeg == null)
+                return new ContentBlock[] { new TextContentBlock { Text = Json(new { ok = false, error }) } };
+            return new ContentBlock[]
+            {
+                new TextContentBlock { Text = Json(new { ok = true, view, seat, target, width = w, height = h }) },
+                ImageContentBlock.FromBytes(jpeg, "image/jpeg"),
+            };
+        }
 
         [McpServerTool(Name = "set_script"), Description("Set Lua for the table: target 'global' for the global script (rules call its functions with lua effects: {\"lua\":{\"call\":\"fight\",\"args\":{...}}}), or an object id for that object's script (buttons, onDrop...). The Lua API is TTS's (objects, UI, Wait, events) plus Game: Game.getResource(seat,id), Game.setResource/addResource(seat,id,value), Game.getVariable/setVariable(name,value), Game.getCurrentSeat(), Game.getPhase(), Game.getSeats(), Game.endTurn(), Game.endPhase(), Game.gotoPhase(id), Game.win(seat), Game.log(text), Game.perform(seat,action,params), Game.roll(count,sides). A function called by a lua effect gets ctx {actor, params, args, it}; returning false or a reason string refuses the action and rolls it back. The code is checked for syntax errors; try it with run_lua. See resource tableworld://docs/rules-and-scripting.")]
         public static string SetScript(GameSession session,

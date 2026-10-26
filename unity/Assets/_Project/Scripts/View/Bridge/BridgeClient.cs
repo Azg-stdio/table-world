@@ -223,7 +223,90 @@ namespace TableWorld.View.Bridge
                 case "get_state":
                     Send(new JObject { ["id"] = (string)message["id"], ["type"] = "state", ["document"] = Document() });
                     break;
+                case "screenshot":
+                    StartCoroutine(Screenshot(message));
+                    break;
             }
+        }
+
+        /// <summary>
+        /// The agent's eyes: frames a view (a seat's, the whole table from above, one object up close, or what is on screen
+        /// now), captures the game window with its HUD, and replies with a JPEG. The camera goes back where it was.
+        /// </summary>
+        private System.Collections.IEnumerator Screenshot(JObject message)
+        {
+            var id = (string)message["id"];
+            var view = (string)message["view"] ?? "seat";
+            var width = Mathf.Clamp((int?)message["width"] ?? 1280, 320, 2560);
+            var camera = Camera.main != null ? Camera.main.GetComponent<TableCamera>() : null;
+            var before = camera != null ? camera.Current : default;
+            string problem = null;
+            if (camera != null && view != "current")
+            {
+                var size = TableGeometry.Size;
+                var reach = Mathf.Max(size.x, size.y);
+                switch (view)
+                {
+                    case "top":
+                        camera.SetView(new TableCamera.View { Pivot = Vector3.zero, Yaw = 0f, Pitch = 89f, Distance = reach * 1.1f + 0.3f });
+                        break;
+                    case "object":
+                        var target = (string)message["target"];
+                        var objectView = target != null ? _table.ViewOf(target) : null;
+                        if (objectView == null)
+                        {
+                            problem = $"No object '{target}' on the table.";
+                            break;
+                        }
+                        var bounds = objectView.Renderer != null ? objectView.Renderer.bounds : new Bounds(objectView.transform.position, Vector3.one * 0.1f);
+                        camera.SetView(new TableCamera.View { Pivot = bounds.center, Yaw = before.Yaw, Pitch = 70f, Distance = Mathf.Max(bounds.size.x, bounds.size.z) * 1.6f + 0.12f });
+                        break;
+                    default:
+                        var state = _table.Engine.State;
+                        var seatId = (string)message["seat"] ?? _table.LocalSeat ?? state.Players.Seats.FirstOrDefault()?.Id;
+                        var seat = state.Players.Seats.FirstOrDefault(s => s.Id == seatId);
+                        var hand = seat == null ? null : state.Zones.FirstOrDefault(z => z.Id == seat.HandZone);
+                        if (seatId != null && seat == null)
+                        {
+                            problem = $"No seat '{seatId}'.";
+                            break;
+                        }
+                        // Behind the seat's hand, looking across the table, as the player sits.
+                        var yaw = hand != null ? hand.Transform.Rotation.Y : 0f;
+                        camera.SetView(new TableCamera.View { Pivot = Vector3.zero, Yaw = yaw, Pitch = 52f, Distance = reach * 0.95f + 0.45f });
+                        break;
+                }
+            }
+            if (problem != null)
+            {
+                Send(new JObject { ["id"] = id, ["type"] = "screenshot", ["ok"] = false, ["error"] = problem });
+                yield break;
+            }
+            // Two frames for the view (and anything the move streams in) to draw, then the frame with its HUD.
+            yield return null;
+            yield return null;
+            yield return new WaitForEndOfFrame();
+            var shot = ScreenCapture.CaptureScreenshotAsTexture();
+            if (camera != null && view != "current")
+                camera.SetView(before);
+            var height = Mathf.RoundToInt(width * (float)shot.height / Mathf.Max(1, shot.width));
+            var scaled = RenderTexture.GetTemporary(width, height, 0);
+            Graphics.Blit(shot, scaled);
+            var previous = RenderTexture.active;
+            RenderTexture.active = scaled;
+            var image = new Texture2D(width, height, TextureFormat.RGB24, false);
+            image.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+            image.Apply();
+            RenderTexture.active = previous;
+            RenderTexture.ReleaseTemporary(scaled);
+            var jpeg = image.EncodeToJPG(82);
+            Destroy(shot);
+            Destroy(image);
+            Send(new JObject
+            {
+                ["id"] = id, ["type"] = "screenshot", ["ok"] = true, ["width"] = width, ["height"] = height,
+                ["image"] = Convert.ToBase64String(jpeg),
+            });
         }
 
         private JObject Execute(JObject command, string id)

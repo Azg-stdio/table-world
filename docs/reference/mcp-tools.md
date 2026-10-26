@@ -194,6 +194,17 @@ Save the game document (with the session if a game is running) to a JSON file.
 |---|---|---|---|
 | `path` | string | none | File path, e.g. games/my-game.json. Defaults to the file the session was opened with. |
 
+### `screenshot`
+
+Look at the table in the game window: returns a picture with the HUD. view: 'seat' (as that seat's player sits, default the first seat), 'top' (the whole table from above), 'object' (target up close: check a card's face, a token's size), 'current' (what is on screen). Use it after placing things to check positions, facing, sizes and readability; needs the game window open.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `view` | string | `seat` | seat, top, object or current. |
+| `seat` | string | none | For view 'seat': the seat id. |
+| `target` | string | none | For view 'object': the object id. |
+| `width` | integer | `1280` | Picture width in pixels (320-2560). |
+
 ### `set_rules_document`
 
 Replace the whole game document with JSON (for large edits). Malformed documents are rejected with errors.

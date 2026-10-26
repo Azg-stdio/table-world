@@ -45,6 +45,12 @@ namespace TableWorld.Mcp.Tests
                     if (args.TryGetValue("path", out var path) && path is string relative)
                         args["path"] = Path.Combine(folder, Path.GetFileName(relative));
                     var reply = await _server.Call(tool, args);
+                    // Looking needs a game window, which these tests run without: the example must say so plainly.
+                    if (tool == "screenshot")
+                    {
+                        Assert.Contains("No game window", (string?)reply["error"] ?? "");
+                        continue;
+                    }
                     // validate_rules answers ok = false when the document has problems, so this also checks it.
                     Assert.True(reply["ok"] == null || (bool?)reply["ok"] == true, $"{tool} refused the guide's example: {reply}");
                 }

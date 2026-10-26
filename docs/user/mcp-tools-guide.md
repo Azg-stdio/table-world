@@ -63,6 +63,15 @@ the decks apart. `count` makes copies; a card's own `style` overrides the deck's
 create_text_deck {"id": "gear", "name": "Equipment", "x": 0.4, "z": 0.2, "style": {"accent": [0.6, 0.4, 0.1], "backLabel": "EQUIPMENT"}, "cards": [{"title": "Sword", "kind": "Equipment", "body": "Attack +1.", "footer": "Price 4", "count": 3}, {"title": "Heavy Shield", "kind": "Equipment", "body": "Attack +X (X = one die of another player).", "corner": "10"}]}
 ```
 
+**`screenshot`**: the agent's eyes. The game window takes a picture of the table, with its HUD, and the agent sees
+it: as a seat's player sits (`view` `seat`), the whole table from above (`top`), one object up close (`object`, with
+`target`), or the screen as it is (`current`). Agents use it after placing things, to check that pieces face the
+right seat, that cards are readable and that nothing overlaps. It needs the game window open.
+
+```call
+screenshot {"view": "top"}
+```
+
 **`set_script`**: Lua for the table, for what the rules format cannot say: the global script (`target` `global`),
 whose functions rules call with a `lua` effect, or an object's script (buttons, reactions to drops). The code is
 checked for syntax errors first. [Rules and scripting](rules-and-scripting.md) explains the `Game` functions.
