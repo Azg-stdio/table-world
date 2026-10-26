@@ -9,6 +9,8 @@ var builder = Host.CreateApplicationBuilder(args);
 builder.Logging.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Trace);
 
 var file = Arguments.Value(args, "--file");
+// --games names the player's Games folder (tests point it at a temporary one); otherwise the game says where it is.
+GamesFolder.Override = Arguments.Value(args, "--games");
 // Without --file, each new game gets its own file in the player's Games folder, so the game window lists it.
 var games = file == null ? Arguments.Value(args, "--games") ?? GamesFolder.Find() : null;
 // --no-bridge: headless only (tests, CI); no game window can attach.

@@ -55,6 +55,14 @@ Add a per-player resource such as score or coins: {"id":"score","name":"Score","
 |---|---|---|---|
 | `resourceJson` | string | required | The resource as JSON. |
 
+### `add_to_games`
+
+Put the game in the player's Games tab: copies it (its setup) with every image and file it uses into the Games folder as '<name>/table.json'. Use it when the game file lives anywhere else (a project folder, a file a build script wrote and load_game opened); the Games tab lists only that folder. Running it again updates the same copy, and later edits in this session are saved to it.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `name` | string | none | Name of the folder (and of the entry in the Games tab); defaults to the game's name. |
+
 ### `ask_host`
 
 Use when the rulebook is ambiguous or silent. Do not guess: call this with the question and the options you see, then ask the human host and continue with their answer.

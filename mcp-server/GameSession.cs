@@ -538,6 +538,62 @@ namespace TableWorld.Mcp
 
         // ---- files --------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Copies the game (its setup, not a game in progress) into the player's Games folder as
+        /// <c>&lt;name&gt;/table.json</c> with every image and file it uses, so the Games tab lists it and players who join
+        /// receive the files. A folder holding the same game (same id) is updated; another game of that name is kept. From
+        /// then on the session saves to the copy, so later edits show up in the Games tab too.
+        /// </summary>
+        public string AddToGames(string? name)
+        {
+            var games = TableWorld.Mcp.GamesFolder.Known() ?? throw new EditException(new ValidationError("gamesFolder", ErrorCodes.MissingField,
+                "The game has not run on this computer yet, so its Games folder is unknown.",
+                "Ask the player to open Table World once, then call add_to_games again."));
+            var title = name ?? Document.Game?.Name ?? Document.Game?.Id ?? "Game";
+            var safe = new string(title.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '-' : c).ToArray()).Trim().Trim('.');
+            if (safe.Length == 0)
+                safe = "Game";
+            var target = Path.Combine(games, safe);
+            for (var n = 2; File.Exists(Path.Combine(target, "table.json")) && !SameGame(Path.Combine(target, "table.json")); n++)
+                target = Path.Combine(games, $"{safe} {n}");
+            Directory.CreateDirectory(target);
+            var root = FilePath == null ? null : Path.GetDirectoryName(FilePath);
+            foreach (var asset in Document.Assets.Where(a => !a.IsBuiltin && Asset.IsSafePath(a.Path)))
+            {
+                var from = root == null ? null : Path.Combine(root, asset.Path);
+                if (from == null || !File.Exists(from))
+                {
+                    // A file the game fetches from its web address needs no copy; any other is missing.
+                    if (Asset.IsWebAddress(asset.Url))
+                        continue;
+                    throw new EditException(new ValidationError($"assets.{asset.Id}", ErrorCodes.InvalidPath,
+                        $"Asset '{asset.Id}' points at {asset.Path}, which is not next to the game file.",
+                        "Add the file again with add_asset (path=...), which copies it next to the game, then add_to_games."));
+                }
+                var to = Path.Combine(target, asset.Path);
+                if (string.Equals(Path.GetFullPath(from), Path.GetFullPath(to), StringComparison.OrdinalIgnoreCase))
+                    continue;
+                Directory.CreateDirectory(Path.GetDirectoryName(to)!);
+                File.Copy(from, to, overwrite: true);
+            }
+            var file = Path.Combine(target, "table.json");
+            File.WriteAllText(file, TableJson.Serialize(Document));
+            FilePath = Path.GetFullPath(file);
+            return FilePath;
+        }
+
+        private bool SameGame(string file)
+        {
+            try
+            {
+                return (string?)Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(file))["game"]?["id"] == Document.Game?.Id;
+            }
+            catch (Exception e) when (e is IOException || e is Newtonsoft.Json.JsonException)
+            {
+                return false;
+            }
+        }
+
         public string Save(string? path)
         {
             path ??= FilePath ?? throw new EditException(new ValidationError("path", ErrorCodes.MissingField, "No file to save to.", "Pass a path, e.g. games/my-game.json."));

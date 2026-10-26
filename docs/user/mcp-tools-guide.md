@@ -292,3 +292,13 @@ save_game {"path": "games/high-card-race.json"}
 ```call
 load_game {"path": "games/high-card-race.json"}
 ```
+
+The game window's Games tab lists only the player's Games folder (and the samples). `save_game` and `load_game` say
+when the file is somewhere else, such as a project folder or a file a build script wrote.
+
+**`add_to_games`**: copies the game, with every image and file it uses, into the Games folder as `<name>/table.json`,
+so it shows in the Games tab. Running it again updates the same copy, and later edits in the session are saved there.
+
+```call
+add_to_games {"name": "High Card Race"}
+```

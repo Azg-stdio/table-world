@@ -62,7 +62,9 @@ break the connection).
 
 Server options: `--file <path>` saves every change to that one file and reopens it next time; without it, each
 `new_game` gets its own file in the Games folder the game wrote to `%LOCALAPPDATA%/TableWorld/game.json` (or a `games`
-folder where the agent runs, before the game has ever started). `--games <folder>` picks that folder instead, and
+folder where the agent runs, before the game has ever started). A game kept anywhere else (a project folder, a file
+a build script writes) does not show in the Games tab until the agent calls `add_to_games`, which copies it there with
+its files. `--games <folder>` picks that folder instead, and
 `--no-bridge` runs without a game window. A Windows build publishes the server next to the game
 (`ShipMcpServer`); `python -I tools/mcp/smoke.py "<build>/TableWorld.Mcp.exe"` checks a published one.
 

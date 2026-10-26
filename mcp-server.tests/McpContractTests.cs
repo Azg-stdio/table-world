@@ -87,7 +87,7 @@ namespace TableWorld.Mcp.Tests
             var tools = (await _server.Client.ListToolsAsync()).Select(t => t.Name).OrderBy(n => n).ToArray();
             var expected = new[]
             {
-                "add_action", "add_asset", "add_event", "add_phase", "add_resource", "ask_host", "create_deck", "create_supply", "create_text_deck", "deal", "define_zone",
+                "add_action", "add_asset", "add_event", "add_phase", "add_resource", "add_to_games", "ask_host", "create_deck", "create_supply", "create_text_deck", "deal", "define_zone",
                 "get_rules_document", "get_rules_reference", "get_table_state", "load_game", "new_game", "perform_action",
                 "place_object", "remove", "reset_game", "run_lua", "save_game", "screenshot", "set_messages", "set_notebook", "set_rules_document", "set_script", "set_turn", "set_variables",
                 "set_win_condition", "start_game", "table_action", "validate_rules",
@@ -440,6 +440,44 @@ namespace TableWorld.Mcp.Tests
             var reset = await Call("reset_game");
             Ok(reset);
             Assert.Null(reset["state"]!["play"]);
+        }
+
+        /// <summary>
+        /// A game kept in a project folder is not in the Games tab: save_game and load_game say so, and add_to_games copies
+        /// it with its images into the Games folder, where later edits are saved too.
+        /// </summary>
+        [Fact]
+        public async Task AGameElsewhere_IsPutInTheGamesTab_WithItsFiles()
+        {
+            var project = Path.Combine(Path.GetTempPath(), $"tw-project-{Guid.NewGuid():N}");
+            Directory.CreateDirectory(project);
+            try
+            {
+                var art = Path.Combine(project, "art.png");
+                File.WriteAllBytes(art, Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="));
+                Ok(await Call("new_game", ("id", "far_away"), ("name", "Far Away"), ("players", 2)));
+                var saved = await Call("save_game", ("path", Path.Combine(project, "far-away.json")));
+                Ok(saved);
+                Assert.Contains("add_to_games", (string?)saved["gamesTab"]);
+                Ok(await Call("add_asset", ("id", "art"), ("path", art)));
+                Assert.Contains("add_to_games", (string?)(await Call("load_game", ("path", Path.Combine(project, "far-away.json"))))["gamesTab"]);
+
+                var added = await Call("add_to_games");
+                Ok(added);
+                var table = Path.Combine(_server.GamesFolder, "Far Away", "table.json");
+                Assert.Equal(Path.GetFullPath(table), (string?)added["path"]);
+                Assert.True(File.Exists(Path.Combine(_server.GamesFolder, "Far Away", "art.png")), "its image goes with it");
+                Assert.Null((string?)(await Call("save_game"))["gamesTab"]);
+
+                // Edits now land in the copy; adding again updates the same folder.
+                Ok(await Call("create_deck", ("id", "late_deck")));
+                Assert.Contains("late_deck", File.ReadAllText(table));
+                Assert.Equal(Path.GetFullPath(table), (string?)(await Call("add_to_games"))["path"]);
+            }
+            finally
+            {
+                Directory.Delete(project, recursive: true);
+            }
         }
 
         /// <summary>The way an agent works: build War from nothing with the tools, then play it to the end.</summary>

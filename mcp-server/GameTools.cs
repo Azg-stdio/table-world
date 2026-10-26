@@ -568,13 +568,33 @@ namespace TableWorld.Mcp
             {
                 try
                 {
-                    return Json(new { ok = true, path = session.Save(path) });
+                    return Json(new { ok = true, path = session.Save(path), gamesTab = GamesTabHint(session) });
                 }
                 catch (EditException e)
                 {
                     return Json(new { ok = false, errors = Errors(new[] { e.Error }) });
                 }
             });
+
+        [McpServerTool(Name = "add_to_games"), Description("Put the game in the player's Games tab: copies it (its setup) with every image and file it uses into the Games folder as '<name>/table.json'. Use it when the game file lives anywhere else (a project folder, a file a build script wrote and load_game opened); the Games tab lists only that folder. Running it again updates the same copy, and later edits in this session are saved to it.")]
+        public static string AddToGames(GameSession session, [Description("Name of the folder (and of the entry in the Games tab); defaults to the game's name.")] string? name = null) =>
+            session.Locked(() =>
+            {
+                try
+                {
+                    return Json(new { ok = true, path = session.AddToGames(name), inGamesTab = true });
+                }
+                catch (EditException e)
+                {
+                    return Json(new { ok = false, errors = Errors(new[] { e.Error }) });
+                }
+            });
+
+        /// <summary>For a game saved where the Games tab does not look, how to put it there (null when it is listed or unknown).</summary>
+        internal static string? GamesTabHint(GameSession session) =>
+            GamesFolder.Lists(session.FilePath) == false
+                ? $"This file is not in the Games tab (it lists {GamesFolder.Known()}). Call add_to_games so the player can open it there."
+                : null;
 
         [McpServerTool(Name = "load_game"), Description("Load a game document (or a saved game in progress) from a JSON file.")]
         public static string LoadGame(GameSession session, [Description("File path.")] string path) =>
@@ -583,7 +603,8 @@ namespace TableWorld.Mcp
                 if (!File.Exists(path))
                     return Json(new { ok = false, errors = new[] { new { path = "path", code = "file_not_found", message = $"No file at {path}.", suggestion = (string?)null } } });
                 var parsed = session.Load(path);
-                return Json(new { ok = !parsed.Structural, problems = Errors(parsed.Errors), state = parsed.Structural ? null : Summary(session) });
+                return Json(new { ok = !parsed.Structural, problems = Errors(parsed.Errors), gamesTab = parsed.Structural ? null : GamesTabHint(session),
+                    state = parsed.Structural ? null : Summary(session) });
             });
 
         // ---- helpers ----------------------------------------------------------------------------------------------
