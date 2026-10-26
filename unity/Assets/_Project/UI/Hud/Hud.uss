@@ -11,10 +11,10 @@
     background-color: rgba(16, 18, 22, 0.82);
 }
 
-/* A crowded bar squeezes the status text, never the buttons or seats. */
+/* A crowded bar squeezes the status texts (turn line, network), never the buttons, seats or address. */
 .top-bar .hud-button,
 .top-bar .seat-chip,
-.turn-label {
+.top-bar .net-address {
     flex-shrink: 0;
     white-space: nowrap;
 }
@@ -29,10 +29,16 @@
 }
 
 .turn-label {
+    flex-shrink: 1;
+    min-width: 120px;
+    max-width: 30%;
     -unity-font-style: bold;
     font-size: 18px;
     color: rgb(240, 236, 226);
     margin-right: 16px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .seat-list {
@@ -81,8 +87,8 @@
 /* The pocket calculator (CalculatorPanel), under the top bar on the right. */
 .calculator {
     position: absolute;
-    top: 64px;
-    right: 12px;
+    top: 38%;
+    left: 120px;
     width: 220px;
     padding: 10px;
     border-radius: 8px;
@@ -314,7 +320,8 @@
 
 .game-panel {
     align-self: center;
-    max-width: 70%;
+    /* Between a game's top-left and top-right panels (30% each). */
+    max-width: 38%;
     margin-top: 8px;
     padding: 8px 10px;
     border-radius: 6px;
@@ -404,20 +411,29 @@
 .game-ui-panel {
     position: absolute;
     min-width: 220px;
+    max-width: 30%;
     padding: 10px;
     border-radius: 6px;
     background-color: rgba(16, 18, 22, 0.82);
 }
 
-.game-ui-panel--top-left { left: 12px; top: 64px; }
-.game-ui-panel--top { left: 50%; top: 64px; translate: -50% 0; }
-.game-ui-panel--top-right { right: 12px; top: 64px; }
+/* Under the top bar, which can wrap to two rows of seats. */
+.game-ui-panel--top-left { left: 12px; top: 92px; }
+.game-ui-panel--top { left: 50%; top: 92px; translate: -50% 0; }
+.game-ui-panel--top-right { right: 12px; top: 92px; }
 .game-ui-panel--left { left: 12px; top: 50%; translate: 0 -50%; }
 .game-ui-panel--center { left: 50%; top: 50%; translate: -50% -50%; }
 .game-ui-panel--right { right: 12px; top: 50%; translate: 0 -50%; }
-.game-ui-panel--bottom-left { left: 330px; bottom: 12px; }
+.game-ui-panel--bottom-left { left: 424px; bottom: 12px; }
 .game-ui-panel--bottom { left: 50%; bottom: 12px; translate: -50% 0; }
 .game-ui-panel--bottom-right { right: 12px; bottom: 48px; }
+
+/* While the hand bar shows cards, the bottom panels stand above it (the bar is up to 30% of the screen tall). */
+.hand-showing .game-ui-panel--bottom-left,
+.hand-showing .game-ui-panel--bottom,
+.hand-showing .game-ui-panel--bottom-right {
+    bottom: 33%;
+}
 
 .game-ui-title {
     -unity-font-style: bold;
@@ -1192,6 +1208,11 @@
 
 .tool-button:hover {
     background-color: rgb(66, 76, 92);
+}
+
+/* Table tools that are not pointer modes (blind round, calculator) start a little apart. */
+.tool-button--gap {
+    margin-top: 10px;
 }
 
 .tool-button--active {

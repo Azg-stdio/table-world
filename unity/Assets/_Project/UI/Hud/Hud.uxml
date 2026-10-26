@@ -130,8 +130,6 @@
             <ui:Button name="gamesButton" class="hud-button" text="Games" />
             <ui:Button name="playersButton" class="hud-button hidden" text="Players" />
             <ui:Button name="notesButton" class="hud-button" text="Notes" />
-            <ui:Button name="blindButton" class="hud-button" text="Blind round" />
-            <ui:Button name="calculatorButton" class="hud-button" text="Calculator" />
             <ui:Button name="helpButton" class="hud-button" text="Controls" />
             <ui:Label name="netStatus" class="seat-name net-status" />
             <ui:TextField name="netAddress" class="net-address" value="127.0.0.1:7777" />
@@ -147,6 +145,8 @@
             <ui:Button name="toolArrow" class="tool-button" text="Arrow" tooltip="Drag to draw an arrow" />
             <ui:Button name="toolErase" class="tool-button" text="Erase" tooltip="Drag over drawings to erase them" />
             <ui:Button name="toolGizmo" class="tool-button" text="Gizmo" tooltip="Click an object to place it exactly" />
+            <ui:Button name="blindButton" class="tool-button tool-button--gap" text="Blind round" />
+            <ui:Button name="calculatorButton" class="tool-button" text="Calculator" tooltip="A pocket calculator, on your screen only" />
         </ui:VisualElement>
         <ui:VisualElement name="gamePanel" class="game-panel hidden">
             <ui:Label name="gameLog" class="game-log" />

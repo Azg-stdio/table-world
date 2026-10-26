@@ -425,6 +425,8 @@ namespace TableWorld.View.Hud
             }
             FollowTurnInHotSeat();
             _diceTotals?.Update(Camera.main);
+            // A game's bottom panels stand above the hand while it shows cards, never over them.
+            _root.EnableInClassList("hand-showing", _handBar != null && _handBar.Showing);
             _showcase?.Update(_table.Assets);
             FaceLocalSeat();
             RefreshBlindRound();
@@ -573,6 +575,8 @@ namespace TableWorld.View.Hud
                 : session == null ? $"{state.Game?.Name ?? "Game"}: not started"
                 : session.Over ? $"Game over: {session.Winner ?? "nobody"} wins"
                 : $"Turn {session.Turn} · {PhaseName(state, session.Phase)} · {session.CurrentSeat}";
+            // A long turn line is cut short in the bar; the whole of it is on hover.
+            _turnLabel.tooltip = _turnLabel.text;
 
             _gameActions.Clear();
             if (!state.HasRules)

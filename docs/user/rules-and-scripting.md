@@ -137,8 +137,8 @@ the players actually threw.
 For simultaneous secret moves with the pieces themselves, use a **blind round**: `{ "blindRound": { "on": true } }`
 starts one (in a phase's `onEnter`, say), and while it runs every piece a player moves is hidden from the others and the
 zones' effects wait. `{ "blindRound": { "on": false } }` reveals: the held zone effects run in turn order, for pieces
-still where they were put, and then the `onReveal` event. Players can also start and reveal a blind round from the top
-bar.
+still where they were put, and then the `onReveal` event. Players can also start and reveal a blind round from the left
+tool bar.
 
 ## 4. Naming things: `$` references
 

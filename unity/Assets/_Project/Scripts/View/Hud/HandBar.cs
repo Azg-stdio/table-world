@@ -91,6 +91,9 @@ namespace TableWorld.View.Hud
         /// <summary>The drawer is shut to a strip of each card.</summary>
         public bool Collapsed => _reveal <= 0.001f;
 
+        /// <summary>The bar shows cards at the bottom of the screen (the HUD lifts bottom panels above it).</summary>
+        public bool Showing => _bar != null && !_bar.ClassListContains("hidden") && !Collapsed;
+
         /// <summary>How open the drawer is: 0 a strip of each card, 1 the whole cards.</summary>
         public float Reveal => _reveal;
 

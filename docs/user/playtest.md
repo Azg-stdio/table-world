@@ -76,7 +76,7 @@ Everything below already passes automated tests on one machine (two processes, s
 - [ ] Hovering a deck or bag shows how many cards or items it holds.
 - [ ] Rolling several dice at once (select or pick them up together, R) reads clearly for everyone.
 - [ ] Hidden zone (the sample table's dark block on the left belongs to the north seat): the north player sees the Ace of hearts inside, the south player sees only the block; dropping a card in hides it from the other seat.
-- [ ] Blind round (top bar): after one person starts it, whatever each friend moves vanishes for the others and stays visible to the mover; Reveal (n) shows everything on every screen.
+- [ ] Blind round (left tool bar): after one person starts it, whatever each friend moves vanishes for the others and stays visible to the mover; Reveal (n) shows everything on every screen.
 - [ ] Hide from others (right click a piece): the friends no longer see it or can pick it up; Show to everyone brings it back.
 - [ ] A game with more than 4 seats (5–12): every friend's camera starts behind their own hand, and friends beyond the seats can still join, watch and talk.
 - [ ] Text cards (a deck made with create_text_deck): faces and backs are readable on the table, in the hand and in Search on every screen.
