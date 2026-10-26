@@ -33,7 +33,13 @@ namespace Core.Rules
     {
         public string Id { get; set; } = "";
         public string? Name { get; set; }
+        /// <summary>The role's team; roles of an extra <see cref="Set"/> may have none.</summary>
         public string Team { get; set; } = "";
+        /// <summary>
+        /// Another hidden trait dealt beside the role (<c>"objective"</c>): each set is dealt one per seat on its own, from
+        /// its counts (no <see cref="RolesDef.ByPlayers"/>), and read as <c>$actor.role.objective</c>. Null is the role.
+        /// </summary>
+        public string? Set { get; set; }
         /// <summary>How many seats get it: a number (1 when left out) or <c>"fill"</c> (the seats left in its team).</summary>
         public JToken? Count { get; set; }
         /// <summary>The host ticks it when starting (Avalon's Percival, Morgana); left out otherwise.</summary>

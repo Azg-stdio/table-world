@@ -8,7 +8,8 @@ namespace Core.Net
 {
     /// <summary>
     /// What one seat may know of a table (ADR 0012 §1, T11.2). The host keeps the whole state; each peer receives its
-    /// seat's view: other seats' secret choices without their parameters, its own role and what it knows of others' (T11.4),
+    /// seat's view: other seats' secret choices without their parameters, its own role, traits and team, and what it knows
+    /// of others' (T11.4),
     /// and no random generator state (a peer holding it could foresee every shuffle and deal). A null seat is the public
     /// view: spectators get it, and the state hash covers it, so peers with different secrets agree on the hash.
     /// </summary>
@@ -35,6 +36,8 @@ namespace Core.Net
                 return;
             mine.Roles = full.Roles.ToDictionary(p => p.Key, p => p.Value);
             mine.Knows = full.Knows.ToDictionary(p => p.Key, p => p.Value.ToList());
+            mine.Traits = full.Traits.ToDictionary(p => p.Key, p => new Dictionary<string, string>(p.Value));
+            mine.Teams = new Dictionary<string, string>(full.Teams);
             if (mine.Secrets.Select(c => c.Seat + "/" + c.Action).SequenceEqual(full.Secrets.Select(c => c.Seat + "/" + c.Action)))
                 mine.Secrets = full.Secrets.Select(c => new SecretChoice { Seat = c.Seat, Action = c.Action, Params = new Dictionary<string, string>(c.Params) }).ToList();
             mine.RandomState = full.RandomState;
@@ -63,9 +66,13 @@ namespace Core.Net
             var secrets = session.Secrets;
             var roles = session.Roles;
             var knows = session.Knows;
+            var traits = session.Traits;
+            var teams = session.Teams;
             session.RandomState = 0;
             session.Roles = roles.Where(p => p.Key == seat).ToDictionary(p => p.Key, p => p.Value);
             session.Knows = knows.Where(p => p.Key == seat).ToDictionary(p => p.Key, p => p.Value);
+            session.Traits = traits.Where(p => p.Key == seat).ToDictionary(p => p.Key, p => p.Value);
+            session.Teams = teams.Where(p => p.Key == seat).ToDictionary(p => p.Key, p => p.Value);
             session.Secrets = secrets.Select(s => s.Seat == seat
                 ? s
                 : new SecretChoice { Seat = s.Seat, Action = s.Action, Params = new Dictionary<string, string>() }).ToList();
@@ -79,6 +86,8 @@ namespace Core.Net
                 session.Secrets = secrets;
                 session.Roles = roles;
                 session.Knows = knows;
+                session.Traits = traits;
+                session.Teams = teams;
             }
         }
     }

@@ -150,11 +150,9 @@ namespace Core.Scripting
                 return DynValue.NewNumber(Arg(args, 1) is { } seat ? (bySeat.TryGetValue(seat, out var mine) ? mine : 0) : total);
             });
             // Hidden roles (ADR 0012): scripts run on the host, which knows every seat's.
-            t["getRole"] = Fn(args => Game() is { } game && Arg(args, 0) is { } seat && game.RoleOf(seat) is { } role ? DynValue.NewString(role) : DynValue.Nil);
-            t["getTeam"] = Fn(args => Game() is { State: { Roles: { } roles } } game && Arg(args, 0) is { } seat && game.RoleOf(seat) is { } role &&
-                                      roles.List.FirstOrDefault(r => r.Id == role) is { } def
-                ? DynValue.NewString(def.Team)
-                : DynValue.Nil);
+            // getRole(seat, set): the role, or the trait of an extra role set.
+            t["getRole"] = Fn(args => Game() is { } game && Arg(args, 0) is { } seat && game.RoleOf(seat, Arg(args, 1)) is { } role ? DynValue.NewString(role) : DynValue.Nil);
+            t["getTeam"] = Fn(args => Game() is { } game && Arg(args, 0) is { } seat && game.TeamOf(seat) is { } team ? DynValue.NewString(team) : DynValue.Nil);
             t["getLegalActions"] = Fn(args => Game() is { } game && Arg(args, 0) is { } seat
                 ? List(script, game.LegalActions(seat).Select(a => a.ActionId))
                 : List(script, Enumerable.Empty<string>()));
@@ -167,8 +165,11 @@ namespace Core.Scripting
             t["gotoPhase"] = Fn(args => Change("gotoPhase", null, Arg(args, 0)));
             t["win"] = Fn(args => Change("win", Arg(args, 0)));
             t["log"] = Fn(args => Change("log", null, null, new JValue(Arg(args, 0) ?? "")));
-            // revealRole(seat, to, teamOnly): to a seat, or every seat when to is nil or "all".
+            // revealRole(seat, to, teamOnly): to a seat, "team:<id>", "role:<id>", or every seat when to is nil or "all".
             t["revealRole"] = Fn(args => Change("revealRole", Arg(args, 0), Arg(args, 1), new JValue(args.Count > 2 && args[2].CastToBool())));
+            // setRole(seat, role, tell) and setTeam(seat, team, tell): a conversion; tell lets the player know.
+            t["setRole"] = Fn(args => Change("setRole", Arg(args, 0), Arg(args, 1), new JValue(args.Count > 2 && args[2].CastToBool())));
+            t["setTeam"] = Fn(args => Change("setTeam", Arg(args, 0), Arg(args, 1), new JValue(args.Count > 2 && args[2].CastToBool())));
             t["perform"] = Fn(args =>
             {
                 var command = new PerformActionCommand { Actor = Arg(args, 0), ActionId = Arg(args, 1) ?? "" };

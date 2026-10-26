@@ -11,8 +11,9 @@ namespace Core.Rules
         /// <summary>
         /// The game's own words for the lines the engine writes, keyed by what they say: <c>win</c> ("{seat} wins."),
         /// <c>choseInSecret</c>, <c>chose</c> ("{seat} chose {action}{choice}."), <c>blindRound</c>, <c>reveal</c>, <c>shows</c>
-        /// ("{seat} shows {card}."), and for roles <c>youAre</c> ("You are {role} ({team})."), <c>seenAsRole</c>,
-        /// <c>seenAsTeam</c>, <c>seenAsOneOf</c>, <c>revealedRole</c>, <c>revealedTeam</c>. <c>{seat}</c> and the other names in
+        /// ("{seat} shows {card}."), and for roles <c>youAre</c> ("You are {role} ({team})."), <c>youAreRole</c>,
+        /// <c>youHave</c> ("{set}: {role}."), <c>seenAsRole</c>, <c>seenAsTeam</c>, <c>seenAsOneOf</c>, <c>revealedRole</c>,
+        /// <c>revealedTeam</c>, <c>revealedTrait</c>, <c>nowRole</c>, <c>nowTeam</c>, <c>nowTrait</c>. <c>{seat}</c> and the other names in
         /// braces are filled in; a missing key keeps the English line.
         /// </summary>
         public Dictionary<string, string>? Messages { get; set; }
@@ -166,6 +167,10 @@ namespace Core.Rules
         public List<string> Log { get; set; } = new List<string>();
         /// <summary>Seat → its hidden role (ADR 0012). Each peer receives only its own.</summary>
         public Dictionary<string, string> Roles { get; set; } = new Dictionary<string, string>();
+        /// <summary>Seat → set → its trait from an extra role set (<see cref="RoleDef.Set"/>). Each peer receives only its own.</summary>
+        public Dictionary<string, Dictionary<string, string>> Traits { get; set; } = new Dictionary<string, Dictionary<string, string>>();
+        /// <summary>Seat → its team when <c>setTeam</c> moved it from its role's. Each peer receives only its own.</summary>
+        public Dictionary<string, string> Teams { get; set; } = new Dictionary<string, string>();
         /// <summary>Seat → what it knows of other seats' roles (dealt by <c>knows</c>, added by <c>revealRole</c>).</summary>
         public Dictionary<string, List<RoleSight>> Knows { get; set; } = new Dictionary<string, List<RoleSight>>();
         /// <summary>Random generator state, so a saved game continues the same sequence.</summary>

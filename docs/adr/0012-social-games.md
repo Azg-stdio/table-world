@@ -94,6 +94,11 @@ dedicated server. What matters is that no one sees a secret by accident or with 
 - **Reading a role makes a command host-run** (`CommandResult.ReadsSecrets`): peers lack other seats' roles, so they
   could not replay it. A client whose own prediction is refused for that reason sends the command unpredicted.
 - Lua: `Game.getRole(seat)`, `Game.getTeam(seat)` (scripts run on the host), `Game.revealRole(seat, to, teamOnly)`.
+- **Sandbox, not Avalon** (Miguel, 2026-10-26: the mechanics stay general; Avalon is one example). After T11.4: roles
+  change during play (`setRole`, `swapRoles`, `setTeam`, each optionally telling the player), groups are told
+  privately (`to`: a seat, `team:<id>`, `role:<id>`, on `revealRole` and `message`), and roles with a `set` deal more
+  hidden traits beside the role (`$actor.role.<set>`). Each game the milestone builds is a test of the format: a gap
+  it finds is fixed for every game, never for that one.
 
 ### 3. Eyes-closed phases
 

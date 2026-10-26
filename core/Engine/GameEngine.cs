@@ -470,11 +470,20 @@ namespace Core.Engine
                         WithContext(_ctx.With(it: item), () => RunEffects(each.Do));
                     break;
                 }
+                case MessageEffect message when message.To != null: TellAudience(message.To, Template(message.Text)); break;
                 case MessageEffect message: Log(Template(message.Text)); break;
                 case RevealEffect reveal: Reveal(reveal.Action); break;
                 case RevealRoleEffect show:
-                    RevealRole(ResolveSeat(show.Seat, "revealRole.seat"),
-                        show.To == null || show.To == "all" ? null : new[] { ResolveSeat(show.To, "revealRole.to") }, show.TeamOnly);
+                    RevealRole(ResolveSeat(show.Seat, "revealRole.seat"), Audience(show.To, "revealRole.to"), show.TeamOnly, show.Set);
+                    break;
+                case SetRoleEffect set:
+                    SetRole(ResolveSeat(set.Seat, "setRole.seat"), RoleId(set.Role, "setRole.role"), set.Set, set.Tell);
+                    break;
+                case SwapRolesEffect swap:
+                    SwapRoles(ResolveSeat(swap.A, "swapRoles.a"), ResolveSeat(swap.B, "swapRoles.b"), swap.Set, swap.Tell);
+                    break;
+                case SetTeamEffect team:
+                    SetTeam(ResolveSeat(team.Seat, "setTeam.seat"), RoleId(team.Team, "setTeam.team"), team.Tell);
                     break;
                 case ShowEffect show:
                 {
@@ -574,7 +583,13 @@ namespace Core.Engine
                 case "win": Win(SeatOf()); break;
                 case "log": Log((string?)c.Value ?? ""); break;
                 case "revealRole":
-                    RevealRole(SeatOf(), c.Name == null || c.Name == "all" ? null : new[] { c.Name }, c.Value is JValue { Type: JTokenType.Boolean } only && (bool)only);
+                    RevealRole(SeatOf(), Audience(c.Name, "to"), c.Value is JValue { Type: JTokenType.Boolean } only && (bool)only);
+                    break;
+                case "setRole":
+                    SetRole(SeatOf(), c.Name ?? "", null, tell: c.Value is JValue { Type: JTokenType.Boolean } tellRole && (bool)tellRole);
+                    break;
+                case "setTeam":
+                    SetTeam(SeatOf(), c.Name ?? "", tell: c.Value is JValue { Type: JTokenType.Boolean } tellTeam && (bool)tellTeam);
                     break;
                 default:
                     throw new RuleException("op", ErrorCodes.InvalidValue, $"Unknown script change '{c.Op}'.");
@@ -1088,7 +1103,7 @@ namespace Core.Engine
                         case "name": return new JValue(Names.Of(seat));
                         case "role":
                         case "team":
-                            return RoleStep(seat, part) is { } known ? new JValue(known) : null;
+                            return RoleStep(seat, part, parts, ref i) is { } known ? new JValue(known) : null;
                         case "chose":
                         {
                             // $viewer.chose.<action>: that seat's secret choice, waiting for the reveal (its first parameter, or "yes").

@@ -215,11 +215,14 @@ Each effect is a single-key object, e.g. `{ "shuffle": { "object": "deck_main" }
 | `setResource` | `player`, `resource`, exactly one of `value` or `delta`; clamped to `min`/`max` |
 | `if` | `condition`, `then`, `else` |
 | `forEach` | exactly one of `players: true` or `objectsIn` (zone, deck or bag); `do` (binds `$it`) |
-| `message` | `text`; `{$reference}` is replaced by its value; goes to the session log |
+| `message` | `text`; `{$reference}` is replaced by its value; goes to the session log, or with `to` (a seat, `team:<id>`, `role:<id>`) privately to those players only |
 | `endTurn` / `endPhase` | `{}` — take effect after the current effect list |
 | `gotoPhase` | `phase` |
 | `win` | `player` |
-| `revealRole` | `seat`; `to` (a seat; every seat when left out or `all`); `teamOnly` (show only the team) |
+| `revealRole` | `seat`; `to` (a seat, `team:<id>`, `role:<id>`; every seat when left out or `all`); `teamOnly` (show only the team); `set` (show a trait of an extra role set) |
+| `setRole` | `seat`, `role` (an id or a reference), `set`, `tell` (let the player know); the new role brings its team |
+| `swapRoles` | `a`, `b`, `set`, `tell`; each seat's team goes with its role |
+| `setTeam` | `seat`, `team`, `tell`; the role stays |
 
 Moving cards into a deck makes them take the deck's orientation; into a zone they are laid out (hand slots for a HandZone, a stack at the centre otherwise). Not in v0: `spawn`, `destroy`, `prompt`, `reveal`/`hide`, `lua` (M5).
 
@@ -299,12 +302,19 @@ starts, and who knows whom:
   never reach the shared log.
 - **Rules read roles** with `$actor.role`, `$seat.<id>.team` and so on: an assassin-only action is a precondition
   `{ "compare": { "left": "$actor.role", "right": "assassin" } }`. `revealRole` shows a role later.
+- **Roles change during play:** `setRole` (a conversion), `swapRoles` (two seats trade, their teams with them),
+  `setTeam` (a seat changes allegiance, keeping its role). With `tell` the player learns it; what others learnt
+  before stays what they saw. `revealRole` and `message` with `to: "team:wolves"` tell a whole team privately ("the
+  pack learns who the new wolf is").
+- **More hidden traits:** roles with a `set` (`{ "id": "spy", "set": "objective" }`) form another deck dealt one per
+  seat beside the role, from its own counts and one `fill`. Rules read them as `$actor.role.objective`; the player
+  reads "Objective: Spy."; `revealRole`, `setRole` and `swapRoles` take the `set`.
 - **Secrecy:** `session.roles` (seat → role) and `session.knows` (seat → what it knows) reach each machine only for its
   own seat. A command that reads or changes a role runs on the host, which sends each player its result.
 
 ## Session (written by the engine)
 
-`StartGameCommand` adds a `session` object: `started`, `over`, `winner`, `turn`, `currentSeat`, `phase`, `acted`, `actionCounts`, `variables`, `resources`, `log` (last 50 messages), `secrets` (secret choices waiting for a reveal), `roles` and `knows` (see Roles) and `randomState`. It is saved with the table, so a saved game resumes exactly, including the shuffle sequence. An authored game file has no session.
+`StartGameCommand` adds a `session` object: `started`, `over`, `winner`, `turn`, `currentSeat`, `phase`, `acted`, `actionCounts`, `variables`, `resources`, `log` (last 50 messages), `secrets` (secret choices waiting for a reveal), `roles`, `traits`, `teams` and `knows` (see Roles) and `randomState`. It is saved with the table, so a saved game resumes exactly, including the shuffle sequence. An authored game file has no session.
 
 ## UI
 

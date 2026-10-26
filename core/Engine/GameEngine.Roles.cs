@@ -1,20 +1,45 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Rules;
+using Newtonsoft.Json.Linq;
 
 namespace Core.Engine
 {
     /// <summary>
     /// Hidden roles (ADR 0012 §2, T11.4): dealt at random when the game starts, each seat told privately who it is and
-    /// what its role lets it see; <c>revealRole</c> shows one seat's role to others later. Reading or changing a role
-    /// marks the command (<see cref="CommandResult.ReadsSecrets"/>) so the host runs it and peers receive its result.
+    /// what its role lets it see. Later, rules show a role to others (<c>revealRole</c>), change one (<c>setRole</c>,
+    /// <c>swapRoles</c>), move a seat to another team (<c>setTeam</c>) or tell a group something privately (<c>message</c>
+    /// with <c>to</c>). Extra role sets deal more hidden traits beside the role. Reading or changing any of it marks the
+    /// command (<see cref="CommandResult.ReadsSecrets"/>) so the host runs it and peers receive its result.
     /// </summary>
     public sealed partial class GameEngine
     {
         private bool _secretsRead;
 
-        /// <summary>A seat's role, for code that may know it (the host, Lua's <c>Game.getRole</c>); null without one.</summary>
-        public string? RoleOf(string seat) => Session != null && Session.Roles.TryGetValue(seat, out var role) ? role : null;
+        /// <summary>
+        /// A seat's role (or its trait in <paramref name="set"/>), for code that may know it (the host, Lua's
+        /// <c>Game.getRole</c>); null without one.
+        /// </summary>
+        public string? RoleOf(string seat, string? set = null)
+        {
+            if (Session == null)
+                return null;
+            if (set == null)
+                return Session.Roles.TryGetValue(seat, out var role) ? role : null;
+            return Session.Traits.TryGetValue(seat, out var traits) && traits.TryGetValue(set, out var trait) ? trait : null;
+        }
+
+        /// <summary>A seat's team: the one <c>setTeam</c> moved it to, else its role's; null without a role.</summary>
+        public string? TeamOf(string seat) => TeamOf(State, seat);
+
+        private static string? TeamOf(TableState state, string seat)
+        {
+            if (!(state.Session is { } session))
+                return null;
+            if (session.Teams.TryGetValue(seat, out var moved))
+                return moved;
+            return session.Roles.TryGetValue(seat, out var role) ? state.Roles?.List.FirstOrDefault(r => r.Id == role)?.Team : null;
+        }
 
         public static string RoleName(RolesDef roles, string roleId) =>
             roles.List.FirstOrDefault(r => r.Id == roleId) is { Name: { } name } && name.Length > 0 ? name : Names.Humanize(roleId);
@@ -22,15 +47,20 @@ namespace Core.Engine
         public static string TeamName(RolesDef roles, string teamId) =>
             roles.Teams.FirstOrDefault(t => t.Id == teamId) is { Name: { } name } && name.Length > 0 ? name : Names.Humanize(teamId);
 
+        /// <summary>The extra role sets the game deals beside the role, in the order they first appear.</summary>
+        public static IEnumerable<string> RoleSets(RolesDef roles) => roles.List.Where(r => r.Set != null).Select(r => r.Set!).Distinct();
+
         /// <summary>
-        /// The roles for <paramref name="players"/> seats with the optional roles in <paramref name="chosen"/>, in list order,
-        /// or the reason they do not add up.
+        /// The roles of <paramref name="set"/> (null: the role itself) for <paramref name="players"/> seats with the optional
+        /// roles in <paramref name="chosen"/>, in list order, or the reason they do not add up. Team sizes apply to the role
+        /// only; an extra set deals from its counts and one fill.
         /// </summary>
-        public static (List<string>? Roles, string? Problem) RolesFor(RolesDef roles, int players, ICollection<string> chosen)
+        public static (List<string>? Roles, string? Problem) RolesFor(RolesDef roles, int players, ICollection<string> chosen, string? set = null)
         {
-            var inPlay = roles.List.Where(r => !r.Optional || chosen.Contains(r.Id)).ToList();
+            var inPlay = roles.List.Where(r => r.Set == set && (!r.Optional || chosen.Contains(r.Id))).ToList();
+            var label = set == null ? "roles" : $"'{set}' roles";
             var dealt = new List<string>();
-            if (roles.ByPlayers.Count > 0)
+            if (set == null && roles.ByPlayers.Count > 0)
             {
                 if (!roles.ByPlayers.TryGetValue(players.ToString(), out var sizes))
                     return (null, $"The roles have no team sizes for {players} players ({string.Join(", ", roles.ByPlayers.Keys)}).");
@@ -54,13 +84,13 @@ namespace Core.Engine
             var fixedTotal = inPlay.Sum(r => r.Fixed);
             var fills = inPlay.Where(r => r.Fills).ToList();
             if (fixedTotal > players || fixedTotal < players && fills.Count == 0)
-                return (null, $"{fixedTotal} roles for {players} players.");
+                return (null, $"{fixedTotal} {label} for {players} players.");
             foreach (var role in inPlay)
                 dealt.AddRange(Enumerable.Repeat(role.Id, role.Fills ? players - fixedTotal : role.Fixed));
             return (dealt, null);
         }
 
-        /// <summary>Deals the roles to the seats that play, then tells each seat who it is and what it sees.</summary>
+        /// <summary>Deals the roles (and every extra set) to the seats that play, then tells each seat who it is and what it sees.</summary>
         private void DealRoles(IReadOnlyList<Seat> seats, ICollection<string> chosen)
         {
             var roles = State.Roles;
@@ -69,41 +99,54 @@ namespace Core.Engine
             foreach (var id in chosen.Where(id => roles.List.All(r => r.Id != id || !r.Optional)))
                 throw new RuleException("roles", ErrorCodes.UnknownRole, $"'{id}' is not an optional role.",
                     Suggest.OneOf(id, roles.List.Where(r => r.Optional).Select(r => r.Id), "an optional role"));
-            var (bag, problem) = RolesFor(roles, seats.Count, chosen);
-            if (bag == null)
-                throw new RuleException("roles", ErrorCodes.RoleCount, problem!, "Change the roles, the team sizes (byPlayers) or the optional roles chosen.");
-            for (var i = bag.Count - 1; i > 0; i--)
-            {
-                var j = Table.Random.Next(i + 1);
-                (bag[i], bag[j]) = (bag[j], bag[i]);
-            }
             var session = Session!;
-            for (var i = 0; i < seats.Count; i++)
-                session.Roles[seats[i].Id] = bag[i];
             _secretsRead = true;
+            foreach (var set in new string?[] { null }.Concat(RoleSets(roles)))
+            {
+                if (set == null && roles.List.All(r => r.Set != null))
+                    continue;
+                var (bag, problem) = RolesFor(roles, seats.Count, chosen, set);
+                if (bag == null)
+                    throw new RuleException("roles", ErrorCodes.RoleCount, problem!, "Change the roles, the team sizes (byPlayers) or the optional roles chosen.");
+                for (var i = bag.Count - 1; i > 0; i--)
+                {
+                    var j = Table.Random.Next(i + 1);
+                    (bag[i], bag[j]) = (bag[j], bag[i]);
+                }
+                for (var i = 0; i < seats.Count; i++)
+                {
+                    if (set == null)
+                        session.Roles[seats[i].Id] = bag[i];
+                    else
+                    {
+                        if (!session.Traits.TryGetValue(seats[i].Id, out var traits))
+                            session.Traits[seats[i].Id] = traits = new Dictionary<string, string>();
+                        traits[set] = bag[i];
+                    }
+                }
+            }
 
             foreach (var seat in seats)
             {
-                var mine = session.Roles[seat.Id];
-                var team = roles.List.First(r => r.Id == mine).Team;
                 var sights = new List<RoleSight>();
-                // A role's own rules replace its team's (Oberon is evil but sees none of the other minions).
-                var rules = roles.Knows.Any(k => k.Role == mine) ? roles.Knows.Where(k => k.Role == mine) : roles.Knows.Where(k => k.Role == null && k.Team == team);
-                foreach (var rule in rules)
+                if (session.Roles.TryGetValue(seat.Id, out var mine))
                 {
-                    var seen = seats.Where(other => other.Id != seat.Id && Matches(rule.Sees, session.Roles[other.Id])).ToList();
-                    foreach (var other in seen)
-                    {
-                        var theirs = session.Roles[other.Id];
-                        var sight = rule.As switch
+                    var team = roles.List.First(r => r.Id == mine).Team;
+                    // A role's own rules replace its team's (Oberon is evil but sees none of the other minions).
+                    var rules = roles.Knows.Any(k => k.Role == mine) ? roles.Knows.Where(k => k.Role == mine) : roles.Knows.Where(k => k.Role == null && k.Team == team);
+                    foreach (var rule in rules)
+                        foreach (var other in seats.Where(o => o.Id != seat.Id && session.Roles.ContainsKey(o.Id) && Matches(rule.Sees, session.Roles[o.Id])))
                         {
-                            KnowsAs.Role => new RoleSight { Seat = other.Id, Role = theirs },
-                            KnowsAs.OneOf => new RoleSight { Seat = other.Id, OneOf = rule.Sees.Roles.ToList() },
-                            _ => new RoleSight { Seat = other.Id, Team = roles.List.First(r => r.Id == theirs).Team },
-                        };
-                        sights.RemoveAll(s => s.Seat == other.Id);
-                        sights.Add(sight);
-                    }
+                            var theirs = session.Roles[other.Id];
+                            var sight = rule.As switch
+                            {
+                                KnowsAs.Role => new RoleSight { Seat = other.Id, Role = theirs },
+                                KnowsAs.OneOf => new RoleSight { Seat = other.Id, OneOf = rule.Sees.Roles.ToList() },
+                                _ => new RoleSight { Seat = other.Id, Team = roles.List.First(r => r.Id == theirs).Team },
+                            };
+                            sights.RemoveAll(s => s.Seat == other.Id);
+                            sights.Add(sight);
+                        }
                 }
                 session.Knows[seat.Id] = sights;
                 foreach (var line in RoleLines(State, seat.Id))
@@ -120,16 +163,25 @@ namespace Core.Engine
         }
 
         /// <summary>
-        /// What <paramref name="seat"/> knows, as it reads it: "You are Merlin (Loyal servants of Arthur).", then its sights
-        /// grouped ("Red and Blue are Minions of Mordred."). Empty without a role. The HUD shows the same lines.
+        /// What <paramref name="seat"/> knows, as it reads it: "You are Merlin (Loyal servants of Arthur).", its traits from
+        /// extra sets ("Objective: Spy."), then its sights grouped ("Red and Blue are Minions of Mordred."). Empty without a
+        /// role. The HUD shows the same lines.
         /// </summary>
         public static List<string> RoleLines(TableState state, string seat)
         {
             var lines = new List<string>();
-            if (!(state.Roles is { } roles) || !(state.Session is { } session) || !session.Roles.TryGetValue(seat, out var mine))
+            if (!(state.Roles is { } roles) || !(state.Session is { } session))
                 return lines;
-            var team = roles.List.FirstOrDefault(r => r.Id == mine)?.Team ?? "";
-            lines.Add(Names.Message(state, "youAre", "You are {role} ({team}).", ("role", RoleName(roles, mine)), ("team", TeamName(roles, team))));
+            if (session.Roles.TryGetValue(seat, out var mine))
+            {
+                var team = TeamOf(state, seat) ?? "";
+                lines.Add(team.Length == 0
+                    ? Names.Message(state, "youAreRole", "You are {role}.", ("role", RoleName(roles, mine)))
+                    : Names.Message(state, "youAre", "You are {role} ({team}).", ("role", RoleName(roles, mine)), ("team", TeamName(roles, team))));
+            }
+            if (session.Traits.TryGetValue(seat, out var traits))
+                foreach (var set in RoleSets(roles).Where(traits.ContainsKey))
+                    lines.Add(Names.Message(state, "youHave", "{set}: {role}.", ("set", Names.Humanize(set)), ("role", RoleName(roles, traits[set]))));
             lines.AddRange(Describe(state, roles, session.Knows.TryGetValue(seat, out var sights) ? sights : new List<RoleSight>()));
             return lines;
         }
@@ -156,33 +208,75 @@ namespace Core.Engine
             items.Count <= 1 ? string.Join("", items) : string.Join(", ", items.Take(items.Count - 1)) + $" {last} " + items[items.Count - 1];
 
         /// <summary>A line only <paramref name="seat"/> reads (never the shared log).</summary>
-        private void Tell(string seat, string text) => _events.Add(new PrivateMessage(seat, text));
+        private void Tell(string seat, string text)
+        {
+            // Only the host sends a seat its own lines.
+            _secretsRead = true;
+            _events.Add(new PrivateMessage(seat, text));
+        }
 
         /// <summary>
-        /// Shows <paramref name="seat"/>'s role (or only its team) to <paramref name="to"/>, or to every seat when null.
+        /// The seats a <c>to</c> field names: a seat reference or id, <c>team:&lt;id&gt;</c>, <c>role:&lt;id&gt;</c>; null
+        /// (every seat with a role, or every seat playing) for null or <c>all</c>.
         /// </summary>
-        private void RevealRole(string seat, IReadOnlyList<string>? to, bool teamOnly)
+        private List<string>? Audience(string? to, string field)
+        {
+            if (to == null || to == "all")
+                return null;
+            var playing = Playing.Select(s => s.Id).ToList();
+            if (to.StartsWith("team:"))
+            {
+                _secretsRead = true;
+                return playing.Where(s => TeamOf(s) == to.Substring(5)).ToList();
+            }
+            if (to.StartsWith("role:"))
+            {
+                _secretsRead = true;
+                return playing.Where(s => RoleOf(s) == to.Substring(5)).ToList();
+            }
+            return new List<string> { ResolveSeat(to, field) };
+        }
+
+        /// <summary>A private line for each seat <paramref name="to"/> names (a message effect with <c>to</c>).</summary>
+        private void TellAudience(string to, string text)
+        {
+            foreach (var seat in Audience(to, "message.to") ?? Playing.Select(s => s.Id).ToList())
+                Tell(seat, text);
+        }
+
+        /// <summary>
+        /// Shows <paramref name="seat"/>'s role (or only its team, or its trait in <paramref name="set"/>) to
+        /// <paramref name="to"/>; every seat when null.
+        /// </summary>
+        private void RevealRole(string seat, IReadOnlyList<string>? to, bool teamOnly, string? set = null)
         {
             var roles = State.Roles;
             var session = Session!;
             _secretsRead = true;
-            if (roles == null || !session.Roles.TryGetValue(seat, out var role))
-                throw new RuleException("revealRole.seat", ErrorCodes.UnknownRole, $"{Names.Seat(State, seat)} has no role.");
-            var team = roles.List.First(r => r.Id == role).Team;
-            var viewers = to ?? session.Roles.Keys.ToList();
-            var sight = teamOnly ? new RoleSight { Seat = seat, Team = team } : new RoleSight { Seat = seat, Role = role };
-            var line = teamOnly
-                ? Names.Message(State, "revealedTeam", "{seat} is {team}.", ("seat", Names.Seat(State, seat)), ("team", TeamName(roles, team)))
-                : Names.Message(State, "revealedRole", "{seat} is {role}.", ("seat", Names.Seat(State, seat)), ("role", RoleName(roles, role)));
-            foreach (var viewer in viewers.Where(v => v != seat))
+            var role = RoleOf(seat, set);
+            if (roles == null || role == null)
+                throw new RuleException("revealRole.seat", ErrorCodes.UnknownRole, $"{Names.Seat(State, seat)} has no {(set == null ? "role" : $"'{set}' role")}.");
+            var viewers = to ?? session.Roles.Keys.Concat(session.Traits.Keys).Distinct().ToList();
+            string line;
+            if (set != null)
+                line = Names.Message(State, "revealedTrait", "{seat}'s {set}: {role}.", ("seat", Names.Seat(State, seat)), ("set", Names.Humanize(set).ToLowerInvariant()), ("role", RoleName(roles, role)));
+            else
             {
-                if (!session.Knows.TryGetValue(viewer, out var sights))
-                    session.Knows[viewer] = sights = new List<RoleSight>();
-                // A role shown outright replaces a team or a one-of; a team never hides a role already known.
-                if (teamOnly && sights.Any(s => s.Seat == seat && s.Role != null))
-                    continue;
-                sights.RemoveAll(s => s.Seat == seat);
-                sights.Add(sight);
+                var team = TeamOf(seat) ?? "";
+                var sight = teamOnly ? new RoleSight { Seat = seat, Team = team } : new RoleSight { Seat = seat, Role = role };
+                line = teamOnly
+                    ? Names.Message(State, "revealedTeam", "{seat} is {team}.", ("seat", Names.Seat(State, seat)), ("team", TeamName(roles, team)))
+                    : Names.Message(State, "revealedRole", "{seat} is {role}.", ("seat", Names.Seat(State, seat)), ("role", RoleName(roles, role)));
+                foreach (var viewer in viewers.Where(v => v != seat))
+                {
+                    if (!session.Knows.TryGetValue(viewer, out var sights))
+                        session.Knows[viewer] = sights = new List<RoleSight>();
+                    // A role shown outright replaces a team or a one-of; a team never hides a role already known.
+                    if (teamOnly && sights.Any(s => s.Seat == seat && s.Role != null))
+                        continue;
+                    sights.RemoveAll(s => s.Seat == seat);
+                    sights.Add(sight);
+                }
             }
             if (to == null)
                 Log(line);
@@ -191,14 +285,93 @@ namespace Core.Engine
                     Tell(viewer, line);
         }
 
-        /// <summary>A seat's role or team, as <c>$seat.role</c> and <c>$seat.team</c> read them; null when unknown here.</summary>
-        private string? RoleStep(Seat seat, string part)
+        /// <summary>Gives <paramref name="seat"/> <paramref name="role"/> (in <paramref name="set"/>); a new role brings its own team.</summary>
+        private void SetRole(string seat, string role, string? set, bool tell)
+        {
+            var roles = State.Roles ?? throw new RuleException("setRole", ErrorCodes.UnknownRole, "This game has no roles.");
+            _secretsRead = true;
+            if (roles.List.All(r => r.Id != role || r.Set != set))
+                throw new RuleException("setRole.role", ErrorCodes.UnknownRole, $"'{role}' is not a {(set == null ? "role" : $"'{set}' role")}.",
+                    Suggest.OneOf(role, roles.List.Where(r => r.Set == set).Select(r => r.Id), "a role id"));
+            var session = Session!;
+            if (set == null)
+            {
+                session.Roles[seat] = role;
+                session.Teams.Remove(seat);
+            }
+            else
+            {
+                if (!session.Traits.TryGetValue(seat, out var traits))
+                    session.Traits[seat] = traits = new Dictionary<string, string>();
+                traits[set] = role;
+            }
+            if (tell)
+                TellNow(seat, set);
+        }
+
+        private void SwapRoles(string a, string b, string? set, bool tell)
         {
             _secretsRead = true;
-            var role = RoleOf(seat.Id);
-            if (role == null)
-                return null;
-            return part == "role" ? role : State.Roles?.List.FirstOrDefault(r => r.Id == role)?.Team;
+            var roleA = RoleOf(a, set) ?? throw new RuleException("swapRoles.a", ErrorCodes.UnknownRole, $"{Names.Seat(State, a)} has no role to swap.");
+            var roleB = RoleOf(b, set) ?? throw new RuleException("swapRoles.b", ErrorCodes.UnknownRole, $"{Names.Seat(State, b)} has no role to swap.");
+            var session = Session!;
+            // Each seat's team goes with its role card.
+            session.Teams.TryGetValue(a, out var teamA);
+            session.Teams.TryGetValue(b, out var teamB);
+            SetRole(a, roleB, set, tell: false);
+            SetRole(b, roleA, set, tell: false);
+            if (set == null)
+            {
+                if (teamB != null) session.Teams[a] = teamB;
+                if (teamA != null) session.Teams[b] = teamA;
+            }
+            if (tell)
+            {
+                TellNow(a, set);
+                TellNow(b, set);
+            }
+        }
+
+        private void SetTeam(string seat, string team, bool tell)
+        {
+            var roles = State.Roles ?? throw new RuleException("setTeam", ErrorCodes.UnknownTeam, "This game has no roles.");
+            _secretsRead = true;
+            if (roles.Teams.All(t => t.Id != team))
+                throw new RuleException("setTeam.team", ErrorCodes.UnknownTeam, $"Team '{team}' does not exist.", Suggest.OneOf(team, roles.Teams.Select(t => t.Id), "a team id"));
+            var session = Session!;
+            if (session.Roles.TryGetValue(seat, out var role) && roles.List.FirstOrDefault(r => r.Id == role)?.Team == team)
+                session.Teams.Remove(seat);
+            else
+                session.Teams[seat] = team;
+            if (tell)
+                Tell(seat, Names.Message(State, "nowTeam", "You are now {team}.", ("team", TeamName(roles, team))));
+        }
+
+        /// <summary>A role or team id written plainly, or read from a reference (<c>$param.target.role</c>).</summary>
+        private string RoleId(string text, string field) =>
+            References.IsReference(text) ? (Resolve(text, field) as JValue)?.ToString() ?? throw new RuleException(field, ErrorCodes.InvalidReference, $"'{text}' names no role right now.") : text;
+
+        /// <summary>Tells a seat its new role (or trait) after a change.</summary>
+        private void TellNow(string seat, string? set)
+        {
+            var roles = State.Roles!;
+            if (set != null)
+                Tell(seat, Names.Message(State, "nowTrait", "Your {set} is now {role}.", ("set", Names.Humanize(set).ToLowerInvariant()), ("role", RoleName(roles, RoleOf(seat, set)!))));
+            else
+                Tell(seat, Names.Message(State, "nowRole", "You are now {role} ({team}).", ("role", RoleName(roles, RoleOf(seat)!)), ("team", TeamName(roles, TeamOf(seat) ?? ""))));
+        }
+
+        /// <summary>
+        /// <c>$seat.role</c> (or <c>$seat.role.&lt;set&gt;</c> for an extra set) and <c>$seat.team</c>; null when unknown here.
+        /// </summary>
+        private string? RoleStep(Seat seat, string part, string[] parts, ref int i)
+        {
+            _secretsRead = true;
+            if (part == "team")
+                return TeamOf(seat.Id);
+            if (i + 1 < parts.Length && State.Roles is { } roles && RoleSets(roles).Contains(parts[i + 1]))
+                return RoleOf(seat.Id, parts[++i]);
+            return RoleOf(seat.Id);
         }
     }
 }

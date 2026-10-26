@@ -136,6 +136,41 @@ namespace Core.Rules
                     Add($"resources[{i}].id", ErrorCodes.DuplicateId, $"Resource '{_state.Resources[i].Id}' is defined twice.");
         }
 
+        /// <summary>A role effect needs roles (and the role set it names); false when the error was reported.</summary>
+        private bool NeedsRoles(string path, string? set)
+        {
+            if (_state.Roles == null)
+            {
+                Add(path, ErrorCodes.UnknownRole, "This effect works on hidden roles, and the game has none.", "Add a 'roles' block (set_roles).");
+                return false;
+            }
+            if (set != null && _state.Roles.List.All(r => r.Set != set))
+            {
+                Add($"{path}.set", ErrorCodes.UnknownRole, $"No role belongs to the set '{set}'.",
+                    Suggest.OneOf(set, Core.Engine.GameEngine.RoleSets(_state.Roles), "a role set"));
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>A <c>to</c> field: a seat, <c>all</c>, <c>team:&lt;id&gt;</c> or <c>role:&lt;id&gt;</c> of this game.</summary>
+        private void Audience(string? to, string path)
+        {
+            if (to == null || to == "all")
+                return;
+            if (to.StartsWith("team:") || to.StartsWith("role:"))
+            {
+                var isTeam = to.StartsWith("team:");
+                var id = to.Substring(5);
+                var known = isTeam ? _state.Roles?.Teams.Select(t => t.Id) : _state.Roles?.List.Select(r => r.Id);
+                if (known == null || !known.Contains(id))
+                    Add(path, isTeam ? ErrorCodes.UnknownTeam : ErrorCodes.UnknownRole, $"{(isTeam ? "Team" : "Role")} '{id}' does not exist.",
+                        known == null ? "Add a 'roles' block (set_roles)." : Suggest.OneOf(id, known, isTeam ? "a team id" : "a role id"));
+                return;
+            }
+            Seat(to, path);
+        }
+
         /// <summary>Teams and roles that exist, counts that are numbers or fill, and team sizes the roles can fill (ADR 0012).</summary>
         private void CheckRoles()
         {
@@ -151,7 +186,8 @@ namespace Core.Rules
                 var role = roles.List[i];
                 if (!ids.Add(role.Id))
                     Add($"roles.list[{i}].id", ErrorCodes.DuplicateId, $"Role '{role.Id}' is defined twice.");
-                if (!teams.Contains(role.Team))
+                // A role needs a team; a trait of an extra set may have none.
+                if ((role.Set == null || role.Team.Length > 0) && !teams.Contains(role.Team))
                     Add($"roles.list[{i}].team", ErrorCodes.UnknownTeam, $"Team '{role.Team}' does not exist.", Suggest.OneOf(role.Team, teams, "a team id") ?? "Declare it under roles.teams.");
                 var count = role.Count;
                 var valid = count == null || role.Fills || count.Type == JTokenType.Integer && (int)count >= 0;
@@ -178,8 +214,10 @@ namespace Core.Rules
                 if (rule.As == KnowsAs.OneOf && rule.Sees.Roles.Count < 2)
                     Add($"{path}.sees.roles", ErrorCodes.InvalidValue, "oneOf shows a seat as one of several roles: list at least two.");
             }
-            if (roles.ByPlayers.Count == 0 && roles.List.Count(r => r.Fills) > 1)
+            if (roles.ByPlayers.Count == 0 && roles.List.Count(r => r.Fills && r.Set == null) > 1)
                 Add("roles.list", ErrorCodes.RoleCount, "Without byPlayers only one role can fill the seats left.", "Give team sizes under roles.byPlayers.");
+            foreach (var set in Core.Engine.GameEngine.RoleSets(roles).Where(s => roles.List.Count(r => r.Fills && r.Set == s) > 1))
+                Add("roles.list", ErrorCodes.RoleCount, $"Only one role of the set '{set}' can fill the seats left.");
             foreach (var pair in roles.ByPlayers)
             {
                 if (!int.TryParse(pair.Key, out var players) || players < 1)
@@ -336,10 +374,27 @@ namespace Core.Rules
                     break;
                 case RevealRoleEffect show:
                     Seat(show.Seat, $"{path}.seat");
-                    if (show.To != null && show.To != "all")
-                        Seat(show.To, $"{path}.to");
-                    if (_state.Roles == null)
-                        Add($"{path}", ErrorCodes.UnknownRole, "revealRole needs roles to show.", "Add a 'roles' block.");
+                    Audience(show.To, $"{path}.to");
+                    NeedsRoles(path, show.Set);
+                    break;
+                case SetRoleEffect set:
+                    Seat(set.Seat, $"{path}.seat");
+                    if (NeedsRoles(path, set.Set) && !References.IsReference(set.Role) && _state.Roles!.List.All(r => r.Id != set.Role || r.Set != set.Set))
+                        Add($"{path}.role", ErrorCodes.UnknownRole, $"'{set.Role}' is not a {(set.Set == null ? "role" : $"'{set.Set}' role")}.",
+                            Suggest.OneOf(set.Role, _state.Roles.List.Where(r => r.Set == set.Set).Select(r => r.Id), "a role id"));
+                    break;
+                case SwapRolesEffect swap:
+                    Seat(swap.A, $"{path}.a");
+                    Seat(swap.B, $"{path}.b");
+                    NeedsRoles(path, swap.Set);
+                    break;
+                case SetTeamEffect team:
+                    Seat(team.Seat, $"{path}.seat");
+                    if (NeedsRoles(path, null) && !References.IsReference(team.Team) && _state.Roles!.Teams.All(t => t.Id != team.Team))
+                        Add($"{path}.team", ErrorCodes.UnknownTeam, $"Team '{team.Team}' does not exist.", Suggest.OneOf(team.Team, _state.Roles.Teams.Select(t => t.Id), "a team id"));
+                    break;
+                case MessageEffect message when message.To != null:
+                    Audience(message.To, $"{path}.to");
                     break;
                 case RevealEffect reveal when reveal.Action != null:
                     var secret = _state.Actions.FirstOrDefault(a => a.Id == reveal.Action);

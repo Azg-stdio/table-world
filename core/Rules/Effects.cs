@@ -85,10 +85,14 @@ namespace Core.Rules
         public List<Effect> Do { get; set; } = new List<Effect>();
     }
 
-    /// <summary>Adds a line to the game log. <c>{$ref}</c> in the text is replaced by the reference's value.</summary>
+    /// <summary>
+    /// Adds a line to the game log. <c>{$ref}</c> in the text is replaced by the reference's value. With <see cref="To"/>
+    /// (a seat, <c>team:&lt;id&gt;</c> or <c>role:&lt;id&gt;</c>) only those players read it, and the shared log does not.
+    /// </summary>
     public sealed class MessageEffect : Effect
     {
         public string Text { get; set; } = "";
+        public string? To { get; set; }
     }
 
     public sealed class EndTurnEffect : Effect { }
@@ -130,14 +134,47 @@ namespace Core.Rules
     }
 
     /// <summary>
-    /// Shows <see cref="Seat"/>'s hidden role to <see cref="To"/> (a seat; every seat when left out or <c>all</c>), or only
-    /// its team with <see cref="TeamOnly"/>: the seer looks at a card, a dead player's role is shown to all.
+    /// Shows <see cref="Seat"/>'s hidden role to <see cref="To"/>, or only its team with <see cref="TeamOnly"/>: the seer
+    /// looks at a card, the wolves learn who the new wolf is, a dead player's role is shown to all. <see cref="To"/> is a
+    /// seat, <c>team:&lt;id&gt;</c>, <c>role:&lt;id&gt;</c>, or every seat when left out or <c>all</c>. <see cref="Set"/>
+    /// shows a trait of an extra role set instead.
     /// </summary>
     public sealed class RevealRoleEffect : Effect
     {
         public string Seat { get; set; } = "";
         public string? To { get; set; }
         public bool TeamOnly { get; set; }
+        public string? Set { get; set; }
+    }
+
+    /// <summary>
+    /// Gives <see cref="Seat"/> another role (a conversion); its team becomes the new role's. <see cref="Tell"/> lets the
+    /// player know. What others learnt of it before stays what they saw.
+    /// </summary>
+    public sealed class SetRoleEffect : Effect
+    {
+        public string Seat { get; set; } = "";
+        /// <summary>A role id, or a reference that reads one.</summary>
+        public string Role { get; set; } = "";
+        public string? Set { get; set; }
+        public bool Tell { get; set; }
+    }
+
+    /// <summary>Swaps two seats' roles (Werewolf's Troublemaker) without either passing through a shared variable.</summary>
+    public sealed class SwapRolesEffect : Effect
+    {
+        public string A { get; set; } = "";
+        public string B { get; set; } = "";
+        public string? Set { get; set; }
+        public bool Tell { get; set; }
+    }
+
+    /// <summary>Moves <see cref="Seat"/> to another team, keeping its role (an allegiance that changes).</summary>
+    public sealed class SetTeamEffect : Effect
+    {
+        public string Seat { get; set; } = "";
+        public string Team { get; set; } = "";
+        public bool Tell { get; set; }
     }
 
     /// <summary>
@@ -204,6 +241,9 @@ namespace Core.Rules
             ["roll"] = typeof(RollEffect),
             ["reveal"] = typeof(RevealEffect),
             ["revealRole"] = typeof(RevealRoleEffect),
+            ["setRole"] = typeof(SetRoleEffect),
+            ["swapRoles"] = typeof(SwapRolesEffect),
+            ["setTeam"] = typeof(SetTeamEffect),
             ["lua"] = typeof(LuaEffect),
             ["refuse"] = typeof(RefuseEffect),
             ["blindRound"] = typeof(BlindRoundEffect),

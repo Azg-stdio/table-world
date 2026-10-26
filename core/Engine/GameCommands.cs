@@ -27,7 +27,8 @@ namespace Core.Engine
     /// <summary>
     /// A table script's change to the game in play (the Lua <c>Game</c> API): <see cref="Op"/> is <c>setResource</c>,
     /// <c>addResource</c>, <c>setVariable</c>, <c>endTurn</c>, <c>endPhase</c>, <c>gotoPhase</c>, <c>win</c>, <c>log</c> or
-    /// <c>revealRole</c> (<see cref="Seat"/> shown to <see cref="Name"/>, every seat when null; <see cref="Value"/> true for the team only).
+    /// <c>revealRole</c> (<see cref="Seat"/> shown to <see cref="Name"/>, every seat when null; <see cref="Value"/> true for the team only),
+    /// <c>setRole</c> or <c>setTeam</c> (<see cref="Seat"/> given <see cref="Name"/>; <see cref="Value"/> true tells the player).
     /// Inside a <c>lua</c> effect it joins that action's transaction; from elsewhere (a button) it is a command of its own,
     /// sent to every peer like any other. Only the host's scripts issue it.
     /// </summary>

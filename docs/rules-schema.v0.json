@@ -2692,6 +2692,42 @@
         {
           "type": "object",
           "properties": {
+            "setRole": {
+              "$ref": "#/$defs/SetRoleEffect"
+            }
+          },
+          "required": [
+            "setRole"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "swapRoles": {
+              "$ref": "#/$defs/SwapRolesEffect"
+            }
+          },
+          "required": [
+            "swapRoles"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "setTeam": {
+              "$ref": "#/$defs/SetTeamEffect"
+            }
+          },
+          "required": [
+            "setTeam"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
             "lua": {
               "$ref": "#/$defs/LuaEffect"
             }
@@ -3112,6 +3148,9 @@
       "properties": {
         "text": {
           "type": "string"
+        },
+        "to": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -3187,6 +3226,60 @@
           "type": "string"
         },
         "teamOnly": {
+          "type": "boolean"
+        },
+        "set": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SetRoleEffect": {
+      "type": "object",
+      "properties": {
+        "seat": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "set": {
+          "type": "string"
+        },
+        "tell": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SwapRolesEffect": {
+      "type": "object",
+      "properties": {
+        "a": {
+          "type": "string"
+        },
+        "b": {
+          "type": "string"
+        },
+        "set": {
+          "type": "string"
+        },
+        "tell": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SetTeamEffect": {
+      "type": "object",
+      "properties": {
+        "seat": {
+          "type": "string"
+        },
+        "team": {
+          "type": "string"
+        },
+        "tell": {
           "type": "boolean"
         }
       },
@@ -4338,6 +4431,9 @@
         "team": {
           "type": "string"
         },
+        "set": {
+          "type": "string"
+        },
         "count": {},
         "optional": {
           "type": "boolean"
@@ -4462,6 +4558,21 @@
           }
         },
         "roles": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "traits": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "teams": {
           "type": "object",
           "additionalProperties": {
             "type": "string"
