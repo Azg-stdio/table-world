@@ -27,6 +27,10 @@ namespace TableWorld.View.Builtin
                 "checker" => Lifted(MeshFactory.Cylinder(0.75f * u, 0.25f * u, 32)),
                 "pawn" => Pawn(),
                 "bowl" => Bowl(),
+                "coin" => Coin(),
+                "bead" => Bead(),
+                "gem" => Gem(),
+                "cube" => Lifted(MeshFactory.Box(new Vector3(0.012f, 0.012f, 0.012f))),
                 _ => null,
             };
             if (mesh != null)
@@ -63,6 +67,66 @@ namespace TableWorld.View.Builtin
                 new Vector2(0.006f, 0.030f), new Vector2(0.003f, 0.0335f), new Vector2(0f, 0.034f),
             };
             return Turned(profile, 32);
+        }
+
+        /// <summary>A coin for money: 2.3 cm across, 2.8 mm thick, with a rounded rim; stacks flat.</summary>
+        private static Mesh Coin()
+        {
+            const float r = 0.0115f, h = 0.0028f;
+            var profile = new[]
+            {
+                new Vector2(0f, 0f), new Vector2(r - 0.0006f, 0f), new Vector2(r, 0.0006f), new Vector2(r, h - 0.0006f),
+                new Vector2(r - 0.0006f, h), new Vector2(0.82f * r, h), new Vector2(0.8f * r, h - 0.0003f), new Vector2(0f, h - 0.0003f),
+            };
+            return Turned(profile, 36);
+        }
+
+        /// <summary>
+        /// A bead (mana, energy, life): a glass stone like the ones in board games, a dome 1.5 cm across with a flat base,
+        /// so it stays where it is put instead of rolling off like a ball.
+        /// </summary>
+        private static Mesh Bead()
+        {
+            const float r = 0.0075f, h = 0.0065f;
+            var profile = new Vector2[12];
+            profile[0] = new Vector2(0f, 0f);
+            for (var i = 0; i <= 10; i++)
+            {
+                var a = Mathf.PI / 2f * i / 10f;
+                profile[i + 1] = new Vector2(r * Mathf.Cos(a), h * Mathf.Sin(a));
+            }
+            profile[11].x = 0f;
+            return Turned(profile, 28);
+        }
+
+        /// <summary>A cut gem (crystals, points): six facets, 1.6 cm across, lying on its point's flat base.</summary>
+        private static Mesh Gem()
+        {
+            var profile = new[]
+            {
+                new Vector2(0f, 0f), new Vector2(0.003f, 0f), new Vector2(0.008f, 0.006f), new Vector2(0.0055f, 0.0095f), new Vector2(0f, 0.0095f),
+            };
+            var mesh = Turned(profile, 6);
+            // Facets, not a smooth turn: split normals by recomputing per face.
+            return Faceted(mesh);
+        }
+
+        /// <summary>Gives every triangle its own vertices, so lighting shows flat facets.</summary>
+        private static Mesh Faceted(Mesh source)
+        {
+            var vertices = source.vertices;
+            var triangles = source.triangles;
+            var flatVertices = new Vector3[triangles.Length];
+            var flatTriangles = new int[triangles.Length];
+            for (var i = 0; i < triangles.Length; i++)
+            {
+                flatVertices[i] = vertices[triangles[i]];
+                flatTriangles[i] = i;
+            }
+            var mesh = new Mesh { vertices = flatVertices, triangles = flatTriangles };
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            return mesh;
         }
 
         /// <summary>

@@ -106,6 +106,14 @@ add_asset {"id": "board_art", "url": "https://example.com/board.png"}
 place_object {"objectJson": {"id": "d6", "type": "Die", "faces": 6, "transform": {"position": [0.3, 0, 0]}}}
 ```
 
+**`create_supply`**: physical pieces, so players handle money and points with their hands: coins, beads (mana,
+life), gems, cubes, pawns or checkers, in a colour. A bank that never runs out (`infinite`), a bag of so many, or a loose
+pile. Rules count them in zones; tag them `<role>:<seatId>` to give them to a seat.
+
+```call
+create_supply {"id": "bank", "piece": "coin", "color": "gold", "mode": "infinite", "name": "Gold", "x": 0.6, "z": 0.3}
+```
+
 **`define_zone`**: an area of the table: a hand, a hidden area, an area the rules can count, a snap point, an area
 that lays out what is dropped in it, or one that shuffles it.
 

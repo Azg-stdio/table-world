@@ -80,6 +80,22 @@ Create a deck of cards on the table. cards: 'standard52' or 'standard54' (with j
 | `faceAsset` | string | none | Image asset (from add_asset) the cards' faceIndex points into; default the builtin French deck. |
 | `backAsset` | string | none | Image asset for the card backs; default the builtin blue back. |
 
+### `create_supply`
+
+Put physical pieces on the table, so players handle gold, mana and points as pieces instead of reading numbers: piece coin, bead (a sphere: mana, energy, life), gem, cube, pawn or checker, in a colour (gold, silver, a seat colour, or [r,g,b]). mode 'infinite' is a bank that never runs out (players drag pieces out of it), 'bag' a bag holding count pieces, 'pile' count loose pieces. Rules can count pieces in a zone (zoneCount) and Lua with getObjects. Tag pieces '<role>:<seatId>' to give them to a seat.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `id` | string | required | Id of the bank, bag, or the first piece of a pile. |
+| `piece` | string | `coin` | coin, bead, gem, cube, pawn or checker. |
+| `color` | string | `gold` | gold, silver, bronze, a seat colour (red, blue...), or [r,g,b] 0-1. |
+| `mode` | string | `infinite` | infinite, bag or pile. |
+| `count` | integer | `10` | Pieces in a bag or pile. |
+| `name` | string | none | Display name, e.g. 'Gold' or 'Mana'. |
+| `x` | number | `0` | Position x in metres (table centre is 0). |
+| `z` | number | `0` | Position z in metres. |
+| `tags` | string | none | Comma-separated tags for the pieces. |
+
 ### `create_text_deck`
 
 Create a deck of text cards: no images needed, the game prints each card's words (title, kind line, body, footer, a corner value, optional art image) and draws the back from the style, with backLabel naming the pile (e.g. 'EQUIPMENT'). cards: JSON array of {id?, title, kind?, body?, footer?, corner?, art? (asset id), artIndex?, count? (copies, default 1), meta?, tags?, style?}; copies get ids <id>_2, <id>_3... style: {paper, ink, accent, backPaper, backInk: [r,g,b] 0-1, backLabel}; a card's own style overrides the deck's (e.g. dark night cards in a day/night deck). Card name is the title and description the body, so tooltips and search show them. Ask the host how each deck should look when the rulebook does not say.

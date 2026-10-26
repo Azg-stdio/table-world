@@ -219,6 +219,68 @@ namespace TableWorld.Mcp
                 });
             });
 
+        [McpServerTool(Name = "create_supply"), Description("Put physical pieces on the table, so players handle gold, mana and points as pieces instead of reading numbers: piece coin, bead (a sphere: mana, energy, life), gem, cube, pawn or checker, in a colour (gold, silver, a seat colour, or [r,g,b]). mode 'infinite' is a bank that never runs out (players drag pieces out of it), 'bag' a bag holding count pieces, 'pile' count loose pieces. Rules can count pieces in a zone (zoneCount) and Lua with getObjects. Tag pieces '<role>:<seatId>' to give them to a seat.")]
+        public static string CreateSupply(GameSession session,
+            [Description("Id of the bank, bag, or the first piece of a pile.")] string id,
+            [Description("coin, bead, gem, cube, pawn or checker.")] string piece = "coin",
+            [Description("gold, silver, bronze, a seat colour (red, blue...), or [r,g,b] 0-1.")] string color = "gold",
+            [Description("infinite, bag or pile.")] string mode = "infinite",
+            [Description("Pieces in a bag or pile.")] int count = 10,
+            [Description("Display name, e.g. 'Gold' or 'Mana'.")] string? name = null,
+            [Description("Position x in metres (table centre is 0).")] float x = 0,
+            [Description("Position z in metres.")] float z = 0,
+            [Description("Comma-separated tags for the pieces.")] string? tags = null) =>
+            session.Locked(() => Reply(session.Edit(doc =>
+            {
+                var pieces = new[] { "coin", "bead", "gem", "cube", "pawn", "checker" };
+                if (!pieces.Contains(piece))
+                    throw new EditException(new ValidationError("piece", ErrorCodes.InvalidValue, $"Unknown piece '{piece}'.", "Use one of: " + string.Join(", ", pieces) + "."));
+                if (mode != "infinite" && mode != "bag" && mode != "pile")
+                    throw new EditException(new ValidationError("mode", ErrorCodes.InvalidValue, $"Unknown mode '{mode}'.", "Use infinite, bag or pile."));
+                if (count < 1 || count > 200)
+                    throw new EditException(new ValidationError("count", ErrorCodes.InvalidValue, "count is 1 to 200."));
+                var rgb = color.TrimStart().StartsWith("[") ? GameSession.ParseArray(color, "color").Select(v => (float)v).ToArray() : color.ToLowerInvariant() switch
+                {
+                    "gold" => new[] { 0.95f, 0.75f, 0.2f },
+                    "silver" => new[] { 0.8f, 0.82f, 0.85f },
+                    "bronze" => new[] { 0.72f, 0.45f, 0.2f },
+                    _ => SeatLayout.Rgb(color),
+                };
+                var assetId = "piece_" + piece;
+                var assets = doc["assets"] as JArray ?? new JArray();
+                if (!assets.Any(a => (string?)a["id"] == assetId))
+                    assets.Add(new JObject { ["id"] = assetId, ["type"] = "model", ["path"] = "builtin:" + piece });
+                doc["assets"] = assets;
+                var label = name ?? char.ToUpperInvariant(piece[0]) + piece.Substring(1);
+                JObject Piece(string pieceId, float px, float pz, string? container)
+                {
+                    var o = new JObject
+                    {
+                        ["id"] = pieceId, ["type"] = "Model", ["name"] = label, ["asset"] = assetId, ["tint"] = new JArray(rgb),
+                        ["kind"] = piece == "coin" ? "coin" : piece == "checker" ? "chip" : "generic",
+                        ["material"] = piece == "coin" ? "metal" : piece == "bead" || piece == "gem" ? "glass" : "plastic",
+                        ["transform"] = new JObject { ["position"] = new JArray(px, 0, pz) },
+                    };
+                    if (container != null) o["container"] = container;
+                    if (Tags(tags) is { } t) o["tags"] = t;
+                    return o;
+                }
+                if (mode == "pile")
+                {
+                    for (var i = 0; i < count; i++)
+                        Upsert(doc, "objects", Piece(i == 0 ? id : $"{id}_{i + 1}", x + (i % 5) * 0.026f, z + (i / 5) * 0.026f, null));
+                    return;
+                }
+                var bag = new JObject
+                {
+                    ["id"] = id, ["type"] = mode == "infinite" ? "InfiniteBag" : "Bag", ["name"] = mode == "infinite" ? label : label + " bag",
+                    ["tint"] = new JArray(rgb), ["transform"] = new JObject { ["position"] = new JArray(x, 0, z) },
+                };
+                Upsert(doc, "objects", bag);
+                for (var i = 0; i < (mode == "infinite" ? 1 : count); i++)
+                    Upsert(doc, "objects", Piece($"{id}_piece{(i == 0 ? "" : "_" + (i + 1))}", x, z, id));
+            }), session));
+
         [McpServerTool(Name = "place_object"), Description("Place any table object from JSON: Card, Deck, Token, Tile, Die, Bag, InfiniteBag, Board, Figure, Model. Example: {\"id\":\"d6\",\"type\":\"Die\",\"faces\":6,\"transform\":{\"position\":[0.3,0,0]}}. Replaces an object with the same id. " + Format)]
         public static string PlaceObject(GameSession session, [Description("The object as JSON.")] string objectJson) =>
             session.Locked(() => Reply(session.Edit(doc => Upsert(doc, "objects", GameSession.ParseObject(objectJson, "objectJson"))), session));

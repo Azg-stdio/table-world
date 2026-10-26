@@ -87,7 +87,7 @@ namespace TableWorld.Mcp.Tests
             var tools = (await _server.Client.ListToolsAsync()).Select(t => t.Name).OrderBy(n => n).ToArray();
             var expected = new[]
             {
-                "add_action", "add_asset", "add_event", "add_phase", "add_resource", "ask_host", "create_deck", "create_text_deck", "deal", "define_zone",
+                "add_action", "add_asset", "add_event", "add_phase", "add_resource", "ask_host", "create_deck", "create_supply", "create_text_deck", "deal", "define_zone",
                 "get_rules_document", "get_rules_reference", "get_table_state", "load_game", "new_game", "perform_action",
                 "place_object", "remove", "reset_game", "run_lua", "save_game", "screenshot", "set_rules_document", "set_script", "set_turn", "set_variables",
                 "set_win_condition", "start_game", "table_action", "validate_rules",
@@ -319,6 +319,25 @@ namespace TableWorld.Mcp.Tests
             Assert.False((bool)refused["ok"]!);
             Assert.Equal("Not enough gold.", (string?)refused["errors"]![0]!["message"]);
             Ok(await Call("reset_game"));
+        }
+
+        [Fact]
+        public async Task CreateSupply_MakesBanksBagsAndPilesOfPieces()
+        {
+            Ok(await Call("new_game", ("id", "pieces"), ("name", "Pieces"), ("players", 2)));
+            Ok(await Call("create_supply", ("id", "gold"), ("piece", "coin"), ("color", "gold"), ("mode", "infinite"), ("name", "Oro"), ("x", 0.5f)));
+            Ok(await Call("create_supply", ("id", "mana"), ("piece", "bead"), ("color", "blue"), ("mode", "bag"), ("count", 6)));
+            Ok(await Call("create_supply", ("id", "gems"), ("piece", "gem"), ("color", "[0.6,0.2,0.8]"), ("mode", "pile"), ("count", 3), ("tags", "gems:seat_south")));
+            var doc = await Call("get_rules_document");
+            var objects = doc["objects"]!;
+            Assert.Equal("InfiniteBag", (string?)objects.First(o => (string?)o["id"] == "gold")["type"]);
+            Assert.Single(objects, o => (string?)o["container"] == "gold");
+            Assert.Equal(6, objects.Count(o => (string?)o["container"] == "mana"));
+            Assert.Equal(3, objects.Count(o => ((string?)o["id"])!.StartsWith("gems")));
+            Assert.Contains(doc["assets"]!, a => (string?)a["path"] == "builtin:bead");
+            Ok(await Call("validate_rules"));
+            var bad = await Call("create_supply", ("id", "x"), ("piece", "spaceship"));
+            Assert.Equal("invalid_value", (string?)bad["errors"]![0]!["code"]);
         }
 
         [Fact]
