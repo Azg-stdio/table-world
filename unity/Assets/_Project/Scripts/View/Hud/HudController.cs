@@ -213,6 +213,9 @@ namespace TableWorld.View.Hud
                 return true;
             if (_scriptUi != null && _scriptUi.Typing)
                 return true;
+            // Moving a key in the settings: the next key pressed is the menu's.
+            if (_escape != null && _escape.CapturingKey)
+                return true;
             var focused = _root?.panel?.focusController?.focusedElement as VisualElement;
             return focused != null && (focused is TextField || focused.GetFirstAncestorOfType<TextField>() != null);
         }
@@ -397,6 +400,7 @@ namespace TableWorld.View.Hud
             RefreshSelection();
             _overlay?.Update();
             _handBar?.Update();
+            _escape?.PollKeyCapture();
             MenuKeys();
             _chat?.Update(TypingInUi() || (_interaction != null && _interaction.IgnoreDevices));
             _players?.Update();

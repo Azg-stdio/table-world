@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TableWorld.View.Settings;
 using UnityEngine.UIElements;
 
 namespace TableWorld.View.Hud
@@ -15,12 +16,12 @@ namespace TableWorld.View.Hud
             ("Camera", new[]
             {
                 ("Right mouse drag on the table", "Orbit"),
-                ("Middle mouse drag, or W A S D / arrows", "Pan"),
+                ("Middle mouse drag, or {PanForward} {PanLeft} {PanBack} {PanRight} / arrows", "Pan"),
                 ("Mouse wheel", "Zoom"),
-                ("Z, or middle click on the table", "Quick zoom to the pointer (again to go back)"),
-                ("Space", "Back to your seat's view"),
-                ("P", "Top-down view (again to go back)"),
-                ("Q / E over nothing", "Turn the camera"),
+                ("{QuickZoom}, or middle click on the table", "Quick zoom to the pointer (again to go back)"),
+                ("{ResetCamera}", "Back to your seat's view"),
+                ("{TopDown}", "Top-down view (again to go back)"),
+                ("{RotateLeft} / {RotateRight} over nothing", "Turn the camera"),
                 ("Ctrl + 1–9 / Shift + 1–9", "Save / load a camera view"),
             }),
             ("Moving things", new[]
@@ -28,23 +29,23 @@ namespace TableWorld.View.Hud
                 ("Left drag", "Pick up and move; release to drop (release while moving to throw)"),
                 ("Drag a deck or bag at once", "Take its top card or an item"),
                 ("Press a deck or bag, hold still, then drag", "Lift the whole deck or bag (also Shift + drag)"),
-                ("Click", "Select (outlined in your colour): keys like Q / E, F, R, L act on the selection until you click elsewhere"),
+                ("Click", "Select (outlined in your colour): keys like {RotateLeft} / {RotateRight}, {Flip}, {Roll}, {Lock} act on the selection until you click elsewhere"),
                 ("Left drag on empty table", "Box select; drag one of them to carry them all"),
                 ("Mouse wheel while holding", "Raise or lower what you hold"),
                 ("Right mouse while holding", "Tap down (lower it to the table)"),
                 ("Right click another object while holding", "Add it to what you hold"),
                 ("Alt + right click while holding", "Drop the last one added, or the bottom card of a held deck"),
-                ("Q / E", "Rotate: tap = next 15° step, hold = turn smoothly"),
-                ("Alt + Q / E", "Tilt on the other axis"),
-                ("F, or middle click", "Flip"),
+                ("{RotateLeft} / {RotateRight}", "Rotate: tap = next 15° step, hold = turn smoothly"),
+                ("Alt + {RotateLeft} / {RotateRight}", "Tilt on the other axis"),
+                ("{Flip}, or middle click", "Flip"),
                 ("Alt + middle click", "Flip end over end"),
-                ("Hold + / −", "Scale"),
-                ("U while holding, over another object", "Place it underneath"),
-                ("Hold N", "Nudge nearby objects away from the pointer"),
+                ("Hold {Grow} / {Shrink}", "Scale"),
+                ("{PlaceUnder} while holding, over another object", "Place it underneath"),
+                ("Hold {Nudge}", "Nudge nearby objects away from the pointer"),
             }),
             ("Looking", new[]
             {
-                ("Hold Alt", "Close-up of what is under the pointer (wheel zooms, Q / E turns)"),
+                ("Hold Alt", "Close-up of what is under the pointer (wheel zooms, {RotateLeft} / {RotateRight} turns)"),
                 ("Hold Alt + Shift", "Peek at the underside (others are told when you peek at something face down)"),
                 ("Hover", "Name, then description"),
                 ("Click a PDF", "Read it in a window (arrows or Page Up/Down turn pages; right click turns the page on the table for everyone)"),
@@ -52,10 +53,10 @@ namespace TableWorld.View.Hud
             ("Cards, decks, bags, dice", new[]
             {
                 ("Type a number over a deck or bag", "Draw that many to your hand (1 then 2 quickly = 12)"),
-                ("R", "Shuffle a deck or bag, roll a die; rolls every selected or held die at once. Press it again and again to toss dice higher"),
+                ("{Roll}", "Shuffle a deck or bag, roll a die; rolls every selected or held die at once. Press it again and again to toss dice higher"),
                 ("Shake a held deck or bag", "Shuffle it (a few quick strokes back and forth)"),
-                ("G", "Group cards into a deck"),
-                ("L", "Lock or unlock"),
+                ("{Group}", "Group cards into a deck"),
+                ("{Lock}", "Lock or unlock"),
                 ("Number keys over an object with states", "Switch state"),
                 ("Right click", "Menu: deal, search, cut, split, spread, set a die, name, colour, …"),
             }),
@@ -75,17 +76,17 @@ namespace TableWorld.View.Hud
             ("Table", new[]
             {
                 ("Ctrl + C / Ctrl + V", "Copy / paste"),
-                ("Delete", "Delete"),
+                ("{Delete}", "Delete"),
                 ("Ctrl + Z / Ctrl + Y", "Undo / redo (playing alone)"),
                 ("Numpad 1–9, 0", "Scripting keys 1–10: a scripted game may give them actions (TTS scripting buttons)"),
                 ("Right click the table → Rewind", "Host: step the whole table back in time, and forward again"),
                 ("Right click the table → Grid", "Host: squares or hexes, snapping, cell size, lines"),
                 ("Draw / Arrow / Erase (left tool bar)", "Draw on the table in your colour, drag an arrow, rub drawings out; Esc goes back to Grab"),
                 ("Gizmo (left tool bar), or right click → Exact position…", "Type an object's exact position, height, turn, tilt and scale"),
-                ("F5 / F9", "Quick save / quick load"),
+                ("{QuickSave} / {QuickLoad}", "Quick save / quick load"),
                 ("Tab + click", "Ping"),
                 ("Tab + drag", "Measure"),
-                ("B", "Blindfold on or off (everyone is told)"),
+                ("{Blindfold}", "Blindfold on or off (everyone is told)"),
                 ("F1 or ?", "This list"),
                 ("Notes (top bar)", "The table's notebook: shared pages, and private ones for your seat"),
                 ("Escape", "Close what is open; with nothing open, the menu (settings, leave, quit)"),
@@ -94,13 +95,15 @@ namespace TableWorld.View.Hud
             {
                 ("Enter, or click the chat", "Open the chat (Enter sends, Escape or a click on the table closes)"),
                 ("/roll 3d6+2 (or /r d20)", "Roll dice in the chat for everyone to see"),
-                ("Hold X, point, let go", "Emote: your chalker waves, laughs, shrugs … for everyone (Settings → You → Chalker face picks its personality)"),
-                ("Hold T", "Talk (push to talk; Settings → Voice switches to open-when-you-speak, and has a hear-yourself test)"),
+                ("Hold {Emotes}, point, let go", "Emote: your chalker waves, laughs, shrugs … for everyone (Settings → You → Chalker face picks its personality)"),
+                ("Hold {Talk}", "Talk (push to talk; Settings → Voice switches to open-when-you-speak, and has a hear-yourself test)"),
                 ("Log tab", "Everything done at the table, in order"),
             }),
         };
 
         private readonly VisualElement _panel;
+        /// <summary>Labels and their text with {Action} where a moved key goes (G31), filled in each time the list opens.</summary>
+        private readonly List<(Label Label, string Text)> _keyed = new List<(Label, string)>();
 
         public ControlsHelp(VisualElement root)
         {
@@ -120,6 +123,8 @@ namespace TableWorld.View.Hud
                     var k = new Label(keys);
                     k.AddToClassList("help-keys");
                     var w = new Label(what);
+                    _keyed.Add((k, keys));
+                    _keyed.Add((w, what));
                     w.AddToClassList("help-what");
                     row.Add(k);
                     row.Add(w);
@@ -135,10 +140,15 @@ namespace TableWorld.View.Hud
             if (Visible)
                 Hide();
             else
-                _panel?.RemoveFromClassList("hidden");
+                Show();
         }
 
-        public void Show() => _panel?.RemoveFromClassList("hidden");
+        public void Show()
+        {
+            foreach (var (label, text) in _keyed)
+                label.text = KeyBindings.Fill(text);
+            _panel?.RemoveFromClassList("hidden");
+        }
 
         public void Hide() => _panel?.AddToClassList("hidden");
     }

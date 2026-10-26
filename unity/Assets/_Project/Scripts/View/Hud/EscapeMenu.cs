@@ -185,7 +185,7 @@ namespace TableWorld.View.Hud
 
             Group("Voice");
             Choice("Microphone", (VoiceMode[])Enum.GetValues(typeof(VoiceMode)), s.VoiceMode, v => s.VoiceMode = v,
-                v => v == VoiceMode.PushToTalk ? "Push to talk (hold T)" : v == VoiceMode.VoiceActivation ? "Open when I speak" : "Off");
+                v => v == VoiceMode.PushToTalk ? $"Push to talk (hold {KeyBindings.Label(GameAction.Talk)})" : v == VoiceMode.VoiceActivation ? "Open when I speak" : "Off");
             var devices = new List<string> { "" };
             devices.AddRange(UnityEngine.Microphone.devices);
             if (!devices.Contains(s.Microphone))
@@ -200,6 +200,18 @@ namespace TableWorld.View.Hud
             Slider("Zoom speed", GameSettings.MinScale, GameSettings.MaxScale, s.ZoomSpeed, v => s.ZoomSpeed = v, Times);
             Slider("Keyboard pan speed", GameSettings.MinScale, GameSettings.MaxScale, s.PanSpeed, v => s.PanSpeed = v, Times);
             Choice("Invert vertical orbit", new[] { false, true }, s.InvertOrbitY, v => s.InvertOrbitY = v, v => v ? "On" : "Off");
+
+            Group("Keys");
+            foreach (GameAction action in Enum.GetValues(typeof(GameAction)))
+                KeyRow(action);
+            var reset = new Button(() =>
+            {
+                Change(settings => settings.Keys = new Dictionary<string, string>());
+                Rebuild();
+            }) { text = "Back to TTS keys" };
+            reset.AddToClassList("hud-button");
+            Row("").Add(reset);
+            Note("Click an action, then press its new key (Escape cancels). A key another action had goes to that action's old key.");
 
             Group("Display");
             Choice("Window", (DisplayMode[])Enum.GetValues(typeof(DisplayMode)), s.DisplayMode, v => s.DisplayMode = v,
@@ -289,6 +301,67 @@ namespace TableWorld.View.Hud
                     Commit();
             });
             row.Add(field);
+        }
+
+        // ---- keys (G31) ----------------------------------------------------------------------------------------------
+
+        private GameAction? _capturing;
+        private Button _captureButton;
+
+        /// <summary>Waiting for the key an action moves to: every key is the menu's until one is pressed.</summary>
+        public bool CapturingKey => _capturing != null;
+
+        /// <summary>An action and its key; clicking the key waits for the next key pressed (<see cref="PollKeyCapture"/>).</summary>
+        private void KeyRow(GameAction action)
+        {
+            var row = Row(KeyBindings.Name(action));
+            Button key = null;
+            key = new Button(() =>
+            {
+                if (_captureButton != null)
+                    _captureButton.text = KeyBindings.Label(KeyBindings.Resolve(Settings.Keys)[_capturing!.Value]);
+                _capturing = action;
+                _captureButton = key;
+                key.text = "Press a key…";
+            }) { text = KeyBindings.Label(KeyBindings.Resolve(Settings.Keys)[action]) };
+            key.AddToClassList("hud-button");
+            key.AddToClassList("settings-key");
+            row.Add(key);
+        }
+
+        /// <summary>Called every frame by the HUD: takes the key pressed while an action waits for one (Escape cancels).</summary>
+        public void PollKeyCapture()
+        {
+            if (_capturing == null)
+                return;
+            var keyboard = UnityEngine.InputSystem.Keyboard.current;
+            if (keyboard == null)
+                return;
+            if (keyboard.escapeKey.wasPressedThisFrame || !SettingsOpen)
+            {
+                _capturing = null;
+                Rebuild();
+                return;
+            }
+            foreach (var control in keyboard.allKeys)
+            {
+                if (control == null || !control.wasPressedThisFrame || KeyBindings.Reserved.Contains(control.keyCode))
+                    continue;
+                var action = _capturing.Value;
+                _capturing = null;
+                Change(settings => settings.Keys = KeyBindings.Rebind(settings.Keys, action, control.keyCode));
+                Rebuild();
+                return;
+            }
+        }
+
+        /// <summary>Redraws the settings page where it was scrolled to (a key moved, or keys reset).</summary>
+        private void Rebuild()
+        {
+            _captureButton = null;
+            var scroll = _settingsList.scrollOffset;
+            BuildSettings();
+            _settingsList.schedule.Execute(() => _settingsList.scrollOffset = scroll);
         }
 
         /// <summary>A setting with a few values, stepped with ‹ and › (no drop-down to restyle).</summary>

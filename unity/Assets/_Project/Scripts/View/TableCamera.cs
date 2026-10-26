@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using TableWorld.View.Settings;
 
 namespace TableWorld.View
 {
@@ -189,14 +190,14 @@ namespace TableWorld.View
             if (keyboard != null && !keyboard.ctrlKey.isPressed && !SuppressKeys)
             {
                 var move = Vector2.zero;
-                if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed) move.y += 1;
-                if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed) move.y -= 1;
-                if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed) move.x += 1;
-                if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed) move.x -= 1;
+                if (KeyBindings.Held(keyboard, GameAction.PanForward) || keyboard.upArrowKey.isPressed) move.y += 1;
+                if (KeyBindings.Held(keyboard, GameAction.PanBack) || keyboard.downArrowKey.isPressed) move.y -= 1;
+                if (KeyBindings.Held(keyboard, GameAction.PanRight) || keyboard.rightArrowKey.isPressed) move.x += 1;
+                if (KeyBindings.Held(keyboard, GameAction.PanLeft) || keyboard.leftArrowKey.isPressed) move.x -= 1;
                 if (move != Vector2.zero)
                     PanBy(move.normalized * (_keyPanSpeed * PanScale * _distance * Time.unscaledDeltaTime));
-                if (!SuppressTurnKeys && keyboard.qKey.isPressed) _yaw -= _keyTurnSpeed * Time.unscaledDeltaTime;
-                if (!SuppressTurnKeys && keyboard.eKey.isPressed) _yaw += _keyTurnSpeed * Time.unscaledDeltaTime;
+                if (!SuppressTurnKeys && KeyBindings.Held(keyboard, GameAction.RotateLeft)) _yaw -= _keyTurnSpeed * Time.unscaledDeltaTime;
+                if (!SuppressTurnKeys && KeyBindings.Held(keyboard, GameAction.RotateRight)) _yaw += _keyTurnSpeed * Time.unscaledDeltaTime;
             }
 
             Apply();

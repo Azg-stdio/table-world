@@ -5,16 +5,16 @@ using TableWorld.View.Chalkers;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
+using TableWorld.View.Settings;
 
 namespace TableWorld.View.Hud
 {
     /// <summary>
-    /// The emote wheel (T7.4): hold <see cref="OpenKey"/>, point toward an emote, let go to play it for everyone; or click
+    /// The emote wheel (T7.4): hold its key (X unless moved: <see cref="GameAction.Emotes"/>), point toward an emote, let go to play it for everyone; or click
     /// one. Letting go near the centre plays nothing. The emote travels with presence (<c>NetworkTableSession.Emote</c>).
     /// </summary>
     public sealed class EmoteWheel
     {
-        public const Key OpenKey = Key.X;
         /// <summary>Distance of the emote labels from the centre, and the dead zone, in panel pixels.</summary>
         public const float Radius = 150f;
         public const float DeadZone = 45f;
@@ -81,7 +81,7 @@ namespace TableWorld.View.Hud
                 return;
             if (!Visible)
             {
-                if (!blocked && keyboard[OpenKey].wasPressedThisFrame)
+                if (!blocked && KeyBindings.Pressed(keyboard, GameAction.Emotes))
                     Show();
                 return;
             }
@@ -92,7 +92,7 @@ namespace TableWorld.View.Hud
                 var point = RuntimePanelUtils.ScreenToPanel(_ring.panel, new Vector2(screen.x, Screen.height - screen.y));
                 SetHovered(Pick(point - _ring.worldBound.center));
             }
-            if (!keyboard[OpenKey].isPressed)
+            if (!KeyBindings.Held(keyboard, GameAction.Emotes))
             {
                 if (Hovered is { } emote)
                     Choose(emote);

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -70,6 +71,8 @@ namespace TableWorld.View.Settings
         /// <summary>Frames per second when VSync is off; 0 means no limit.</summary>
         public int FrameLimit { get; set; } = 0;
         public Antialiasing Antialiasing { get; set; } = Antialiasing.Smaa;
+        /// <summary>Keys moved from their default (action name → key name, G31); see <see cref="KeyBindings"/>.</summary>
+        public Dictionary<string, string> Keys { get; set; } = new Dictionary<string, string>();
         /// <summary>Shadows and render scale (<see cref="GraphicsPresets"/>); Auto picks from the machine.</summary>
         public GraphicsQuality Graphics { get; set; } = GraphicsQuality.Auto;
         /// <summary>Size of the HUD, 1 = designed size.</summary>
@@ -101,6 +104,8 @@ namespace TableWorld.View.Settings
                 Antialiasing = Antialiasing.Smaa;
             if (!Enum.IsDefined(typeof(GraphicsQuality), Graphics))
                 Graphics = GraphicsQuality.Auto;
+            // Unknown actions, unknown or reserved keys go; two actions on one key keep the later one's default.
+            Keys = KeyBindings.Clean(Keys);
             if (Width < 640 || Height < 360 || Width > 16384 || Height > 16384)
                 Width = Height = 0;
             if (Array.IndexOf(FrameLimits, FrameLimit) < 0)
@@ -169,6 +174,7 @@ namespace TableWorld.View.Settings
                     };
             }
             GraphicsPresets.Apply(Graphics);
+            KeyBindings.Use(Keys);
             QualitySettings.vSyncCount = VSync ? 1 : 0;
             Application.targetFrameRate = VSync || FrameLimit <= 0 ? -1 : FrameLimit;
             // The Editor's Game view ignores window modes and sizes; a player applies them.

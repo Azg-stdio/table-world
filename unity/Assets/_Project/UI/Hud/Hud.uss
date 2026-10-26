@@ -878,6 +878,15 @@
     -unity-text-align: middle-center;
 }
 
+/* A key in the Keys group: click it, then press the new key. */
+.settings-key {
+    width: 260px;
+    margin: 0;
+    font-size: 14px;
+    color: rgb(250, 214, 140);
+    -unity-text-align: middle-center;
+}
+
 .settings-note {
     flex-shrink: 0;
     margin-top: 10px;

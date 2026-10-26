@@ -8,7 +8,7 @@ using UnityEngine.InputSystem;
 namespace TableWorld.View.Voice
 {
     /// <summary>
-    /// Voice chat (T7.3). Captures this player's microphone in 20 ms frames, opens it while <see cref="TalkKey"/> is held
+    /// Voice chat (T7.3). Captures this player's microphone in 20 ms frames, opens it while the talk key (T unless moved: <see cref="Settings.GameAction.Talk"/>) is held
     /// or while they speak (<see cref="Mode"/>), encodes it with Opus and hands each packet to the session
     /// (<see cref="Spoke"/>). Packets from other players come back through <see cref="Receive"/> and play from a
     /// <see cref="VoiceSpeaker"/> per seat, which the chalkers carry on their heads. The microphone runs only while
@@ -16,7 +16,6 @@ namespace TableWorld.View.Voice
     /// </summary>
     public sealed class VoiceChat : MonoBehaviour
     {
-        public const Key TalkKey = Key.T;
         /// <summary>The stream of this player's own voice when <see cref="HearMyself"/> is on.</summary>
         public const string SelfSeat = "\u0001self";
 
@@ -243,7 +242,7 @@ namespace TableWorld.View.Voice
             _gate.ThresholdDb = ThresholdDb;
             var spoken = _gate.Process(_frame);
             var typing = _interaction != null && _interaction.KeyboardBlocked != null && _interaction.KeyboardBlocked();
-            var held = ForceTalk || (!typing && Keyboard.current != null && Keyboard.current[TalkKey].isPressed);
+            var held = ForceTalk || (!typing && Keyboard.current != null && KeyBindings.Held(Keyboard.current, GameAction.Talk));
             Talking = Mode == VoiceMode.PushToTalk ? held : Mode == VoiceMode.VoiceActivation && (spoken || ForceTalk);
             if (!Talking)
                 return;

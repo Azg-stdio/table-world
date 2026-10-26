@@ -84,6 +84,7 @@ Everything below already passes automated tests on one machine (two processes, s
 - [ ] Sounds: picking up, dropping, shuffling, rolling, dealing feel right and are not too loud or repetitive; friends' actions are heard too.
 - [ ] Escape menu and settings in the built game: window modes and resolutions switch cleanly, VSync and frame limit feel right, interface size is readable on each friend's monitor, volume sliders work, settings are kept after restarting.
 - [ ] Selections: when a friend selects pieces (click or drag a box), you see them outlined in their colour; when they click elsewhere the outline goes.
+- [ ] Keys (Escape → Settings → Keys): move Flip to another key and use it; the controls list (F1) shows the new key; after a restart it is still moved; "Back to TTS keys" puts them back.
 - [ ] Graphics quality (Escape → Display): Auto names a sensible preset on each friend's computer; Low (no shadows, 75% resolution upscaled with FSR) runs smoothly on the weakest machine and still reads well; Medium and High look right.
 - [ ] Loading screen: opening a heavy imported game (Games → a Pokémon game) shows each step, then the images arriving, and leaves by itself; Play now appears after a few seconds and the images keep arriving on the table.
 - [ ] Chip stacks (sample table: gold chips and wound tiles at the front right): dropping a chip on the stack, dragging one off and lifting the whole stack feel like TTS; everyone sees the same count.

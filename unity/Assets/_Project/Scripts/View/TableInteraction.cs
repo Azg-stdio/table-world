@@ -5,6 +5,7 @@ using Core.Engine;
 using Core.Rules;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using TableWorld.View.Settings;
 
 namespace TableWorld.View
 {
@@ -557,19 +558,19 @@ namespace TableWorld.View
                 return;
             }
 
-            if (Held == null && keyboard.f5Key.wasPressedThisFrame)
+            if (Held == null && KeyBindings.Pressed(keyboard, GameAction.QuickSave))
                 Debug.Log($"[Table] Saved {_table.Save(TableView.SavePath(TableView.QuickSaveName))}");
-            if (Held == null && keyboard.f9Key.wasPressedThisFrame)
+            if (Held == null && KeyBindings.Pressed(keyboard, GameAction.QuickLoad))
                 _table.LoadFileInSteps(TableView.SavePath(TableView.QuickSaveName), "Quicksave");
-            if (keyboard.spaceKey.wasPressedThisFrame)
+            if (KeyBindings.Pressed(keyboard, GameAction.ResetCamera))
                 _tableCamera?.ResetView();
-            if (keyboard.zKey.wasPressedThisFrame && point is { } zoomAt)
+            if (KeyBindings.Pressed(keyboard, GameAction.QuickZoom) && point is { } zoomAt)
                 _tableCamera?.ToggleQuickZoom(zoomAt);
-            if (keyboard.bKey.wasPressedThisFrame)
+            if (KeyBindings.Pressed(keyboard, GameAction.Blindfold))
                 ToggleBlindfold();
-            if (keyboard.pKey.wasPressedThisFrame)
+            if (KeyBindings.Pressed(keyboard, GameAction.TopDown))
                 _tableCamera?.ToggleTopDown();
-            if (keyboard.deleteKey.wasPressedThisFrame)
+            if (KeyBindings.Pressed(keyboard, GameAction.Delete))
                 Delete(targets);
 
             ScriptingKeys(keyboard);
@@ -590,7 +591,7 @@ namespace TableWorld.View
 
             // R rolls (TTS): what is targeted, or, just after a roll, the same dice again even once they have jumped out
             // from under the pointer, so pressing R again and again sends them higher.
-            if (keyboard.rKey.wasPressedThisFrame && !_table.Spectating)
+            if (KeyBindings.Pressed(keyboard, GameAction.Roll) && !_table.Spectating)
             {
                 if (RollDice(Held != null ? _held.ToList() : targets) == 0)
                 {
@@ -602,20 +603,20 @@ namespace TableWorld.View
             }
             if (target == null || _table.Spectating)
                 return;
-            if (keyboard.fKey.wasPressedThisFrame) Flip(target, otherAxis: false);
-            if (keyboard.lKey.wasPressedThisFrame) ToggleLock(target);
-            if (keyboard.gKey.wasPressedThisFrame) Group(targets.Count > 1 ? targets : HeldPlusHovered());
-            if (keyboard.uKey.wasPressedThisFrame && Held != null && Hovered != null) PlaceUnder(Hovered);
+            if (KeyBindings.Pressed(keyboard, GameAction.Flip)) Flip(target, otherAxis: false);
+            if (KeyBindings.Pressed(keyboard, GameAction.Lock)) ToggleLock(target);
+            if (KeyBindings.Pressed(keyboard, GameAction.Group)) Group(targets.Count > 1 ? targets : HeldPlusHovered());
+            if (KeyBindings.Pressed(keyboard, GameAction.PlaceUnder) && Held != null && Hovered != null) PlaceUnder(Hovered);
             if (_looking == null)
             {
-                if (keyboard.qKey.wasPressedThisFrame) BeginRotation(target, -1, alt);
-                if (keyboard.eKey.wasPressedThisFrame) BeginRotation(target, +1, alt);
+                if (KeyBindings.Pressed(keyboard, GameAction.RotateLeft)) BeginRotation(target, -1, alt);
+                if (KeyBindings.Pressed(keyboard, GameAction.RotateRight)) BeginRotation(target, +1, alt);
             }
-            UpdateRotation(_rotSign < 0 ? keyboard.qKey.isPressed : keyboard.eKey.isPressed);
-            if (keyboard.nKey.isPressed && point is { } nudgeAt) Nudge(nudgeAt);
+            UpdateRotation(_rotSign < 0 ? KeyBindings.Held(keyboard, GameAction.RotateLeft) : KeyBindings.Held(keyboard, GameAction.RotateRight));
+            if (KeyBindings.Held(keyboard, GameAction.Nudge) && point is { } nudgeAt) Nudge(nudgeAt);
 
-            var grow = keyboard.equalsKey.isPressed || keyboard.numpadPlusKey.isPressed;
-            var shrink = keyboard.minusKey.isPressed || keyboard.numpadMinusKey.isPressed;
+            var grow = KeyBindings.Held(keyboard, GameAction.Grow) || keyboard.numpadPlusKey.isPressed;
+            var shrink = KeyBindings.Held(keyboard, GameAction.Shrink) || keyboard.numpadMinusKey.isPressed;
             if ((grow || shrink) && Time.unscaledTime >= _nextScale)
             {
                 _nextScale = Time.unscaledTime + ScaleRepeatSeconds;

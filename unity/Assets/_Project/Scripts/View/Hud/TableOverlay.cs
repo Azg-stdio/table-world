@@ -5,6 +5,7 @@ using Core.Engine;
 using Core.Rules;
 using UnityEngine;
 using UnityEngine.UIElements;
+using TableWorld.View.Settings;
 
 namespace TableWorld.View.Hud
 {
@@ -103,8 +104,8 @@ namespace TableWorld.View.Hud
                 var keyboard = UnityEngine.InputSystem.Keyboard.current;
                 if (mouse != null && Mathf.Abs(mouse.scroll.ReadValue().y) > 0.01f)
                     _look.Zoom(Mathf.Sign(mouse.scroll.ReadValue().y));
-                if (keyboard != null && keyboard.qKey.wasPressedThisFrame) _look.Turn(-TableInteraction.RotateStep);
-                if (keyboard != null && keyboard.eKey.wasPressedThisFrame) _look.Turn(TableInteraction.RotateStep);
+                if (KeyBindings.Pressed(keyboard, GameAction.RotateLeft)) _look.Turn(-TableInteraction.RotateStep);
+                if (KeyBindings.Pressed(keyboard, GameAction.RotateRight)) _look.Turn(TableInteraction.RotateStep);
             }
         }
 
@@ -199,8 +200,8 @@ namespace TableWorld.View.Hud
                 if (entries.Count > 0)
                     Row("Rewind", entries);
             }
-            Item("Save table (F5)", () => _table.Save(TableView.SavePath(TableView.QuickSaveName)));
-            Item("Load table (F9)", () => _table.LoadFileInSteps(TableView.SavePath(TableView.QuickSaveName), "Quicksave"));
+            Item($"Save table ({KeyBindings.Label(GameAction.QuickSave)})", () => _table.Save(TableView.SavePath(TableView.QuickSaveName)));
+            Item($"Load table ({KeyBindings.Label(GameAction.QuickLoad)})", () => _table.LoadFileInSteps(TableView.SavePath(TableView.QuickSaveName), "Quicksave"));
         }
 
         /// <summary>Grid rows (G28): shape (or none), snapping, cell size, lines. Each choice keeps the other settings.</summary>
@@ -275,7 +276,7 @@ namespace TableWorld.View.Hud
                     Item("Draw 1 to hand", () => _interaction.DrawOrSwitch(view, 1));
                     Item("Draw 5 to hand", () => _interaction.DrawOrSwitch(view, 5));
                     Item("Deal 1 to everyone", () => Run(new DealCommand { DeckId = deck.Id, Count = 1 }));
-                    Item("Shuffle (R)", () => _interaction.RollOrShuffle(view));
+                    Item($"Shuffle ({KeyBindings.Label(GameAction.Roll)})", () => _interaction.RollOrShuffle(view));
                     Item("Search", () => OpenSearch(view));
                     Item("Cut", () => Run(new CutCommand { DeckId = deck.Id }));
                     Row("Split into", new[] { 2, 3, 4 }.Where(n => n <= deck.Cards.Count).Select(n => ($"{n}", (Action)(() => Run(new SplitCommand { DeckId = deck.Id, Piles = n })))));
@@ -293,9 +294,9 @@ namespace TableWorld.View.Hud
                     Section($"d{die.Faces}{(die.Value is { } shown ? $" · shows {die.Face(shown)}" : "")}");
                     var selectedDice = _interaction.Selection.Contains(view) ? _interaction.Selection.Where(v => v.Model is Die).ToList() : null;
                     if (selectedDice != null && selectedDice.Count > 1)
-                        Item($"Roll {selectedDice.Count} selected dice (R)", () => _interaction.RollDice(selectedDice));
+                        Item($"Roll {selectedDice.Count} selected dice ({KeyBindings.Label(GameAction.Roll)})", () => _interaction.RollDice(selectedDice));
                     else
-                        Item("Roll (R)", () => _interaction.RollOrShuffle(view));
+                        Item($"Roll ({KeyBindings.Label(GameAction.Roll)})", () => _interaction.RollOrShuffle(view));
                     // Labelled faces (G21) are listed one per line; numbers fit on one row.
                     var setValue = Enumerable.Range(1, die.Faces).Select(v => (die.Face(v), (Action)(() => Run(new SetDieValueCommand { ObjectId = die.Id, Value = v }))));
                     if (die.Numeric)
@@ -338,7 +339,7 @@ namespace TableWorld.View.Hud
                     Item("Take 1 to hand", () => _interaction.DrawOrSwitch(view, 1));
                     Item("Search", () => OpenSearch(view));
                     if (!(bag is InfiniteBag))
-                        Item("Shuffle (R)", () => _interaction.RollOrShuffle(view));
+                        Item($"Shuffle ({KeyBindings.Label(GameAction.Roll)})", () => _interaction.RollOrShuffle(view));
                     break;
             }
 
@@ -348,7 +349,7 @@ namespace TableWorld.View.Hud
                 Row("States", model.States.Keys.OrderBy(k => k).Select(k => ($"{k} {model.States[k].Name}".Trim(), (Action)(() => Run(new SetStateCommand { ObjectId = model.Id, State = k })))));
 
             Section("Object");
-            Item("Flip (F)", () => _interaction.Flip(view));
+            Item($"Flip ({KeyBindings.Label(GameAction.Flip)})", () => _interaction.Flip(view));
             if (GizmoRequested != null)
                 Item("Exact position…", () => GizmoRequested(view));
             Item("Rotate 90° (E ×6)", () => _interaction.Rotate(view, 90f));
