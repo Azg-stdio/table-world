@@ -944,8 +944,22 @@ namespace TableWorld.View
             if (group.Count == 1)
                 ReleaseOne(group[0], joinBelow: true, _velocity, _spin);
             else
+            {
+                // A group let go over a bag goes into it, each piece the bag takes (TTS); the rest fall as usual.
+                var bag = BagUnder(group);
                 foreach (var view in group)
+                {
+                    if (bag != null && CanDropInto(view.Model, bag.Model))
+                    {
+                        view.Held = false;
+                        SetHeldLayer(view, false);
+                        _table.NotifyTouched(view.Id);
+                        if (_table.Execute(new InsertCommand { ObjectId = view.Id, IntoId = bag.Id, Actor = _table.LocalSeat }).Ok)
+                            continue;
+                    }
                     ReleaseOne(view, joinBelow: false, _velocity, view.Model is Die ? Quaternion.AngleAxis(UnityEngine.Random.Range(-40f, 40f), Vector3.up) * _spin : Vector3.zero);
+                }
+            }
             // Table scripts hear the drop (onObjectDrop, M5) once the release is done (it changes nothing by itself), with
             // the object's pose where it was let go; one that joined a deck or stack is gone and has no drop.
             foreach (var view in group)
@@ -1784,6 +1798,21 @@ namespace TableWorld.View
                 }
             }
             return best;
+        }
+
+        /// <summary>The bag (not one of the group) under any piece of a held group, or that a piece overlaps enough.</summary>
+        private ObjectView BagUnder(List<ObjectView> group)
+        {
+            foreach (var view in group)
+            {
+                var below = ObjectBelow(view);
+                if (below?.Model is Bag && !group.Contains(below))
+                    return below;
+                var overlapped = MostOverlapped(view);
+                if (overlapped?.Model is Bag && !group.Contains(overlapped))
+                    return overlapped;
+            }
+            return null;
         }
 
         private ObjectView ObjectBelow(ObjectView view)

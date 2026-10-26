@@ -868,6 +868,20 @@ namespace TableWorld.Tests.PlayMode
             yield return new WaitForSeconds(0.5f);
             Assert.IsNull(_table.Engine.Find(coin), "the coin went back into the bank");
             Assert.AreEqual(1, _table.Engine.ContentsOf("bank").Count(), "the bank keeps its own coin");
+
+            // Three coins picked up together and let go over the bank: all go back in.
+            var coins = Enumerable.Range(0, 3).Select(i => _table.Execute(new TakeCommand
+                { ContainerId = "bank", Position = new Vec3(-0.15f + i * 0.04f, 0f, -0.1f), Actor = _table.LocalSeat }).CreatedId).ToList();
+            yield return new WaitForSeconds(0.8f);
+            Assert.IsTrue(_interaction.Grab(_table.ViewOf(coins[0]), false));
+            Assert.IsTrue(_interaction.AddToHeld(_table.ViewOf(coins[1])));
+            Assert.IsTrue(_interaction.AddToHeld(_table.ViewOf(coins[2])));
+            _interaction.DragTo(_table.ViewOf("bank").transform.position);
+            yield return new WaitForSeconds(0.4f);
+            _interaction.Release();
+            yield return new WaitForSeconds(0.5f);
+            foreach (var id in coins)
+                Assert.IsNull(_table.Engine.Find(id), id + " went back into the bank with the others");
         }
 
         [UnityTest]
