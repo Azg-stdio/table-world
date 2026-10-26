@@ -153,7 +153,6 @@
             <ui:VisualElement name="gameActions" class="actions" />
         </ui:VisualElement>
         <ui:VisualElement name="handBar" class="hand-bar hidden" picking-mode="Ignore" />
-        <ui:Button name="handToggle" class="hand-toggle hidden" text="Hide hand" />
         <ui:VisualElement name="blindfold" class="blindfold hidden" picking-mode="Ignore">
             <ui:Label class="blindfold-text" text="Blindfolded. Press B to take it off." picking-mode="Ignore" />
         </ui:VisualElement>

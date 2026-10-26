@@ -715,6 +715,36 @@
 }
 
 /* The drawer's handle: drag it to open or shut the hand, click to flip. Its height above the cards comes from code. */
+/* The hand's slider (HandBar): how much of the hand shows, from whole cards (top) to hidden (bottom). */
+.hand-slider {
+    position: absolute;
+    width: 12px;
+    border-radius: 6px;
+    background-color: rgba(16, 18, 22, 0.75);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.hand-slider-thumb {
+    position: absolute;
+    left: -6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 11px;
+    background-color: rgb(242, 196, 82);
+    border-width: 2px;
+    border-color: rgb(30, 26, 18);
+}
+
+.hand-slider:hover .hand-slider-thumb {
+    background-color: rgb(255, 214, 110);
+}
+
+/* With the hand hidden, the slider stays in view to bring it back. */
+.hand-slider--hidden-hand {
+    background-color: rgba(16, 18, 22, 0.9);
+}
+
 .hand-toggle {
     position: absolute;
     left: 50%;

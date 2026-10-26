@@ -379,30 +379,21 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsTrue(_table.ViewOf("king_hearts").InHand);
             Assert.IsNotNull(root.Q("hand-king_hearts"));
 
-            // Hide hand: the cards sink to a thin strip, the button says so, and Show brings them back.
-            var toggle = root.Q<Button>("handToggle");
-            var shown = root.Q("hand-king_hearts").worldBound.yMin;
-            using (var click = NavigationSubmitEvent.GetPooled()) { click.target = toggle; toggle.SendEvent(click); }
-            yield return new WaitForSeconds(0.3f);
-            Assert.AreEqual("Show hand", toggle.text);
-            Assert.Greater(root.Q("hand-king_hearts").worldBound.yMin, shown + 30f, "hidden: the card sinks");
-            Assert.Less(root.Q("hand-king_hearts").worldBound.yMin, root.panel.visualTree.worldBound.height, "a strip stays visible");
-            using (var click = NavigationSubmitEvent.GetPooled()) { click.target = toggle; toggle.SendEvent(click); }
-            yield return new WaitForSeconds(0.3f);
-            Assert.AreEqual("Hide hand", toggle.text);
-            Assert.AreEqual(shown, root.Q("hand-king_hearts").worldBound.yMin, 1f);
-
-            // The drawer: fully open shows the whole card above the screen edge; shut leaves only a strip.
+            // The slider at the hand's right: at the top whole cards show, at the bottom the hand is hidden and the
+            // slider stays to bring it back; it sits right of the cards, not over them.
+            var slider = root.Q("handSlider");
+            Assert.IsFalse(slider.ClassListContains("hidden"), "a hand with cards has its slider");
             var screenBottom = root.panel.visualTree.worldBound.height;
             hud.HandBar.SetReveal(1f);
             yield return new WaitForSeconds(0.3f);
             var open = root.Q("hand-king_hearts").worldBound;
-            Assert.LessOrEqual(open.yMax, screenBottom - HandBar.BottomPadding + 1f, "fully open: the whole card shows");
+            Assert.LessOrEqual(open.yMax, screenBottom - HandBar.BottomPadding + 1f, "fully shown: the whole card shows");
             Assert.GreaterOrEqual(open.height, HandBar.MinCardHeight - 1f, "cards are big enough to read");
+            Assert.GreaterOrEqual(slider.worldBound.xMin, root.Q("handBar").worldBound.xMax, "the slider is beside the hand");
             hud.HandBar.SetReveal(0f);
             yield return new WaitForSeconds(0.3f);
-            Assert.AreEqual(screenBottom - HandBar.PeekPixels, root.Q("hand-king_hearts").worldBound.yMin, 2f, "shut: a strip of each card");
-            Assert.AreEqual("Show hand", toggle.text);
+            Assert.GreaterOrEqual(root.Q("hand-king_hearts").worldBound.yMin, screenBottom - 1f, "slid down: the hand is hidden");
+            Assert.Less(slider.worldBound.yMin, screenBottom, "the slider stays in view");
             hud.HandBar.SetCollapsed(false);
         }
 

@@ -20,21 +20,22 @@ namespace TableWorld.View.Hud
         public const float CardHeightShare = 0.3f;
         public const float MinCardHeight = 150f;
         public const float MaxCardHeight = 340f;
-        /// <summary>Of a card's width, the step between card centres when they fit.</summary>
-        public const float StepShare = 0.92f;
+        /// <summary>Space between neighbouring cards when they fit side by side; more cards than fit overlap.</summary>
+        public const float CardGap = 8f;
         /// <summary>The bar never grows wider than this share of the screen; more cards overlap.</summary>
         public const float MaxWidthShare = 0.8f;
-        /// <summary>What a closed drawer still shows of each card, and the gap under a fully open one.</summary>
-        public const float PeekPixels = 22f;
+        /// <summary>The gap under a fully shown card.</summary>
         public const float BottomPadding = 12f;
-        /// <summary>A press on the handle that moves less than this is a click, not a drag.</summary>
-        public const float DragThreshold = 4f;
         /// <summary>Releasing within this many pixels above the bar still counts as dropping into the hand.</summary>
         public const float DropMargin = 60f;
         public const float DefaultReveal = 0.6f;
 
         private readonly VisualElement _bar;
-        private readonly Button _toggle;
+        /// <summary>The slider at the hand's right: drag it to show more or less of the hand, down to none.</summary>
+        private readonly VisualElement _slider;
+        private readonly VisualElement _thumb;
+        private float _barWidth;
+        private float _screenWidth = 1200f;
 
         /// <summary>How open the drawer is (0 a strip, 1 whole cards), remembered per player on this machine.</summary>
         public const string RevealPref = "tw.hand.reveal";
@@ -50,26 +51,20 @@ namespace TableWorld.View.Hud
         private float _cardHeight = MinCardHeight;
         private VisualElement _hovered;
         private float? _dragFrom;
-        private float _dragReveal;
-        private bool _dragged;
 
         public HandBar(VisualElement root, TableView table, TableInteraction interaction)
         {
             _bar = root.Q("handBar");
-            _toggle = root.Q<Button>("handToggle");
-            if (_toggle != null)
-            {
-                _toggle.clicked += () =>
-                {
-                    if (!_dragged)
-                        SetCollapsed(!Collapsed);
-                    _dragged = false;
-                };
-                _toggle.tooltip = "Drag up or down to show more or less of your hand; click to hide or show it.";
-                _toggle.RegisterCallback<PointerDownEvent>(StartDrag, TrickleDown.TrickleDown);
-                _toggle.RegisterCallback<PointerMoveEvent>(Drag, TrickleDown.TrickleDown);
-                _toggle.RegisterCallback<PointerUpEvent>(EndDrag, TrickleDown.TrickleDown);
-            }
+            _slider = new VisualElement { name = "handSlider", tooltip = "Drag up or down: how much of your hand shows, down to hidden" };
+            _slider.AddToClassList("hand-slider");
+            _slider.AddToClassList("hidden");
+            _thumb = new VisualElement { name = "handSliderThumb", pickingMode = PickingMode.Ignore };
+            _thumb.AddToClassList("hand-slider-thumb");
+            _slider.Add(_thumb);
+            _slider.RegisterCallback<PointerDownEvent>(StartDrag);
+            _slider.RegisterCallback<PointerMoveEvent>(Drag);
+            _slider.RegisterCallback<PointerUpEvent>(EndDrag);
+            root.Add(_slider);
             // A new screen size gives new card sizes.
             root.RegisterCallback<GeometryChangedEvent>(_ => _shownKey = null);
             _reveal = LoadReveal();
@@ -88,7 +83,7 @@ namespace TableWorld.View.Hud
             Layout();
         }
 
-        /// <summary>The drawer is shut to a strip of each card.</summary>
+        /// <summary>The hand is slid all the way down: hidden, only the slider shows.</summary>
         public bool Collapsed => _reveal <= 0.001f;
 
         /// <summary>The bar shows cards at the bottom of the screen (the HUD lifts bottom panels above it).</summary>
@@ -97,7 +92,7 @@ namespace TableWorld.View.Hud
         /// <summary>How open the drawer is: 0 a strip of each card, 1 the whole cards.</summary>
         public float Reveal => _reveal;
 
-        /// <summary>Shuts the drawer to a strip, or opens it to its last open height.</summary>
+        /// <summary>Hides the hand, or shows it at its last height.</summary>
         public void SetCollapsed(bool collapsed) => SetReveal(collapsed ? 0f : _openReveal);
 
         public void SetReveal(float reveal)
@@ -130,8 +125,8 @@ namespace TableWorld.View.Hud
             }
         }
 
-        /// <summary>Pixels of each resting card in view.</summary>
-        private float Visible => PeekPixels + _reveal * (_cardHeight + BottomPadding - PeekPixels);
+        /// <summary>Pixels of each resting card in view: none when slid down, the whole card at the top.</summary>
+        private float Visible => _reveal * (_cardHeight + BottomPadding);
 
         /// <summary>Places the drawer, its handle and a hovered card for the current opening.</summary>
         private void Layout()
@@ -141,37 +136,43 @@ namespace TableWorld.View.Hud
             var full = _cardHeight + BottomPadding;
             _bar.style.height = full;
             _bar.style.bottom = Visible - full;
-            if (_toggle != null)
+            if (_slider != null)
             {
-                _toggle.style.bottom = Visible + 6f;
-                _toggle.text = Collapsed ? "Show hand" : "Hide hand";
-                _toggle.EnableInClassList("hand-toggle--collapsed", Collapsed);
+                // At the hand's right edge, as tall as a card; the thumb marks how much shows.
+                // Sizes follow the screen and the hand's width, so they are set in code.
+                _slider.style.left = _screenWidth / 2f + _barWidth / 2f + 14f;
+                _slider.style.height = _cardHeight;
+                _slider.style.bottom = BottomPadding;
+                _thumb.style.bottom = _reveal * Mathf.Max(0f, _cardHeight - ThumbSize);
+                _slider.EnableInClassList("hand-slider--hidden-hand", Collapsed);
             }
             foreach (var card in _bar.Children())
                 card.style.translate = card == _hovered ? new Translate(0f, -(full - Visible)) : new Translate(0f, 0f);
         }
+
+        public const float ThumbSize = 22f;
 
         private void StartDrag(PointerDownEvent evt)
         {
             if (evt.button != 0)
                 return;
             _dragFrom = evt.position.y;
-            _dragReveal = _reveal;
-            _dragged = false;
-            _toggle.CapturePointer(evt.pointerId);
+            _slider.CapturePointer(evt.pointerId);
+            SlideTo(evt.localPosition.y);
         }
 
         private void Drag(PointerMoveEvent evt)
         {
-            if (_dragFrom is not { } from)
+            if (_dragFrom == null)
                 return;
-            var moved = from - evt.position.y;
-            if (!_dragged && Mathf.Abs(moved) < DragThreshold)
-                return;
-            _dragged = true;
-            // Up opens: the handle follows the pointer.
-            var range = _cardHeight + BottomPadding - PeekPixels;
-            SetReveal(_dragReveal + moved / Mathf.Max(1f, range));
+            SlideTo(evt.localPosition.y);
+        }
+
+        /// <summary>The thumb follows the pointer: the top of the slider shows whole cards, the bottom hides the hand.</summary>
+        private void SlideTo(float localY)
+        {
+            var travel = Mathf.Max(1f, _cardHeight - ThumbSize);
+            SetReveal(1f - (localY - ThumbSize / 2f) / travel);
         }
 
         private void EndDrag(PointerUpEvent evt)
@@ -179,8 +180,8 @@ namespace TableWorld.View.Hud
             if (_dragFrom == null)
                 return;
             _dragFrom = null;
-            if (_toggle.HasPointerCapture(evt.pointerId))
-                _toggle.ReleasePointer(evt.pointerId);
+            if (_slider.HasPointerCapture(evt.pointerId))
+                _slider.ReleasePointer(evt.pointerId);
         }
 
         /// <summary>The local seat's hand cards, left to right as the owner sees them.</summary>
@@ -219,7 +220,7 @@ namespace TableWorld.View.Hud
             _hovered = null;
             var shown = cards.Where(c => c.Id != held).ToList();
             _bar.EnableInClassList("hidden", shown.Count == 0 && held == null);
-            _toggle?.EnableInClassList("hidden", shown.Count == 0);
+            _slider?.EnableInClassList("hidden", shown.Count == 0);
             var screen = _bar.panel?.visualTree.layout ?? new Rect(0f, 0f, 1200f, 800f);
             var screenHeight = float.IsNaN(screen.height) || screen.height <= 0f ? 800f : screen.height;
             var screenWidth = float.IsNaN(screen.width) || screen.width <= 0f ? 1200f : screen.width;
@@ -228,8 +229,11 @@ namespace TableWorld.View.Hud
             var size = shown.Count > 0 ? ((Card)shown[0]).Size ?? Card.DefaultSize : Card.DefaultSize;
             var cardWidth = _cardHeight * size.X / Mathf.Max(0.001f, size.Y);
             var maxWidth = screenWidth * MaxWidthShare;
-            var step = shown.Count < 2 ? 0f : Mathf.Min(cardWidth * StepShare, (maxWidth - cardWidth) / (shown.Count - 1));
-            _bar.style.width = shown.Count == 0 ? cardWidth : cardWidth + step * (shown.Count - 1);
+            // Side by side with a small gap while they fit; beyond the bar's widest they overlap evenly.
+            var step = shown.Count < 2 ? 0f : Mathf.Min(cardWidth + CardGap, (maxWidth - cardWidth) / (shown.Count - 1));
+            _barWidth = shown.Count == 0 ? cardWidth : cardWidth + step * (shown.Count - 1);
+            _screenWidth = screenWidth;
+            _bar.style.width = _barWidth;
             for (var i = 0; i < shown.Count; i++)
             {
                 var card = (Card)shown[i];
