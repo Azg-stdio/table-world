@@ -37,6 +37,7 @@ Lua already ran on the host (ADR 0003), but only as TTS-style table scripts, bli
 - **Networking:** only the host runs scripts. A command that ran Lua sets `CommandResult.ScriptsRan`, and the host
   attaches its state hash to that order. Peers replaying it skip the `lua` effect, see the hash differ and ask for the
   table (one resync per Lua action).
+  Superseded by ADR 0012 (T11.2): such a command is host-run, and peers receive its result instead of a resync.
 - **MCP:**
   - The server runs the table's scripts for headless games.
   - `set_script` stores Lua after a syntax check.

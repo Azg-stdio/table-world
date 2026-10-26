@@ -8,7 +8,7 @@ namespace Core.Tests.Engine
     public class SecretActionTests
     {
         // Three seats each pick a space (1–3) in secret; when all have picked, the phase ends and its onExit reveals.
-        private const string Json = @"{
+        internal const string Json = @"{
   ""players"": { ""seats"": [ { ""id"": ""a"", ""color"": ""red"" }, { ""id"": ""b"", ""color"": ""blue"" }, { ""id"": ""c"", ""color"": ""green"" } ] },
   ""resources"": [ { ""id"": ""space"", ""initial"": 0 } ],
   ""variables"": { ""order"": """" },

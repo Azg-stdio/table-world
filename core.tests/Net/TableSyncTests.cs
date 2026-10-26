@@ -52,7 +52,7 @@ namespace Core.Tests.Net
                 return result;
             }
 
-            public void HostDoes(Command command) => Deliver(Host.ExecuteLocal(command).Broadcast);
+            public void HostDoes(Command command) => Host.ExecuteLocal(command).Messages.ForEach(Deliver);
 
             /// <summary>Delivers one queued message on a random link, if any.</summary>
             public bool Step()
@@ -171,13 +171,13 @@ namespace Core.Tests.Net
             }
             net.Flush();
 
-            var hash = TableJson.Hash(net.Host.Game.State);
+            var hash = SeatView.Hash(net.Host.Game.State);
             foreach (var (id, client) in net.Clients)
             {
                 Assert.True(client.Synced, $"{id} is not synced");
                 Assert.Equal(0, client.PendingCount);
-                Assert.Equal(hash, TableJson.Hash(client.Confirmed!.State));
-                Assert.Equal(hash, TableJson.Hash(client.Predicted!.State));
+                Assert.Equal(hash, SeatView.Hash(client.Confirmed!.State));
+                Assert.Equal(hash, SeatView.Hash(client.Predicted!.State));
                 Assert.Equal(0, client.Resyncs);
             }
             Assert.True(accepted > 50, $"only {accepted} client commands were accepted locally");
@@ -201,7 +201,7 @@ namespace Core.Tests.Net
 
             Assert.Null(net.Clients["b"].Predicted!.Table.Find("d6"));
             Assert.Equal(ErrorCodes.UnknownObject, Assert.Single(refused).Code);
-            Assert.Equal(TableJson.Hash(net.Host.Game.State), TableJson.Hash(net.Clients["b"].Predicted!.State));
+            Assert.Equal(SeatView.Hash(net.Host.Game.State), SeatView.Hash(net.Clients["b"].Predicted!.State));
         }
 
         [Fact]
@@ -210,12 +210,12 @@ namespace Core.Tests.Net
             var net = new Network(Game(9), 9, "a");
             net.HostDoes(new LockCommand { ObjectId = "d6", Locked = true });
             net.Flush();
-            var before = TableJson.Hash(net.Host.Game.State);
+            var before = SeatView.Hash(net.Host.Game.State);
             net.ClientDoes("a", new MoveCommand { ObjectId = "d6", Position = new Vec3(0.3f, 0, 0.3f), EvenLocked = true });
             net.ClientDoes("a", new ScaleCommand { ObjectId = "d6", Factor = 2f, EvenLocked = true });
             net.Flush();
-            Assert.Equal(before, TableJson.Hash(net.Host.Game.State));
-            Assert.Equal(before, TableJson.Hash(net.Clients["a"].Predicted!.State));
+            Assert.Equal(before, SeatView.Hash(net.Host.Game.State));
+            Assert.Equal(before, SeatView.Hash(net.Clients["a"].Predicted!.State));
         }
 
         [Fact]
@@ -267,7 +267,7 @@ namespace Core.Tests.Net
 
             Assert.Equal(20, applied.Count);
             Assert.Equal(rebuildsAfterJoin, net.Clients["a"].Rebuilds);
-            Assert.Equal(TableJson.Hash(net.Host.Game.State), TableJson.Hash(net.Clients["a"].Predicted!.State));
+            Assert.Equal(SeatView.Hash(net.Host.Game.State), SeatView.Hash(net.Clients["a"].Predicted!.State));
         }
 
         [Fact]
@@ -296,7 +296,7 @@ namespace Core.Tests.Net
             net.Flush();
             Assert.NotEmpty(replaced);
             Assert.All(replaced, changed => Assert.Contains("d6", changed!));
-            Assert.Equal(TableJson.Hash(net.Host.Game.State), TableJson.Hash(a.Predicted!.State));
+            Assert.Equal(SeatView.Hash(net.Host.Game.State), SeatView.Hash(a.Predicted!.State));
         }
 
         [Fact]
@@ -316,7 +316,7 @@ namespace Core.Tests.Net
             net.Flush();
 
             Assert.Equal(1, net.Clients["a"].Resyncs);
-            Assert.Equal(TableJson.Hash(net.Host.Game.State), TableJson.Hash(net.Clients["a"].Confirmed!.State));
+            Assert.Equal(SeatView.Hash(net.Host.Game.State), SeatView.Hash(net.Clients["a"].Confirmed!.State));
         }
 
         [Fact]
@@ -343,7 +343,7 @@ namespace Core.Tests.Net
             net.HostDoes(new SetPhysicsCommand { Mode = PhysicsMode.SemiLock });
             net.Flush();
             Assert.Equal(PhysicsMode.SemiLock, net.Clients["a"].Confirmed!.State.Physics);
-            Assert.Equal(TableJson.Hash(net.Host.Game.State), TableJson.Hash(net.Clients["a"].Confirmed!.State));
+            Assert.Equal(SeatView.Hash(net.Host.Game.State), SeatView.Hash(net.Clients["a"].Confirmed!.State));
         }
 
         [Fact]
@@ -354,11 +354,11 @@ namespace Core.Tests.Net
             net.Host.Watching.Add("a");
             var refused = new List<ValidationError>();
             net.Clients["a"].Refused += refused.Add;
-            var before = TableJson.Hash(net.Host.Game.State);
+            var before = SeatView.Hash(net.Host.Game.State);
             net.ClientDoes("a", new FlipCommand { ObjectId = "loose" });
             net.Flush();
-            Assert.Equal(before, TableJson.Hash(net.Host.Game.State));
-            Assert.Equal(before, TableJson.Hash(net.Clients["a"].Predicted!.State));
+            Assert.Equal(before, SeatView.Hash(net.Host.Game.State));
+            Assert.Equal(before, SeatView.Hash(net.Clients["a"].Predicted!.State));
             Assert.Contains(refused, e => e.Code == ErrorCodes.NotYourSeat);
         }
 
@@ -372,7 +372,7 @@ namespace Core.Tests.Net
             net.Flush();
             var refused = new List<ValidationError>();
             net.Clients["north"].Refused += refused.Add;
-            var before = TableJson.Hash(host.State);
+            var before = SeatView.Hash(host.State);
 
             // As South, and with no actor (which would mean "the current seat"): both refused, nothing changes.
             var play = host.LegalActions("seat_south").First();
@@ -383,15 +383,15 @@ namespace Core.Tests.Net
             // The second is refused by the host, or already by the client's own prediction (then it is never sent).
             Assert.Equal(unseated!.Ok ? 2 : 1, refused.Count);
             Assert.All(refused, e => Assert.Equal(ErrorCodes.NotYourSeat, e.Code));
-            Assert.Equal(before, TableJson.Hash(host.State));
-            Assert.Equal(before, TableJson.Hash(net.Clients["north"].Predicted!.State));
+            Assert.Equal(before, SeatView.Hash(host.State));
+            Assert.Equal(before, SeatView.Hash(net.Clients["north"].Predicted!.State));
 
             // As itself: accepted.
             var own = host.LegalActions("seat_north").First();
             net.ClientDoes("north", new PerformActionCommand { Actor = "seat_north", ActionId = own.ActionId });
             net.Flush();
-            Assert.NotEqual(before, TableJson.Hash(host.State));
-            Assert.Equal(TableJson.Hash(host.State), TableJson.Hash(net.Clients["north"].Predicted!.State));
+            Assert.NotEqual(before, SeatView.Hash(host.State));
+            Assert.Equal(SeatView.Hash(host.State), SeatView.Hash(net.Clients["north"].Predicted!.State));
         }
 
         [Fact]
@@ -414,7 +414,7 @@ namespace Core.Tests.Net
                 else
                     net.HostDoes(command);
                 net.Flush();
-                Assert.Equal(TableJson.Hash(host.State), TableJson.Hash(net.Clients["north"].Predicted!.State));
+                Assert.Equal(SeatView.Hash(host.State), SeatView.Hash(net.Clients["north"].Predicted!.State));
             }
         }
     }

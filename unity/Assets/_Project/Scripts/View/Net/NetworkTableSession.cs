@@ -350,9 +350,10 @@ namespace TableWorld.View.Net
 
         private CommandResult HostRoute(Command command)
         {
-            var (result, broadcast) = _host.ExecuteLocal(command);
+            var (result, messages) = _host.ExecuteLocal(command);
             if (result.Ok)
-                Send(broadcast);
+                foreach (var message in messages)
+                    Send(message);
             return result;
         }
 
@@ -423,6 +424,9 @@ namespace TableWorld.View.Net
                 else
                     _host.Watching.Remove(participant);
                 SendTo(client, new JObject { ["kind"] = "seat", ["seat"] = seat });
+                // Another seat sees other secrets (ADR 0012): the table again, as that seat's view.
+                if (before != seat)
+                    Send(_host.Snapshot(participant));
             }
             Debug.Log($"[Net] {participant} sits at {seat ?? "no seat (watching)"}");
             if (before != seat)
@@ -441,8 +445,7 @@ namespace TableWorld.View.Net
             _greeted.Remove(clientId.ToString());
             _seatOf.Remove(clientId);
             _seating.Leave(clientId.ToString());
-            _host?.Watching.Remove(clientId.ToString());
-            _host?.Seats.Remove(clientId.ToString());
+            _host?.Forget(clientId.ToString());
             if (_host != null)
                 BroadcastSeating();
             Status = HostStatus();

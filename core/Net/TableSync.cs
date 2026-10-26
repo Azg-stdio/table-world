@@ -47,6 +47,9 @@ namespace Core.Net
     /// clients send <c>intent</c> (a command with the client's sequence number) and <c>resync</c>; the host sends
     /// <c>order</c> (every executed command in host order, with its outcome and the resulting state hash) and
     /// <c>snapshot</c> (the whole table, on join or resync). The host's own commands go through <see cref="ExecuteLocal"/>.
+    /// Each peer receives its seat's view only (<see cref="SeatView"/>, ADR 0012): a command peers cannot replay without
+    /// what they may not know (it drew a random number, recorded or revealed a secret, ran Lua) is a host-run order, sent
+    /// to each peer with its result for that seat (<see cref="TablePatch"/> and the events) instead of for replay.
     /// </summary>
     public sealed class SessionHost
     {
@@ -62,6 +65,22 @@ namespace Core.Net
         }
 
         public long Order => _order;
+
+        /// <summary>Every peer the host sent a snapshot to and has not forgotten: host-run orders go to each one.</summary>
+        public IReadOnlyCollection<string> Peers => _peers;
+
+        private readonly List<string> _peers = new List<string>();
+
+        /// <summary>A peer left: no more messages for it.</summary>
+        public void Forget(string clientId)
+        {
+            _peers.Remove(clientId);
+            Seats.Remove(clientId);
+            Watching.Remove(clientId);
+        }
+
+        /// <summary>The seat whose view <paramref name="clientId"/> receives; null (the public view) for spectators.</summary>
+        public string? ViewerSeat(string clientId) => Seats.TryGetValue(clientId, out var seat) ? seat : null;
 
         /// <summary>
         /// Orders between state hashes. A hash serializes the whole table (120 ms for a 2 800-object TTS table), so the
@@ -87,22 +106,27 @@ namespace Core.Net
         /// <summary>When set, snapshots carry its manifest and <c>asset_request</c> messages are answered (T3.4).</summary>
         public AssetHost? Assets { get; set; }
 
-        /// <summary>A peer joined (or asked to resync): send it the whole table, and the asset manifest when there is one.</summary>
+        /// <summary>
+        /// A peer joined (or asked to resync): send it its seat's view of the table, and the asset manifest when there is
+        /// one. The random generator stays on the host.
+        /// </summary>
         public Outgoing Snapshot(string clientId)
         {
+            if (!_peers.Contains(clientId))
+                _peers.Add(clientId);
             var message = new JObject
             {
                 ["kind"] = "snapshot",
                 ["order"] = _order,
-                ["state"] = TableJson.Serialize(Game.State, indented: false),
-                ["random"] = Game.Table.Random.State.ToString(),
+                ["state"] = SeatView.Serialize(Game.State, ViewerSeat(clientId)),
             };
             if (Assets != null)
                 message["assets"] = Assets.Manifest();
             return new Outgoing(clientId, message);
         }
 
-        public (CommandResult Result, Outgoing Broadcast) ExecuteLocal(Command command) => Run(HostId, 0, command);
+        /// <summary>Runs the host's own command; returns its result and the messages for the peers.</summary>
+        public (CommandResult Result, List<Outgoing> Messages) ExecuteLocal(Command command) => Run(HostId, 0, command);
 
         public List<Outgoing> Receive(string clientId, JObject message)
         {
@@ -120,7 +144,7 @@ namespace Core.Net
                         outgoing.Add(new Outgoing(clientId, Rejection(clientId, (long?)message["seq"] ?? 0, new ValidationError("command", ErrorCodes.UnknownCommand, e.Message))));
                         break;
                     }
-                    outgoing.Add(Run(clientId, (long?)message["seq"] ?? 0, command).Broadcast);
+                    outgoing.AddRange(Run(clientId, (long?)message["seq"] ?? 0, command).Messages);
                     break;
                 case "resync":
                     outgoing.Add(Snapshot(clientId));
@@ -132,23 +156,23 @@ namespace Core.Net
             return outgoing;
         }
 
-        private (CommandResult Result, Outgoing Broadcast) Run(string origin, long clientSeq, Command command)
+        private (CommandResult Result, List<Outgoing> Messages) Run(string origin, long clientSeq, Command command)
         {
             if (Watching.Contains(origin))
             {
                 var watching = CommandResult.Fail("", ErrorCodes.NotYourSeat, "You are watching; pick a seat to play.", "Click a seat.");
-                return (watching, new Outgoing(origin, Rejection(origin, clientSeq, watching.Error!)));
+                return (watching, new List<Outgoing> { new Outgoing(origin, Rejection(origin, clientSeq, watching.Error!)) });
             }
             if (command is IHostCommand && origin != HostId && !(MayHost?.Invoke(origin) ?? false))
             {
                 var hostOnly = CommandResult.Fail("", ErrorCodes.HostOnly, "Only the host can change that.", "Ask the host.");
-                return (hostOnly, new Outgoing(origin, Rejection(origin, clientSeq, hostOnly.Error!)));
+                return (hostOnly, new List<Outgoing> { new Outgoing(origin, Rejection(origin, clientSeq, hostOnly.Error!)) });
             }
             if ((command is PerformActionCommand || command is EndTurnCommand) && origin != HostId && Seats.TryGetValue(origin, out var seat) && command.Actor != seat)
             {
                 var refused = CommandResult.Fail("actor", ErrorCodes.NotYourSeat,
                     $"You play {seat}; this action was sent as {command.Actor ?? "the current seat"}.", $"Send it with actor '{seat}'.");
-                return (refused, new Outgoing(origin, Rejection(origin, clientSeq, refused.Error!)));
+                return (refused, new List<Outgoing> { new Outgoing(origin, Rejection(origin, clientSeq, refused.Error!)) });
             }
             // Moving, scaling or bagging a locked object is for the host's scripts; a client's request never may.
             if (origin != HostId)
@@ -158,24 +182,59 @@ namespace Core.Net
                     case ScaleCommand scale: scale.EvenLocked = false; break;
                     case InsertCommand insert: insert.EvenLocked = false; break;
                 }
+            var randomBefore = Game.Table.Random.State;
+            var secretsBefore = SeatView.SecretKey(Game.State);
             var result = Game.Execute(command);
             if (!result.Ok)
-                return (result, new Outgoing(origin == HostId ? null : origin, Rejection(origin, clientSeq, result.Error!)));
+                return (result, new List<Outgoing> { new Outgoing(origin == HostId ? null : origin, Rejection(origin, clientSeq, result.Error!)) });
             _order++;
             Executed?.Invoke(origin, command, result);
-            var order = new JObject
+            var hostRun = result.ScriptsRan || Game.Table.Random.State != randomBefore || SeatView.SecretKey(Game.State) != secretsBefore;
+            if (hostRun)
+                return (result, HostRunOrders(origin, clientSeq, command, result));
+            var order = OrderMessage(origin, clientSeq, command);
+            if (HashEvery <= 1 || _order % HashEvery == 0)
+                order["hash"] = SeatView.Hash(Game.State);
+            return (result, new List<Outgoing> { new Outgoing(null, order) });
+        }
+
+        private JObject OrderMessage(string origin, long clientSeq, Command command) => new JObject
+        {
+            ["kind"] = "order",
+            ["order"] = _order,
+            ["origin"] = origin,
+            ["seq"] = clientSeq,
+            ["ok"] = true,
+            ["command"] = CommandCodec.Encode(command),
+        };
+
+        /// <summary>
+        /// One order per peer, with the command's result for its seat: a patch (or, when the change reaches further, the
+        /// whole seat view), the events, and the public hash to check. Another seat's secret choice arrives without its
+        /// parameters.
+        /// </summary>
+        private List<Outgoing> HostRunOrders(string origin, long clientSeq, Command command, CommandResult result)
+        {
+            var hash = SeatView.Hash(Game.State);
+            var events = EventCodec.EncodeAll(result.Events);
+            var messages = new List<Outgoing>();
+            foreach (var peer in _peers)
             {
-                ["kind"] = "order",
-                ["order"] = _order,
-                ["origin"] = origin,
-                ["seq"] = clientSeq,
-                ["ok"] = true,
-                ["command"] = CommandCodec.Encode(command),
-            };
-            // Lua ran inside the command: peers cannot replay it (they do not run scripts), so they check at once.
-            if (HashEvery <= 1 || _order % HashEvery == 0 || result.ScriptsRan)
-                order["hash"] = TableJson.Hash(Game.State);
-            return (result, new Outgoing(null, order));
+                var seat = ViewerSeat(peer);
+                var sent = command;
+                if (command is PerformActionCommand perform && perform.Params.Count > 0 && perform.Actor != seat
+                    && Game.State.Actions.FirstOrDefault(a => a.Id == perform.ActionId) is { Secret: true })
+                    sent = new PerformActionCommand { Actor = perform.Actor, ActionId = perform.ActionId };
+                var order = OrderMessage(origin, clientSeq, sent);
+                order["hash"] = hash;
+                order["events"] = events.DeepClone();
+                if (TablePatch.Build(Game.State, result, seat) is { } patch)
+                    order["patch"] = patch;
+                else
+                    order["state"] = SeatView.Serialize(Game.State, seat);
+                messages.Add(new Outgoing(peer, order));
+            }
+            return messages;
         }
 
         /// <summary>A refused command changes nothing; only its sender needs to know (it may have predicted it).</summary>
@@ -195,12 +254,15 @@ namespace Core.Net
     /// is what the player sees: the confirmed table plus this client's own commands the host has not ordered yet, so
     /// local gestures feel immediate. When the host orders things differently, or refuses a predicted command, the
     /// prediction is rebuilt and <see cref="PredictionReplaced"/> is raised (the view reloads). A confirmed hash that
-    /// differs from the host's asks for a snapshot.
+    /// differs from the host's asks for a snapshot. Host-run orders (ADR 0012) arrive as results to apply, not commands
+    /// to replay; this client's own rolls and shuffles are not predicted (it does not hold the host's random generator)
+    /// and show when the host's result arrives.
     /// </summary>
     public sealed class SessionClient
     {
         private readonly string _id;
-        private readonly List<(long Seq, Command Command)> _pending = new List<(long, Command)>();
+        /// <summary>Commands sent and not yet ordered; <c>Predicted</c> false for those left off the prediction.</summary>
+        private readonly List<(long Seq, Command Command, bool Predicted)> _pending = new List<(long, Command, bool)>();
         /// <summary>Objects the pending commands touched on the prediction (their events' objects and the command's targets).</summary>
         private readonly HashSet<string> _touched = new HashSet<string>();
         private long _nextSeq = 1;
@@ -250,14 +312,24 @@ namespace Core.Net
                 throw new InvalidOperationException("Not synced yet: wait for the host's snapshot.");
             if (command is IHostCommand && !MayHost)
                 return (CommandResult.Fail("", ErrorCodes.HostOnly, "Only the host can change that.", "Ask the host."), null);
-            var result = Predicted.Execute(command);
-            if (!result.Ok)
-                return (result, null);
+            CommandResult result;
+            var predict = !DrawsRandom(command);
+            if (predict)
+            {
+                result = Predicted.Execute(command);
+                if (!result.Ok)
+                    return (result, null);
+                Touch(result);
+            }
+            else
+                result = CommandResult.Success(new List<StateEvent>());
             var seq = _nextSeq++;
-            _pending.Add((seq, command));
-            Touch(result);
+            _pending.Add((seq, command, predict));
             return (result, new JObject { ["kind"] = "intent", ["seq"] = seq, ["command"] = CommandCodec.Encode(command) });
         }
+
+        /// <summary>Table commands that always draw from the host's random generator: guessing them would show a wrong roll.</summary>
+        public static bool DrawsRandom(Command command) => command is RollCommand || command is ShuffleCommand || command is RandomizeZoneCommand;
 
         /// <summary>Handles a host message; returns a reply to send (a resync request) or null.</summary>
         public JObject? Receive(JObject message)
@@ -266,8 +338,7 @@ namespace Core.Net
             {
                 case "snapshot":
                     var state = TableJson.Parse((string)message["state"]!).State!;
-                    var random = ulong.Parse((string)message["random"]!);
-                    Confirmed = Copy(state, random);
+                    Confirmed = Copy(state, null);
                     _order = (long)message["order"]!;
                     // Commands not yet ordered stay pending and are replayed on top of the snapshot.
                     Rebuild(null);
@@ -303,13 +374,15 @@ namespace Core.Net
             if (order != _order + 1)
                 return Resync();
             _order = order;
+            if (message["patch"] != null || message["state"] != null)
+                return ApplyResult(message, mine, seq);
 
             var command = CommandCodec.Decode((JObject)message["command"]!);
             var randomBefore = Confirmed!.Table.Random.State;
             var result = Confirmed.Execute(command);
             // The host's hash comes every few orders (SessionHost.HashEvery): the confirmed table is checked then.
             var hash = (string?)message["hash"];
-            if (!result.Ok || hash != null && TableJson.Hash(Confirmed.State) != hash)
+            if (!result.Ok || hash != null && SeatView.Hash(Confirmed.State) != hash)
                 return Resync();
             Ordered?.Invoke((string?)message["origin"] ?? "", command, result);
 
@@ -322,7 +395,7 @@ namespace Core.Net
             {
                 // The host ordered our oldest command next: the prediction already includes it (the engine is
                 // deterministic, so it came out the same). With nothing left in flight, a hash check now and then.
-                if (_pending.Count == 0 && hash != null && TableJson.Hash(Predicted!.State) != hash)
+                if (_pending.Count == 0 && hash != null && SeatView.Hash(Predicted!.State) != hash)
                     Rebuild(null);
                 return null;
             }
@@ -331,7 +404,7 @@ namespace Core.Net
                 // Nothing of ours in flight, or ours touch other things: the command applies to the prediction the same
                 // way, in place (rebuilding copies the whole table, 320 ms for a 2 800-object TTS table).
                 var applied = Predicted!.Execute(command);
-                if (applied.Ok && (_pending.Count > 0 || hash == null || TableJson.Hash(Predicted.State) == hash))
+                if (applied.Ok && (_pending.Count > 0 || hash == null || SeatView.Hash(Predicted.State) == hash))
                 {
                     Applied?.Invoke(command, applied);
                     return null;
@@ -339,6 +412,55 @@ namespace Core.Net
             }
             // Someone else's command that meets ours (or ours out of order): replay ours on top of the new truth.
             Rebuild(result.Events.Select(e => e.ObjectId));
+            return null;
+        }
+
+        /// <summary>
+        /// A host-run order: the host's result for this seat replaces the command's replay. The prediction takes the same
+        /// patch in place when nothing else of ours is in flight; our own unpredicted roll or shuffle plays as if remote.
+        /// </summary>
+        private JObject? ApplyResult(JObject message, bool mine, long seq)
+        {
+            var command = CommandCodec.Decode((JObject)message["command"]!);
+            var result = CommandResult.Success(EventCodec.DecodeAll(message["events"]));
+            var hash = (string?)message["hash"];
+            var patch = message["patch"] as JObject;
+            HashSet<string>? changed = null;
+            if (patch != null)
+                changed = TablePatch.Apply(Confirmed!, patch);
+            else
+                Confirmed = Copy(TableJson.Parse((string)message["state"]!).State!, null);
+            if (hash != null && SeatView.Hash(Confirmed!.State) != hash)
+                return Resync();
+            Ordered?.Invoke((string?)message["origin"] ?? "", command, result);
+
+            var predicted = !mine || _pending.FirstOrDefault(p => p.Seq == seq).Predicted;
+            if (mine)
+                _pending.RemoveAll(p => p.Seq == seq);
+            if (_pending.Count == 0)
+                _touched.Clear();
+            if (_pending.Count > 0 || patch == null)
+            {
+                Rebuild(changed);
+                return null;
+            }
+            TablePatch.Apply(Predicted!, patch);
+            if (hash != null && SeatView.Hash(Predicted!.State) != hash)
+            {
+                Rebuild(null);
+                return null;
+            }
+            if (mine && predicted)
+            {
+                // Our own command, already on screen as we guessed it: the view redraws what the host's result changed.
+                PredictionReplaced?.Invoke(Predicted!, changed!);
+                return null;
+            }
+            // Patched objects are new instances: every one gets an update so its view rebinds, after the events that
+            // animate (a roll, a shuffle).
+            var events = result.Events.ToList();
+            events.AddRange(changed!.Where(id => Predicted!.Table.Find(id) != null && !events.Any(e => e is ObjectUpdated && e.ObjectId == id)).Select(id => new ObjectUpdated(id)));
+            Applied?.Invoke(command, CommandResult.Success(events));
             return null;
         }
 
@@ -359,8 +481,10 @@ namespace Core.Net
             HashSet<string>? changed = alsoChanged == null ? null : new HashSet<string>(alsoChanged.Concat(_touched));
             Predicted = Copy(Confirmed!.State, Confirmed.Table.Random.State);
             _touched.Clear();
-            foreach (var (_, command) in _pending.ToList())
+            foreach (var (_, command, predicted) in _pending.ToList())
             {
+                if (!predicted)
+                    continue;
                 var replayed = Predicted.Execute(command);
                 if (replayed.Ok)
                     Touch(replayed);
@@ -395,10 +519,12 @@ namespace Core.Net
             return true;
         }
 
-        private static GameEngine Copy(TableState state, ulong random)
+        /// <summary>A copy to play on; <paramref name="random"/> null keeps the copy's own generator (peers do not hold the host's).</summary>
+        private static GameEngine Copy(TableState state, ulong? random)
         {
             var copy = new GameEngine(TableJson.Copy(state), 1);
-            copy.Table.Random.State = random;
+            if (random is { } value)
+                copy.Table.Random.State = value;
             return copy;
         }
     }

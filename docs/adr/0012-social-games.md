@@ -158,6 +158,13 @@ The placeholder chalker stands behind its seat's hand. Social games are played a
   data; checked by searching the received messages for the hidden roles).
 - Commands that use the random generator become host-run. Each one costs peers one message with the result instead of a
   local replay. At board-game pace this is not felt; physics and moves keep their client prediction.
+- As built (T11.2, 2026-10-26): a host-run order carries, per peer, a patch (the objects the command's events name,
+  their contents and list positions, the seat's view of the session, the blind round), the events themselves (the log
+  and the animations read them) and the public hash; a change beyond objects and session (lighting, zones, scripts that
+  ran) sends the whole seat view. In UNO and War about 1 order in 70 is host-run, 9–16 kB each; the rest are replayed
+  as before (about 200 bytes). A client's own rolls and shuffles are not predicted (it does not hold the generator):
+  they play when the host's result arrives, one round trip later, rather than landing on a guess and jumping. Lua inside
+  rules no longer costs a resync (ADR 0010): it is host-run too.
 - The same work makes card games fair (cheat-proof hands, decks whose order a client cannot know), once table objects
   are redacted (section 1, second step).
 - TTS has no roles, gestures or eyes-closed phases; imported TTS games keep working as before (no `roles`, no redaction

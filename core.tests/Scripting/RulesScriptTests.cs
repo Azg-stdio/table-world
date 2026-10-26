@@ -147,10 +147,11 @@ end
             Flush();
             Assert.Null(client.Confirmed!.Scripts);
 
-            Deliver(host.ExecuteLocal(new PerformActionCommand { Actor = "a", ActionId = "fight", Params = { ["where"] = "ring" } }).Broadcast);
+            // Host-run (ADR 0012): the host sends its result, so the peer needs no resync.
+            host.ExecuteLocal(new PerformActionCommand { Actor = "a", ActionId = "fight", Params = { ["where"] = "ring" } }).Messages.ForEach(Deliver);
             Flush();
-            Assert.Equal(1, client.Resyncs);
-            Assert.Equal(TableJson.Hash(game.State), TableJson.Hash(client.Confirmed!.State));
+            Assert.Equal(0, client.Resyncs);
+            Assert.Equal(SeatView.Hash(game.State), SeatView.Hash(client.Confirmed!.State));
             Assert.Equal(3, client.Confirmed.Session!.Resources["a"]["gold"]);
         }
     }

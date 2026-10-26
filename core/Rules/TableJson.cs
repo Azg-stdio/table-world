@@ -107,6 +107,13 @@ namespace Core.Rules
         public static string Serialize(TableState state, bool indented = true) =>
             JsonConvert.SerializeObject(state, indented ? Formatting.Indented : Formatting.None, WriteSettings);
 
+        /// <summary>Any part of a table (an object, the session, an event's card) in its canonical JSON form (ADR 0012 patches).</summary>
+        internal static JToken ToToken(object value) => JToken.FromObject(value, JsonSerializer.Create(WriteSettings));
+
+        /// <summary>Reads back what <see cref="ToToken"/> wrote, objects of any kind included.</summary>
+        internal static object? FromToken(JToken token, Type type) =>
+            token.ToObject(type, JsonSerializer.Create(new JsonSerializerSettings { ContractResolver = Resolver, Converters = CreateConverters(), DateParseHandling = DateParseHandling.None }));
+
         /// <summary>One object's canonical JSON (for comparing pieces, G14).</summary>
         internal static JObject ToJson(TableObject obj) => JObject.FromObject(obj, JsonSerializer.Create(WriteSettings));
 

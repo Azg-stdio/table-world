@@ -128,17 +128,18 @@ namespace Core.Tests.Net
                 if (sent < 500 && now >= nextHostCommand)
                 {
                     nextHostCommand = now + 0.5 + r.Next(500) / 1000.0;
-                    Deliver(host.ExecuteLocal(RandomCommand(host.Game, r)).Broadcast);
+                    foreach (var message in host.ExecuteLocal(RandomCommand(host.Game, r)).Messages)
+                        Deliver(message);
                 }
                 Assert.True(now < 3600, "the simulation did not settle");
             }
 
-            var hash = TableJson.Hash(host.Game.State);
+            var hash = SeatView.Hash(host.Game.State);
             foreach (var (id, client) in clients)
             {
                 Assert.True(client.Synced, $"{id} is not synced");
-                Assert.Equal(hash, TableJson.Hash(client.Confirmed!.State));
-                Assert.Equal(hash, TableJson.Hash(client.Predicted!.State));
+                Assert.Equal(hash, SeatView.Hash(client.Confirmed!.State));
+                Assert.Equal(hash, SeatView.Hash(client.Predicted!.State));
                 Assert.Equal(0, client.Resyncs);
             }
             confirmTimes.Sort();
