@@ -52,6 +52,32 @@
     background-color: rgba(255, 255, 255, 0.06);
 }
 
+/* A card shown to everyone (ShowcaseView): big in the middle of every screen. */
+.showcase {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 12%;
+    bottom: 12%;
+    align-items: center;
+    justify-content: center;
+}
+
+.showcase-face {
+    flex-grow: 1;
+    width: 60%;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.showcase-caption {
+    margin-top: 8px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    background-color: rgba(16, 18, 22, 0.88);
+    font-size: 18px;
+    color: rgb(255, 252, 244);
+}
+
 /* The pocket calculator (CalculatorPanel), under the top bar on the right. */
 .calculator {
     position: absolute;

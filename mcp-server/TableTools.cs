@@ -18,7 +18,7 @@ namespace TableWorld.Mcp
         {
             "flip", "rotate", "move", "lock", "unlock", "shuffle", "roll", "set_die_value", "cut", "split", "spread",
             "take", "insert", "group", "delete", "clone", "set_state", "scale", "rename", "lay_out", "randomize",
-            "hide", "show", "blind_round",
+            "hide", "show", "blind_round", "show_card",
         };
 
         [McpServerTool(Name = "table_action"), Description(
@@ -30,10 +30,11 @@ namespace TableWorld.Mcp
             "scale (value = factor), rename (other = new name, text = description), " +
             "lay_out (target = a LayoutZone id: arrange what is in it), randomize (target = a RandomizeZone id: shuffle where things in it lie), " +
             "hide (only seat sees it, or nobody without seat: a hidden chip or bid), show (everyone sees it again), " +
+            "show_card (a card, or a deck's top card, big on every screen to read it out), " +
             "blind_round (target 'table'; value 1 starts a blind round in which whatever each seat moves is hidden from the others, value 0 reveals everything moved in it). " +
             "seat = the seat doing it (blind moves only count when a seat makes them).")]
         public static string TableAction(GameSession session,
-            [Description("One of: " + "flip, rotate, move, lock, unlock, shuffle, roll, set_die_value, cut, split, spread, take, insert, group, delete, clone, set_state, scale, rename, lay_out, randomize, hide, show, blind_round")] string action,
+            [Description("One of: " + "flip, rotate, move, lock, unlock, shuffle, roll, set_die_value, cut, split, spread, take, insert, group, delete, clone, set_state, scale, rename, lay_out, randomize, hide, show, blind_round, show_card")] string action,
             [Description("The object (or deck/bag) id.")] string target,
             [Description("Number argument (degrees, cards, piles, die value, index, factor) as described for the action.")] double? value = null,
             [Description("Text argument (another id, ids, state key or name) as described for the action.")] string? other = null,
@@ -81,6 +82,7 @@ namespace TableWorld.Mcp
                     },
                     "show" => new SetPropertiesCommand { ObjectId = target, InvisibleTo = new List<string>() },
                     "blind_round" => new BlindRoundCommand { On = value != 0 },
+                    "show_card" => new ShowCommand { ObjectId = target },
                     _ => null,
                 };
                 if (command != null)

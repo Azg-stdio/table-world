@@ -354,6 +354,8 @@ namespace TableWorld.View.Hud
                 Item("Exact position…", () => GizmoRequested(view));
             Item("Rotate 90° (E ×6)", () => _interaction.Rotate(view, 90f));
             Item(model.Locked ? "Unlock" : "Lock", () => _interaction.ToggleLock(view));
+            if ((model is Card || model is Deck { Cards: { Count: > 0 } }) && !view.HideFace && !_table.Spectating)
+                Item(model is Deck ? "Show top card to everyone" : "Show to everyone", () => Run(new ShowCommand { ObjectId = model.Id }));
             HideEntry(model);
             Item("Copy (Ctrl+C)", () => _interaction.Copy(new[] { view }));
             Item("Duplicate", () => Run(new CloneCommand { ObjectId = model.Id }));

@@ -74,7 +74,7 @@ namespace TableWorld.View
 
         private void Awake()
         {
-            _target = new RenderTexture(CellWidth * Columns, CellMaxHeight * Rows, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB)
+            _target = new RenderTexture(CellWidth * Columns, CellMaxHeight * Rows, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear)
             {
                 name = "Text cards",
             };

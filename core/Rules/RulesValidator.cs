@@ -252,6 +252,9 @@ namespace Core.Rules
                 case WinEffect win:
                     Seat(win.Player, $"{path}.player");
                     break;
+                case ShowEffect show:
+                    Target(show.Object, $"{path}.object");
+                    break;
                 case LuaEffect lua:
                     if (string.IsNullOrWhiteSpace(lua.Call))
                         Add($"{path}.call", ErrorCodes.MissingField, "A lua effect needs the name of a global Lua function to call.");

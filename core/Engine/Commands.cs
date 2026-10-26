@@ -79,6 +79,15 @@ namespace Core.Engine
     }
 
     /// <summary>
+    /// Shows a card's face to everyone, big on every screen, to read it out (an event card drawn on your turn). Nothing
+    /// moves or turns over. A deck shows its top card.
+    /// </summary>
+    public sealed class ShowCommand : Command
+    {
+        public string ObjectId { get; set; } = "";
+    }
+
+    /// <summary>
     /// Someone peeked at the hidden side of an object (G15, TTS Alt + Shift): nothing changes, but everyone is told, as
     /// TTS announces peeks.
     /// </summary>

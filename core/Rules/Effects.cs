@@ -147,6 +147,12 @@ namespace Core.Rules
         public string Reason { get; set; } = "";
     }
 
+    /// <summary>Shows a card big on every screen to read it out (a deck shows its top card); nothing moves.</summary>
+    public sealed class ShowEffect : Effect
+    {
+        public string Object { get; set; } = "";
+    }
+
     /// <summary>Starts a blind round (<see cref="On"/>) or reveals it, from the rules: everyone moves in secret, then all is shown.</summary>
     public sealed class BlindRoundEffect : Effect
     {
@@ -176,6 +182,7 @@ namespace Core.Rules
             ["lua"] = typeof(LuaEffect),
             ["refuse"] = typeof(RefuseEffect),
             ["blindRound"] = typeof(BlindRoundEffect),
+            ["show"] = typeof(ShowEffect),
         };
 
         private static readonly Dictionary<Type, string> Names = ByName.ToDictionary(p => p.Value, p => p.Key);

@@ -30,6 +30,7 @@ namespace TableWorld.View.Hud
         private ActionPicker _picker;
         private DiceTotalsView _diceTotals;
         private CalculatorPanel _calculator;
+        private ShowcaseView _showcase;
         private readonly CardImages _choiceImages = new CardImages();
         private string _followedTurn;
         private string _shownBlind;
@@ -176,6 +177,7 @@ namespace TableWorld.View.Hud
             _picker = new ActionPicker(_root);
             _diceTotals = new DiceTotalsView(_root, _table);
             _calculator = new CalculatorPanel(_root, _root.Q<Button>("calculatorButton"));
+            _showcase = new ShowcaseView(_root);
             _blindButton = _root.Q<Button>("blindButton");
             if (_blindButton != null)
                 _blindButton.clicked += ToggleBlindRound;
@@ -423,6 +425,7 @@ namespace TableWorld.View.Hud
             }
             FollowTurnInHotSeat();
             _diceTotals?.Update(Camera.main);
+            _showcase?.Update(_table.Assets);
             FaceLocalSeat();
             RefreshBlindRound();
             RefreshSelection();
@@ -850,6 +853,9 @@ namespace TableWorld.View.Hud
 
         private void OnCommand(Command command, CommandResult result)
         {
+            // A card shown to everyone (by a player, a rule or a script) comes up big on every screen.
+            if (result.Ok && result.Events.OfType<CardShown>().LastOrDefault() is { } shown)
+                _showcase?.Show(shown.Card, $"{shown.Seat ?? "The game"} shows {shown.Card.Name ?? shown.Card.Text?.Title ?? "a card"}");
             // What table scripts do is theirs to tell (chat, their own UI); their refusals are in the log.
             if (command.ByScript)
                 return;

@@ -171,6 +171,20 @@ namespace Core.Engine
     }
 
     /// <summary>A line for the game log (a <c>message</c> effect or a win). Not tied to an object.</summary>
+    /// <summary>A card shown to everyone (<see cref="ShowCommand"/>): the views show <see cref="Card"/>'s face big.</summary>
+    public sealed class CardShown : StateEvent
+    {
+        /// <summary>What to draw: the card itself, or the top card of the deck that was shown.</summary>
+        public Card Card { get; }
+        public string? Seat { get; }
+
+        public CardShown(string objectId, Card card, string? seat) : base(objectId)
+        {
+            Card = card;
+            Seat = seat;
+        }
+    }
+
     public sealed class GameMessage : StateEvent
     {
         public string Text { get; }

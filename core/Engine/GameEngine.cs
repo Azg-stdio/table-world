@@ -463,6 +463,15 @@ namespace Core.Engine
                 }
                 case MessageEffect message: Log(Template(message.Text)); break;
                 case RevealEffect reveal: Reveal(reveal.Action); break;
+                case ShowEffect show:
+                {
+                    // The top card of a deck names the deck; a card shows itself.
+                    var target = ResolveTarget(show.Object, "show.object");
+                    var id = target switch { TableObject o => o.Id, CardRef r => r.Deck.Id, _ => null }
+                        ?? throw new RuleException("show.object", ErrorCodes.UnknownObject, $"'{show.Object}' is not a card or deck.");
+                    TableCommand(new ShowCommand { ObjectId = id });
+                    break;
+                }
                 case RefuseEffect refuse:
                     throw new RuleException("refuse", ErrorCodes.Refused, string.IsNullOrWhiteSpace(refuse.Reason) ? "The rules do not allow that." : Template(refuse.Reason));
                 case BlindRoundEffect blind:

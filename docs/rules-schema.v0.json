@@ -2583,6 +2583,18 @@
             "blindRound"
           ],
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "show": {
+              "$ref": "#/$defs/ShowEffect"
+            }
+          },
+          "required": [
+            "show"
+          ],
+          "additionalProperties": false
         }
       ]
     },
@@ -3038,6 +3050,15 @@
       "properties": {
         "on": {
           "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ShowEffect": {
+      "type": "object",
+      "properties": {
+        "object": {
+          "type": "string"
         }
       },
       "additionalProperties": false

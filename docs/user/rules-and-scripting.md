@@ -164,7 +164,9 @@ pile, is empty, and comparisons with it are false.
 
 **Effects** change the table: `move`, `deal`, `shuffle`, `flip`, `lock`, `roll`, `setVariable`, `setResource`,
 `message`, `endTurn`, `endPhase`, `gotoPhase` and `win`, plus `if` and `forEach` to build logic from them, `reveal` for
-secret choices, `refuse` and `blindRound` for pieces moved by hand (section 3) and `lua` to call a script (section 8).
+secret choices, `refuse` and `blindRound` for pieces moved by hand (section 3), `show` to put a card big on every
+screen so it is read out (an event card drawn on your turn; players can do the same from the card's menu), and `lua`
+to call a script (section 8).
 
 **Conditions** ask questions: `zoneCount`, `compare`, `variable`, `resource`, `isCurrentPlayer`, `objectIn` and
 `hasTag`, combined with `and`, `or` and `not`.

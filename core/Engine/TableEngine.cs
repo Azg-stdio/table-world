@@ -140,6 +140,26 @@ namespace Core.Engine
             return result.WithEvents(events);
         }
 
+        private CommandResult Show(ShowCommand c)
+        {
+            if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: true) is { } fail)
+                return fail;
+            var card = obj switch
+            {
+                Card single => single,
+                Deck { Cards: { Count: > 0 } } deck => CardFromEntry(deck, deck.Cards[0]),
+                _ => null,
+            };
+            if (card == null)
+                return CommandResult.Fail("objectId", ErrorCodes.InvalidValue, $"'{c.ObjectId}' is not a card or a deck with cards.", "Show a card, or a deck to show its top card.");
+            var name = card.Name ?? card.Text?.Title ?? "a card";
+            return CommandResult.Success(new List<StateEvent>
+            {
+                new CardShown(obj.Id, card, c.Actor),
+                new GameMessage($"{c.Actor ?? "The game"} shows {name}."),
+            });
+        }
+
         private CommandResult SetBlindRound(BlindRoundCommand c)
         {
             var events = new List<StateEvent> { new TableSettingsChanged() };
@@ -266,6 +286,7 @@ namespace Core.Engine
             ShuffleCommand c => Shuffle(c),
             SearchCommand c => Search(c),
             PeekCommand c => RequireOnTable(c.ObjectId, "objectId", out _, allowLocked: true) ?? CommandResult.Success(new List<StateEvent>()),
+            ShowCommand c => Show(c),
             BlindfoldCommand _ => CommandResult.Success(new List<StateEvent>()),
             DropCommand c => RequireOnTable(c.ObjectId, "objectId", out _, allowLocked: true) ?? CommandResult.Success(new List<StateEvent>()),
             PickUpCommand c => RequireOnTable(c.ObjectId, "objectId", out _, allowLocked: true) ?? CommandResult.Success(new List<StateEvent>()),
