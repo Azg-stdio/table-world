@@ -379,21 +379,57 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsTrue(_table.ViewOf("king_hearts").InHand);
             Assert.IsNotNull(root.Q("hand-king_hearts"));
 
-            // The slider at the hand's right: at the top whole cards show, at the bottom the hand is hidden and the
-            // slider stays to bring it back; it sits right of the cards, not over them.
-            var slider = root.Q("handSlider");
-            Assert.IsFalse(slider.ClassListContains("hidden"), "a hand with cards has its slider");
+            // The hand's top edge: dragged up whole cards show, dragged down the hand is hidden and the edge stays at the
+            // screen's bottom to bring it back.
+            var grip = root.Q("handGrip");
+            Assert.IsFalse(grip.ClassListContains("hidden"), "a hand with cards has its edge");
             var screenBottom = root.panel.visualTree.worldBound.height;
             hud.HandBar.SetReveal(1f);
             yield return new WaitForSeconds(0.3f);
             var open = root.Q("hand-king_hearts").worldBound;
             Assert.LessOrEqual(open.yMax, screenBottom - HandBar.BottomPadding + 1f, "fully shown: the whole card shows");
             Assert.GreaterOrEqual(open.height, HandBar.MinCardHeight - 1f, "cards are big enough to read");
-            Assert.GreaterOrEqual(slider.worldBound.xMin, root.Q("handBar").worldBound.xMax, "the slider is beside the hand");
-            hud.HandBar.SetReveal(0f);
+            Assert.AreEqual(open.yMin, grip.worldBound.yMax, 12f, "the edge runs along the cards' tops");
+            hud.HandBar.SetCollapsed(false);
+        }
+
+        [UnityTest]
+        public IEnumerator HandEdge_DraggedDown_HidesTheHand_AndStaysToBringItBack()
+        {
+            const string json = @"{ ""game"": { ""id"": ""hand_edge"", ""name"": ""Hand edge"" },
+  ""objects"": [ { ""id"": ""king_hearts"", ""type"": ""Card"", ""text"": { ""title"": ""King"" } } ],
+  ""players"": { ""seats"": [ { ""id"": ""seat_south"", ""color"": ""red"", ""handZone"": ""hand_south"" } ] },
+  ""zones"": [ { ""id"": ""hand_south"", ""type"": ""HandZone"", ""owner"": ""seat_south"", ""transform"": { ""position"": [0, 0.05, -0.42] }, ""size"": [0.6, 0.1, 0.12] } ] }";
+            Assert.IsTrue(_table.Load(json, null));
             yield return new WaitForSeconds(0.3f);
-            Assert.GreaterOrEqual(root.Q("hand-king_hearts").worldBound.yMin, screenBottom - 1f, "slid down: the hand is hidden");
-            Assert.Less(slider.worldBound.yMin, screenBottom, "the slider stays in view");
+            Assert.IsTrue(_table.Execute(new MoveCommand { ObjectId = "king_hearts", Position = new Vec3(0f, 0f, -0.42f), Actor = "seat_south" }).Ok);
+            yield return new WaitForSeconds(0.5f);
+            var hud = Object.FindAnyObjectByType<HudController>();
+            hud.HandBar.SetReveal(1f);
+            var root = hud.GetComponent<UIDocument>().rootVisualElement;
+            var grip = root.Q("handGrip");
+            var screenBottom = root.panel.visualTree.worldBound.height;
+            yield return null;
+
+            // The edge dragged to the screen's bottom.
+            var from = grip.worldBound.center;
+            SendPointer(grip, EventType.MouseDown, from);
+            yield return null;
+            SendPointer(grip, EventType.MouseDrag, new Vector2(from.x, screenBottom - 1f));
+            SendPointer(grip, EventType.MouseUp, new Vector2(from.x, screenBottom - 1f));
+            yield return new WaitForSeconds(0.3f);
+            Assert.IsTrue(hud.HandBar.Collapsed, "dragged down: hidden");
+            Assert.GreaterOrEqual(root.Q("hand-king_hearts").worldBound.yMin, screenBottom - 1f, "the cards are out of view");
+            Assert.Less(grip.worldBound.yMin, screenBottom, "the edge stays in view");
+
+            // Dragged up again: the cards come back, following the pointer.
+            from = grip.worldBound.center;
+            SendPointer(grip, EventType.MouseDown, from);
+            yield return null;
+            SendPointer(grip, EventType.MouseDrag, from - new Vector2(0f, 120f));
+            SendPointer(grip, EventType.MouseUp, from - new Vector2(0f, 120f));
+            yield return null;
+            Assert.Greater(hud.HandBar.Reveal, 0.3f, "dragged up: shown again");
             hud.HandBar.SetCollapsed(false);
         }
 
@@ -662,6 +698,19 @@ namespace TableWorld.Tests.PlayMode
             chat.Hide();
         }
 
+        /// <summary>
+        /// A pointer event sent straight to a UI element (the virtual mouse does not reach UI Toolkit in tests); while the
+        /// element holds the pointer, later events go to it as the panel would send them.
+        /// </summary>
+        private static void SendPointer(VisualElement target, EventType type, Vector2 panelPoint)
+        {
+            var imgui = new Event { type = type, mousePosition = panelPoint, button = 0, pointerType = UnityEngine.PointerType.Mouse };
+            using EventBase e = type == EventType.MouseDown ? PointerDownEvent.GetPooled(imgui)
+                : type == EventType.MouseUp ? PointerUpEvent.GetPooled(imgui) : (EventBase)PointerMoveEvent.GetPooled(imgui);
+            e.target = target;
+            target.SendEvent(e);
+        }
+
         /// <summary>Panel point of a UI element's centre, as a screen point for the virtual mouse.</summary>
         private static Vector2 ScreenOfUi(VisualElement element)
         {
@@ -710,6 +759,7 @@ namespace TableWorld.Tests.PlayMode
             using (var click = NavigationSubmitEvent.GetPooled()) { click.target = fold; fold.SendEvent(click); }
             yield return null;
             Assert.IsTrue(window.Q(className: "game-ui-body").ClassListContains("hidden"), "folded to its bar");
+            Assert.AreEqual(bar.worldBound.height, window.worldBound.height, 1f, "folded: nothing but the bar shows");
 
             // Loaded again: where the player left it, still folded.
             var left = window.worldBound.position;
@@ -719,6 +769,43 @@ namespace TableWorld.Tests.PlayMode
             Assert.AreEqual(left.x, again.worldBound.position.x, 2f);
             Assert.IsTrue(again.Q(className: "game-ui-body").ClassListContains("hidden"));
             UnityEngine.PlayerPrefs.DeleteKey("tw.panel.windowed.quick_actions");
+        }
+
+        [UnityTest]
+        public IEnumerator ABottomWindow_KeepsItsHeight_WhileMoved_WithTheHandShowing()
+        {
+            const string json = @"{ ""game"": { ""id"": ""windowed_low"", ""name"": ""Windowed"" },
+  ""objects"": [ { ""id"": ""held_card"", ""type"": ""Card"", ""text"": { ""title"": ""Gold"" } } ],
+  ""players"": { ""seats"": [ { ""id"": ""seat_south"", ""color"": ""red"", ""handZone"": ""hand_south"" } ] },
+  ""zones"": [ { ""id"": ""hand_south"", ""type"": ""HandZone"", ""owner"": ""seat_south"", ""transform"": { ""position"": [0, 0.05, -0.42] }, ""size"": [0.6, 0.1, 0.12] } ],
+  ""ui"": { ""panels"": [ { ""id"": ""purse"", ""anchor"": ""bottom"", ""elements"": [ { ""type"": ""label"", ""text"": ""Gold: 8"" } ] } ] } }";
+            UnityEngine.PlayerPrefs.DeleteKey("tw.panel.windowed_low.purse");
+            Assert.IsTrue(_table.Load(json, null));
+            yield return new WaitForSeconds(0.3f);
+            var root = Object.FindAnyObjectByType<HudController>().GetComponent<UIDocument>().rootVisualElement;
+            // A card in the hand: the hand shows, which lifts bottom windows above it.
+            var hud = Object.FindAnyObjectByType<HudController>();
+            hud.HandBar.SetCollapsed(false);
+            var seat = _table.Engine.State.Players.Seats[0];
+            var hand = _table.Engine.State.Zones.First(z => z.Id == seat.HandZone);
+            Assert.IsTrue(_table.Execute(new MoveCommand { ObjectId = "held_card", Position = hand.Transform.Position, Actor = seat.Id }).Ok);
+            yield return new WaitForSeconds(0.5f);
+            Assert.IsTrue(root.ClassListContains("hand-showing"), "the hand shows");
+            var bar = root.Q(className: "game-ui-titlebar");
+            var window = bar.parent;
+            var height = window.worldBound.height;
+
+            var from = bar.worldBound.center;
+            SendPointer(bar, EventType.MouseDown, from);
+            yield return null;
+            SendPointer(bar, EventType.MouseDrag, from + new Vector2(-120f, -200f));
+            yield return null;
+            Assert.Less(window.worldBound.y, from.y - 150f, "moved up");
+            Assert.AreEqual(height, window.worldBound.height, 1f, "moved up: the same height");
+            SendPointer(bar, EventType.MouseUp, from + new Vector2(-60f, -80f));
+            yield return null;
+            Assert.AreEqual(height, window.worldBound.height, 1f, "and after the release");
+            UnityEngine.PlayerPrefs.DeleteKey("tw.panel.windowed_low.purse");
         }
 
         [UnityTest]

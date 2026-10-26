@@ -423,6 +423,23 @@
     background-color: rgba(255, 255, 255, 0.22);
 }
 
+/* Folded: only the bar shows, standing on its own. */
+.game-ui-panel--folded {
+    padding: 0;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.game-ui-panel--folded .game-ui-titlebar {
+    margin: 0;
+    padding: 4px 6px;
+    border-radius: 6px;
+    background-color: rgba(16, 18, 22, 0.88);
+}
+
+.game-ui-panel--folded .game-ui-titlebar:hover {
+    background-color: rgba(34, 37, 44, 0.92);
+}
+
 .game-ui-panel--placed {
     right: auto;
     bottom: auto;
@@ -701,57 +718,28 @@
     border-color: rgba(255, 255, 255, 0.9);
 }
 
-/* The drawer's handle: drag it to open or shut the hand, click to flip. Its height above the cards comes from code. */
-/* The hand's slider (HandBar): how much of the hand shows, from whole cards (top) to hidden (bottom). */
-.hand-slider {
+/* The hand's top edge (HandBar): drag it up or down to show more or less of the hand, down to hidden. Its place and
+   width follow the cards, so they come from code; the grip line shows on hover, and faintly while the hand is hidden. */
+.hand-grip {
     position: absolute;
-    width: 12px;
-    border-radius: 6px;
-    background-color: rgba(16, 18, 22, 0.75);
-    border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.18);
+    height: 18px;
+    align-items: center;
+    justify-content: center;
 }
 
-.hand-slider-thumb {
-    position: absolute;
-    left: -6px;
-    width: 22px;
-    height: 22px;
-    border-radius: 11px;
-    background-color: rgb(242, 196, 82);
-    border-width: 2px;
-    border-color: rgb(30, 26, 18);
+.hand-grip-line {
+    width: 56px;
+    height: 4px;
+    border-radius: 2px;
+    background-color: rgba(240, 236, 226, 0);
 }
 
-.hand-slider:hover .hand-slider-thumb {
-    background-color: rgb(255, 214, 110);
+.hand-grip:hover .hand-grip-line {
+    background-color: rgba(240, 236, 226, 0.7);
 }
 
-/* With the hand hidden, the slider stays in view to bring it back. */
-.hand-slider--hidden-hand {
-    background-color: rgba(16, 18, 22, 0.9);
-}
-
-.hand-toggle {
-    position: absolute;
-    left: 50%;
-    translate: -50% 0;
-    padding: 2px 14px;
-    border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.15);
-    border-radius: 4px;
-    background-color: rgba(16, 18, 22, 0.82);
-    color: rgb(240, 236, 226);
-    font-size: 13px;
-    transition-duration: 0.12s;
-}
-
-.hand-toggle:hover {
-    background-color: rgb(66, 76, 92);
-}
-
-.hand-toggle--collapsed {
-    background-color: rgba(16, 18, 22, 0.65);
+.hand-grip--hidden-hand .hand-grip-line {
+    background-color: rgba(240, 236, 226, 0.35);
 }
 
 .help-panel {

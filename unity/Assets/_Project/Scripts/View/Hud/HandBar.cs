@@ -8,11 +8,11 @@ namespace TableWorld.View.Hud
 {
     /// <summary>
     /// TTS hand view: the local seat's hand shown at the bottom of the screen, whatever the camera does. It is a drawer:
-    /// the handle above it drags it from a thin strip of each card up to the whole cards (a click flips between the strip
-    /// and the last open height, remembered on this machine). Hovering a card raises it into full view; pressing one
+    /// dragging its top edge shows as much of the cards as the player likes, from whole cards down to hidden (remembered
+    /// on this machine). Hovering a card raises it into full view; pressing one
     /// picks up the real card (it then follows the pointer like any grab, so dropping it on the table plays or places
     /// it); releasing over the bar puts a card into the hand at that position.
-    /// Styling lives in Hud.uss (hand-bar, hand-card, hand-toggle); sizes, positions and card images are set from code.
+    /// Styling lives in Hud.uss (hand-bar, hand-card, hand-grip); sizes, positions and card images are set from code.
     /// </summary>
     public sealed class HandBar
     {
@@ -31,9 +31,8 @@ namespace TableWorld.View.Hud
         public const float DefaultReveal = 0.6f;
 
         private readonly VisualElement _bar;
-        /// <summary>The slider at the hand's right: drag it to show more or less of the hand, down to none.</summary>
-        private readonly VisualElement _slider;
-        private readonly VisualElement _thumb;
+        /// <summary>The strip along the hand's top edge: drag it to show more or less of the hand, down to none.</summary>
+        private readonly VisualElement _grip;
         private float _barWidth;
         private float _screenWidth = 1200f;
 
@@ -55,16 +54,16 @@ namespace TableWorld.View.Hud
         public HandBar(VisualElement root, TableView table, TableInteraction interaction)
         {
             _bar = root.Q("handBar");
-            _slider = new VisualElement { name = "handSlider", tooltip = "Drag up or down: how much of your hand shows, down to hidden" };
-            _slider.AddToClassList("hand-slider");
-            _slider.AddToClassList("hidden");
-            _thumb = new VisualElement { name = "handSliderThumb", pickingMode = PickingMode.Ignore };
-            _thumb.AddToClassList("hand-slider-thumb");
-            _slider.Add(_thumb);
-            _slider.RegisterCallback<PointerDownEvent>(StartDrag);
-            _slider.RegisterCallback<PointerMoveEvent>(Drag);
-            _slider.RegisterCallback<PointerUpEvent>(EndDrag);
-            root.Add(_slider);
+            _grip = new VisualElement { name = "handGrip", tooltip = "Drag up or down: how much of your hand shows" };
+            _grip.AddToClassList("hand-grip");
+            _grip.AddToClassList("hidden");
+            var line = new VisualElement { pickingMode = PickingMode.Ignore };
+            line.AddToClassList("hand-grip-line");
+            _grip.Add(line);
+            _grip.RegisterCallback<PointerDownEvent>(StartDrag);
+            _grip.RegisterCallback<PointerMoveEvent>(Drag);
+            _grip.RegisterCallback<PointerUpEvent>(EndDrag);
+            root.Add(_grip);
             // A new screen size gives new card sizes.
             root.RegisterCallback<GeometryChangedEvent>(_ => _shownKey = null);
             _reveal = LoadReveal();
@@ -83,7 +82,7 @@ namespace TableWorld.View.Hud
             Layout();
         }
 
-        /// <summary>The hand is slid all the way down: hidden, only the slider shows.</summary>
+        /// <summary>The hand is dragged all the way down: hidden, only its edge at the screen's bottom remains.</summary>
         public bool Collapsed => _reveal <= 0.001f;
 
         /// <summary>The bar shows cards at the bottom of the screen (the HUD lifts bottom panels above it).</summary>
@@ -136,52 +135,49 @@ namespace TableWorld.View.Hud
             var full = _cardHeight + BottomPadding;
             _bar.style.height = full;
             _bar.style.bottom = Visible - full;
-            if (_slider != null)
+            if (_grip != null)
             {
-                // At the hand's right edge, as tall as a card; the thumb marks how much shows.
-                // Sizes follow the screen and the hand's width, so they are set in code.
-                _slider.style.left = _screenWidth / 2f + _barWidth / 2f + 14f;
-                _slider.style.height = _cardHeight;
-                _slider.style.bottom = BottomPadding;
-                _thumb.style.bottom = _reveal * Mathf.Max(0f, _cardHeight - ThumbSize);
-                _slider.EnableInClassList("hand-slider--hidden-hand", Collapsed);
+                // Along the top of the resting cards, as wide as the hand; at the screen's bottom when it is hidden.
+                // Both follow the screen and the cards, so they are set in code.
+                _grip.style.left = _screenWidth / 2f - _barWidth / 2f;
+                _grip.style.width = _barWidth;
+                _grip.style.bottom = Mathf.Max(0f, Visible - 3f);
+                _grip.EnableInClassList("hand-grip--hidden-hand", Collapsed);
+                // A raised card covers the edge; the edge would otherwise take the pointer and drop the card again.
+                _grip.pickingMode = _hovered != null && _dragFrom == null ? PickingMode.Ignore : PickingMode.Position;
             }
             foreach (var card in _bar.Children())
                 card.style.translate = card == _hovered ? new Translate(0f, -(full - Visible)) : new Translate(0f, 0f);
         }
 
-        public const float ThumbSize = 22f;
-
         private void StartDrag(PointerDownEvent evt)
         {
             if (evt.button != 0)
                 return;
-            _dragFrom = evt.position.y;
-            _slider.CapturePointer(evt.pointerId);
-            SlideTo(evt.localPosition.y);
+            // Where on the edge it was taken, so the hand does not jump to the pointer.
+            _dragFrom = Visible - Above(evt.position);
+            _grip.CapturePointer(evt.pointerId);
+            evt.StopPropagation();
         }
 
         private void Drag(PointerMoveEvent evt)
         {
-            if (_dragFrom == null)
+            if (_dragFrom is not { } offset)
                 return;
-            SlideTo(evt.localPosition.y);
+            // The cards' tops follow the pointer: up shows more, down to the screen's edge hides them.
+            SetReveal((Above(evt.position) + offset) / (_cardHeight + BottomPadding));
         }
 
-        /// <summary>The thumb follows the pointer: the top of the slider shows whole cards, the bottom hides the hand.</summary>
-        private void SlideTo(float localY)
-        {
-            var travel = Mathf.Max(1f, _cardHeight - ThumbSize);
-            SetReveal(1f - (localY - ThumbSize / 2f) / travel);
-        }
+        /// <summary>Panel pixels from the screen's bottom edge up to a pointer.</summary>
+        private float Above(Vector2 panelPosition) => (_grip.panel?.visualTree.worldBound.height ?? 800f) - panelPosition.y;
 
         private void EndDrag(PointerUpEvent evt)
         {
             if (_dragFrom == null)
                 return;
             _dragFrom = null;
-            if (_slider.HasPointerCapture(evt.pointerId))
-                _slider.ReleasePointer(evt.pointerId);
+            if (_grip.HasPointerCapture(evt.pointerId))
+                _grip.ReleasePointer(evt.pointerId);
         }
 
         /// <summary>The local seat's hand cards, left to right as the owner sees them.</summary>
@@ -220,7 +216,7 @@ namespace TableWorld.View.Hud
             _hovered = null;
             var shown = cards.Where(c => c.Id != held).ToList();
             _bar.EnableInClassList("hidden", shown.Count == 0 && held == null);
-            _slider?.EnableInClassList("hidden", shown.Count == 0);
+            _grip?.EnableInClassList("hidden", shown.Count == 0);
             var screen = _bar.panel?.visualTree.layout ?? new Rect(0f, 0f, 1200f, 800f);
             var screenHeight = float.IsNaN(screen.height) || screen.height <= 0f ? 800f : screen.height;
             var screenWidth = float.IsNaN(screen.width) || screen.width <= 0f ? 1200f : screen.width;

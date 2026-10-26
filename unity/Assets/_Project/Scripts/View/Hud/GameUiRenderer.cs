@@ -73,9 +73,7 @@ namespace TableWorld.View.Hud
             fold.AddToClassList("game-ui-fold");
             fold.clicked += () =>
             {
-                var folded = !body.ClassListContains("hidden");
-                body.EnableInClassList("hidden", folded);
-                fold.text = folded ? "+" : "\u2013";
+                SetFolded(root, body, !body.ClassListContains("hidden"));
                 Save(root, body, panel);
             };
             bar.Add(title);
@@ -115,13 +113,35 @@ namespace TableWorld.View.Hud
             return bar;
         }
 
+        /// <summary>A folded window shows only its bar: the panel's own padding and background go with the body.</summary>
+        private static void SetFolded(VisualElement root, VisualElement body, bool folded)
+        {
+            body.EnableInClassList("hidden", folded);
+            root.EnableInClassList("game-ui-panel--folded", folded);
+            if (root.Q<Button>(className: "game-ui-fold") is { } fold)
+                fold.text = folded ? "+" : "\u2013";
+        }
+
         /// <summary>Puts a window at a panel position (it leaves its anchor; where a player drags it is set from code).</summary>
         private static void PlaceAt(VisualElement root, Vector2 worldPosition)
         {
             var origin = root.parent?.worldBound.position ?? Vector2.zero;
-            root.AddToClassList("game-ui-panel--placed");
+            Unanchor(root);
             root.style.left = worldPosition.x - origin.x;
             root.style.top = worldPosition.y - origin.y;
+        }
+
+        /// <summary>
+        /// A placed window is held by its top left corner only. Its anchor's other edges (a bottom panel's bottom, which the
+        /// HUD lifts while the hand shows) would otherwise stretch it as it moves, so they are cleared here, after every
+        /// stylesheet rule.
+        /// </summary>
+        private static void Unanchor(VisualElement root)
+        {
+            root.AddToClassList("game-ui-panel--placed");
+            root.style.right = StyleKeyword.Auto;
+            root.style.bottom = StyleKeyword.Auto;
+            root.style.translate = new Translate(0f, 0f);
         }
 
         private void Save(VisualElement root, VisualElement body, PanelDef panel)
@@ -158,16 +178,12 @@ namespace TableWorld.View.Hud
             if (float.TryParse(parts[0], System.Globalization.NumberStyles.Float, culture, out var x) && !float.IsNaN(x) &&
                 float.TryParse(parts[1], System.Globalization.NumberStyles.Float, culture, out var y) && !float.IsNaN(y))
             {
-                root.AddToClassList("game-ui-panel--placed");
+                Unanchor(root);
                 root.style.left = x;
                 root.style.top = y;
             }
             if (parts[2] == "1")
-            {
-                body.AddToClassList("hidden");
-                if (root.Q<Button>(className: "game-ui-fold") is { } fold)
-                    fold.text = "+";
-            }
+                SetFolded(root, body, true);
         }
 
         public void Refresh()
