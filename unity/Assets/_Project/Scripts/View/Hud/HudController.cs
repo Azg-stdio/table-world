@@ -29,6 +29,7 @@ namespace TableWorld.View.Hud
         private Button _blindButton;
         private ActionPicker _picker;
         private DiceTotalsView _diceTotals;
+        private CalculatorPanel _calculator;
         private readonly CardImages _choiceImages = new CardImages();
         private string _followedTurn;
         private string _shownBlind;
@@ -174,6 +175,7 @@ namespace TableWorld.View.Hud
             _root.Q<Button>("saveButton").clicked += Save;
             _picker = new ActionPicker(_root);
             _diceTotals = new DiceTotalsView(_root, _table);
+            _calculator = new CalculatorPanel(_root, _root.Q<Button>("calculatorButton"));
             _blindButton = _root.Q<Button>("blindButton");
             if (_blindButton != null)
                 _blindButton.clicked += ToggleBlindRound;

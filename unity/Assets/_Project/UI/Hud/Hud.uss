@@ -52,6 +52,56 @@
     background-color: rgba(255, 255, 255, 0.06);
 }
 
+/* The pocket calculator (CalculatorPanel), under the top bar on the right. */
+.calculator {
+    position: absolute;
+    top: 64px;
+    right: 12px;
+    width: 220px;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: rgba(16, 18, 22, 0.94);
+}
+
+.calculator-history {
+    min-height: 18px;
+    font-size: 14px;
+    -unity-text-align: middle-right;
+    color: rgb(170, 166, 156);
+}
+
+.calculator-display {
+    margin-bottom: 8px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background-color: rgb(30, 34, 40);
+    font-size: 28px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-right;
+    color: rgb(255, 252, 244);
+}
+
+.calculator-row {
+    flex-direction: row;
+}
+
+.calculator-key {
+    flex-grow: 1;
+    height: 38px;
+    margin: 2px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
+    background-color: rgb(46, 52, 62);
+    font-size: 18px;
+    -unity-text-align: middle-center;
+    color: rgb(240, 236, 226);
+}
+
+.calculator-key--op {
+    background-color: rgb(84, 70, 40);
+}
+
 /* Dice zones (DiceTotalsView): the total over the zone, each player's share under it. */
 .dice-totals {
     position: absolute;
