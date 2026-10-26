@@ -35,13 +35,17 @@ namespace Core.Net
         public int EmoteCount { get; set; }
         /// <summary>The object under the player's pointer, or null (the host's scripts hear it: TTS onObjectHover).</summary>
         public string? Hover { get; set; }
+        /// <summary>What the player has selected: everyone sees it outlined in their colour (TTS, G3).</summary>
+        public List<string> Selected { get; set; } = new List<string>();
     }
 
-    /// <summary>Presence frames on the wire: <c>{ kind: "presence", seat, seq, pointer?, gaze?, emote?: { name, n }, hover?, held: [{ id, p, r }] }</c>.</summary>
+    /// <summary>Presence frames on the wire: <c>{ kind: "presence", seat, seq, pointer?, gaze?, emote?: { name, n }, hover?, sel?: [id], held: [{ id, p, r }] }</c>.</summary>
     public static class PresenceCodec
     {
         /// <summary>A frame carrying more held objects than this is refused (a TTS player can carry a big group, not the table).</summary>
         public const int MaxHeld = 128;
+        /// <summary>A frame selecting more than this is refused; the sender trims its list to it.</summary>
+        public const int MaxSelected = 512;
         /// <summary>Coordinates beyond this many metres are nonsense and refused.</summary>
         public const float MaxCoordinate = 1000f;
 
@@ -54,6 +58,7 @@ namespace Core.Net
             ["gaze"] = frame.Gaze is { } g ? new JArray(g.X, g.Y, g.Z) : null,
             ["emote"] = frame.Emote != null ? new JObject { ["name"] = frame.Emote, ["n"] = frame.EmoteCount } : null,
             ["hover"] = frame.Hover,
+            ["sel"] = frame.Selected.Count > 0 ? new JArray(frame.Selected) : null,
             ["held"] = new JArray(frame.Held.Select(h => new JObject
             {
                 ["id"] = h.Id,
@@ -93,6 +98,17 @@ namespace Core.Net
                 if (hovered.Length == 0 || hovered.Length > 64)
                     return null;
                 frame.Hover = hovered;
+            }
+            if (message["sel"] is JArray selected)
+            {
+                if (selected.Count > MaxSelected)
+                    return null;
+                foreach (var entry in selected)
+                {
+                    if (!(entry is JValue { Value: string id }) || id.Length == 0 || id.Length > 64)
+                        return null;
+                    frame.Selected.Add(id);
+                }
             }
             if (message["held"] is JArray held)
             {

@@ -23,6 +23,8 @@ namespace TableWorld.View.Net
         private readonly Dictionary<string, (string Seat, Vector3 Position, Quaternion Rotation)> _carried = new Dictionary<string, (string, Vector3, Quaternion)>();
         private readonly List<(string Seat, Vector3 Position, Color Color)> _shownPointers = new List<(string, Vector3, Color)>();
         private Material _unlit;
+        /// <summary>Objects other players have selected, with the seat that did (G3).</summary>
+        private readonly Dictionary<string, string> _selected = new Dictionary<string, string>();
 
         /// <summary>Another player picked something up (for its sound).</summary>
         public event System.Action<ObjectView> RemotePickedUp;
@@ -61,6 +63,24 @@ namespace TableWorld.View.Net
             foreach (var pair in _pointers)
                 if (!seen.Contains(pair.Key))
                     pair.Value.SetActive(false);
+
+            // Other players' selections, outlined in their colour as TTS does (G3); the latest frame wins an object.
+            var selectedNow = new Dictionary<string, string>();
+            foreach (var (_, frame) in others)
+                foreach (var id in frame.Selected)
+                    selectedNow[id] = frame.Seat;
+            foreach (var pair in _selected.Where(p => !selectedNow.TryGetValue(p.Key, out var seat) || seat != p.Value).ToList())
+            {
+                Outline.Set(_table.ViewOf(pair.Key), "selected-by-other", null);
+                _selected.Remove(pair.Key);
+            }
+            foreach (var pair in selectedNow)
+                // New, or its view was rebuilt (a state change) and lost the outline.
+                if (_table.ViewOf(pair.Key) is { } selectedView && (!_selected.ContainsKey(pair.Key) || Outline.ColorOf(selectedView) == null))
+                {
+                    Outline.Set(selectedView, "selected-by-other", ColorOf(pair.Value));
+                    _selected[pair.Key] = pair.Value;
+                }
 
             // Carried objects.
             var carriedNow = new Dictionary<string, (string, Vector3, Quaternion)>();

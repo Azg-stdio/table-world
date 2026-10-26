@@ -124,7 +124,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 |---|---|---|---|---|
 | G1 | Seeing others move things | a held object moves live on every screen | ✅ presence frames (15/s, unreliable) carry held poses; others see it glide and fall when dropped (2026-10-23) | P1 |
 | G2 | Other players' pointers | each player's hand cursor, in their colour, with their name | ✅ marker in the seat colour plus a name label | P1 |
-| G3 | Who holds / selected what | outline in the holder's colour | ✅ for held objects (outlined around their shape in the holder's colour since 2026-10-25; others cannot grab it: "seat_x is holding that"); others' box selections not shown yet | P1 |
+| G3 | Who holds / selected what | outline in the holder's colour | ✅ held objects are outlined around their shape in the holder's colour (others cannot grab them: "seat_x is holding that"); since 2026-10-25 every player's selection is outlined in their colour on every machine too (presence `sel`, `SelectionPresenceTests`) | P1 |
 | G4 | Controls help | `?` / Help menu lists every binding | ✅ F1, `?` or the Controls button; grouped list of every binding (`ControlsHelp.cs`, keep in step with this file); Escape closes; the wheel scrolls it, not the camera (2026-10-23) | P1 |
 | G5 | Sound | pick up, drop, card slide, shuffle, dice, chips | ✅ Kenney CC0 packs: pickups by kind, landings from real impacts (louder for harder hits), shuffle, roll, deal, flip, ping; others' actions sound too; silent while a table settles after loading (2026-10-23). Volume in Settings (G13) | P1 |
 | G6 | Deck count | hovering a deck or bag shows how many items | ✅ "52 cards", "3 items", "endless" under the name (2026-10-23) | P1 |
