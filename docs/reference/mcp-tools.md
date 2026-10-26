@@ -176,7 +176,7 @@ Perform a rules action as a seat, e.g. seat 'seat_south', action 'play_card', pa
 
 ### `place_object`
 
-Place any table object from JSON: Card, Deck, Token, Tile, Die, Bag, InfiniteBag, Board, Figure, Model. Example: {"id":"d6","type":"Die","faces":6,"transform":{"position":[0.3,0,0]}}. With seat, the object goes in front of that seat's hand and faces it (a character card, a player board): inward metres towards the centre, along metres to the player's right; its own rotation then only adds a flip (rotation z 180 = face down). Replaces an object with the same id. Check placements with screenshot. See get_rules_reference for the format.
+Place any table object from JSON: Card, Deck, Token, Tile, Die, Bag, InfiniteBag, Board, Figure, Model, Counter, Clock, Notecard, Calculator (players press its keys or type while it is selected). Example: {"id":"d6","type":"Die","faces":6,"transform":{"position":[0.3,0,0]}}. With seat, the object goes in front of that seat's hand and faces it (a character card, a player board): inward metres towards the centre, along metres to the player's right; its own rotation then only adds a flip (rotation z 180 = face down). Replaces an object with the same id. Check placements with screenshot. See get_rules_reference for the format.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|

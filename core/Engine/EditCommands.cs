@@ -126,6 +126,21 @@ namespace Core.Engine
     }
 
     /// <summary>Sets a counter to <see cref="Value"/>, or adds <see cref="Add"/> to it (G27). Works on locked counters too.</summary>
+    /// <summary>A key pressed on a table calculator (<see cref="Calculator.Keys"/>).</summary>
+    public sealed class PressCalculatorKeyCommand : Command
+    {
+        public string ObjectId { get; set; } = "";
+        public string Key { get; set; } = "";
+    }
+
+    /// <summary>A player puts a calculator on the table (any player may: it is a known, harmless object).</summary>
+    public sealed class AddCalculatorCommand : Command
+    {
+        public Vec3 Position { get; set; }
+        /// <summary>Degrees about the vertical, so it reads upright for whoever placed it.</summary>
+        public float Yaw { get; set; }
+    }
+
     public sealed class SetCounterCommand : Command
     {
         public string ObjectId { get; set; } = "";

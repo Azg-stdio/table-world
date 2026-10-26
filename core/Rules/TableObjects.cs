@@ -317,6 +317,102 @@ namespace Core.Rules
         public int Value { get; set; }
     }
 
+    /// <summary>
+    /// A pocket calculator lying on the table (TTS has one too): players press its keys with the pointer, or type on the
+    /// keyboard while it is selected. Its display is part of the table, so everyone sees the same sum. A basic
+    /// calculator: each operator applies to the running total.
+    /// </summary>
+    public sealed class Calculator : TableObject
+    {
+        public static readonly Vec2 Size = new Vec2(0.075f, 0.11f);
+        public const int MaxDigits = 9;
+
+        /// <summary>What the display shows.</summary>
+        public string Display { get; set; } = "0";
+        /// <summary>The running total, the number being typed, the operator waiting for it, and whether = just ended a sum.</summary>
+        public double Total { get; set; }
+        public string Entry { get; set; } = "";
+        public string Op { get; set; } = "";
+        public bool Fresh { get; set; } = true;
+
+        /// <summary>The keys, as <see cref="Press"/> takes them.</summary>
+        public const string Keys = "0123456789+-*/=C<";
+
+        /// <summary>Presses a key: a digit, + - * /, = , C (clear) or &lt; (rub out the last digit). False for anything else.</summary>
+        public bool Press(char key)
+        {
+            if (char.IsDigit(key))
+            {
+                if (Entry.Length < MaxDigits)
+                    Entry = Entry == "0" ? key.ToString() : Entry + key;
+                Display = Entry;
+                return true;
+            }
+            switch (key)
+            {
+                case 'C':
+                    Total = 0;
+                    Entry = "";
+                    Op = "";
+                    Fresh = true;
+                    Display = "0";
+                    return true;
+                case '<':
+                    if (Entry.Length > 0)
+                    {
+                        Entry = Entry.Substring(0, Entry.Length - 1);
+                        Display = Entry.Length > 0 ? Entry : "0";
+                    }
+                    return true;
+                case '=':
+                    Apply();
+                    Op = "";
+                    Fresh = true;
+                    Display = Format(Total);
+                    return true;
+                case '+':
+                case '-':
+                case '*':
+                case '/':
+                    Apply();
+                    // An operator right after = goes on from the result.
+                    Fresh = false;
+                    Op = key.ToString();
+                    Display = Format(Total);
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private void Apply()
+        {
+            if (Entry.Length == 0)
+                return;
+            var value = double.Parse(Entry, System.Globalization.CultureInfo.InvariantCulture);
+            Entry = "";
+            if (Fresh || Op.Length == 0)
+            {
+                Total = value;
+                Fresh = false;
+                return;
+            }
+            Total = Op switch
+            {
+                "+" => Total + value,
+                "-" => Total - value,
+                "*" => Total * value,
+                "/" => value == 0 ? 0 : Total / value,
+                _ => value,
+            };
+        }
+
+        public static string Format(double value) =>
+            Math.Abs(value - Math.Round(value)) < 1e-9
+                ? Math.Round(value).ToString(System.Globalization.CultureInfo.InvariantCulture)
+                : value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+    }
+
     public enum ClockMode
     {
         /// <summary>The time of day, on each player's own clock.</summary>
@@ -390,7 +486,7 @@ namespace Core.Rules
     {
         public static readonly IReadOnlyDictionary<string, Type> ByName = Build(
             typeof(Card), typeof(Deck), typeof(Token), typeof(Tile), typeof(Die),
-            typeof(Model), typeof(Bag), typeof(InfiniteBag), typeof(Board), typeof(Figure), typeof(Counter), typeof(Clock), typeof(Notecard), typeof(Pdf));
+            typeof(Model), typeof(Bag), typeof(InfiniteBag), typeof(Board), typeof(Figure), typeof(Counter), typeof(Clock), typeof(Notecard), typeof(Pdf), typeof(Calculator));
 
         internal static IReadOnlyDictionary<string, Type> Build(params Type[] types)
         {

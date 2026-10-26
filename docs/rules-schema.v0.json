@@ -211,6 +211,9 @@
         },
         {
           "$ref": "#/$defs/Pdf"
+        },
+        {
+          "$ref": "#/$defs/Calculator"
         }
       ]
     },
@@ -2257,6 +2260,129 @@
           },
           "minItems": 2,
           "maxItems": 2
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "Calculator": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "Calculator"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "gmNotes": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "invisibleTo": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "meshHidden": {
+          "type": "boolean"
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "container": {
+          "type": "string"
+        },
+        "snap": {
+          "type": "boolean"
+        },
+        "tooltip": {
+          "type": "boolean"
+        },
+        "hands": {
+          "type": "boolean"
+        },
+        "hideWhenFaceDown": {
+          "type": "boolean"
+        },
+        "grid": {
+          "type": "boolean"
+        },
+        "tint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "loopingEffect": {
+          "type": "integer"
+        },
+        "joint": {
+          "$ref": "#/$defs/JointDef"
+        },
+        "states": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/TableObject"
+          }
+        },
+        "script": {
+          "type": "string"
+        },
+        "scriptState": {
+          "type": "string"
+        },
+        "buttons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ButtonDef"
+          }
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InputDef"
+          }
+        },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
+          }
+        },
+        "ttsExtra": {
+          "type": "object"
+        },
+        "display": {
+          "type": "string"
+        },
+        "total": {
+          "type": "number"
+        },
+        "entry": {
+          "type": "string"
+        },
+        "op": {
+          "type": "string"
+        },
+        "fresh": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,

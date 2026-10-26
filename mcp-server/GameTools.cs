@@ -310,7 +310,7 @@ namespace TableWorld.Mcp
                     Upsert(doc, "objects", Piece($"{id}_piece{(i == 0 ? "" : "_" + (i + 1))}", x, z, id));
             }), session));
 
-        [McpServerTool(Name = "place_object"), Description("Place any table object from JSON: Card, Deck, Token, Tile, Die, Bag, InfiniteBag, Board, Figure, Model. Example: {\"id\":\"d6\",\"type\":\"Die\",\"faces\":6,\"transform\":{\"position\":[0.3,0,0]}}. With seat, the object goes in front of that seat's hand and faces it (a character card, a player board): inward metres towards the centre, along metres to the player's right; its own rotation then only adds a flip (rotation z 180 = face down). Replaces an object with the same id. Check placements with screenshot. " + Format)]
+        [McpServerTool(Name = "place_object"), Description("Place any table object from JSON: Card, Deck, Token, Tile, Die, Bag, InfiniteBag, Board, Figure, Model, Counter, Clock, Notecard, Calculator (players press its keys or type while it is selected). Example: {\"id\":\"d6\",\"type\":\"Die\",\"faces\":6,\"transform\":{\"position\":[0.3,0,0]}}. With seat, the object goes in front of that seat's hand and faces it (a character card, a player board): inward metres towards the centre, along metres to the player's right; its own rotation then only adds a flip (rotation z 180 = face down). Replaces an object with the same id. Check placements with screenshot. " + Format)]
         public static string PlaceObject(GameSession session, [Description("The object as JSON.")] string objectJson,
             [Description("Seat id to place it for: in front of that seat, facing it.")] string? seat = null,
             [Description("With seat: metres from the hand towards the centre.")] float inward = 0.15f,

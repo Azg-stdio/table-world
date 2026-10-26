@@ -334,6 +334,8 @@ namespace Core.Engine
             SpreadCommand c => Spread(c),
             SetDieValueCommand c => SetDieValue(c),
             SetCounterCommand c => SetCounter(c),
+            PressCalculatorKeyCommand c => PressCalculatorKey(c),
+            AddCalculatorCommand c => AddCalculator(c),
             SetClockCommand c => SetClock(c),
             SetPropertiesCommand c => SetProperties(c),
             ArrangeZoneCommand c => ArrangeZone(c),

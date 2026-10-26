@@ -29,7 +29,6 @@ namespace TableWorld.View.Hud
         private Button _blindButton;
         private ActionPicker _picker;
         private DiceTotalsView _diceTotals;
-        private CalculatorPanel _calculator;
         private ShowcaseView _showcase;
         private readonly CardImages _choiceImages = new CardImages();
         private string _followedTurn;
@@ -176,7 +175,8 @@ namespace TableWorld.View.Hud
             _root.Q<Button>("saveButton").clicked += Save;
             _picker = new ActionPicker(_root);
             _diceTotals = new DiceTotalsView(_root, _table);
-            _calculator = new CalculatorPanel(_root, _root.Q<Button>("calculatorButton"));
+            if (_root.Q<Button>("calculatorButton") is { } calculator)
+                calculator.clicked += AddCalculator;
             _showcase = new ShowcaseView(_root);
             _blindButton = _root.Q<Button>("blindButton");
             if (_blindButton != null)
@@ -517,6 +517,27 @@ namespace TableWorld.View.Hud
                 AddGameButton($"Start: {n} players", () => Start(SeatLayout.Spread(seats, count)));
             }
         }
+
+        /// <summary>
+        /// The tool bar's Calculator: a calculator put on the table in front of your seat, facing you (press its keys, or
+        /// type while it is selected). Everyone sees its display.
+        /// </summary>
+        private void AddCalculator()
+        {
+            var state = _table.Engine.State;
+            var seat = state.Players.Seats.FirstOrDefault(s => s.Id == _table.LocalSeat);
+            var hand = seat == null ? null : state.Zones.FirstOrDefault(z => z.Id == seat.HandZone);
+            var place = new SeatLayout.Place { Position = hand?.Transform.Position ?? new Vec3(0f, 0f, -0.3f), Yaw = hand?.Transform.Rotation.Y ?? 0f };
+            var at = hand != null ? SeatLayout.InFrontOf(place, along: 0.24f, inward: 0.2f) : new Vec3(0.3f, 0f, -0.15f);
+            var result = _table.Execute(new AddCalculatorCommand { Position = at, Yaw = place.Yaw + CalculatorYawOffset, Actor = _table.LocalSeat });
+            if (!result.Ok)
+                ShowStatus(result.Error.Message, error: true);
+            else if (_table.ViewOf(result.CreatedId) is { } placed)
+                _interaction?.Select(placed);
+        }
+
+        /// <summary>Turn that makes a calculator's face read upright for the seat whose hand has yaw 0 (south).</summary>
+        public const float CalculatorYawOffset = 0f;
 
         /// <summary>A seat chip glows while its player talks; your own while your microphone sends.</summary>
         private void UpdateTalking()
@@ -865,7 +886,7 @@ namespace TableWorld.View.Hud
             if (command.ByScript)
                 return;
             // Moves and strokes are too frequent for the status line (strokes are in the game log).
-            if (result.Ok && (command is MoveCommand || command is AddDrawingCommand || command is EraseDrawingCommand ||
+            if (result.Ok && (command is MoveCommand || command is PressCalculatorKeyCommand || command is AddDrawingCommand || command is EraseDrawingCommand ||
                               command is DropCommand || command is PickUpCommand || command is PeekCommand || command is BlindfoldCommand ||
                               command is SetButtonsCommand || command is ClickButtonCommand || command is SetScriptUiCommand ||
                               command is SetUiAttributesCommand || command is UiEventCommand || command is SetInputsCommand ||

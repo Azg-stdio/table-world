@@ -89,7 +89,7 @@ namespace TableWorld.View.Hud
                 ("{Blindfold}", "Blindfold on or off (everyone is told)"),
                 ("Blind round (left tool bar)", "Until the reveal, what each player moves is hidden from the others; Reveal shows it all"),
                 ("Right click a card → Show to everyone", "The card comes up big on every screen, to read it out; click it away"),
-                ("Calculator (left tool bar)", "A pocket calculator for totals and damage, only on your screen"),
+                ("Calculator (left tool bar)", "Puts a calculator on the table: click its keys, or select it and type (digits, + - * /, Enter, Backspace, C)"),
                 ("Right click a piece → Hide from others", "Only you see it (a secret bid or chip); Show to everyone brings it back"),
                 ("F1 or ?", "This list"),
                 ("Notes (top bar)", "The table's notebook: shared pages, and private ones for your seat"),

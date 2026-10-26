@@ -340,6 +340,28 @@ namespace Core.Engine
             return CommandResult.Success(new List<StateEvent> { new ObjectUpdated(pdf.Id) });
         }
 
+        private CommandResult PressCalculatorKey(PressCalculatorKeyCommand c)
+        {
+            if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: true) is { } fail)
+                return fail;
+            if (!(obj is Calculator calculator))
+                return CommandResult.Fail("objectId", ErrorCodes.InvalidValue, $"'{c.ObjectId}' is not a calculator.");
+            if (c.Key.Length != 1 || !calculator.Press(c.Key[0]))
+                return CommandResult.Fail("key", ErrorCodes.InvalidValue, $"'{c.Key}' is not a calculator key.", $"Keys: {Calculator.Keys}.");
+            return CommandResult.Success(new List<StateEvent> { new ObjectUpdated(obj.Id) });
+        }
+
+        private CommandResult AddCalculator(AddCalculatorCommand c)
+        {
+            var calculator = new Calculator { Id = Mint("calculator"), Name = "Calculator" };
+            calculator.Transform.Position = c.Position;
+            calculator.Transform.Rotation = new Vec3(0f, c.Yaw, 0f);
+            AddObject(calculator);
+            var result = CommandResult.Success(new List<StateEvent> { new ObjectAdded(calculator.Id) });
+            result.CreatedId = calculator.Id;
+            return result;
+        }
+
         private CommandResult SetCounter(SetCounterCommand c)
         {
             if (RequireOnTable(c.ObjectId, "objectId", out var obj, allowLocked: true) is { } fail)

@@ -208,6 +208,15 @@ namespace TableWorld.View
                     SetPrism(view, MeshFactory.Box(size), readout.Material, case_, case_, 0.06f);
                     break;
                 }
+                case Calculator _:
+                {
+                    // A pocket calculator: its keys and display drawn on top; a click on a key presses it.
+                    var face = view.TryGetComponent(out CalculatorFace existingFace) ? existingFace : view.gameObject.AddComponent<CalculatorFace>();
+                    face.Init(view);
+                    var body = assets.Plain(model.Tint.ToColor(new Color(0.15f, 0.16f, 0.18f)), 0.45f);
+                    SetPrism(view, MeshFactory.Box(new Vector3(Calculator.Size.X, 0.012f, Calculator.Size.Y)), face.Material, body, body, 0.08f);
+                    break;
+                }
                 case Notecard _:
                 {
                     // Paper with its title and text printed on top (G27).

@@ -46,6 +46,9 @@ namespace TableWorld.View
         public const float HoldToLiftSeconds = 0.35f;
 
         private ObjectView _pressedContainer;
+        /// <summary>A calculator pressed and not yet dragged: a release in place presses the key under the pointer.</summary>
+        private ObjectView _pressedCalculator;
+        private Vector3 _calculatorPoint;
 
         [SerializeField] private TableView _table;
         [SerializeField] private Camera _camera;
@@ -398,6 +401,11 @@ namespace TableWorld.View
                         SetSelection(new[] { Hovered });
                         if (IsFullContainer(Hovered.Model) && !shift)
                             _pressedContainer = Hovered;
+                        else if (Hovered.Model is Calculator && !shift)
+                        {
+                            _pressedCalculator = Hovered;
+                            _calculatorPoint = hoverHit.point;
+                        }
                         else
                             Grab(Hovered, moveContainer: shift);
                     }
@@ -431,6 +439,23 @@ namespace TableWorld.View
                         ClearSelection();
                     _boxing = false;
                     BoxRect = null;
+                }
+            }
+
+            // A calculator: a click presses the key under the pointer, a drag picks the calculator up.
+            if (_pressedCalculator != null)
+            {
+                if (!mouse.leftButton.isPressed)
+                {
+                    if (IsClick(pointer, _leftDown, _leftTime))
+                        PressCalculator(_pressedCalculator, _calculatorPoint);
+                    _pressedCalculator = null;
+                }
+                else if (Vector2.Distance(pointer, _leftDown) > ClickMaxPixels)
+                {
+                    var calculator = _pressedCalculator;
+                    _pressedCalculator = null;
+                    Grab(calculator, moveContainer: false);
                 }
             }
 
@@ -545,6 +570,10 @@ namespace TableWorld.View
         {
             var targets = KeyTargets();
             var target = targets.Count > 0 ? targets[0] : null;
+
+            // A selected calculator takes the number keys, operators, Enter, Backspace and C before anything else.
+            if (!ctrl && Selected != null && Selected.Model is Calculator && TypeOnCalculator(keyboard, shift))
+                return;
 
             if (ctrl)
             {
@@ -1122,6 +1151,41 @@ namespace TableWorld.View
             card.SnapToState();
             _table.PresentHands();
             return true;
+        }
+
+        /// <summary>Presses the key of <paramref name="calculator"/> under <paramref name="worldPoint"/>, if there is one.</summary>
+        public bool PressCalculator(ObjectView calculator, Vector3 worldPoint)
+        {
+            if (_table.Spectating || !(CalculatorFace.KeyAt(calculator.transform, worldPoint) is { } key))
+                return false;
+            return PressCalculatorKey(calculator, key);
+        }
+
+        public bool PressCalculatorKey(ObjectView calculator, char key) =>
+            _table.Execute(new PressCalculatorKeyCommand { ObjectId = calculator.Id, Key = key.ToString(), Actor = _table.LocalSeat }).Ok;
+
+        /// <summary>Keyboard typing into the selected calculator; true when a key went to it.</summary>
+        private bool TypeOnCalculator(Keyboard keyboard, bool shift)
+        {
+            char? key = null;
+            for (var n = 0; n <= 9 && key == null; n++)
+            {
+                if (keyboard[Key.Numpad0 + n].wasPressedThisFrame)
+                    key = (char)('0' + n);
+                else if (keyboard[Key.Digit0 + n].wasPressedThisFrame)
+                    key = shift && n == 8 ? '*' : (char)('0' + n);
+            }
+            if (key == null)
+            {
+                if (keyboard.numpadPlusKey.wasPressedThisFrame || shift && keyboard.equalsKey.wasPressedThisFrame) key = '+';
+                else if (keyboard.numpadMinusKey.wasPressedThisFrame || keyboard.minusKey.wasPressedThisFrame) key = '-';
+                else if (keyboard.numpadMultiplyKey.wasPressedThisFrame) key = '*';
+                else if (keyboard.numpadDivideKey.wasPressedThisFrame || keyboard.slashKey.wasPressedThisFrame) key = '/';
+                else if (keyboard.equalsKey.wasPressedThisFrame || keyboard.enterKey.wasPressedThisFrame || keyboard.numpadEnterKey.wasPressedThisFrame) key = '=';
+                else if (keyboard.backspaceKey.wasPressedThisFrame) key = '<';
+                else if (keyboard.cKey.wasPressedThisFrame) key = 'C';
+            }
+            return key is { } k && PressCalculatorKey(Selected, k);
         }
 
         // ---- object actions -------------------------------------------------------------------------------------

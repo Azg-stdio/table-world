@@ -146,7 +146,7 @@
             <ui:Button name="toolErase" class="tool-button" text="Erase" tooltip="Drag over drawings to erase them" />
             <ui:Button name="toolGizmo" class="tool-button" text="Gizmo" tooltip="Click an object to place it exactly" />
             <ui:Button name="blindButton" class="tool-button tool-button--gap" text="Blind round" />
-            <ui:Button name="calculatorButton" class="tool-button" text="Calculator" tooltip="A pocket calculator, on your screen only" />
+            <ui:Button name="calculatorButton" class="tool-button" text="Calculator" tooltip="Put a calculator on the table in front of you: press its keys, or type while it is selected" />
         </ui:VisualElement>
         <ui:VisualElement name="gamePanel" class="game-panel hidden">
             <ui:Label name="gameLog" class="game-log" />
