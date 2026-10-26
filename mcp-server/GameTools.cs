@@ -117,6 +117,35 @@ namespace TableWorld.Mcp
                 Upsert(doc, "objects", deck);
             }), session));
 
+        [McpServerTool(Name = "set_notebook"), Description("Write a page of the table's notebook (Notes in the top bar), which every player can open while playing: put the rulebook there (one page per chapter reads best: Setup, Turn, Combat...), a quick reference, a scenario. seat makes the page private to that seat. Up to 64 pages of 50 000 characters. Empty text removes the page. For a PDF rulebook use add_asset (type pdf) and place_object {type: Pdf} instead: players click it to read.")]
+        public static string SetNotebook(GameSession session,
+            [Description("Page id, e.g. 'rules_setup'.")] string id,
+            [Description("Tab title, up to 64 characters.")] string title,
+            [Description("The page's text; empty removes the page.")] string text,
+            [Description("Seat id to make the page private to; empty for everyone.")] string? seat = null) =>
+            session.Locked(() => Reply(session.Edit(doc =>
+            {
+                var pages = doc["notebook"] as JArray ?? new JArray();
+                var existing = pages.FirstOrDefault(p => (string?)p["id"] == id);
+                if (text.Length == 0)
+                {
+                    existing?.Remove();
+                    doc["notebook"] = pages;
+                    return;
+                }
+                if (title.Length > NoteTab.MaxTitle || text.Length > NoteTab.MaxBody)
+                    throw new EditException(new ValidationError("text", ErrorCodes.InvalidValue, $"A page holds a title of up to {NoteTab.MaxTitle} characters and up to {NoteTab.MaxBody:N0} characters of text.", "Split it into several pages."));
+                if (existing == null && pages.Count >= NoteTab.MaxTabs)
+                    throw new EditException(new ValidationError("id", ErrorCodes.InvalidValue, $"The notebook holds up to {NoteTab.MaxTabs} pages."));
+                var color = seat == null ? null : session.Current.Players.Seats.FirstOrDefault(x => x.Id == seat)?.Color
+                    ?? throw new EditException(new ValidationError("seat", ErrorCodes.UnknownSeat, $"Seat '{seat}' does not exist."));
+                var page = new JObject { ["id"] = id, ["title"] = title, ["body"] = text };
+                if (color != null) page["color"] = color;
+                if (existing != null) existing.Replace(page);
+                else pages.Add(page);
+                doc["notebook"] = pages;
+            }), session));
+
         [McpServerTool(Name = "screenshot"), Description("Look at the table in the game window: returns a picture with the HUD. view: 'seat' (as that seat's player sits, default the first seat), 'top' (the whole table from above), 'object' (target up close: check a card's face, a token's size), 'current' (what is on screen). Use it after placing things to check positions, facing, sizes and readability; needs the game window open.")]
         public static IEnumerable<ContentBlock> Screenshot(GameSession session,
             [Description("seat, top, object or current.")] string view = "seat",

@@ -75,6 +75,15 @@ right seat, that cards are readable and that nothing overlaps. It needs the game
 screenshot {"view": "top"}
 ```
 
+**`set_notebook`**: a page of the table's notebook, which players open from Notes in the top bar while they play:
+the rulebook (a page per chapter), a quick reference, a scenario, or a page private to one seat. A PDF rulebook goes on
+the table instead, as a `Pdf` object players click to read.
+
+```call
+set_notebook {"id": "rules_turn", "title": "The turn", "text": "1. Reveal a day/night card.
+2. Spin the roulette."}
+```
+
 **`set_script`**: Lua for the table, for what the rules format cannot say: the global script (`target` `global`),
 whose functions rules call with a `lua` effect, or an object's script (buttons, reactions to drops). The code is
 checked for syntax errors first. [Rules and scripting](rules-and-scripting.md) explains the `Game` functions.

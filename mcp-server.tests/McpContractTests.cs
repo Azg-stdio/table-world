@@ -89,7 +89,7 @@ namespace TableWorld.Mcp.Tests
             {
                 "add_action", "add_asset", "add_event", "add_phase", "add_resource", "ask_host", "create_deck", "create_supply", "create_text_deck", "deal", "define_zone",
                 "get_rules_document", "get_rules_reference", "get_table_state", "load_game", "new_game", "perform_action",
-                "place_object", "remove", "reset_game", "run_lua", "save_game", "screenshot", "set_rules_document", "set_script", "set_turn", "set_variables",
+                "place_object", "remove", "reset_game", "run_lua", "save_game", "screenshot", "set_notebook", "set_rules_document", "set_script", "set_turn", "set_variables",
                 "set_win_condition", "start_game", "table_action", "validate_rules",
             };
             Assert.Equal(expected, tools);
@@ -338,6 +338,19 @@ namespace TableWorld.Mcp.Tests
             Ok(await Call("validate_rules"));
             var bad = await Call("create_supply", ("id", "x"), ("piece", "spaceship"));
             Assert.Equal("invalid_value", (string?)bad["errors"]![0]!["code"]);
+        }
+
+        [Fact]
+        public async Task SetNotebook_PutsTheRulesOnTheTable()
+        {
+            Ok(await Call("new_game", ("id", "booked"), ("name", "Booked"), ("players", 2)));
+            Ok(await Call("set_notebook", ("id", "rules_turn"), ("title", "El turno"), ("text", "1. Revela una carta de día/noche.")));
+            Ok(await Call("set_notebook", ("id", "secret"), ("title", "Your mission"), ("text", "Win quietly."), ("seat", "seat_north")));
+            var notebook = (await Call("get_rules_document"))["notebook"]!;
+            Assert.Equal(2, notebook.Count());
+            Assert.Equal("blue", (string?)notebook.First(p => (string?)p["id"] == "secret")["color"]);
+            Ok(await Call("set_notebook", ("id", "secret"), ("title", "x"), ("text", "")));
+            Assert.Single((await Call("get_rules_document"))["notebook"]!);
         }
 
         [Fact]
