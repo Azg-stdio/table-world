@@ -35,6 +35,24 @@ namespace Core.Rules
             return Newtonsoft.Json.Linq.JToken.DeepEquals(Signature(a), Signature(b));
         }
 
+        /// <summary>
+        /// True when <paramref name="a"/> is the same piece as <paramref name="b"/>, stackable or not: what an infinite bag
+        /// takes back from its template (a coin from the bank). Copies get new ids for their states too, so states are
+        /// compared without them.
+        /// </summary>
+        public static bool SamePiece(TableObject a, TableObject b)
+        {
+            if (a == b || a.GetType() != b.GetType())
+                return false;
+            var sa = Signature(a);
+            var sb = Signature(b);
+            foreach (var json in new[] { sa, sb })
+                if (json["states"] is Newtonsoft.Json.Linq.JObject states)
+                    foreach (var state in states.Properties())
+                        (state.Value as Newtonsoft.Json.Linq.JObject)?.Remove("id");
+            return Newtonsoft.Json.Linq.JToken.DeepEquals(sa, sb);
+        }
+
         private static Newtonsoft.Json.Linq.JObject Signature(TableObject obj)
         {
             var json = TableJson.ToJson(obj);

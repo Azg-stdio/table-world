@@ -847,6 +847,30 @@ namespace TableWorld.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator ACoinDroppedOnTheBank_GoesBackIn()
+        {
+            // A bank as create_supply makes it: an infinite bag holding one gold coin model.
+            const string json = @"{ ""assets"": [ { ""id"": ""piece_coin"", ""type"": ""model"", ""path"": ""builtin:coin"" } ],
+  ""objects"": [
+    { ""id"": ""bank"", ""type"": ""InfiniteBag"", ""name"": ""Gold"", ""tint"": [0.95, 0.75, 0.2], ""transform"": { ""position"": [0.3, 0, 0] } },
+    { ""id"": ""bank_piece"", ""type"": ""Model"", ""name"": ""Gold"", ""asset"": ""piece_coin"", ""tint"": [0.95, 0.75, 0.2], ""kind"": ""coin"", ""material"": ""metal"", ""container"": ""bank"" } ],
+  ""players"": { ""seats"": [ { ""id"": ""seat_south"", ""color"": ""red"" } ] } }";
+            Assert.IsTrue(_table.Load(json, null));
+            yield return new WaitForSeconds(0.5f);
+            var coin = _table.Execute(new TakeCommand { ContainerId = "bank", Position = new Vec3(-0.1f, 0f, 0f), Actor = _table.LocalSeat }).CreatedId;
+            Assert.IsNotNull(coin);
+            yield return new WaitForSeconds(0.8f);
+
+            Assert.IsTrue(_interaction.Grab(_table.ViewOf(coin), false));
+            _interaction.DragTo(_table.ViewOf("bank").transform.position);
+            yield return new WaitForSeconds(0.4f);
+            _interaction.Release();
+            yield return new WaitForSeconds(0.5f);
+            Assert.IsNull(_table.Engine.Find(coin), "the coin went back into the bank");
+            Assert.AreEqual(1, _table.Engine.ContentsOf("bank").Count(), "the bank keeps its own coin");
+        }
+
+        [UnityTest]
         public IEnumerator ASelectedCalculator_TakesTheKeyboard()
         {
             var id = _table.Execute(new AddCalculatorCommand { Position = new Vec3(0.55f, 0f, 0.3f), Actor = _table.LocalSeat }).CreatedId;

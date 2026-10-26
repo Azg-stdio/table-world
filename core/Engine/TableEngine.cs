@@ -452,9 +452,16 @@ namespace Core.Engine
             var events = new List<StateEvent>();
             switch (target)
             {
-                case InfiniteBag infinite when ContentsOf(infinite.Id).Any():
-                    return CommandResult.Fail("intoId", ErrorCodes.InvalidTarget,
-                        $"Infinite bag '{infinite.Id}' already holds its template; it takes no other objects.");
+                case InfiniteBag infinite when ContentsOf(infinite.Id).FirstOrDefault() is { } template:
+                {
+                    // TTS: a piece like the bag's own goes back in (a coin into the bank), which takes it off the table.
+                    if (!Stacks.SamePiece(obj, template))
+                        return CommandResult.Fail("intoId", ErrorCodes.InvalidTarget,
+                            $"{Names.Of(infinite)} only takes back {Names.Of(template)}.");
+                    RemoveObject(obj);
+                    events.Add(new ObjectRemoved(obj.Id));
+                    break;
+                }
                 case Bag bag:
                     PutInBag(obj, bag, c.AtBottom);
                     events.Add(new ContainerChanged(obj.Id, null, bag.Id));

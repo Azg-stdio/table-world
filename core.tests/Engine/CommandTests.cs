@@ -191,6 +191,22 @@ namespace Core.Tests.Engine
         }
 
         [Fact]
+        public void InfiniteBag_TakesBackItsOwnPiece_AndNothingElse()
+        {
+            var engine = EngineFixture.Create();
+            var coin = engine.Ok(new TakeCommand { ContainerId = "coins" }).CreatedId!;
+            engine.Ok(new FlipCommand { ObjectId = coin });
+
+            // Back into the bank (flipped or not, it is the same coin): off the table, the template stays.
+            var back = engine.Ok(new InsertCommand { ObjectId = coin, IntoId = "coins" });
+            Assert.Null(engine.Find(coin));
+            Assert.IsType<ObjectRemoved>(Assert.Single(back.Events));
+            Assert.Equal(new[] { "coin" }, engine.ContentsOf("coins").Select(o => o.Id));
+            engine.Fails(new InsertCommand { ObjectId = "loose", IntoId = "coins" }, ErrorCodes.InvalidTarget);
+            engine.AssertValid();
+        }
+
+        [Fact]
         public void Insert_CardOnDeck_TopOrBottom_KeepsIdAndFollowsDeckDefaults()
         {
             var engine = EngineFixture.Create();
