@@ -52,9 +52,9 @@ namespace Core.Tts
         /// <summary>
         /// The importer's version, recorded in each package (<c>import.json</c>). Raise it when an import would come out
         /// different (a new object type, a mapping fixed), so games imported before are offered a re-import.
-        /// 2: PDFs (T8.8) and import.json. 3: model bags keep their image; textured models keep their tint; states keep their snap points; bowls; custom table image and sky; attached objects (ChildObjects). 4: custom tokens at TTS's size. 5: bundles' looping effect.
+        /// 2: PDFs (T8.8) and import.json. 3: model bags keep their image; textured models keep their tint; states keep their snap points; bowls; custom table image and sky; attached objects (ChildObjects). 4: custom tokens at TTS's size. 5: bundles' looping effect. 6: the save's lighting.
         /// </summary>
-        public const int Version = 5;
+        public const int Version = 6;
 
         public static ImportResult Import(string saveJson, Func<string, (int Width, int Height)?>? imageSize = null) =>
             new TtsImporter { _imageSize = imageSize }.Run(JObject.Parse(saveJson));
