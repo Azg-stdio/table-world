@@ -195,6 +195,19 @@ namespace Core.Engine
         }
     }
 
+    /// <summary>A line only <see cref="Seat"/> reads (its role, what it sees): the host sends it to that seat alone (ADR 0012).</summary>
+    public sealed class PrivateMessage : StateEvent
+    {
+        public string Seat { get; }
+        public string Text { get; }
+
+        public PrivateMessage(string seat, string text) : base("")
+        {
+            Seat = seat;
+            Text = text;
+        }
+    }
+
     /// <summary>Someone looked through a container. Other players see that it happened, not what was seen.</summary>
     public sealed class Searched : StateEvent
     {
@@ -239,6 +252,12 @@ namespace Core.Engine
         /// </summary>
         public bool ScriptsRan { get; internal set; }
 
+        /// <summary>
+        /// The command read or changed something not every seat knows (a role, a secret choice): peers cannot replay it,
+        /// so the host runs it and sends each its result (ADR 0012).
+        /// </summary>
+        public bool ReadsSecrets { get; internal set; }
+
         private CommandResult(ValidationError? error, IReadOnlyList<StateEvent> events)
         {
             Error = error;
@@ -257,6 +276,7 @@ namespace Core.Engine
                 BagContents = BagContents,
                 Dealt = Dealt,
                 ScriptsRan = ScriptsRan,
+                ReadsSecrets = ReadsSecrets,
             };
             return copy;
         }

@@ -40,6 +40,7 @@ name: agents and tests match on them.
 | `player_count` | `PlayerCount` |
 | `precondition_failed` | `PreconditionFailed` |
 | `refused` | `Refused` |
+| `role_count` | `RoleCount` |
 | `rule_failed` | `RuleFailed` |
 | `rules_loop` | `RulesLoop` |
 | `script_failed` | `ScriptFailed` |
@@ -54,7 +55,9 @@ name: agents and tests match on them.
 | `unknown_object` | `UnknownObject` |
 | `unknown_phase` | `UnknownPhase` |
 | `unknown_resource` | `UnknownResource` |
+| `unknown_role` | `UnknownRole` |
 | `unknown_seat` | `UnknownSeat` |
+| `unknown_team` | `UnknownTeam` |
 | `unknown_type` | `UnknownType` |
 | `unknown_variable` | `UnknownVariable` |
 | `unknown_zone` | `UnknownZone` |

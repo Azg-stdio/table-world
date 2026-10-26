@@ -149,6 +149,7 @@
             <ui:Button name="calculatorButton" class="tool-button" text="Calculator" tooltip="Put a calculator on the table in front of you: press its keys, or type while it is selected" />
         </ui:VisualElement>
         <ui:VisualElement name="gamePanel" class="game-panel hidden">
+            <ui:Label name="gameRole" class="game-role hidden" />
             <ui:Label name="gameLog" class="game-log" />
             <ui:VisualElement name="gameActions" class="actions" />
         </ui:VisualElement>

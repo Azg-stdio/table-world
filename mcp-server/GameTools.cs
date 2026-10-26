@@ -45,6 +45,17 @@ namespace TableWorld.Mcp
                 doc["game"] = game;
             }), session));
 
+        [McpServerTool(Name = "set_roles"), Description("Hidden roles (Avalon, Werewolf, Wink Murder), dealt at random when the game starts, each player told privately who they are. JSON: {\"teams\":[{id,name}], \"list\":[{id, name, team, count (number, default 1, or \"fill\" for the seats left in its team), optional (the host ticks it at start), description}], \"byPlayers\":{\"5\":{\"good\":3,\"evil\":2}} (team sizes per player count), \"knows\":[{role or team that sees, sees:{team, roles, except}, as: team (default) | role | oneOf}]}. A role's own knows rules replace its team's (Oberon: {\"role\":\"oberon\",\"sees\":{}}). Rules read roles with $actor.role / $seat.<id>.team; the revealRole effect {seat, to, teamOnly} shows one later. Ask the host which optional roles exist and who knows whom when the rulebook is unclear.")]
+        public static string SetRoles(GameSession session, [Description("The roles JSON object; empty or '{}' removes them.")] string rolesJson) =>
+            session.Locked(() => Reply(session.Edit(doc =>
+            {
+                var roles = string.IsNullOrWhiteSpace(rolesJson) ? new JObject() : GameSession.ParseObject(rolesJson, "rolesJson");
+                if (roles.Count == 0)
+                    doc.Remove("roles");
+                else
+                    doc["roles"] = roles;
+            }), session));
+
         [McpServerTool(Name = "create_deck"), Description("Create a deck of cards on the table. cards: 'standard52' or 'standard54' (with jokers) for the builtin French deck (card meta: rank 2-14 aces high, suit, color), or a JSON array of cards {id, name, faceIndex, meta}; for your own art, add_asset a sprite sheet (columns x rows) and pass it as faceAsset, faceIndex counting left to right, top to bottom. Tag a deck '<role>:<seatId>' (e.g. 'deck:seat_south') so rules can say $actor.deck.")]
         public static string CreateDeck(GameSession session,
             [Description("Deck id.")] string id,
@@ -492,11 +503,12 @@ namespace TableWorld.Mcp
 
         // ---- play -------------------------------------------------------------------------------------------------
 
-        [McpServerTool(Name = "start_game"), Description("Start playing the game: runs onGameStart (shuffle, deal) and the first turn, with the seats that play. A table keeps every seat it has (make a 3-6 player game with 6 seats, once); seats or players picks who plays this time, and empty seats are left out of turns, deals and forEach. The document must validate.")]
+        [McpServerTool(Name = "start_game"), Description("Start playing the game: deals the hidden roles (if the game has them), runs onGameStart (shuffle, deal) and the first turn, with the seats that play. A table keeps every seat it has (make a 3-6 player game with 6 seats, once); seats or players picks who plays this time, and empty seats are left out of turns, deals and forEach. The document must validate.")]
         public static string StartGame(GameSession session,
             [Description("Optional seed for a reproducible game.")] long? seed = null,
             [Description("Comma-separated seat ids that play; empty for every seat.")] string? seats = null,
-            [Description("How many play, spread evenly around the table (instead of seats).")] int? players = null) =>
+            [Description("How many play, spread evenly around the table (instead of seats).")] int? players = null,
+            [Description("Comma-separated optional roles to deal this time (e.g. 'percival,morgana'); the others stay out.")] string? roles = null) =>
             session.Locked(() =>
             {
                 if (seed is { } s)
@@ -504,7 +516,8 @@ namespace TableWorld.Mcp
                 var all = session.Current.Players.Seats.Select(x => x.Id).ToList();
                 var chosen = players is { } n ? SeatLayout.Spread(all, n)
                     : (seats ?? "").Split(',').Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
-                return PlayReply(session.Start(chosen), session);
+                var optional = (roles ?? "").Split(',').Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
+                return PlayReply(session.Start(chosen, optional), session);
             });
 
         [McpServerTool(Name = "perform_action"), Description("Perform a rules action as a seat, e.g. seat 'seat_south', action 'play_card', params {\"card\":\"queen_hearts\"}. get_table_state lists the legal actions and their parameter values.")]
@@ -652,6 +665,8 @@ namespace TableWorld.Mcp
                         session0.Over,
                         session0.Winner,
                         secretsWaiting = session0.Secrets.Count > 0 ? session0.Secrets.Count : (int?)null,
+                        // Seat → role: every seat headless; in the game window only what that player may know.
+                        roles = session0.Roles.Count > 0 ? session0.Roles : null,
                         log = session0.Log.Skip(System.Math.Max(0, session0.Log.Count - 5)),
                         legalActions = game == null || session0.Over ? null : state.Players.Seats
                             .Select(s => (s.Id, Actions: game.LegalActions(s.Id)))

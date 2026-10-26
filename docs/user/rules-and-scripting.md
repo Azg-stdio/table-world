@@ -155,6 +155,30 @@ tool bar.
 A zone drawn over a board (a space on a map) holds the pieces on it, never the board itself: counts, `onEnter` and
 `forEach` over the zone see only the pieces.
 
+**Hidden roles.** Avalon, Werewolf and the like deal each player a secret role when the game starts. `roles` lists the
+teams, the roles (with how many seats get each: a number, or `"fill"` for the seats left in its team), the team sizes
+for each number of players, and who knows whom:
+
+```jsonc
+"roles": {
+  "teams": [ { "id": "village", "name": "Villagers" }, { "id": "wolves", "name": "Werewolves" } ],
+  "list": [
+    { "id": "seer", "name": "Seer", "team": "village" },
+    { "id": "villager", "name": "Villager", "team": "village", "count": "fill" },
+    { "id": "wolf", "name": "Werewolf", "team": "wolves", "count": 2 }
+  ],
+  "knows": [ { "team": "wolves", "sees": { "team": "wolves" } } ]
+}
+```
+
+Each player is told privately who they are and what they see ("You are Werewolf (Werewolves).", "Blue is
+Werewolves."); nobody else's screen, nor the shared log, shows it, and the other players' machines never receive it.
+Roles marked `"optional": true` are ticked by the host when starting. Rules read roles with `$actor.role` or
+`$seat.<id>.team` (an action only the seer may take has the precondition
+`{ "compare": { "left": "$actor.role", "right": "seer" } }`), and `revealRole` shows one later:
+`{ "revealRole": { "seat": "$param.target", "to": "$actor", "teamOnly": true } }` lets the seer look at a card, and
+without `to` everyone sees it. The full format is in [the rules format](../rules-schema.md#roles).
+
 ## 4. Naming things: `$` references
 
 Rules rarely name one card. They say "the actor's deck" or "the top card of the discard pile". A `$` reference names
@@ -379,6 +403,7 @@ whole action is undone and the player sees the reason. The `Game` table reads an
 | `Game.win(seat)`, `Game.isStarted()`, `Game.isOver()`, `Game.getWinner()` | The end of the game |
 | `Game.perform(seat, action, params)` | Perform an action as a player, from a button or an event (not from inside another action) |
 | `Game.getLegalActions(seat)` | The actions a player may perform now |
+| `Game.getRole(seat)`, `Game.getTeam(seat)`, `Game.revealRole(seat, to, teamOnly)` | Hidden roles: read one, or show it to a seat (every seat when `to` is nil) |
 | `Game.roll(count, sides)` | Dice for the script's own sums, as a list |
 | `Game.log(text)` | A line in the game log |
 

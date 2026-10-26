@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Core.Engine;
+using Core.Net;
 using Core.Rules;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -214,7 +215,14 @@ namespace TableWorld.View.Bridge
                     _executingRemote = true;
                     try
                     {
-                        _table.Load(document.ToString(), packageRoot: (string)message["root"]);
+                        // The agent only saw this seat's view: what it could not see stays as it is (ADR 0012).
+                        var text = document.ToString();
+                        if (_table.Engine?.State.Session is { Started: true } && TableJson.Parse(text) is { State: { } incoming, Structural: false })
+                        {
+                            SeatView.Restore(incoming, _table.Engine.State);
+                            text = TableJson.Serialize(incoming, indented: false);
+                        }
+                        _table.Load(text, packageRoot: (string)message["root"]);
                     }
                     finally
                     {
@@ -333,6 +341,8 @@ namespace TableWorld.View.Bridge
                     var start = new StartGameCommand();
                     if (command["seats"] is JArray startSeats)
                         start.Seats.AddRange(startSeats.Select(s => (string)s));
+                    if (command["roles"] is JArray startRoles)
+                        start.Roles.AddRange(startRoles.Select(r => (string)r));
                     engineCommand = start;
                     break;
                 case "perform":
@@ -369,7 +379,10 @@ namespace TableWorld.View.Bridge
             {
                 _executingRemote = false;
             }
-            var messages = result.Events.OfType<GameMessage>().Select(m => m.Text).ToList();
+            // The shared lines, and the private ones of the seat this window plays (all of them for a host without one).
+            var viewer = Viewer;
+            var messages = result.Events.Select(e => e is GameMessage m ? m.Text : e is PrivateMessage p && (Narrating || p.Seat == viewer) ? p.Text : null)
+                .Where(t => t != null).ToList();
             var reply = Reply(id, result.Ok, result.Ok ? new ValidationError[0] : new[] { result.Error }, messages);
             var created = result.CreatedIds ?? (result.CreatedId != null ? new[] { result.CreatedId } : new string[0]);
             reply["created"] = new JArray(created);
@@ -386,8 +399,22 @@ namespace TableWorld.View.Bridge
             ["document"] = Document(),
         };
 
-        /// <summary>The table as JSON, written into the message as it is (not parsed back into a JObject first).</summary>
-        private JToken Document() => new JRaw(TableJson.Serialize(_table.Engine.State, indented: false));
+        /// <summary>
+        /// The table as JSON, written into the message as it is (not parsed back into a JObject first). The agent plays
+        /// for this window's player: in a session with others it reads that seat's view (ADR 0012, T11.2b), the whole
+        /// table only alone or as a host without a seat (the narrator).
+        /// </summary>
+        private JToken Document() => new JRaw(Narrating
+            ? TableJson.Serialize(_table.Engine.State, indented: false)
+            : SeatView.Serialize(_table.Engine.State, Viewer));
+
+        private string Viewer => _table.Spectating ? null : _table.LocalSeat;
+
+        /// <summary>
+        /// The whole table is for playing alone (a designer trying the game) and for a host who sits at no seat (the
+        /// narrator); anyone seated in a session with others sees their seat's view.
+        /// </summary>
+        private bool Narrating => !_table.Networked || _table.HostsTable && Viewer == null;
 
         /// <summary>Changes made in this window (HUD, physics) are reported shortly after, batched.</summary>
         private void OnCommand(Command command, CommandResult result)

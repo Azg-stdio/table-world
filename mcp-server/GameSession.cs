@@ -442,21 +442,22 @@ namespace TableWorld.Mcp
 
         // ---- play ---------------------------------------------------------------------------------------------------
 
-        public PlayResult Start(IReadOnlyList<string>? seats = null)
+        public PlayResult Start(IReadOnlyList<string>? seats = null, IReadOnlyList<string>? roles = null)
         {
             seats ??= Array.Empty<string>();
+            roles ??= Array.Empty<string>();
             var problems = Validate();
             if (problems.Count > 0)
                 return PlayResult.Refused(problems.ToArray());
             if (Remote)
             {
                 PushToGame();
-                return RemoteCommand(new JObject { ["kind"] = "start", ["seed"] = (long)Seed, ["seats"] = new JArray(seats) });
+                return RemoteCommand(new JObject { ["kind"] = "start", ["seed"] = (long)Seed, ["seats"] = new JArray(seats), ["roles"] = new JArray(roles) });
             }
             var copy = TableJson.Parse(TableJson.Serialize(Document)).State!;
             Game = new GameEngine(copy, Seed);
             StartScripts(Game);
-            var result = Game.Execute(new StartGameCommand { Seats = seats.ToList() });
+            var result = Game.Execute(new StartGameCommand { Seats = seats.ToList(), Roles = roles.ToList() });
             if (!result.Ok)
                 Game = null;
             Changed?.Invoke(Current);
@@ -669,7 +670,8 @@ namespace TableWorld.Mcp
 
         public static PlayResult From(CommandResult result, IEnumerable<string>? scriptLines = null) => new PlayResult(result,
             result.Ok ? Array.Empty<ValidationError>() : new[] { result.Error! },
-            result.Events.OfType<GameMessage>().Select(m => m.Text).Concat(scriptLines ?? Enumerable.Empty<string>()).ToList());
+            result.Events.Select(e => e is GameMessage m ? m.Text : e is PrivateMessage p ? $"[only {p.Seat}] {p.Text}" : null).OfType<string>()
+                .Concat(scriptLines ?? Enumerable.Empty<string>()).ToList());
 
         /// <summary>A command the game window executed.</summary>
         public static PlayResult Remote(IReadOnlyList<string> messages) => new PlayResult(null, Array.Empty<ValidationError>(), messages);

@@ -8,7 +8,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 
 ## Types
 
-[TableState](#tablestate) · [Asset](#asset) · [TableObject](#tableobject) · [Card](#card) · [TableTransform](#tabletransform) · [JointDef](#jointdef) · [ButtonDef](#buttondef) · [InputDef](#inputdef) · [UiNode](#uinode) · [CardText](#cardtext) · [CardStyle](#cardstyle) · [Deck](#deck) · [DeckCard](#deckcard) · [Token](#token) · [Tile](#tile) · [Die](#die) · [Model](#model) · [Bag](#bag) · [InfiniteBag](#infinitebag) · [Board](#board) · [Figure](#figure) · [Counter](#counter) · [Clock](#clock) · [Notecard](#notecard) · [Pdf](#pdf) · [Calculator](#calculator) · [Zone](#zone) · [HandZone](#handzone) · [Effect](#effect) · [MoveEffect](#moveeffect) · [DealEffect](#dealeffect) · [ShuffleEffect](#shuffleeffect) · [FlipEffect](#flipeffect) · [SetVariableEffect](#setvariableeffect) · [SetResourceEffect](#setresourceeffect) · [IfEffect](#ifeffect) · [Condition](#condition) · [ZoneCountCondition](#zonecountcondition) · [CompareCondition](#comparecondition) · [VariableCondition](#variablecondition) · [ResourceCondition](#resourcecondition) · [IsCurrentPlayerCondition](#iscurrentplayercondition) · [ObjectInCondition](#objectincondition) · [HasTagCondition](#hastagcondition) · [ForEachEffect](#foreacheffect) · [MessageEffect](#messageeffect) · [EndTurnEffect](#endturneffect) · [EndPhaseEffect](#endphaseeffect) · [GotoPhaseEffect](#gotophaseeffect) · [WinEffect](#wineffect) · [LockEffect](#lockeffect) · [RollEffect](#rolleffect) · [RevealEffect](#revealeffect) · [LuaEffect](#luaeffect) · [RefuseEffect](#refuseeffect) · [BlindRoundEffect](#blindroundeffect) · [ShowEffect](#showeffect) · [LightEffect](#lighteffect) · [HiddenZone](#hiddenzone) · [ScriptingZone](#scriptingzone) · [SnapPoint](#snappoint) · [LayoutZone](#layoutzone) · [RandomizeZone](#randomizezone) · [Players](#players) · [Seat](#seat) · [EnvironmentDef](#environmentdef) · [LightingDef](#lightingdef) · [TableLookDef](#tablelookdef) · [FreeTurns](#freeturns) · [BlindRound](#blindround) · [GridDef](#griddef) · [MusicState](#musicstate) · [MusicTrack](#musictrack) · [NoteTab](#notetab) · [DrawingDef](#drawingdef) · [GameInfo](#gameinfo) · [ResourceDef](#resourcedef) · [TurnDef](#turndef) · [PhaseDef](#phasedef) · [AdvanceRule](#advancerule) · [ActionDef](#actiondef) · [ParamDef](#paramdef) · [ParamFilter](#paramfilter) · [WinCondition](#wincondition) · [UiDef](#uidef) · [PanelDef](#paneldef) · [UiElementDef](#uielementdef) · [Session](#session) · [ZoneMove](#zonemove) · [SecretChoice](#secretchoice)
+[TableState](#tablestate) · [Asset](#asset) · [TableObject](#tableobject) · [Card](#card) · [TableTransform](#tabletransform) · [JointDef](#jointdef) · [ButtonDef](#buttondef) · [InputDef](#inputdef) · [UiNode](#uinode) · [CardText](#cardtext) · [CardStyle](#cardstyle) · [Deck](#deck) · [DeckCard](#deckcard) · [Token](#token) · [Tile](#tile) · [Die](#die) · [Model](#model) · [Bag](#bag) · [InfiniteBag](#infinitebag) · [Board](#board) · [Figure](#figure) · [Counter](#counter) · [Clock](#clock) · [Notecard](#notecard) · [Pdf](#pdf) · [Calculator](#calculator) · [Zone](#zone) · [HandZone](#handzone) · [Effect](#effect) · [MoveEffect](#moveeffect) · [DealEffect](#dealeffect) · [ShuffleEffect](#shuffleeffect) · [FlipEffect](#flipeffect) · [SetVariableEffect](#setvariableeffect) · [SetResourceEffect](#setresourceeffect) · [IfEffect](#ifeffect) · [Condition](#condition) · [ZoneCountCondition](#zonecountcondition) · [CompareCondition](#comparecondition) · [VariableCondition](#variablecondition) · [ResourceCondition](#resourcecondition) · [IsCurrentPlayerCondition](#iscurrentplayercondition) · [ObjectInCondition](#objectincondition) · [HasTagCondition](#hastagcondition) · [ForEachEffect](#foreacheffect) · [MessageEffect](#messageeffect) · [EndTurnEffect](#endturneffect) · [EndPhaseEffect](#endphaseeffect) · [GotoPhaseEffect](#gotophaseeffect) · [WinEffect](#wineffect) · [LockEffect](#lockeffect) · [RollEffect](#rolleffect) · [RevealEffect](#revealeffect) · [RevealRoleEffect](#revealroleeffect) · [LuaEffect](#luaeffect) · [RefuseEffect](#refuseeffect) · [BlindRoundEffect](#blindroundeffect) · [ShowEffect](#showeffect) · [LightEffect](#lighteffect) · [HiddenZone](#hiddenzone) · [ScriptingZone](#scriptingzone) · [SnapPoint](#snappoint) · [LayoutZone](#layoutzone) · [RandomizeZone](#randomizezone) · [Players](#players) · [Seat](#seat) · [EnvironmentDef](#environmentdef) · [LightingDef](#lightingdef) · [TableLookDef](#tablelookdef) · [FreeTurns](#freeturns) · [BlindRound](#blindround) · [GridDef](#griddef) · [MusicState](#musicstate) · [MusicTrack](#musictrack) · [NoteTab](#notetab) · [DrawingDef](#drawingdef) · [GameInfo](#gameinfo) · [ResourceDef](#resourcedef) · [TurnDef](#turndef) · [PhaseDef](#phasedef) · [AdvanceRule](#advancerule) · [ActionDef](#actiondef) · [ParamDef](#paramdef) · [ParamFilter](#paramfilter) · [WinCondition](#wincondition) · [UiDef](#uidef) · [PanelDef](#paneldef) · [UiElementDef](#uielementdef) · [RolesDef](#rolesdef) · [TeamDef](#teamdef) · [RoleDef](#roledef) · [KnowsRule](#knowsrule) · [SeesDef](#seesdef) · [Session](#session) · [ZoneMove](#zonemove) · [SecretChoice](#secretchoice) · [RoleSight](#rolesight)
 
 ### TableState
 
@@ -39,6 +39,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `ui` | [UiDef](#uidef) |  |
 | `globalScriptState` | string |  |
 | `scripts` | map of string |  |
+| `roles` | [RolesDef](#rolesdef) |  |
 | `session` | [Session](#session) |  |
 
 ### Asset
@@ -711,7 +712,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 
 ### Effect
 
-object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object
+object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object
 
 ### MoveEffect
 
@@ -885,6 +886,14 @@ object or object or object or object or object or object or object or object or 
 | Field | Type | Required |
 |---|---|---|
 | `action` | string |  |
+
+### RevealRoleEffect
+
+| Field | Type | Required |
+|---|---|---|
+| `seat` | string |  |
+| `to` | string |  |
+| `teamOnly` | boolean |  |
 
 ### LuaEffect
 
@@ -1262,6 +1271,50 @@ object or object or object or object or object or object or object or object or 
 | `visibleTo` | array of string |  |
 | `asset` | string |  |
 
+### RolesDef
+
+| Field | Type | Required |
+|---|---|---|
+| `teams` | array of [TeamDef](#teamdef) |  |
+| `list` | array of [RoleDef](#roledef) |  |
+| `byPlayers` | map of map of integer |  |
+| `knows` | array of [KnowsRule](#knowsrule) |  |
+
+### TeamDef
+
+| Field | Type | Required |
+|---|---|---|
+| `id` | string |  |
+| `name` | string |  |
+
+### RoleDef
+
+| Field | Type | Required |
+|---|---|---|
+| `id` | string |  |
+| `name` | string |  |
+| `team` | string |  |
+| `count` | any |  |
+| `optional` | boolean |  |
+| `description` | string |  |
+
+### KnowsRule
+
+| Field | Type | Required |
+|---|---|---|
+| `role` | string |  |
+| `team` | string |  |
+| `sees` | [SeesDef](#seesdef) |  |
+| `as` | one of `team`, `role`, `oneOf` |  |
+
+### SeesDef
+
+| Field | Type | Required |
+|---|---|---|
+| `team` | string |  |
+| `roles` | array of string |  |
+| `except` | array of string |  |
+
 ### Session
 
 | Field | Type | Required |
@@ -1280,6 +1333,8 @@ object or object or object or object or object or object or object or object or 
 | `heldZoneMoves` | array of [ZoneMove](#zonemove) |  |
 | `secrets` | array of [SecretChoice](#secretchoice) |  |
 | `log` | array of string |  |
+| `roles` | map of string |  |
+| `knows` | map of array of [RoleSight](#rolesight) |  |
 | `randomState` | integer |  |
 
 ### ZoneMove
@@ -1298,3 +1353,12 @@ object or object or object or object or object or object or object or object or 
 | `seat` | string |  |
 | `action` | string |  |
 | `params` | map of string |  |
+
+### RoleSight
+
+| Field | Type | Required |
+|---|---|---|
+| `seat` | string |  |
+| `role` | string |  |
+| `team` | string |  |
+| `oneOf` | array of string |  |

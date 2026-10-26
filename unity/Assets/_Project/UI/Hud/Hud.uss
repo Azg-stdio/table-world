@@ -319,6 +319,15 @@
     background-color: rgba(16, 18, 22, 0.82);
 }
 
+/* This player's hidden role and what it knows (ADR 0012). */
+.game-role {
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: rgb(242, 196, 82);
+    margin-bottom: 6px;
+    white-space: normal;
+}
+
 .game-log {
     font-size: 15px;
     color: rgb(220, 216, 206);
@@ -356,6 +365,12 @@
 .actions {
     flex-direction: row;
     flex-wrap: wrap;
+}
+
+/* An optional role ticked for the deal. */
+.hud-button--picked {
+    border-color: rgb(242, 196, 82);
+    background-color: rgba(242, 196, 82, 0.25);
 }
 
 /* A blind round is running: the button reveals it. */

@@ -183,6 +183,9 @@ namespace Core.Rules
         /// <summary>Lua sources by name (M5); carried as-is.</summary>
         public Dictionary<string, string> Scripts { get; set; } = new Dictionary<string, string>();
 
+        /// <summary>Hidden roles dealt at the start (ADR 0012).</summary>
+        public RolesDef? Roles { get; set; }
+
         /// <summary>Progress of a game in play. Written by the engine.</summary>
         public Session? Session { get; set; }
 

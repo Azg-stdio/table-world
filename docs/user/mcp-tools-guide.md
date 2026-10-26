@@ -198,6 +198,15 @@ set_win_condition {"winConditionJson": {"when": {"resource": {"player": "$player
                    "winner": "$player", "checkAfter": "anyCommand"}}
 ```
 
+**`set_roles`**: secret roles dealt when the game starts (Avalon, Werewolf). Each player is told only their own, and
+rules read it as `$actor.role`. `count` is a number of seats or `"fill"` for the rest; `knows` says who sees whom
+([rules and scripting](rules-and-scripting.md#3-actions), "Hidden roles").
+
+```call
+set_roles {"rolesJson": {"teams": [{"id": "racers", "name": "Racers"}],
+  "list": [{"id": "hare", "name": "Hare", "team": "racers"}, {"id": "tortoise", "name": "Tortoise", "team": "racers", "count": "fill"}]}}
+```
+
 ## 4. Check and test
 
 **`validate_rules`**: checks the whole game. The agent runs it until it reports no problems. A problem looks like this:

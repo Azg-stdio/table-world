@@ -61,6 +61,10 @@ namespace Core.Rules
         public const string InvalidReference = "invalid_reference";
         public const string InvalidOperator = "invalid_operator";
         public const string PlayerCount = "player_count";
+        /// <summary>The roles do not add up to the players (too many fixed roles for a team, no fill role for the rest).</summary>
+        public const string RoleCount = "role_count";
+        public const string UnknownRole = "unknown_role";
+        public const string UnknownTeam = "unknown_team";
 
         // Game engine (T4.2).
         public const string NoRules = "no_rules";

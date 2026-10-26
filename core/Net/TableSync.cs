@@ -48,7 +48,7 @@ namespace Core.Net
     /// <c>order</c> (every executed command in host order, with its outcome and the resulting state hash) and
     /// <c>snapshot</c> (the whole table, on join or resync). The host's own commands go through <see cref="ExecuteLocal"/>.
     /// Each peer receives its seat's view only (<see cref="SeatView"/>, ADR 0012): a command peers cannot replay without
-    /// what they may not know (it drew a random number, recorded or revealed a secret, ran Lua) is a host-run order, sent
+    /// what they may not know (it drew a random number, read or changed a role or a secret choice, ran Lua) is a host-run order, sent
     /// to each peer with its result for that seat (<see cref="TablePatch"/> and the events) instead of for replay.
     /// </summary>
     public sealed class SessionHost
@@ -189,7 +189,7 @@ namespace Core.Net
                 return (result, new List<Outgoing> { new Outgoing(origin == HostId ? null : origin, Rejection(origin, clientSeq, result.Error!)) });
             _order++;
             Executed?.Invoke(origin, command, result);
-            var hostRun = result.ScriptsRan || Game.Table.Random.State != randomBefore || SeatView.SecretKey(Game.State) != secretsBefore;
+            var hostRun = result.ScriptsRan || result.ReadsSecrets || Game.Table.Random.State != randomBefore || SeatView.SecretKey(Game.State) != secretsBefore;
             if (hostRun)
                 return (result, HostRunOrders(origin, clientSeq, command, result));
             var order = OrderMessage(origin, clientSeq, command);
@@ -216,7 +216,6 @@ namespace Core.Net
         private List<Outgoing> HostRunOrders(string origin, long clientSeq, Command command, CommandResult result)
         {
             var hash = SeatView.Hash(Game.State);
-            var events = EventCodec.EncodeAll(result.Events);
             var messages = new List<Outgoing>();
             foreach (var peer in _peers)
             {
@@ -227,7 +226,8 @@ namespace Core.Net
                     sent = new PerformActionCommand { Actor = perform.Actor, ActionId = perform.ActionId };
                 var order = OrderMessage(origin, clientSeq, sent);
                 order["hash"] = hash;
-                order["events"] = events.DeepClone();
+                // A private line goes to its seat only.
+                order["events"] = EventCodec.EncodeAll(result.Events.Where(e => !(e is PrivateMessage p) || p.Seat == seat));
                 if (TablePatch.Build(Game.State, result, seat) is { } patch)
                     order["patch"] = patch;
                 else
@@ -317,9 +317,17 @@ namespace Core.Net
             if (predict)
             {
                 result = Predicted.Execute(command);
-                if (!result.Ok)
+                // Refused while reading what this seat may not know (another seat's role): only the host can tell, so it
+                // goes to the host unpredicted.
+                if (!result.Ok && result.ReadsSecrets)
+                {
+                    predict = false;
+                    result = CommandResult.Success(new List<StateEvent>());
+                }
+                else if (!result.Ok)
                     return (result, null);
-                Touch(result);
+                else
+                    Touch(result);
             }
             else
                 result = CommandResult.Success(new List<StateEvent>());

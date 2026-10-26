@@ -52,6 +52,11 @@ namespace TableWorld.View.Hud
         private Label _status;
         private VisualElement _gamePanel;
         private Label _gameLog;
+        /// <summary>This player's hidden role and what it knows (ADR 0012), above the log.</summary>
+        private Label _gameRole;
+        /// <summary>Optional roles ticked for the next start, by table (a new table starts with none).</summary>
+        private readonly HashSet<string> _optionalRoles = new HashSet<string>();
+        private object _optionalRolesFor;
         /// <summary>Lines of the game log already shown, and the session they belong to.</summary>
         private int _logShown;
         private object _logSession;
@@ -140,6 +145,7 @@ namespace TableWorld.View.Hud
             _status = _root.Q<Label>("statusLabel");
             _gamePanel = _root.Q("gamePanel");
             _gameLog = _root.Q<Label>("gameLog");
+            _gameRole = _root.Q<Label>("gameRole");
             _gameActions = _root.Q("gameActions");
             _gameUi = new GameUiRenderer(_root.Q("gameUi"), _table);
             if (_interaction != null)
@@ -504,13 +510,15 @@ namespace TableWorld.View.Hud
         /// </summary>
         private void AddStartButtons(TableState state)
         {
+            AddOptionalRoles(state);
             var seated = SeatedSeats();
             var min = Mathf.Max(1, state.Game?.MinPlayers ?? 1);
             var max = state.Game?.MaxPlayers > 0 ? state.Game.MaxPlayers : state.Players.Seats.Count;
             var players = $"{seated.Count} {(seated.Count == 1 ? "player" : "players")}";
             var button = new Button(() =>
             {
-                var result = _table.Execute(new StartGameCommand { Seats = seated });
+                var roles = state.Roles?.List.Where(r => r.Optional && _optionalRoles.Contains(r.Id)).Select(r => r.Id).ToList() ?? new List<string>();
+                var result = _table.Execute(new StartGameCommand { Seats = seated, Roles = roles });
                 if (!result.Ok)
                     ShowStatus(result.Error.Message, error: true);
             }) { text = $"Start game ({players})" };
@@ -522,6 +530,40 @@ namespace TableWorld.View.Hud
                 : $"This game takes {takes} players: sit at the seats with the + over each one on the table";
             _gameActions.Add(button);
         }
+
+        /// <summary>
+        /// One toggle per optional role (Avalon's Percival, Morgana) before the start: the host picks which join the deal.
+        /// </summary>
+        private void AddOptionalRoles(TableState state)
+        {
+            if (_optionalRolesFor != _table.Engine)
+            {
+                _optionalRolesFor = _table.Engine;
+                _optionalRoles.Clear();
+            }
+            foreach (var role in state.Roles?.List.Where(r => r.Optional) ?? Enumerable.Empty<RoleDef>())
+            {
+                var id = role.Id;
+                var on = _optionalRoles.Contains(id);
+                var toggle = new Button(() =>
+                {
+                    if (!_optionalRoles.Remove(id))
+                        _optionalRoles.Add(id);
+                    _shownGameKey = null;
+                }) { text = GameEngine.RoleName(state.Roles, id) };
+                toggle.AddToClassList("hud-button");
+                toggle.EnableInClassList("hud-button--picked", on);
+                toggle.tooltip = (on ? "In the deal: click to leave it out." : "Left out: click to deal it too.") +
+                                 (role.Description is { Length: > 0 } about ? "\n" + about : "");
+                _gameActions.Add(toggle);
+            }
+        }
+
+        /// <summary>What the role line shows changes with: this seat's role and how many seats it knows about.</summary>
+        private string RoleKey(Session session) =>
+            session == null || _table.LocalSeat == null || !session.Roles.TryGetValue(_table.LocalSeat, out var mine)
+                ? ""
+                : mine + "/" + (session.Knows.TryGetValue(_table.LocalSeat, out var sights) ? sights.Count : 0);
 
         // ---- sitting down before the start: the + over each seat ------------------------------------------------
 
@@ -648,6 +690,7 @@ namespace TableWorld.View.Hud
             var turns = state.FreeTurns;
             var key = $"{state.HasRules}|{session?.Turn}|{session?.Phase}|{session?.CurrentSeat}|{session?.Over}|{session?.Log.Count}|" +
                       $"{turns?.Current}|{turns?.Count}|{turns?.Reverse}|{_table.LocalSeat}|{string.Join(",", SeatedSeats())}|" +
+                      $"{RoleKey(session)}|{string.Join(",", _optionalRoles)}|" +
                       string.Join(",", legal.Select(l => $"{l.Seat}/{l.Action.ActionId}/{l.Action.Choices.Count}"));
             if (key == _shownGameKey)
                 return;
@@ -673,6 +716,9 @@ namespace TableWorld.View.Hud
                 return;
             }
             _gamePanel.RemoveFromClassList(Hidden);
+            var role = _table.LocalSeat == null ? new List<string>() : GameEngine.RoleLines(state, _table.LocalSeat);
+            _gameRole.text = string.Join("\n", role);
+            _gameRole.EnableInClassList(Hidden, role.Count == 0);
             _gameLog.text = LatestLogLines(session);
             _gameLog.EnableInClassList(Hidden, string.IsNullOrEmpty(_gameLog.text));
             if (session == null)

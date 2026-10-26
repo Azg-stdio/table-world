@@ -23,6 +23,7 @@ namespace Core.Net
                 switch (e)
                 {
                     case GameMessage _:
+                    case PrivateMessage _:
                         break;
                     case LightingChanged _:
                     case TableSettingsChanged _:

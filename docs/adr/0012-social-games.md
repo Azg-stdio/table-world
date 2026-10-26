@@ -83,11 +83,17 @@ dedicated server. What matters is that no one sees a secret by accident or with 
   roles are placed first, `fill` completes each team. The host ticks optional roles in the Start dialog (and
   `start_game roles=` over MCP).
 - **What a seat knows** is computed once at the deal from `knows` and kept in the session per seat. `as` is `role`
-  (name shown), `team` (only the team), or `oneOf` (the seat sees the set, not who is who).
-- **Rules read roles**: `$role(seat)`, `$team(seat)`, `$actor.role` in conditions, so `allowed` can say only the
-  assassin may assassinate. `reveal_role` (to one seat, a team, or everyone) covers "the seer looks at a card" and
-  "show everyone the dead player's role".
-- Lua: `Game.getRole(seat)` (host only), `Game.revealRole(seat, to)`.
+  (name shown), `team` (only the team), or `oneOf` (the seat sees the set, not who is who). A role's own rules replace
+  its team's (Oberon is evil and sees no other minion).
+- **Each seat is told privately** at the deal ("You are Merlin (Loyal servants of Arthur).", "Red and Blue are Minions
+  of Mordred."): a `PrivateMessage` event the host sends to that seat only; the shared log never holds it. The HUD shows
+  the same lines above the game log.
+- **Rules read roles** as seat properties (built: `$actor.role`, `$seat.<id>.team`, `$param.target.role`), so a
+  precondition can say only the assassin may assassinate. `revealRole` (`seat`, `to` a seat or every seat, `teamOnly`)
+  covers "the seer looks at a card" and "show everyone the dead player's role".
+- **Reading a role makes a command host-run** (`CommandResult.ReadsSecrets`): peers lack other seats' roles, so they
+  could not replay it. A client whose own prediction is refused for that reason sends the command unpredicted.
+- Lua: `Game.getRole(seat)`, `Game.getTeam(seat)` (scripts run on the host), `Game.revealRole(seat, to, teamOnly)`.
 
 ### 3. Eyes-closed phases
 

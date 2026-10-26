@@ -258,6 +258,14 @@ Write a page of the table's notebook (Notes in the top bar), which every player 
 | `text` | string | required | The page's text; empty removes the page. |
 | `seat` | string | none | Seat id to make the page private to; empty for everyone. |
 
+### `set_roles`
+
+Hidden roles (Avalon, Werewolf, Wink Murder), dealt at random when the game starts, each player told privately who they are. JSON: {"teams":[{id,name}], "list":[{id, name, team, count (number, default 1, or "fill" for the seats left in its team), optional (the host ticks it at start), description}], "byPlayers":{"5":{"good":3,"evil":2}} (team sizes per player count), "knows":[{role or team that sees, sees:{team, roles, except}, as: team (default) \| role \| oneOf}]}. A role's own knows rules replace its team's (Oberon: {"role":"oberon","sees":{}}). Rules read roles with $actor.role / $seat.<id>.team; the revealRole effect {seat, to, teamOnly} shows one later. Ask the host which optional roles exist and who knows whom when the rulebook is unclear.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `rolesJson` | string | required | The roles JSON object; empty or '{}' removes them. |
+
 ### `set_rules_document`
 
 Replace the whole game document with JSON (for large edits). Malformed documents are rejected with errors.
@@ -304,13 +312,14 @@ Add a win condition: {"when":{condition with $player},"winner":"$player","checkA
 
 ### `start_game`
 
-Start playing the game: runs onGameStart (shuffle, deal) and the first turn, with the seats that play. A table keeps every seat it has (make a 3-6 player game with 6 seats, once); seats or players picks who plays this time, and empty seats are left out of turns, deals and forEach. The document must validate.
+Start playing the game: deals the hidden roles (if the game has them), runs onGameStart (shuffle, deal) and the first turn, with the seats that play. A table keeps every seat it has (make a 3-6 player game with 6 seats, once); seats or players picks who plays this time, and empty seats are left out of turns, deals and forEach. The document must validate.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `seed` | Int64 | none | Optional seed for a reproducible game. |
 | `seats` | string | none | Comma-separated seat ids that play; empty for every seat. |
 | `players` | integer | none | How many play, spread evenly around the table (instead of seats). |
+| `roles` | string | none | Comma-separated optional roles to deal this time (e.g. 'percival,morgana'); the others stay out. |
 
 ### `validate_rules`
 

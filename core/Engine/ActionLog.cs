@@ -24,7 +24,12 @@ namespace Core.Engine
             var line = Line(engine, command, result, viewer);
             if (line != null)
                 lines.Add((false, actor == null ? Capitalise(line) : $"{actor} {line}"));
-            lines.AddRange(result.Events.OfType<GameMessage>().Select(m => (true, m.Text)));
+            // The rules' lines in order, a private one only for the seat it is meant for (its role, what it sees).
+            foreach (var e in result.Events)
+                if (e is GameMessage m)
+                    lines.Add((true, m.Text));
+                else if (e is PrivateMessage p && p.Seat == viewer)
+                    lines.Add((true, p.Text));
             return lines;
         }
 

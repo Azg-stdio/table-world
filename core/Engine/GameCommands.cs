@@ -11,6 +11,9 @@ namespace Core.Engine
         /// keeps all its seats: a 3–6 player game has six, and starts with the people sitting at it.
         /// </summary>
         public List<string> Seats { get; set; } = new List<string>();
+
+        /// <summary>The optional roles to deal (Avalon's Percival, Morgana); the others stay out of the game.</summary>
+        public List<string> Roles { get; set; } = new List<string>();
     }
 
     /// <summary>Performs a rules action (docs/rules-schema.md, "Actions") as <see cref="Command.Actor"/>.</summary>
@@ -23,7 +26,8 @@ namespace Core.Engine
 
     /// <summary>
     /// A table script's change to the game in play (the Lua <c>Game</c> API): <see cref="Op"/> is <c>setResource</c>,
-    /// <c>addResource</c>, <c>setVariable</c>, <c>endTurn</c>, <c>endPhase</c>, <c>gotoPhase</c>, <c>win</c> or <c>log</c>.
+    /// <c>addResource</c>, <c>setVariable</c>, <c>endTurn</c>, <c>endPhase</c>, <c>gotoPhase</c>, <c>win</c>, <c>log</c> or
+    /// <c>revealRole</c> (<see cref="Seat"/> shown to <see cref="Name"/>, every seat when null; <see cref="Value"/> true for the team only).
     /// Inside a <c>lua</c> effect it joins that action's transaction; from elsewhere (a button) it is a command of its own,
     /// sent to every peer like any other. Only the host's scripts issue it.
     /// </summary>

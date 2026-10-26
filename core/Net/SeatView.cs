@@ -8,9 +8,9 @@ namespace Core.Net
 {
     /// <summary>
     /// What one seat may know of a table (ADR 0012 §1, T11.2). The host keeps the whole state; each peer receives its
-    /// seat's view: other seats' secret choices without their parameters, and no random generator state (a peer holding
-    /// it could foresee every shuffle and deal). A null seat is the public view: spectators get it, and the state hash
-    /// covers it, so peers with different secrets agree on the hash.
+    /// seat's view: other seats' secret choices without their parameters, its own role and what it knows of others' (T11.4),
+    /// and no random generator state (a peer holding it could foresee every shuffle and deal). A null seat is the public
+    /// view: spectators get it, and the state hash covers it, so peers with different secrets agree on the hash.
     /// </summary>
     public static class SeatView
     {
@@ -23,6 +23,22 @@ namespace Core.Net
         /// <summary>The seat's view of the session (null without one), for a patch.</summary>
         public static JToken? Session(TableState state, string? seat) =>
             state.Session == null ? null : Redacted(state, seat, () => TableJson.ToToken(state.Session));
+
+        /// <summary>
+        /// Puts back into <paramref name="incoming"/>, a seat's view sent back as a whole table (an agent's edit while
+        /// playing), the secrets it could not hold, from <paramref name="live"/>: roles, what each seat knows, secret
+        /// choices and the random generator. Nothing changes when the two are not the same game in play.
+        /// </summary>
+        public static void Restore(TableState incoming, TableState live)
+        {
+            if (!(incoming.Session is { Started: true } mine) || !(live.Session is { Started: true } full) || mine.Turn != full.Turn)
+                return;
+            mine.Roles = full.Roles.ToDictionary(p => p.Key, p => p.Value);
+            mine.Knows = full.Knows.ToDictionary(p => p.Key, p => p.Value.ToList());
+            if (mine.Secrets.Select(c => c.Seat + "/" + c.Action).SequenceEqual(full.Secrets.Select(c => c.Seat + "/" + c.Action)))
+                mine.Secrets = full.Secrets.Select(c => new SecretChoice { Seat = c.Seat, Action = c.Action, Params = new Dictionary<string, string>(c.Params) }).ToList();
+            mine.RandomState = full.RandomState;
+        }
 
         /// <summary>
         /// Every secret as it stands, parameters included: when a command changes it, the command recorded or revealed a
@@ -45,7 +61,11 @@ namespace Core.Net
                 return read();
             var random = session.RandomState;
             var secrets = session.Secrets;
+            var roles = session.Roles;
+            var knows = session.Knows;
             session.RandomState = 0;
+            session.Roles = roles.Where(p => p.Key == seat).ToDictionary(p => p.Key, p => p.Value);
+            session.Knows = knows.Where(p => p.Key == seat).ToDictionary(p => p.Key, p => p.Value);
             session.Secrets = secrets.Select(s => s.Seat == seat
                 ? s
                 : new SecretChoice { Seat = s.Seat, Action = s.Action, Params = new Dictionary<string, string>() }).ToList();
@@ -57,6 +77,8 @@ namespace Core.Net
             {
                 session.RandomState = random;
                 session.Secrets = secrets;
+                session.Roles = roles;
+                session.Knows = knows;
             }
         }
     }

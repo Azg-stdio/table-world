@@ -130,6 +130,17 @@ namespace Core.Rules
     }
 
     /// <summary>
+    /// Shows <see cref="Seat"/>'s hidden role to <see cref="To"/> (a seat; every seat when left out or <c>all</c>), or only
+    /// its team with <see cref="TeamOnly"/>: the seer looks at a card, a dead player's role is shown to all.
+    /// </summary>
+    public sealed class RevealRoleEffect : Effect
+    {
+        public string Seat { get; set; } = "";
+        public string? To { get; set; }
+        public bool TeamOnly { get; set; }
+    }
+
+    /// <summary>
     /// Calls the global Lua function <see cref="Call"/> with one table: <c>actor</c>, <c>params</c> (the action's
     /// parameters), <c>it</c> (inside forEach) and <c>args</c> (<see cref="Args"/>). The function changes the game through
     /// the Lua <c>Game</c> API and the table through the usual object API; returning <c>false, "reason"</c> refuses the
@@ -192,6 +203,7 @@ namespace Core.Rules
             ["lock"] = typeof(LockEffect),
             ["roll"] = typeof(RollEffect),
             ["reveal"] = typeof(RevealEffect),
+            ["revealRole"] = typeof(RevealRoleEffect),
             ["lua"] = typeof(LuaEffect),
             ["refuse"] = typeof(RefuseEffect),
             ["blindRound"] = typeof(BlindRoundEffect),

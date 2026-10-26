@@ -126,6 +126,9 @@
             "type": "string"
           }
         },
+        "roles": {
+          "$ref": "#/$defs/RolesDef"
+        },
         "session": {
           "$ref": "#/$defs/Session"
         }
@@ -2677,6 +2680,18 @@
         {
           "type": "object",
           "properties": {
+            "revealRole": {
+              "$ref": "#/$defs/RevealRoleEffect"
+            }
+          },
+          "required": [
+            "revealRole"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
             "lua": {
               "$ref": "#/$defs/LuaEffect"
             }
@@ -3158,6 +3173,21 @@
       "properties": {
         "action": {
           "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "RevealRoleEffect": {
+      "type": "object",
+      "properties": {
+        "seat": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        },
+        "teamOnly": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false
@@ -4251,6 +4281,116 @@
       },
       "additionalProperties": false
     },
+    "RolesDef": {
+      "type": "object",
+      "properties": {
+        "teams": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TeamDef"
+          }
+        },
+        "list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RoleDef"
+          }
+        },
+        "byPlayers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            }
+          }
+        },
+        "knows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/KnowsRule"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "TeamDef": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "RoleDef": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "team": {
+          "type": "string"
+        },
+        "count": {},
+        "optional": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "KnowsRule": {
+      "type": "object",
+      "properties": {
+        "role": {
+          "type": "string"
+        },
+        "team": {
+          "type": "string"
+        },
+        "sees": {
+          "$ref": "#/$defs/SeesDef"
+        },
+        "as": {
+          "enum": [
+            "team",
+            "role",
+            "oneOf"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "SeesDef": {
+      "type": "object",
+      "properties": {
+        "team": {
+          "type": "string"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "except": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "Session": {
       "type": "object",
       "properties": {
@@ -4321,6 +4461,21 @@
             "type": "string"
           }
         },
+        "roles": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "knows": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/RoleSight"
+            }
+          }
+        },
         "randomState": {
           "type": "integer",
           "minimum": 0
@@ -4358,6 +4513,27 @@
         "params": {
           "type": "object",
           "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "RoleSight": {
+      "type": "object",
+      "properties": {
+        "seat": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "team": {
+          "type": "string"
+        },
+        "oneOf": {
+          "type": "array",
+          "items": {
             "type": "string"
           }
         }

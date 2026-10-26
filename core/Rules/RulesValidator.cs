@@ -129,10 +129,71 @@ namespace Core.Rules
             }
 
             CheckUi(actionIds);
+            CheckRoles();
 
             for (var i = 0; i < _state.Resources.Count; i++)
                 if (_state.Resources.Take(i).Any(r => r.Id == _state.Resources[i].Id))
                     Add($"resources[{i}].id", ErrorCodes.DuplicateId, $"Resource '{_state.Resources[i].Id}' is defined twice.");
+        }
+
+        /// <summary>Teams and roles that exist, counts that are numbers or fill, and team sizes the roles can fill (ADR 0012).</summary>
+        private void CheckRoles()
+        {
+            if (!(_state.Roles is { } roles))
+                return;
+            var teams = new HashSet<string>();
+            for (var i = 0; i < roles.Teams.Count; i++)
+                if (!teams.Add(roles.Teams[i].Id))
+                    Add($"roles.teams[{i}].id", ErrorCodes.DuplicateId, $"Team '{roles.Teams[i].Id}' is defined twice.");
+            var ids = new HashSet<string>();
+            for (var i = 0; i < roles.List.Count; i++)
+            {
+                var role = roles.List[i];
+                if (!ids.Add(role.Id))
+                    Add($"roles.list[{i}].id", ErrorCodes.DuplicateId, $"Role '{role.Id}' is defined twice.");
+                if (!teams.Contains(role.Team))
+                    Add($"roles.list[{i}].team", ErrorCodes.UnknownTeam, $"Team '{role.Team}' does not exist.", Suggest.OneOf(role.Team, teams, "a team id") ?? "Declare it under roles.teams.");
+                var count = role.Count;
+                var valid = count == null || role.Fills || count.Type == JTokenType.Integer && (int)count >= 0;
+                if (!valid)
+                    Add($"roles.list[{i}].count", ErrorCodes.InvalidValue, $"'{count}' is not a count.", "Use a number of seats, or \"fill\" for the seats left in its team.");
+            }
+            void Known(string? role, string? team, string path)
+            {
+                if (role != null && !ids.Contains(role))
+                    Add($"{path}.role", ErrorCodes.UnknownRole, $"Role '{role}' does not exist.", Suggest.OneOf(role, ids, "a role id"));
+                if (team != null && !teams.Contains(team))
+                    Add($"{path}.team", ErrorCodes.UnknownTeam, $"Team '{team}' does not exist.", Suggest.OneOf(team, teams, "a team id"));
+            }
+            for (var i = 0; i < roles.Knows.Count; i++)
+            {
+                var rule = roles.Knows[i];
+                var path = $"roles.knows[{i}]";
+                if ((rule.Role == null) == (rule.Team == null))
+                    Add(path, ErrorCodes.InvalidValue, "A knows rule names one role or one team that sees.", "Set role or team, not both.");
+                Known(rule.Role, rule.Team, path);
+                Known(null, rule.Sees.Team, $"{path}.sees");
+                foreach (var seen in rule.Sees.Roles.Concat(rule.Sees.Except))
+                    Known(seen, null, $"{path}.sees");
+                if (rule.As == KnowsAs.OneOf && rule.Sees.Roles.Count < 2)
+                    Add($"{path}.sees.roles", ErrorCodes.InvalidValue, "oneOf shows a seat as one of several roles: list at least two.");
+            }
+            if (roles.ByPlayers.Count == 0 && roles.List.Count(r => r.Fills) > 1)
+                Add("roles.list", ErrorCodes.RoleCount, "Without byPlayers only one role can fill the seats left.", "Give team sizes under roles.byPlayers.");
+            foreach (var pair in roles.ByPlayers)
+            {
+                if (!int.TryParse(pair.Key, out var players) || players < 1)
+                {
+                    Add($"roles.byPlayers.{pair.Key}", ErrorCodes.InvalidValue, $"'{pair.Key}' is not a number of players.");
+                    continue;
+                }
+                foreach (var team in pair.Value.Keys.Where(t => !teams.Contains(t)))
+                    Add($"roles.byPlayers.{pair.Key}.{team}", ErrorCodes.UnknownTeam, $"Team '{team}' does not exist.", Suggest.OneOf(team, teams, "a team id"));
+                // Checked without optional roles; a start with too many of them is refused with the reason (not every mix fits
+                // every count: Avalon's five players cannot take all four optional minions).
+                if (Core.Engine.GameEngine.RolesFor(roles, players, new List<string>()).Problem is { } problem)
+                    Add($"roles.byPlayers.{pair.Key}", ErrorCodes.RoleCount, problem);
+            }
         }
 
         private void CheckUi(HashSet<string> actionIds)
@@ -272,6 +333,13 @@ namespace Core.Rules
                              !System.Text.RegularExpressions.Regex.IsMatch(global, $@"(function\s+{System.Text.RegularExpressions.Regex.Escape(lua.Call)}\s*\(|\b{System.Text.RegularExpressions.Regex.Escape(lua.Call)}\s*=\s*function\b)"))
                         Add($"{path}.call", ErrorCodes.ScriptFailed, $"The global script defines no function '{lua.Call}'.",
                             $"Add 'function {lua.Call}(ctx) ... end' to scripts.global (set_script).");
+                    break;
+                case RevealRoleEffect show:
+                    Seat(show.Seat, $"{path}.seat");
+                    if (show.To != null && show.To != "all")
+                        Seat(show.To, $"{path}.to");
+                    if (_state.Roles == null)
+                        Add($"{path}", ErrorCodes.UnknownRole, "revealRole needs roles to show.", "Add a 'roles' block.");
                     break;
                 case RevealEffect reveal when reveal.Action != null:
                     var secret = _state.Actions.FirstOrDefault(a => a.Id == reveal.Action);

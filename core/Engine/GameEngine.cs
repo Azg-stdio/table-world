@@ -13,7 +13,7 @@ namespace Core.Engine
     /// conditions, events and win checks. A rules command is transactional: if an effect fails midway, the objects, zones,
     /// session and random state are restored and the result carries <see cref="CommandResult.StateRestored"/>.
     /// </summary>
-    public sealed class GameEngine
+    public sealed partial class GameEngine
     {
         public const int MaxTransitions = 200;
         public const int MaxLog = 50;
@@ -82,6 +82,7 @@ namespace Core.Engine
                         return wrapped;
                     var merged = done!.WithEvents(wrapped.Events.ToList());
                     merged.ScriptsRan = wrapped.ScriptsRan;
+                    merged.ReadsSecrets = wrapped.ReadsSecrets;
                     return merged;
                 }
                 default:
@@ -135,6 +136,7 @@ namespace Core.Engine
             _pendingGoto = null;
             _pendingEndPhase = _pendingEndTurn = false;
             _scriptsRan = false;
+            _secretsRead = false;
             _inRules = true;
             try
             {
@@ -143,6 +145,7 @@ namespace Core.Engine
                 var events = _events;
                 var success = CommandResult.Success(events);
                 success.ScriptsRan = _scriptsRan;
+                success.ReadsSecrets = _secretsRead;
                 return success;
             }
             catch (RuleException e)
@@ -162,6 +165,8 @@ namespace Core.Engine
                 Table.Random.State = random;
                 var fail = CommandResult.Fail(e.Error.Path, e.Error.Code, e.Error.Message, e.Error.Suggestion);
                 fail.StateRestored = mutated;
+                // A peer refusing because it lacks a secret is not the host refusing (SessionClient.Submit).
+                fail.ReadsSecrets = _secretsRead;
                 return fail;
             }
             finally
@@ -203,6 +208,7 @@ namespace Core.Engine
                 _ => seats[0].Id,
             };
             State.Session = session;
+            DealRoles(seats, command.Roles);
 
             RunEvent(GameEvents.OnGameStart);
             RunEvent(GameEvents.OnTurnStart);
@@ -466,6 +472,10 @@ namespace Core.Engine
                 }
                 case MessageEffect message: Log(Template(message.Text)); break;
                 case RevealEffect reveal: Reveal(reveal.Action); break;
+                case RevealRoleEffect show:
+                    RevealRole(ResolveSeat(show.Seat, "revealRole.seat"),
+                        show.To == null || show.To == "all" ? null : new[] { ResolveSeat(show.To, "revealRole.to") }, show.TeamOnly);
+                    break;
                 case ShowEffect show:
                 {
                     // The top card of a deck names the deck; a card shows itself.
@@ -563,6 +573,9 @@ namespace Core.Engine
                     break;
                 case "win": Win(SeatOf()); break;
                 case "log": Log((string?)c.Value ?? ""); break;
+                case "revealRole":
+                    RevealRole(SeatOf(), c.Name == null || c.Name == "all" ? null : new[] { c.Name }, c.Value is JValue { Type: JTokenType.Boolean } only && (bool)only);
+                    break;
                 default:
                     throw new RuleException("op", ErrorCodes.InvalidValue, $"Unknown script change '{c.Op}'.");
             }
@@ -1073,9 +1086,13 @@ namespace Core.Engine
                         case "color": return new JValue(seat.Color);
                         case "hand": return State.Zones.FirstOrDefault(z => z.Id == seat.HandZone);
                         case "name": return new JValue(Names.Of(seat));
+                        case "role":
+                        case "team":
+                            return RoleStep(seat, part) is { } known ? new JValue(known) : null;
                         case "chose":
                         {
                             // $viewer.chose.<action>: that seat's secret choice, waiting for the reveal (its first parameter, or "yes").
+                            _secretsRead = true;
                             if (++i >= parts.Length || Session == null)
                                 return null;
                             var actionId = parts[i];

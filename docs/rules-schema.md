@@ -28,6 +28,7 @@ Status: **v0, implemented by `core/`** (table model T2.1, commands T2.2, rules f
   "winConditions": [ /* WinCondition */ ],
   "ui":       { "panels": [ /* Panel */ ] },
   "scripts":  { "global": "-- optional Lua (M5)" },
+  "roles":    { /* hidden roles, dealt at the start (see Roles) */ },
   "session":  { /* written by the engine once a game starts */ }
 }
 ```
@@ -197,7 +198,7 @@ Fields that name a thing accept a plain id (object, zone, or a card inside a dec
 | `$seat.<id>`, `$obj.<id>` | a seat; an object, zone or deck by id |
 | `$param.<name>`, `$var.<name>` | an action parameter; a variable's current value |
 
-Properties: on a seat `.hand` (its HandZone), `.<tag>` (the object or zone tagged `<tag>:<seatId>`, e.g. `$actor.deck` → tag `deck:seat_1`), `.id`, `.color`, `.res.<resource>`. On decks `.top`, `.bottom`, `.count`; on zones `.top`/`.bottom` (highest/lowest object in the zone), `.count`; on cards and objects `.meta.<key>`, `.name`, `.id`, `.faceUp`, `.value` (die). A reference to something that does not exist right now (the top of an empty deck) is null: comparisons with null are false except `!=`.
+Properties: on a seat `.role` and `.team` (its hidden role and team, where this machine knows them; see Roles), `.hand` (its HandZone), `.<tag>` (the object or zone tagged `<tag>:<seatId>`, e.g. `$actor.deck` → tag `deck:seat_1`), `.id`, `.color`, `.res.<resource>`. On decks `.top`, `.bottom`, `.count`; on zones `.top`/`.bottom` (highest/lowest object in the zone), `.count`; on cards and objects `.meta.<key>`, `.name`, `.id`, `.faceUp`, `.value` (die). A reference to something that does not exist right now (the top of an empty deck) is null: comparisons with null are false except `!=`.
 
 ## Effects (v0)
 
@@ -218,6 +219,7 @@ Each effect is a single-key object, e.g. `{ "shuffle": { "object": "deck_main" }
 | `endTurn` / `endPhase` | `{}` — take effect after the current effect list |
 | `gotoPhase` | `phase` |
 | `win` | `player` |
+| `revealRole` | `seat`; `to` (a seat; every seat when left out or `all`); `teamOnly` (show only the team) |
 
 Moving cards into a deck makes them take the deck's orientation; into a zone they are laid out (hand slots for a HandZone, a stack at the centre otherwise). Not in v0: `spawn`, `destroy`, `prompt`, `reveal`/`hide`, `lua` (M5).
 
@@ -261,9 +263,48 @@ v0 events: `onGameStart`, `onTurnStart`, `onTurnEnd`. Zone and physical events (
 
 `when` is checked once per seat with `$player` bound to it; the first that holds ends the game with `winner` (a reference or seat id). `checkAfter`: `anyCommand` (after every action, and after physical commands while a game runs) or `turnEnd`. A `win` effect ends the game directly.
 
+## Roles
+
+Hidden-role games (Avalon, Werewolf, Wink Murder; ADR 0012) declare teams, the roles dealt at random when the game
+starts, and who knows whom:
+
+```jsonc
+"roles": {
+  "teams": [ { "id": "good", "name": "Loyal servants of Arthur" }, { "id": "evil", "name": "Minions of Mordred" } ],
+  "list": [
+    { "id": "merlin",   "name": "Merlin",   "team": "good" },              // count 1 when left out
+    { "id": "percival", "name": "Percival", "team": "good", "optional": true },
+    { "id": "servant",  "team": "good", "count": "fill" },                  // the seats left in its team
+    { "id": "assassin", "team": "evil" },
+    { "id": "oberon",   "team": "evil", "optional": true },
+    { "id": "minion",   "team": "evil", "count": "fill" }
+  ],
+  "byPlayers": { "5": { "good": 3, "evil": 2 }, "6": { "good": 4, "evil": 2 } },
+  "knows": [
+    { "role": "merlin", "sees": { "team": "evil", "except": [ "mordred" ] } },              // as their team
+    { "team": "evil",   "sees": { "team": "evil", "except": [ "oberon" ] } },
+    { "role": "oberon", "sees": {} },                                                       // a role's own rules replace its team's
+    { "role": "percival", "sees": { "roles": [ "merlin", "morgana" ] }, "as": "oneOf" }    // one of those, not which
+  ]
+}
+```
+
+- **The deal:** the host ticks optional roles when starting (`StartGameCommand.roles`, `start_game roles=`). With
+  `byPlayers`, each team gets its size for the number of players: its fixed roles first, its `fill` role the rest.
+  Without it, the fixed counts stand and a single `fill` role takes the rest. A mix that does not add up refuses the
+  start with `role_count` and the reason.
+- **What a seat knows** is worked out once at the deal from `knows`: the seats whose role matches `sees` (`team`,
+  `roles`, minus `except`), shown `as` their `team` (default), their `role`, or `oneOf` the listed roles. Each seat is
+  told privately ("You are Merlin (Loyal servants of Arthur).", "Red and Blue are Minions of Mordred."); those lines
+  never reach the shared log.
+- **Rules read roles** with `$actor.role`, `$seat.<id>.team` and so on: an assassin-only action is a precondition
+  `{ "compare": { "left": "$actor.role", "right": "assassin" } }`. `revealRole` shows a role later.
+- **Secrecy:** `session.roles` (seat → role) and `session.knows` (seat → what it knows) reach each machine only for its
+  own seat. A command that reads or changes a role runs on the host, which sends each player its result.
+
 ## Session (written by the engine)
 
-`StartGameCommand` adds a `session` object: `started`, `over`, `winner`, `turn`, `currentSeat`, `phase`, `acted`, `actionCounts`, `variables`, `resources`, `log` (last 50 messages) and `randomState`. It is saved with the table, so a saved game resumes exactly, including the shuffle sequence. An authored game file has no session.
+`StartGameCommand` adds a `session` object: `started`, `over`, `winner`, `turn`, `currentSeat`, `phase`, `acted`, `actionCounts`, `variables`, `resources`, `log` (last 50 messages), `secrets` (secret choices waiting for a reveal), `roles` and `knows` (see Roles) and `randomState`. It is saved with the table, so a saved game resumes exactly, including the shuffle sequence. An authored game file has no session.
 
 ## UI
 

@@ -89,7 +89,7 @@ namespace TableWorld.Mcp.Tests
             {
                 "add_action", "add_asset", "add_event", "add_phase", "add_resource", "add_to_games", "ask_host", "create_deck", "create_supply", "create_text_deck", "deal", "define_zone",
                 "get_rules_document", "get_rules_reference", "get_table_state", "load_game", "new_game", "perform_action",
-                "place_object", "remove", "reset_game", "run_lua", "save_game", "screenshot", "set_messages", "set_notebook", "set_rules_document", "set_script", "set_turn", "set_variables",
+                "place_object", "remove", "reset_game", "run_lua", "save_game", "screenshot", "set_messages", "set_notebook", "set_roles", "set_rules_document", "set_script", "set_turn", "set_variables",
                 "set_win_condition", "start_game", "table_action", "validate_rules",
             };
             Assert.Equal(expected, tools);
