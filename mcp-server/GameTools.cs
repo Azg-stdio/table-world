@@ -281,9 +281,38 @@ namespace TableWorld.Mcp
                     Upsert(doc, "objects", Piece($"{id}_piece{(i == 0 ? "" : "_" + (i + 1))}", x, z, id));
             }), session));
 
-        [McpServerTool(Name = "place_object"), Description("Place any table object from JSON: Card, Deck, Token, Tile, Die, Bag, InfiniteBag, Board, Figure, Model. Example: {\"id\":\"d6\",\"type\":\"Die\",\"faces\":6,\"transform\":{\"position\":[0.3,0,0]}}. Replaces an object with the same id. " + Format)]
-        public static string PlaceObject(GameSession session, [Description("The object as JSON.")] string objectJson) =>
-            session.Locked(() => Reply(session.Edit(doc => Upsert(doc, "objects", GameSession.ParseObject(objectJson, "objectJson"))), session));
+        [McpServerTool(Name = "place_object"), Description("Place any table object from JSON: Card, Deck, Token, Tile, Die, Bag, InfiniteBag, Board, Figure, Model. Example: {\"id\":\"d6\",\"type\":\"Die\",\"faces\":6,\"transform\":{\"position\":[0.3,0,0]}}. With seat, the object goes in front of that seat's hand and faces it (a character card, a player board): inward metres towards the centre, along metres to the player's right; its own rotation then only adds a flip (rotation z 180 = face down). Replaces an object with the same id. Check placements with screenshot. " + Format)]
+        public static string PlaceObject(GameSession session, [Description("The object as JSON.")] string objectJson,
+            [Description("Seat id to place it for: in front of that seat, facing it.")] string? seat = null,
+            [Description("With seat: metres from the hand towards the centre.")] float inward = 0.15f,
+            [Description("With seat: metres to the player's right of the hand's middle (negative: left).")] float along = 0f) =>
+            session.Locked(() => Reply(session.Edit(doc =>
+            {
+                var obj = GameSession.ParseObject(objectJson, "objectJson");
+                if (seat != null)
+                    PlaceForSeat(session, obj, seat, inward, along);
+                Upsert(doc, "objects", obj);
+            }), session));
+
+        /// <summary>Sets <paramref name="obj"/>'s position in front of <paramref name="seatId"/>'s hand, turned to read upright from that seat.</summary>
+        private static void PlaceForSeat(GameSession session, JObject obj, string seatId, float inward, float along)
+        {
+            var state = session.Current;
+            var seatModel = state.Players.Seats.FirstOrDefault(x => x.Id == seatId)
+                ?? throw new EditException(new ValidationError("seat", ErrorCodes.UnknownSeat, $"Seat '{seatId}' does not exist.",
+                    "Seats: " + string.Join(", ", state.Players.Seats.Select(x => x.Id)) + "."));
+            var hand = state.Zones.FirstOrDefault(z => z.Id == seatModel.HandZone)
+                ?? throw new EditException(new ValidationError("seat", ErrorCodes.UnknownZone, $"Seat '{seatId}' has no hand zone to place things in front of."));
+            var place = new SeatLayout.Place { Position = hand.Transform.Position, Yaw = hand.Transform.Rotation.Y };
+            var at = SeatLayout.InFrontOf(place, along, inward);
+            var transform = obj["transform"] as JObject ?? new JObject();
+            var rotation = transform["rotation"] as JArray;
+            var flip = rotation != null && rotation.Count == 3 ? (float)rotation[2] : 0f;
+            transform["position"] = new JArray(at.X, 0, at.Z);
+            // Images read upright from the south seat at yaw 180 (ADR 0005): a seat's own yaw turns that towards it.
+            transform["rotation"] = new JArray(0, Geometry.NormalizeAngle(place.Yaw + 180f), flip);
+            obj["transform"] = transform;
+        }
 
         [McpServerTool(Name = "define_zone"), Description("Define a zone from JSON: HandZone (owner seat, hidden from others), HiddenZone, ScriptingZone (an area rules can count, e.g. a battlefield), SnapPoint, LayoutZone (arranges what is dropped in it in a grid: direction rightThenDown|downThenRight|leftThenDown|downThenLeft, maxPerRow, spacing m, facing keep|faceUp|faceDown, manualOnly), RandomizeZone (players shuffle where things in it lie). Example: {\"id\":\"battlefield\",\"type\":\"ScriptingZone\",\"transform\":{\"position\":[0,0.05,0]},\"size\":[0.3,0.1,0.2]}. Any zone can show the total of the dice thrown in it (diceTotal: true; per player for dice tagged owner:<seat>; rules read $diceTotal.<zone> and $diceTotal.<zone>.<seat>). Any zone can carry rules: onEnter / onLeave effects run during a game when a player puts a piece in or takes it out ($it = the piece, $actor = who moved it), so moving a pawn onto a space can be the move itself; a refuse effect ({\"refuse\":{\"reason\":\"...\"}}) undoes the move; inside a blind round they wait for the reveal. Replaces a zone with the same id.")]
         public static string DefineZone(GameSession session, [Description("The zone as JSON.")] string zoneJson) =>

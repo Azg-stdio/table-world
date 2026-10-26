@@ -100,7 +100,9 @@ card, so the agent can size the cards to match. Use the id as a deck's `faceAsse
 add_asset {"id": "board_art", "url": "https://example.com/board.png"}
 ```
 
-**`place_object`**: any other object: tokens, tiles, dice, bags, boards, figures, models.
+**`place_object`**: any other object: tokens, tiles, dice, bags, boards, figures, models. With `seat`, the object goes in
+front of that seat's hand and faces that player (`inward` and `along` in metres), so each player's character card or
+player board reads upright from their own chair without any rotation maths.
 
 ```call
 place_object {"objectJson": {"id": "d6", "type": "Die", "faces": 6, "transform": {"position": [0.3, 0, 0]}}}
