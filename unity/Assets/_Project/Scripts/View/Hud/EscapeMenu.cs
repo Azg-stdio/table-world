@@ -216,7 +216,7 @@ namespace TableWorld.View.Hud
                 v => v == Antialiasing.Off ? "Off" : v == Antialiasing.Fxaa ? "FXAA (fast)" : "SMAA (sharper)");
             Choice("Graphics quality", (GraphicsQuality[])Enum.GetValues(typeof(GraphicsQuality)), s.Graphics, v => s.Graphics = v,
                 v => v == GraphicsQuality.Auto ? $"Auto ({GraphicsPresets.Detect()} on this computer)" : v == GraphicsQuality.Low
-                    ? "Low (no shadows, 75% resolution)" : v == GraphicsQuality.Medium ? "Medium (fewer shadows)" : "High");
+                    ? "Low (no shadows, 75% resolution, smaller images)" : v == GraphicsQuality.Medium ? "Medium (fewer shadows)" : "High");
             Slider("Interface size", GameSettings.MinUiScale, GameSettings.MaxUiScale, s.UiScale, v => s.UiScale = v, Percent);
             if (Application.isEditor)
                 Note("Window and resolution apply in the built game, not in the Editor.");

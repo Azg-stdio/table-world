@@ -223,7 +223,8 @@ namespace TableWorld.View
         }
 
         /// <summary>Largest side of a loaded image (M4 T5.2); bigger ones are scaled down, keeping their proportions.</summary>
-        public const int MaxTextureSize = 4096;
+        /// <remarks>2048 on the Low graphics preset: a quarter of the video memory for every big sheet.</remarks>
+        public static int MaxTextureSize => Settings.GraphicsPresets.Current == Settings.GraphicsQuality.Low ? 2048 : 4096;
 
         /// <summary>
         /// Makes a freshly loaded image fit for the GPU: at most <see cref="MaxTextureSize"/> on its longest side (sprite

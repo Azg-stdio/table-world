@@ -97,9 +97,27 @@ namespace TableWorld.Tests.PlayMode
             var baked = result[0];
             Assert.AreEqual(AssetLibrary.MaxTextureSize, baked.width);
             Assert.AreEqual(0, baked.height % 4);
-            Assert.AreEqual(Mathf.RoundToInt(1001f * 4096 / 5002 / 4) * 4, baked.height, "the proportions stay");
+            Assert.AreEqual(Mathf.RoundToInt(1001f * AssetLibrary.MaxTextureSize / 5002 / 4) * 4, baked.height, "the proportions stay");
             Assert.AreEqual(TextureFormat.DXT1, baked.format, "fully opaque RGBA is BC1");
             Object.Destroy(baked);
+        }
+
+        [UnityTest]
+        public IEnumerator OnLowGraphics_ImagesStopAt2048()
+        {
+            var before = TableWorld.View.Settings.GraphicsPresets.Current;
+            TableWorld.View.Settings.GraphicsPresets.Apply(TableWorld.View.Settings.GraphicsQuality.Low);
+            try
+            {
+                var result = new Texture2D[1];
+                yield return BakeAndWait(Make(5000, 2500, TextureFormat.RGBA32, hole: false), result);
+                Assert.AreEqual(new Vector2Int(2048, 1024), new Vector2Int(result[0].width, result[0].height));
+                Object.Destroy(result[0]);
+            }
+            finally
+            {
+                TableWorld.View.Settings.GraphicsPresets.Apply(before);
+            }
         }
     }
 }

@@ -9,8 +9,9 @@ namespace TableWorld.View.Settings
     /// <summary>
     /// How much the machine draws. The table's two spot lights each render every piece again into the shadow atlas (up
     /// to 14 000 shadow casters on an imported game): Medium keeps only the table light's shadows, hard-edged; Low drops
-    /// real-time shadows and renders at <see cref="LowRenderScale"/>, upscaled with AMD FSR 1. Auto picks from the video
-    /// memory and cores.
+    /// real-time shadows, renders at <see cref="LowRenderScale"/> upscaled with AMD FSR 1, and loads images at most 2048
+    /// pixels long (<see cref="AssetLibrary.MaxTextureSize"/>; images already loaded keep their size until the next game).
+    /// Auto picks from the video memory and cores.
     /// </summary>
     public static class GraphicsPresets
     {

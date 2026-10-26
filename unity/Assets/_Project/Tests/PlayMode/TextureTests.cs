@@ -38,8 +38,8 @@ namespace TableWorld.Tests.PlayMode
                 big = table.Assets.Texture("big");
             }
             Assert.IsNotNull(big, "the big image decoded");
-            Assert.AreEqual(4096, big.width, "the longest side fits the limit");
-            Assert.AreEqual(2048, big.height, "and the proportions stay (a sheet keeps its grid)");
+            Assert.AreEqual(AssetLibrary.MaxTextureSize, big.width, "the longest side fits the limit");
+            Assert.AreEqual(AssetLibrary.MaxTextureSize / 2, big.height, "and the proportions stay (a sheet keeps its grid)");
             Assert.IsTrue(big.format == TextureFormat.DXT5 || big.format == TextureFormat.DXT1 || big.format == TextureFormat.BC7, $"compressed ({big.format})");
             Assert.Greater(big.mipmapCount, 1, "with mipmaps");
             Assert.IsFalse(big.isReadable, "and its CPU copy freed");
