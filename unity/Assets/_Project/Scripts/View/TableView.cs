@@ -1354,6 +1354,10 @@ namespace TableWorld.View
                     case InputsChanged inputs:
                         _inputsToDraw.Add(inputs.ObjectId);
                         break;
+                    case LightingChanged _:
+                        if (TryGetComponent(out EnvironmentView environment) || (environment = FindAnyObjectByType<EnvironmentView>()) != null)
+                            environment.ApplyLighting();
+                        break;
                     case TableSettingsChanged _:
                         foreach (var each in _views.Values)
                             if (each != null)

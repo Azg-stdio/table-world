@@ -25,6 +25,33 @@ namespace Core.Rules
         /// <summary>The light on game pieces and the felt only (0 = off). Neutral white unless a game wants otherwise.</summary>
         public float? TableLightIntensity { get; set; }
         public float[]? TableLightColor { get; set; }
+
+        /// <summary>
+        /// Multiplies the lamp and the table light: TTS's <c>light_intensity</c> over its default (0.54), so a game that
+        /// dims or brightens TTS's light does the same here. Null is 1.
+        /// </summary>
+        public float? LightScale { get; set; }
+        /// <summary>Multiplies the ambient light: TTS's <c>ambient_intensity</c> over its default (1.3). Null is 1.</summary>
+        public float? AmbientScale { get; set; }
+        /// <summary>Tints the lamp and the table light: TTS's <c>light_color</c> over its default warm white. Null is none.</summary>
+        public float[]? LightTint { get; set; }
+    }
+
+    /// <summary>TTS's lighting, as saves and scripts give it, against the multipliers of <see cref="LightingDef"/>.</summary>
+    public static class TtsLighting
+    {
+        public const float DefaultLightIntensity = 0.54f;
+        public const float DefaultAmbientIntensity = 1.3f;
+        public static readonly float[] DefaultLightColor = { 1f, 0.9804f, 0.8902f };
+
+        /// <summary>The tint a TTS light colour means here (each channel over TTS's default), or null for the default.</summary>
+        public static float[]? Tint(float r, float g, float b)
+        {
+            var tint = new[] { r / DefaultLightColor[0], g / DefaultLightColor[1], b / DefaultLightColor[2] };
+            for (var i = 0; i < 3; i++)
+                tint[i] = tint[i] < 0f ? 0f : tint[i] > 2f ? 2f : tint[i];
+            return tint[0] > 0.98f && tint[0] < 1.02f && tint[1] > 0.98f && tint[1] < 1.02f && tint[2] > 0.98f && tint[2] < 1.02f ? null : tint;
+        }
     }
 
     /// <summary>How the table itself looks.</summary>

@@ -200,6 +200,7 @@ namespace Core.Scripting
             g["Turns"] = TurnsApi(script);
             g["Grid"] = GridApi(script);
             g["MusicPlayer"] = MusicApi(script);
+            g["Lighting"] = LightingApi(script);
             g["log"] = Fn(args =>
             {
                 Log?.Invoke("[log] " + string.Join(" ", args.GetArray().Select(a => a.ToPrintString())));
@@ -262,6 +263,11 @@ namespace Core.Scripting
                     ? DynValue.False
                     : DynValue.NewBoolean(Issue(new DeleteNoteTabCommand { TabId = Engine.State.Notebook[index].Id }));
             });
+            // TTS also has them under Notes (Notes.addNotebookTab …).
+            var notes = new Table(script);
+            foreach (var name in new[] { "getNotebookTabs", "addNotebookTab", "editNotebookTab", "removeNotebookTab" })
+                notes[name] = g[name];
+            g["Notes"] = notes;
         }
 
         private DynValue Schedule(Script script, CallbackArguments args, bool seconds)
@@ -1010,6 +1016,8 @@ namespace Core.Scripting
                     return Fn((o, a) => Effects(script, id, looping: false));
                 // Physics velocity is not simulated here: the calls are accepted and do nothing.
                 case "setVelocity":
+                    return DynValue.NewCallback((_, a) => DynValue.Nil);
+                case "setAngularVelocity":
                     return DynValue.NewCallback((_, a) => DynValue.Nil);
                 case "addForce":
                     return DynValue.NewCallback((_, a) => DynValue.Nil);

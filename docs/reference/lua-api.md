@@ -36,9 +36,11 @@ API the local mods' calls find is measured in [`docs/data/lua-coverage-*.md`](..
 | `ipairs` | function |  |
 | `JSON` | table | `decode`, `encode`, `encode_pretty` |
 | `json` | table | `isnull`, `null`, `parse`, `serialize` |
+| `Lighting` | table | `apply`, `getAmbientEquatorColor`, `getAmbientGroundColor`, `getAmbientSkyColor`, `getLightColor`, `setAmbientEquatorColor`, `setAmbientGroundColor`, `setAmbientSkyColor`, `setLightColor` |
 | `log` | function |  |
 | `MusicPlayer` | table | `back`, `getCurrentAudioclip`, `getPlaylist`, `pause`, `play`, `setCurrentAudioclip`, `setPlaylist`, `skip`, `skipBack`, `skipForward` |
 | `next` | function |  |
+| `Notes` | table | `addNotebookTab`, `editNotebookTab`, `getNotebookTabs`, `removeNotebookTab` |
 | `pack` | function |  |
 | `package` | table |  |
 | `pairs` | function |  |
@@ -160,6 +162,7 @@ On every object a script gets (`getObjectFromGUID`, `self`, event arguments). Fu
 | `resting` | value |
 | `roll` | function |
 | `scale` | function |
+| `setAngularVelocity` | function |
 | `setColorTint` | function |
 | `setCustomObject` | function |
 | `setDescription` | function |

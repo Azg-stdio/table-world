@@ -759,6 +759,9 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `lampColor` | array of number |  |
 | `tableLightIntensity` | number |  |
 | `tableLightColor` | array of number |  |
+| `lightScale` | number |  |
+| `ambientScale` | number |  |
+| `lightTint` | array of number |  |
 
 ### TableLookDef
 

@@ -41,7 +41,8 @@ API returns are Vectors and Colors.
 | `spawnObject({ type, position, rotation, scale, callback_function })` | a new object (`Spawn`, checked like a loaded table): `Die_4`…`Die_20`, `Custom_Token`, chips, `Custom_Tile`, `Custom_Board`, bags, `Notecard`, `Counter`, `BlockSquare`, `BlockRectangle`, checkers, `PlayerPawn`; the callback gets it on the next frame. Types needing custom files (`setCustomObject`) are not supported yet |
 | `getSeatedPlayers()` | the seats' colours |
 | `Player[color]`, `Player.Red`, `Player.getPlayers()`, `Player.getAvailableColors()` | players: `color`, `steam_name`, `seated`, `getHandObjects()`, `broadcast(text)`, `print(text)`; camera calls (`lookAt`) are accepted without effect |
-| `getNotebookTabs()`, `addNotebookTab({title, body, color})`, `editNotebookTab({index, title, body, color})`, `removeNotebookTab(index)` | the notebook (G25); colour "Grey" is everyone's page |
+| `getNotebookTabs()`, `addNotebookTab({title, body, color})`, `editNotebookTab({index, title, body, color})`, `removeNotebookTab(index)`, also as `Notes.*` | the notebook (G25); colour "Grey" is everyone's page |
+| `Lighting.light_intensity`, `ambient_intensity`, `light_color` (`get/setLightColor`), then `Lighting.apply()` | the room's light for everyone (host): TTS's values over its defaults (0.54, 1.3, warm white) scale and tint our lamp and table light; the other fields (ambient type and colours, LUTs, reflections) are kept but change nothing |
 | `log(...)`, `JSON.encode_pretty(table)` | host log; JSON |
 | `MusicPlayer.*` | the table's music (G27): `play`, `pause`, `skip`/`back`, `getPlaylist`/`setPlaylist`, `getCurrentAudioclip`/`setCurrentAudioclip` (`{url, title}`), members `player_status` ("Ready", "Play", "Pause"), `playlist_index`/`playlistIndex`, `repeat_track`, `shuffle`, `loaded`; every machine plays it, the host moves to the next track |
 | `Physics.cast({ origin, direction, type, size, orientation, max_distance })` | the host's physics: `type` 1 ray, 2 sphere, 3 box; with no distance or direction, what overlaps the shape. Returns `{ hit_object, point, normal, distance }`, nearest first, objects only |
@@ -88,7 +89,7 @@ API returns are Vectors and Colors.
 | `isSmoothMoving()`, `reload()` | false; itself |
 | `AssetBundle.playLoopingEffect(i)`, `playTriggerEffect(i)`, `getLoopingEffects()`, `getTriggerEffects()`, `getLoopingEffectIndex()`, and the same calls on the object | the bundle's effects (ADR 0008): a looping effect stays and is saved, a trigger plays once, for every player; the lists are `{ { index, name }, ... }`, empty while the bundle is not loaded |
 | `getComponent(name).get / set`, `getComponents`, `getChildren` | accepted without effect (Unity components are not scripted) |
-| `setVelocity`, `getVelocity`, `addForce`, `addTorque`, `highlightOn`, `highlightOff` | accepted, no effect yet (physics is not script-driven) |
+| `setVelocity`, `setAngularVelocity`, `getVelocity`, `addForce`, `addTorque`, `highlightOn`, `highlightOff` | accepted, no effect yet (physics is not script-driven) |
 
 ### Buttons
 
@@ -160,6 +161,7 @@ Defined in the global script or any object script; colours are seat colours capi
 | `onPlayerTurn(color)` | free-play turns moved to that seat |
 | `onObjectEnterContainer(container, obj)`, `onObjectLeaveContainer(container, obj)` | an object went into or came out of a bag or deck |
 | `onChat(message, player)` | a player wrote in chat; returning false keeps the line from being shown |
+| `onObjectHover(color, obj)` | a player's pointer moved onto an object (`obj` nil when it left every object); clients' pointers reach the host with their presence |
 | own `onCollisionEnter(info)` / `onCollisionExit(info)`; `onObjectCollisionEnter(obj, info)` / `onObjectCollisionExit` for objects that called `registerCollisions()` | physics contacts on the host; `info` is `{ collision_object, contact_points, relative_velocity }` (`collision_object` nil for the table) |
 
 ## Turns and grid
@@ -192,7 +194,8 @@ for every one removed (a card joining a deck too); the destroyed object is alrea
 Player input: the numpad's 1–9 and 0 are TTS's scripting buttons 1–10, heard by `onScriptingButtonDown(index, color)` and
 `onScriptingButtonUp(index, color)`. A number typed over an object whose script defines `onNumberTyped(color, number,
 alt)` goes to the host first; unless the function returns true, the host then does what typing does (switch state,
-draw from a deck, take from a bag into the hand). `Player[color].getHoldingObjects()` lists what that player carries.
+draw from a deck, take from a bag into the hand). `Player[color].getHoldingObjects()` lists what that player carries,
+`getHoverObject()` what their pointer is over, and `changeColor("Blue")` moves them to that colour's seat when it is free.
 `onPlayerConnect(player)` runs when someone joins at a seat.
 
 ## Not yet (T6.3)

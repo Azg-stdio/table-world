@@ -26,6 +26,7 @@ namespace TableWorld.View.Net
             _scripts.Log += text => Debug.Log("[Lua] " + text);
             _scripts.PhysicsCast = Cast;
             _scripts.EffectNames = (id, looping) => _table.EffectNames(id, looping);
+            _scripts.ChangeColor = ChangeColorOf;
             _scripts.IsMoving = id => _table.IsMoving(id);
             _scripts.MeasureBounds = (id, normalized) => _table.MeasureBounds(id, normalized) is { } b ? (b.center.ToCore(), b.size.ToCore()) : null;
             _table.Collided += OnCollided;
@@ -100,8 +101,47 @@ namespace TableWorld.View.Net
 
         private void TickScripts()
         {
-            if (_scripts != null && !IsClient && _scripts.ScriptCount > 0)
-                _scripts.Tick(Time.unscaledTimeAsDouble);
+            if (_scripts == null || IsClient || _scripts.ScriptCount == 0)
+                return;
+            _scripts.Tick(Time.unscaledTimeAsDouble);
+            // This machine's own pointer; other players' arrive with their presence.
+            _interaction ??= FindAnyObjectByType<TableInteraction>();
+            if (_table.LocalSeat != null && _interaction != null)
+                ScriptsHearHover(_table.LocalSeat, _interaction.Hovered != null ? _interaction.Hovered.Id : null);
+        }
+
+        /// <summary>TTS onObjectHover for the player at <paramref name="seat"/> (the host's scripts drop repeats).</summary>
+        private void ScriptsHearHover(string seat, string objectId)
+        {
+            if (_scripts == null || IsClient || _table.Engine == null)
+                return;
+            if (_table.Engine.State.Players.Seats.FirstOrDefault(s => s.Id == seat)?.Color is { } color)
+                _scripts.OnHover(color, objectId);
+        }
+
+        /// <summary>
+        /// TTS changeColor: moves the player of one colour to another colour's seat, as the host would grant a request.
+        /// Alone, the seat this machine plays changes.
+        /// </summary>
+        private bool ChangeColorOf(string from, string to)
+        {
+            var seats = _table.Engine?.State.Players.Seats;
+            var fromSeat = seats?.FirstOrDefault(s => string.Equals(s.Color, from, System.StringComparison.OrdinalIgnoreCase))?.Id;
+            var toSeat = seats?.FirstOrDefault(s => string.Equals(s.Color, to, System.StringComparison.OrdinalIgnoreCase))?.Id;
+            if (fromSeat == null || toSeat == null)
+                return false;
+            if (IsHost)
+            {
+                var participant = _seating.SeatOf.FirstOrDefault(p => p.Value == fromSeat).Key;
+                if (participant == null)
+                    return false;
+                Sit(participant, toSeat);
+                return _seating.Seat(participant) == toSeat;
+            }
+            if (IsClient || _table.LocalSeat != fromSeat)
+                return false;
+            _table.SeatOverride = toSeat;
+            return true;
         }
 
         /// <summary>Tells the scripts about a command, with the colour of the seat that did it.</summary>

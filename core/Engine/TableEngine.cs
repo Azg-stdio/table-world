@@ -212,6 +212,7 @@ namespace Core.Engine
             RollCommand c => Roll(c),
             SetPhysicsCommand c => SetPhysics(c),
             SetGridCommand c => SetGrid(c),
+            SetLightingCommand c => SetLighting(c),
             MoveZoneCommand c => MoveZone(c),
             SetMusicCommand c => SetMusic(c),
             AddDrawingCommand c => AddDrawing(c),
@@ -538,6 +539,20 @@ namespace Core.Engine
             if (zone.ScriptUi.Count > 0)
                 events.Add(new ScriptUiChanged(zone.Id));
             return CommandResult.Success(events);
+        }
+
+        private CommandResult SetLighting(SetLightingCommand c)
+        {
+            if (c.LightScale is < 0f or > 8f || c.AmbientScale is < 0f or > 8f)
+                return CommandResult.Fail("lightScale", ErrorCodes.InvalidValue, "Light scales go from 0 to 8.");
+            if (c.LightTint != null && (c.LightTint.Length != 3 || c.LightTint.Any(v => !(v >= 0f && v <= 2f))))
+                return CommandResult.Fail("lightTint", ErrorCodes.InvalidValue, "A tint is three numbers from 0 to 2.");
+            State.Environment ??= new EnvironmentDef();
+            var lighting = State.Environment.Lighting;
+            lighting.LightScale = c.LightScale;
+            lighting.AmbientScale = c.AmbientScale;
+            lighting.LightTint = c.LightTint;
+            return CommandResult.Success(new List<StateEvent> { new LightingChanged() });
         }
 
         private CommandResult SetGrid(SetGridCommand c)

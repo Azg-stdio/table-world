@@ -2630,6 +2630,18 @@
           "items": {
             "type": "number"
           }
+        },
+        "lightScale": {
+          "type": "number"
+        },
+        "ambientScale": {
+          "type": "number"
+        },
+        "lightTint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
         }
       },
       "additionalProperties": false

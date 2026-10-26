@@ -46,6 +46,15 @@ namespace Core.Tests.Net
             Assert.Null(PresenceCodec.Decode(PresenceCodec.Encode(Frame("s", 1)))!.Emote);
         }
 
+        [Fact]
+        public void Hover_RoundTrips()
+        {
+            var frame = Frame("seat_north", 3);
+            frame.Hover = "d6";
+            Assert.Equal("d6", PresenceCodec.Decode(JObject.Parse(PresenceCodec.Encode(frame).ToString()))!.Hover);
+            Assert.Null(PresenceCodec.Decode(PresenceCodec.Encode(Frame("s", 1)))!.Hover);
+        }
+
         [Theory]
         [InlineData(@"{ ""kind"": ""order"" }")]
         [InlineData(@"{ ""kind"": ""presence"" }")]
@@ -55,6 +64,7 @@ namespace Core.Tests.Net
         [InlineData(@"{ ""kind"": ""presence"", ""seat"": ""s"", ""gaze"": [0, ""x"", 0] }")]
         [InlineData(@"{ ""kind"": ""presence"", ""seat"": ""s"", ""emote"": { ""name"": ""<script>"", ""n"": 1 } }")]
         [InlineData(@"{ ""kind"": ""presence"", ""seat"": ""s"", ""emote"": { ""name"": ""Wave"" } }")]
+        [InlineData(@"{ ""kind"": ""presence"", ""seat"": ""s"", ""hover"": """" }")]
         [InlineData(@"{ ""kind"": ""presence"", ""seat"": ""s"", ""held"": [ { ""id"": """", ""p"": [0, 0, 0], ""r"": [0, 0, 0] } ] }")]
         [InlineData(@"{ ""kind"": ""presence"", ""seat"": ""s"", ""held"": [ { ""id"": ""a"", ""p"": [0, 0], ""r"": [0, 0, 0] } ] }")]
         public void MalformedFrames_AreRefused(string json)

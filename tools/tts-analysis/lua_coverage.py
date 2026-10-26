@@ -25,6 +25,8 @@ IMPLEMENTED = {
     "setLuaScript", "getTable", "setTable", "getColorTint", "setColorTint", "getScale", "setScale", "getBounds",
     "getBoundsNormalized", "getZones", "positionToWorld", "positionToLocal", "playLoopingEffect", "playTriggerEffect",
     "getLoopingEffects", "getTriggerEffects", "getTransformUp", "getTransformForward", "getTransformRight", "scale",
+    "Notes.addNotebookTab", "Notes.editNotebookTab", "Notes.removeNotebookTab", "Notes.getNotebookTabs", "onObjectHover",
+    "getHoverObject", "changeColor", "setAngularVelocity", "Lighting.apply",
     "setVelocity", "getVelocity", "addForce", "addTorque", "highlightOn", "highlightOff", "startLuaCoroutine",
     "destroyObject", "getSeatedPlayers", "onSave", "onObjectPickUp", "onPickUp",
     "isSmoothMoving", "reload", "setState", "getStates", "getCustomObject", "log", "JSON.encode_pretty", "Global.getTable",
@@ -61,6 +63,10 @@ LUA_BUILTINS = {
     "xpcall", "setmetatable", "getmetatable", "rawget", "rawset", "time", "clock", "date",
 }
 
+# Functions a mod defines and calls itself (a call() target, a button's click_function) that the analyzer counts as
+# events by their "on" prefix; they are not TTS API.
+MOD_FUNCTIONS = {"onInputSubmit", "onSpawnButtonClick"}
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -75,7 +81,7 @@ def main():
         calls = collections.Counter()
         for key in ("lua_globals", "lua_methods", "lua_namespaced", "lua_events"):
             for name, count in (mod.get(key) or {}).items():
-                if name not in LUA_BUILTINS:
+                if name not in LUA_BUILTINS and name not in MOD_FUNCTIONS:
                     calls[name] += count
         covered = sum(c for n, c in calls.items() if n in IMPLEMENTED)
         whole = sum(calls.values())

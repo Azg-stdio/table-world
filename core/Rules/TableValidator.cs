@@ -489,6 +489,10 @@ namespace Core.Rules
                 CheckIntensity(env.Lighting.LampIntensity, $"{path}.lighting.lampIntensity");
                 CheckColor(env.Lighting.TableLightColor, $"{path}.lighting.tableLightColor");
                 CheckIntensity(env.Lighting.TableLightIntensity, $"{path}.lighting.tableLightIntensity");
+                CheckIntensity(env.Lighting.LightScale, $"{path}.lighting.lightScale");
+                CheckIntensity(env.Lighting.AmbientScale, $"{path}.lighting.ambientScale");
+                if (env.Lighting.LightTint is { } tint && (tint.Length != 3 || tint.Any(v => !(v >= 0f && v <= 2f))))
+                    Add($"{path}.lighting.lightTint", ErrorCodes.InvalidValue, "A tint is three numbers from 0 to 2.");
                 CheckColor(env.Table.FeltColor, $"{path}.table.feltColor");
                 CheckColor(env.Table.WoodColor, $"{path}.table.woodColor");
                 CheckOptionalAsset(env.Table.FeltAsset, $"{path}.table.feltAsset", AssetType.Image);

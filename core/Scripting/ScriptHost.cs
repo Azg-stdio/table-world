@@ -619,6 +619,34 @@ end";
                 for (var i = 0; i < c.Number && _execute(new TakeCommand { ContainerId = obj.Id, Position = hand.Transform.Position, Actor = c.Actor }).Ok; i++) { }
         }
 
+        /// <summary>What each player's pointer is over (capitalised colour → object id), for getHoverObject.</summary>
+        private readonly Dictionary<string, string> _hoverBy = new Dictionary<string, string>();
+
+        /// <summary>Moves the player of one colour to another colour's seat (TTS changeColor); false when refused.</summary>
+        public Func<string, string, bool>? ChangeColor { get; set; }
+
+        /// <summary>
+        /// TTS <c>onObjectHover(player_color, object)</c>: a player's pointer moved onto an object, or off every object
+        /// (<paramref name="objectId"/> null). The host calls it for itself and, from presence, for every other player.
+        /// </summary>
+        public void OnHover(string color, string? objectId)
+        {
+            var key = Capital(color);
+            if (_hoverBy.TryGetValue(key, out var was) ? was == objectId : objectId == null)
+                return;
+            if (objectId == null)
+                _hoverBy.Remove(key);
+            else
+                _hoverBy[key] = objectId;
+            if (ScriptCount == 0)
+                return;
+            DynValue Object(Script script) => objectId != null && Engine.Find(objectId) != null ? Proxy(script, objectId) : DynValue.Nil;
+            if (_global != null)
+                CallIfDefined(_global, "onObjectHover", DynValue.NewString(key), Object(_global));
+            foreach (var script in _objectScripts.Values.ToList())
+                CallIfDefined(script, "onObjectHover", DynValue.NewString(key), Object(script));
+        }
+
         /// <summary>
         /// TTS <c>onPlayerConnect(player)</c>: the host calls it when someone joins at a seat (<paramref name="color"/>).
         /// </summary>

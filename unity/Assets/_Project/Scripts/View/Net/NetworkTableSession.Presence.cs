@@ -108,12 +108,13 @@ namespace TableWorld.View.Net
                 frame.Gaze = Gaze();
                 frame.Emote = _emote;
                 frame.EmoteCount = _emoteCount;
+                frame.Hover = _interaction.Hovered != null ? _interaction.Hovered.Id : null;
                 foreach (var view in _interaction.HeldGroup)
                     if (view != null)
                         frame.Held.Add(new HeldPose { Id = view.Id, Position = view.transform.position.ToCore(), Rotation = view.transform.rotation.eulerAngles.ToCore() });
             }
             // Millimetre and degree resolution is plenty; it also keeps an idle player quiet.
-            var key = string.Join("|", new[] { frame.Pointer is { } p ? $"{p.X:F3},{p.Z:F3}" : "-", frame.Gaze is { } g ? $"{g.X:F2},{g.Y:F2},{g.Z:F2}" : "-", frame.EmoteCount.ToString() }
+            var key = string.Join("|", new[] { frame.Pointer is { } p ? $"{p.X:F3},{p.Z:F3}" : "-", frame.Gaze is { } g ? $"{g.X:F2},{g.Y:F2},{g.Z:F2}" : "-", frame.EmoteCount.ToString(), frame.Hover ?? "-" }
                 .Concat(frame.Held.Select(h => $"{h.Id}:{h.Position.X:F3},{h.Position.Y:F3},{h.Position.Z:F3},{h.Rotation.Y:F0},{h.Rotation.X:F0},{h.Rotation.Z:F0}")));
             if (key == _presenceKey && now - _presenceSentAt < PresenceKeepAlive)
                 return;
@@ -149,6 +150,7 @@ namespace TableWorld.View.Net
             frame.Seat = seat;
             if (!Take(frame))
                 return;
+            ScriptsHearHover(seat, frame.Hover);
             var relayed = PresenceCodec.Encode(frame);
             foreach (var client in _network.ConnectedClientsIds.Where(c => c != NetworkManager.ServerClientId && c != sender).ToList())
                 SendPresenceTo(client, relayed);

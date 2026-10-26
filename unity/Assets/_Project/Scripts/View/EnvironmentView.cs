@@ -159,6 +159,8 @@ namespace TableWorld.View
             _room = null;
             _lamp = null;
             _tableLight = null;
+            _sideLights.Clear();
+            _fill = null;
 
             FitTable();
             var wall = ToColor(env.WallColor, DefaultWall);
@@ -170,27 +172,56 @@ namespace TableWorld.View
                 _camera.backgroundColor = wall * 0.5f;
             ApplySky(env);
 
-            // Light: the room preset, then the game's overrides.
-            var lighting = env.Lighting;
-            RenderSettings.ambientMode = AmbientMode.Flat;
-            // Indoors, shiny and metal pieces reflect the room (its probe), not the default sky, which tints them cyan.
-            RenderSettings.reflectionIntensity = 1f;
-            RenderSettings.ambientLight = ToColor(lighting.AmbientColor, DefaultAmbient) * (lighting.AmbientIntensity ?? (gameNight ? DefaultAmbientIntensity : 1f));
-            if (_lamp != null)
-            {
-                _lamp.color = ToColor(lighting.LampColor, DefaultLamp);
-                _lamp.intensity = lighting.LampIntensity ?? DefaultLampIntensity;
-            }
-            if (_tableLight != null)
-            {
-                _tableLight.color = ToColor(lighting.TableLightColor, DefaultTableLight);
-                _tableLight.intensity = (lighting.TableLightIntensity ?? DefaultTableLightIntensity) * (_bigTable ? DirectionalShare : 1f);
-            }
+            _gameNight = gameNight;
+            ApplyLighting();
             // Without a room the old directional light keeps the table readable.
             if (_sun != null)
                 _sun.enabled = !gameNight;
 
             DressTable(env.Table);
+        }
+
+        private bool _gameNight;
+        private readonly System.Collections.Generic.List<Light> _sideLights = new System.Collections.Generic.List<Light>();
+        private Light _fill;
+        private const float FillIntensity = 0.7f;
+        private static readonly Color FillColor = new Color(1f, 0.8f, 0.6f);
+
+        /// <summary>
+        /// Light: the room preset, then the game's overrides, then its scales and tint (TTS <c>Lighting</c>, which a script
+        /// may change while playing).
+        /// </summary>
+        public void ApplyLighting()
+        {
+            var lighting = (_table != null && _table.Engine != null ? _table.Engine.State.Environment : null)?.Lighting ?? new LightingDef();
+            var scale = lighting.LightScale ?? 1f;
+            var tint = lighting.LightTint is { Length: 3 } t ? new Color(t[0], t[1], t[2]) : Color.white;
+            RenderSettings.ambientMode = AmbientMode.Flat;
+            // Indoors, shiny and metal pieces reflect the room (its probe), not the default sky, which tints them cyan.
+            RenderSettings.reflectionIntensity = 1f;
+            RenderSettings.ambientLight = ToColor(lighting.AmbientColor, DefaultAmbient)
+                * (lighting.AmbientIntensity ?? (_gameNight ? DefaultAmbientIntensity : 1f)) * (lighting.AmbientScale ?? 1f);
+            if (_lamp != null)
+            {
+                _lamp.color = ToColor(lighting.LampColor, DefaultLamp) * tint;
+                _lamp.intensity = (lighting.LampIntensity ?? DefaultLampIntensity) * scale;
+            }
+            if (_tableLight != null)
+            {
+                _tableLight.color = ToColor(lighting.TableLightColor, DefaultTableLight) * tint;
+                _tableLight.intensity = (lighting.TableLightIntensity ?? DefaultTableLightIntensity) * (_bigTable ? DirectionalShare : 1f) * scale;
+            }
+            foreach (var side in _sideLights)
+                if (side != null)
+                {
+                    side.color = DefaultTableLight * tint;
+                    side.intensity = SideLightIntensity * scale;
+                }
+            if (_fill != null)
+            {
+                _fill.color = FillColor * tint;
+                _fill.intensity = FillIntensity * scale;
+            }
         }
 
         private Material _sky;
@@ -357,6 +388,7 @@ namespace TableWorld.View
                 side.color = DefaultTableLight;
                 side.shadows = LightShadows.None;
                 SetLayers(side, PiecesLayers);
+                _sideLights.Add(side);
             }
 
             // A faint warm fill so the far side of the table and the room are not black.
@@ -366,10 +398,11 @@ namespace TableWorld.View
             var fill = fillGo.AddComponent<Light>();
             fill.type = LightType.Point;
             fill.range = 7f;
-            fill.intensity = 0.7f;
-            fill.color = new Color(1f, 0.8f, 0.6f);
+            fill.intensity = FillIntensity;
+            fill.color = FillColor;
             fill.shadows = LightShadows.None;
             SetLayers(fill, RoomLayers);
+            _fill = fill;
         }
 
         /// <summary>Felt colour or image, wood colour; per-instance materials so the shared material assets stay untouched.</summary>

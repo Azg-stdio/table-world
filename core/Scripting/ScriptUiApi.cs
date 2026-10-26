@@ -247,6 +247,17 @@ namespace Core.Scripting
             // What the player carries, from the pick-ups and drops the host has seen.
             p["getHoldingObjects"] = DynValue.NewCallback((_, a) => List(script,
                 _heldBy.Where(h => string.Equals(h.Value, Capital(color), StringComparison.Ordinal) && Engine.Find(h.Key) != null).Select(h => h.Key)));
+            // What the player's pointer is over (TTS getHoverObject), from the hovers the host has heard.
+            p["getHoverObject"] = DynValue.NewCallback((_, a) =>
+                _hoverBy.TryGetValue(Capital(color), out var hovered) && Engine.Find(hovered) != null ? Proxy(script, hovered) : DynValue.Nil);
+            // Moves the player to another colour's seat (TTS changeColor); the session decides, as for a player's own request.
+            p["changeColor"] = DynValue.NewCallback((_, a) =>
+            {
+                var i = a.Count > 0 && a[0].Type == DataType.Table && a[0].Table == p ? 1 : 0;
+                return a.Count > i && a[i].CastToString() is { } to && ChangeColor != null
+                    ? DynValue.NewBoolean(ChangeColor(color.ToLowerInvariant(), to.ToLowerInvariant()))
+                    : DynValue.False;
+            });
             // Camera and pointer control belong to each player's machine; accepted here without effect.
             foreach (var noOp in new[] { "lookAt", "attachCameraToObject", "setCameraMode", "pingTable", "clearSelectedObjects" })
                 p[noOp] = DynValue.NewCallback((_, a) => DynValue.Nil);

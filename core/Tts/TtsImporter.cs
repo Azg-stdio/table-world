@@ -93,6 +93,7 @@ namespace Core.Tts
             Settle();
             Table((string?)save["Table"], (string?)save["TableURL"]);
             Sky((string?)save["SkyURL"]);
+            Lighting(save["Lighting"] as JObject);
             return _result;
         }
 
@@ -131,6 +132,24 @@ namespace Core.Tts
             State.Environment ??= new EnvironmentDef();
             State.Environment.SkyAsset = Asset(skyUrl, AssetType.Image);
             State.Environment.Room = RoomPreset.None;
+        }
+
+        /// <summary>A save's <c>Lighting</c>, as multipliers of our room's light (only where it differs from TTS's default).</summary>
+        private void Lighting(JObject? lighting)
+        {
+            if (lighting == null)
+                return;
+            float? Scale(string key, float normal) =>
+                (float?)lighting[key] is { } v && Math.Abs(v - normal) > 0.01f ? Math.Max(0f, Math.Min(8f, v / normal)) : (float?)null;
+            var light = Scale("LightIntensity", TtsLighting.DefaultLightIntensity);
+            var ambient = Scale("AmbientIntensity", TtsLighting.DefaultAmbientIntensity);
+            var tint = lighting["LightColor"] is JObject c ? TtsLighting.Tint((float?)c["r"] ?? 1f, (float?)c["g"] ?? 1f, (float?)c["b"] ?? 1f) : null;
+            if (light == null && ambient == null && tint == null)
+                return;
+            State.Environment ??= new EnvironmentDef();
+            State.Environment.Lighting.LightScale = light;
+            State.Environment.Lighting.AmbientScale = ambient;
+            State.Environment.Lighting.LightTint = tint;
         }
 
         private void Table(string? ttsTable, string? tableUrl = null)

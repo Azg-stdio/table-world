@@ -298,6 +298,17 @@ namespace Core.Engine
         public MusicState? Music { get; set; }
     }
 
+    /// <summary>
+    /// TTS's <c>Lighting.apply()</c>: scales and tints the room's light (<see cref="LightingDef.LightScale"/>,
+    /// <see cref="LightingDef.AmbientScale"/>, <see cref="LightingDef.LightTint"/>); null puts one back to normal. Host only.
+    /// </summary>
+    public sealed class SetLightingCommand : Command, IHostCommand
+    {
+        public float? LightScale { get; set; }
+        public float? AmbientScale { get; set; }
+        public float[]? LightTint { get; set; }
+    }
+
     /// <summary>Sets the table grid (G28): lines, snapping, shape and size; null removes it. Host only.</summary>
     public sealed class SetGridCommand : Command, IHostCommand
     {

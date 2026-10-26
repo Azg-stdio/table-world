@@ -17,6 +17,12 @@ namespace Core.Engine
         }
     }
 
+    /// <summary>The room's light changed (<see cref="SetLightingCommand"/>).</summary>
+    public sealed class LightingChanged : StateEvent
+    {
+        public LightingChanged() : base("") { }
+    }
+
     /// <summary>A table-wide setting changed (the physics mode). It concerns no single object.</summary>
     public sealed class TableSettingsChanged : StateEvent
     {

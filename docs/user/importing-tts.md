@@ -104,7 +104,7 @@ become the real object once Table World supports it.
 | Feature | Today |
 |---|---|
 | Tablets, text objects | Placeholders |
-| Lua | More than 99.9 % of the calls in the tested games work. Missing: typing into text fields drawn on objects and scripted forces and velocities |
+| Lua | Every call the tested games make is supported (21 047 of 21 047). Accepted but without effect: scripted forces and velocities, and typing into text fields drawn on objects |
 | Chat for one colour (`broadcastToColor`) | Reaches everyone |
 | Fog of war that reveals around pieces | A hidden zone only |
 | Physics | Table World's own: pieces behave like TTS's but not identically |

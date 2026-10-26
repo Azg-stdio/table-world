@@ -174,6 +174,61 @@ namespace Core.Tests.Scripting
             Assert.Equal(new[] { "in the bag: nil", "arrived t1", "timed out" }, said); // the main function never runs on a timeout
         }
 
+        /// <summary>The last of the local mods' calls: Lighting, Notes, hover, changeColor and setAngularVelocity.</summary>
+        [Fact]
+        public void LightingNotesHoverAndSeatChanges_WorkLikeTts()
+        {
+            var (engine, host, said) = Load(@"
+                function onObjectHover(color, obj) broadcastToAll('hover ' .. color .. ' ' .. (obj and obj.getGUID() or 'nothing')) end
+                function onLoad()
+                  broadcastToAll(string.format('light %.2f ambient %.2f', Lighting.light_intensity, Lighting.ambient_intensity))
+                  Lighting.light_intensity = 0.27
+                  Lighting.ambient_intensity = 2.6
+                  Lighting.setLightColor({ r = 1, g = 0, b = 0 })
+                  broadcastToAll('applied ' .. tostring(Lighting.apply()))
+                  broadcastToAll('tab ' .. Notes.addNotebookTab({ title = 'Log', body = 'x' }))
+                  getObjectFromGUID('d6').setAngularVelocity({ 0, 0, 0 })
+                end
+                function where() local o = Player.Red.getHoverObject() broadcastToAll('red hovers ' .. (o and o.getGUID() or 'nothing')) end
+                function move() broadcastToAll('moved ' .. tostring(Player.Red.changeColor('Blue'))) end
+                function onChat(message) if message == 'where' then where() elseif message == 'move' then move() end end");
+            Assert.Equal("light 0.54 ambient 1.30", said[0]);
+            Assert.Equal("applied true", said[1]);
+            var lighting = engine.State.Environment!.Lighting;
+            Assert.Equal(0.5f, lighting.LightScale!.Value, 3);
+            Assert.Equal(2f, lighting.AmbientScale!.Value, 3);
+            Assert.Equal(new[] { 1f, 0f, 0f }, lighting.LightTint!);
+            Assert.Equal("tab 0", said[2]);
+            Assert.Equal("Log", engine.State.Notebook.Single().Title);
+
+            host.OnHover("red", "d6");
+            host.OnHover("red", "d6");
+            Assert.Equal("hover Red d6", said.Last());
+            Assert.Equal(4, said.Count); // the same hover again is not news
+            host.OnChat("where", "red");
+            Assert.Equal("red hovers d6", said.Last());
+            host.OnHover("red", null);
+            Assert.Equal("hover Red nothing", said.Last());
+
+            string? moved = null;
+            host.ChangeColor = (from, to) => { moved = from + " to " + to; return true; };
+            host.OnChat("move", "red");
+            Assert.Equal("red to blue", moved);
+            Assert.Equal("moved true", said.Last());
+        }
+
+        /// <summary>A save's TTS lighting becomes the room's multipliers; TTS's defaults leave the room as it is.</summary>
+        [Fact]
+        public void SavedLighting_IsImported()
+        {
+            Assert.Null(Core.Tts.TtsImporter.Import(@"{ ""ObjectStates"": [], ""Lighting"": { ""LightIntensity"": 0.54, ""AmbientIntensity"": 1.3,
+                ""LightColor"": { ""r"": 1.0, ""g"": 0.9804, ""b"": 0.8902 } } }").State.Environment?.Lighting.LightScale);
+            var dim = Core.Tts.TtsImporter.Import(@"{ ""ObjectStates"": [], ""Lighting"": { ""LightIntensity"": 0.27, ""AmbientIntensity"": 0.65 } }").State;
+            Assert.Equal(0.5f, dim.Environment!.Lighting.LightScale!.Value, 3);
+            Assert.Equal(0.5f, dim.Environment.Lighting.AmbientScale!.Value, 3);
+            Assert.Null(dim.Environment.Lighting.LightTint);
+        }
+
         [Fact]
         public void VectorAndColor_WorkLikeTts_AndTheApiReturnsThem()
         {

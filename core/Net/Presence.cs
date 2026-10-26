@@ -33,9 +33,11 @@ namespace Core.Net
         public string? Emote { get; set; }
         /// <summary>Counts the player's emotes, so the same emote twice plays twice and a re-sent frame plays nothing.</summary>
         public int EmoteCount { get; set; }
+        /// <summary>The object under the player's pointer, or null (the host's scripts hear it: TTS onObjectHover).</summary>
+        public string? Hover { get; set; }
     }
 
-    /// <summary>Presence frames on the wire: <c>{ kind: "presence", seat, seq, pointer?, gaze?, emote?: { name, n }, held: [{ id, p, r }] }</c>.</summary>
+    /// <summary>Presence frames on the wire: <c>{ kind: "presence", seat, seq, pointer?, gaze?, emote?: { name, n }, hover?, held: [{ id, p, r }] }</c>.</summary>
     public static class PresenceCodec
     {
         /// <summary>A frame carrying more held objects than this is refused (a TTS player can carry a big group, not the table).</summary>
@@ -51,6 +53,7 @@ namespace Core.Net
             ["pointer"] = frame.Pointer is { } p ? new JArray(p.X, p.Y, p.Z) : null,
             ["gaze"] = frame.Gaze is { } g ? new JArray(g.X, g.Y, g.Z) : null,
             ["emote"] = frame.Emote != null ? new JObject { ["name"] = frame.Emote, ["n"] = frame.EmoteCount } : null,
+            ["hover"] = frame.Hover,
             ["held"] = new JArray(frame.Held.Select(h => new JObject
             {
                 ["id"] = h.Id,
@@ -84,6 +87,12 @@ namespace Core.Net
                     return null;
                 frame.Emote = name;
                 frame.EmoteCount = (int)emote["n"]!;
+            }
+            if (message["hover"] is JValue { Value: string hovered })
+            {
+                if (hovered.Length == 0 || hovered.Length > 64)
+                    return null;
+                frame.Hover = hovered;
             }
             if (message["held"] is JArray held)
             {
