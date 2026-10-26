@@ -930,6 +930,29 @@ namespace TableWorld.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator EveryLineOfTheLatestChange_ShowsInTheGamePanel()
+        {
+            const string json = @"{ ""game"": { ""id"": ""told"", ""name"": ""Told"" },
+  ""players"": { ""seats"": [ { ""id"": ""seat_south"", ""color"": ""red"" } ] },
+  ""turn"": { ""phases"": [ ""play"" ] },
+  ""phases"": [ { ""id"": ""play"", ""actions"": [ ""reveal_all"" ] } ],
+  ""actions"": [ { ""id"": ""reveal_all"", ""name"": ""Reveal"", ""actor"": ""any"", ""effects"": [
+      { ""message"": { ""text"": ""Ana: the shop is closed tonight. Her token goes back."" } },
+      { ""message"": { ""text"": ""Bo: the tower is closed tonight. His token goes back."" } },
+      { ""message"": { ""text"": ""Spaces: Ana none, Bo none."" } } ] } ] }";
+            Assert.IsTrue(_table.Load(json, null));
+            yield return null;
+            Assert.IsTrue(_table.Execute(new StartGameCommand()).Ok);
+            yield return new WaitForSeconds(0.4f);
+            Assert.IsTrue(_table.Execute(new PerformActionCommand { Actor = "seat_south", ActionId = "reveal_all" }).Ok);
+            yield return new WaitForSeconds(0.5f);
+            var log = Object.FindAnyObjectByType<HudController>().GetComponent<UIDocument>().rootVisualElement.Q<Label>("gameLog").text;
+            StringAssert.Contains("the shop is closed", log, "why each token went back is shown, not only the summary");
+            StringAssert.Contains("the tower is closed", log);
+            StringAssert.Contains("Spaces: Ana none", log);
+        }
+
+        [UnityTest]
         public IEnumerator ASelectedCalculator_TakesTheKeyboard()
         {
             var id = _table.Execute(new AddCalculatorCommand { Position = new Vec3(0.55f, 0f, 0.3f), Actor = _table.LocalSeat }).CreatedId;

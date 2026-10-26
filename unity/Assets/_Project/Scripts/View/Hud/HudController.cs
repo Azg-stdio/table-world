@@ -52,6 +52,11 @@ namespace TableWorld.View.Hud
         private Label _status;
         private VisualElement _gamePanel;
         private Label _gameLog;
+        /// <summary>Lines of the game log already shown, and the session they belong to.</summary>
+        private int _logShown;
+        private object _logSession;
+        /// <summary>The game panel shows every line the latest change wrote, up to this many (a reveal writes why each piece went back).</summary>
+        public const int MaxLogLines = 4;
         private VisualElement _gameActions;
         private string _shownGameKey;
         private string _shownSeatsKey;
@@ -668,7 +673,7 @@ namespace TableWorld.View.Hud
                 return;
             }
             _gamePanel.RemoveFromClassList(Hidden);
-            _gameLog.text = session?.Log.LastOrDefault() ?? "";
+            _gameLog.text = LatestLogLines(session);
             _gameLog.EnableInClassList(Hidden, string.IsNullOrEmpty(_gameLog.text));
             if (session == null)
             {
@@ -764,6 +769,24 @@ namespace TableWorld.View.Hud
         }
 
         private static string PhaseName(TableState state, string phase) => state.Phases.FirstOrDefault(p => p.Id == phase)?.Name ?? Names.Humanize(phase);
+
+        /// <summary>The lines the latest change added to the game log (the last <see cref="MaxLogLines"/>), or the last line.</summary>
+        private string LatestLogLines(Session session)
+        {
+            if (session == null)
+                return "";
+            if (_logSession != session || session.Log.Count < _logShown)
+            {
+                _logSession = session;
+                _logShown = session.Log.Count;
+                return session.Log.LastOrDefault() ?? "";
+            }
+            if (session.Log.Count == _logShown)
+                return _gameLog.text;
+            var added = session.Log.Skip(_logShown).ToList();
+            _logShown = session.Log.Count;
+            return string.Join("\n", added.Skip(Math.Max(0, added.Count - MaxLogLines)));
+        }
 
         private void AddGameButton(string text, Action action)
         {
