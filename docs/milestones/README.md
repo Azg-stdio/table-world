@@ -17,6 +17,7 @@ Status values: `todo` · `in progress` · `blocked (why)` · `done YYYY-MM-DD` �
 | [M6](M6-characters-and-dnd.md) | Physics characters + DnD | Active ragdolls (Chalkers), emotes, DnD assistant | T7.1–T7.4 | in progress (T7.3 voice and placeholder chalkers) |
 | [M7](M7-catalog-and-importer.md) | TTS importer + catalog | Import local TTS mods and play them; layered catalog | T8.1–T8.8 | in progress (importer and downloads working on the 6 local mods; see the milestone file) |
 | [M8](M8-documentation.md) | Documentation | Developer wireframes linked to code; player docs for play, MCP, importer; game brief template | T9.1–T9.17 | in progress (T9.10 template written) |
+| [M9](M9-languages.md) | Languages | Table World's interface in English and Spanish; games in several languages, the host picking one (ADR 0011) | T10.1–T10.9 | todo (design proposed 2026-10-26) |
 
 ## Order
 
@@ -27,6 +28,7 @@ M0 ──► M1 (TTS parity) ──► M2 ──► M3 ──► M4 ──► M5
                                    └──► M6 (after M3)
 
 M8 (docs) runs alongside: each page follows the feature it describes.
+M9 (languages) needs only M2's rules format; it can start any time.
 ```
 
 - The order is dependencies, not scope: M4, M5 and M7 are what "play a real TTS game" needs.
