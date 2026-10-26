@@ -72,7 +72,7 @@ namespace TableWorld.Tests.PlayMode
                 yield return new WaitForSeconds(0.3f);
                 _interaction.Release();
                 yield return new WaitForSeconds(0.5f);
-                Assert.IsFalse(_table.Engine.ZonesOf(unplayable).Contains(hand), "an unplayable card is put down, not bounced back");
+                Assert.IsFalse(_table.Engine.ZonesOf(unplayable).Contains(hand), "an unplayable card is put down, not bounced back: at " + _table.Engine.Find(unplayable).Transform.Position + " zones " + string.Join(",", _table.Engine.ZonesOf(unplayable)) + " log " + string.Join(" / ", _table.Game.Session.Log.TakeLast(3)));
                 Assert.AreEqual(seat, Current);
                 // Back into the hand for the rest of the test.
                 Assert.IsTrue(_interaction.Grab(_table.ViewOf(unplayable), false));

@@ -116,6 +116,18 @@ reveals when it ends:
 `{ "reveal": { "action": "pick_space" } }` shows only that action's choices. A choice is checked when it is made (its
 parameters and preconditions), so a player cannot pick something illegal and be found out later.
 
+`$secrets` counts the choices waiting for the reveal (`$secrets.pick_space` only that action's), and
+`$viewer.chose.pick_space` is the waiting choice of the player looking at the screen, so a panel can remind each
+player what they picked while the others see nothing (section 6).
+
+**What players read.** Options keep short ids for the rules, and `labels` give the words players see on buttons, in the
+picker and in the log:
+
+```json
+"params": [ { "name": "space", "type": "choice", "options": ["dungeon", "shop"],
+              "labels": { "dungeon": "Mazmorra", "shop": "Tienda" } } ]
+```
+
 **Moving pieces instead of pressing buttons.** Any zone can carry rules. `onEnter` runs when a player puts a piece in
 the zone during a game, `onLeave` when a piece is taken out; `$it` is the piece and `$actor` the player who moved it.
 A `refuse` effect undoes the move and tells the player why:
@@ -140,6 +152,9 @@ zones' effects wait. `{ "blindRound": { "on": false } }` reveals: the held zone 
 still where they were put, and then the `onReveal` event. Players can also start and reveal a blind round from the left
 tool bar.
 
+A zone drawn over a board (a space on a map) holds the pieces on it, never the board itself: counts, `onEnter` and
+`forEach` over the zone see only the pieces.
+
 ## 4. Naming things: `$` references
 
 Rules rarely name one card. They say "the actor's deck" or "the top card of the discard pile". A `$` reference names
@@ -155,6 +170,9 @@ what you mean:
 | `$var.battles` | the variable `battles` |
 | `$seat.seat_north.battle.count` | how many cards are in north's battle pile |
 | `$player`, `$other` | in a win condition: the seat being checked, and the next one |
+| `$viewer` | in a panel: the player looking at it (each player sees their own) |
+| `$actor.name` | a seat's name: the one `new_game` gave it, or its colour |
+| `$secrets`, `$viewer.chose.pick_space` | secret choices waiting for the reveal; one player's own waiting choice |
 
 `meta` is free data you put on cards (rank, suit, cost, colour). The built-in deck gives every card `rank` (2–14,
 aces high), `suit` and `color`. A reference to something that does not exist right now, such as the top of an empty
@@ -220,6 +238,29 @@ of each turn (`turnEnd`):
 { "type": "label", "text": "Battle {$var.battles}" },
 { "type": "counter", "text": "South's deck", "value": "$seat.seat_south.deck.count" }
 ```
+
+Each player sees a panel filled in for themselves through `$viewer`, and `visibleTo` keeps a panel to some seats. A
+reminder of your own secret pick, seen by you alone:
+
+```json
+{ "id": "my_pick", "title": "Your pick", "anchor": "right",
+  "elements": [ { "type": "label", "text": "You chose: {$viewer.chose.pick_space}" },
+                { "type": "label", "text": "Players who have picked: {$secrets}" } ] }
+```
+
+Players move each panel by its title bar and fold it to the bar; the game remembers where each player left it.
+
+**The game's own words.** The lines the engine writes in the log ("Red wins.", "Blue chose in secret.") can be
+written in the game's language under `game.messages`; `{seat}` and the other names in braces are filled in, and a line
+left out stays in English:
+
+```json
+"game": { "id": "tornaris", "name": "Tornaris",
+          "messages": { "win": "¡{seat} gana!", "choseInSecret": "{seat} eligió en secreto.", "chose": "{seat} eligió {option}." } }
+```
+
+The keys are `win`, `choseInSecret`, `chose` (`{seat}`, `{action}`, `{option}`), `blindRound`, `reveal` (`{count}`) and
+`shows` (`{card}`).
 
 ## 7. Editing a rule by hand
 
@@ -317,6 +358,21 @@ whole action is undone and the player sees the reason. The `Game` table reads an
 
 The rest of the Lua API works too: a fight function can move a monster card, deal rewards or flip a token. Outside an
 action (a button, `onObjectDrop`), the `Game` functions are moves of their own, sent to every player like any move.
+
+Moving and finding objects works as in TTS:
+
+```lua
+local monster = getObjectFromGUID("monster_3")       -- an object by its id
+monster.setPositionSmooth({ 0, 1, 5 })               -- TTS units, table surface at y = 0.96
+monster.setRotation({ 0, 180, 0 })                   -- yaw 180: upright for the south seat
+monster.setScale({ 1.5, 1, 1.5 })
+for _, obj in ipairs(getAllObjects()) do              -- everything on the table
+  if obj.hasTag("monster") then obj.flip() end
+end
+```
+
+A card or board image reads upright for the player at the south seat when its yaw is 180 (the deck and card defaults);
+each other seat turns with its hand. `place_object` with a `seat` does the turning for you.
 Your agent sets scripts with `set_script` and tries them with `run_lua`, which runs against a copy of the table.
 
 ### The sandbox

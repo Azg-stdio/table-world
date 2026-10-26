@@ -30,6 +30,18 @@ namespace Core.Rules
         public static string Seat(TableState state, string? seatId) =>
             seatId == null ? "The game" : state.Players.Seats.FirstOrDefault(s => s.Id == seatId) is { } seat ? Of(seat) : Humanize(seatId);
 
+        /// <summary>
+        /// A line the engine writes, in the game's own words when it has them (<see cref="GameInfo.Messages"/>, key
+        /// <paramref name="key"/>), else <paramref name="english"/>; <c>{name}</c> placeholders are filled from <paramref name="fills"/>.
+        /// </summary>
+        public static string Message(TableState state, string key, string english, params (string Name, string Value)[] fills)
+        {
+            var text = state.Game?.Messages != null && state.Game.Messages.TryGetValue(key, out var own) && !string.IsNullOrWhiteSpace(own) ? own : english;
+            foreach (var (name, value) in fills)
+                text = text.Replace("{" + name + "}", value);
+            return text;
+        }
+
         /// <summary>An id as words: separators become spaces, a trailing copy number goes, the first letter is a capital.</summary>
         public static string Humanize(string id)
         {

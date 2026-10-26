@@ -1139,6 +1139,7 @@ object or object or object or object or object or object or object or object or 
 | `id` | string |  |
 | `name` | string |  |
 | `description` | string |  |
+| `messages` | map of string |  |
 | `minPlayers` | integer |  |
 | `maxPlayers` | integer |  |
 
@@ -1202,6 +1203,7 @@ object or object or object or object or object or object or object or object or 
 | `type` | one of `object`, `seat`, `number`, `choice` |  |
 | `filter` | [ParamFilter](#paramfilter) |  |
 | `options` | array of string |  |
+| `labels` | map of string |  |
 
 ### ParamFilter
 

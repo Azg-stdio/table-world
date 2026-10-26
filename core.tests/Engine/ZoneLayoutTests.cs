@@ -56,6 +56,29 @@ namespace Core.Tests.Engine
         }
 
         [Fact]
+        public void MoreThanFit_CloseUp_AndStayInsideTheZone()
+        {
+            // Room for 4 x 2 cards; 13 arrive (a deck's worth of a suit laid out).
+            var json = Json.Replace(@"""objects"": [", @"""objects"": [" + string.Concat(Enumerable.Range(0, 13).Select(i =>
+                $@"{{ ""id"": ""m{i}"", ""type"": ""Card"", ""faceAsset"": ""sheet"", ""backAsset"": ""sheet"", ""transform"": {{ ""position"": [-0.6, 0, {0.3 + i * 0.01}] }} }},")));
+            var parsed = TableJson.Parse(json);
+            Assert.True(parsed.Ok, string.Join("\n", parsed.Errors));
+            var engine = new TableEngine(parsed.State!, 3);
+            for (var i = 0; i < 13; i++)
+                engine.Ok(new MoveCommand { ObjectId = "m" + i, Position = new Vec3(0f, 0f, 0f) });
+            Assert.Equal(13, engine.ObjectsIn("row").Count());
+            foreach (var id in Enumerable.Range(0, 13).Select(i => "m" + i))
+            {
+                var at = P(engine, id);
+                Assert.InRange(at.X, -0.15f + Card.DefaultSize.X / 2f - 0.001f, 0.15f - Card.DefaultSize.X / 2f + 0.001f);
+                Assert.InRange(at.Z, -0.1f + Card.DefaultSize.Y / 2f - 0.001f, 0.1f - Card.DefaultSize.Y / 2f + 0.001f);
+            }
+            // Still in reading order: the first card at the back left, the last at the front.
+            Assert.True(P(engine, "m0").Z > P(engine, "m12").Z);
+            engine.AssertValid();
+        }
+
+        [Fact]
         public void ManualZone_WaitsForLayOut_ThenFacesCardsUp_AndStaysPut()
         {
             var engine = Create();

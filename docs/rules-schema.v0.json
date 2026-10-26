@@ -3895,6 +3895,12 @@
         "description": {
           "type": "string"
         },
+        "messages": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "minPlayers": {
           "type": "integer"
         },
@@ -4062,6 +4068,12 @@
         "options": {
           "type": "array",
           "items": {
+            "type": "string"
+          }
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
             "type": "string"
           }
         }

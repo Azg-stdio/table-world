@@ -14,7 +14,7 @@ The friends playtest: you host a game and two friends join over the internet wit
 2. **Games → War**. The table loads with one deck.
 3. **Host online**. The address field shows a 6-character code, already copied to the clipboard. Paste it in your chat.
 4. Wait until the top bar says `code XXXXXX, 2 player(s) joined`. You play South; joiners get North, then any free seat.
-5. **Start game**, in the panel at the bottom left.
+5. **Start game (N players)**, at the top centre. Before the start every free seat has a **+** over it on the table: a click sits you there. Start plays the seats people sit at, so the player count is who sat down (playing alone, each **+** adds a hot-seat player and a click on a taken seat frees it again).
 6. Play with your hands. In War, drag your own deck to play its top card. In UNO, drag a card from your hand onto the table to play it, or drag the draw pile to draw. If a move is not allowed (not your turn, card does not match), the card goes back and the bottom-left line says why. The buttons (top right, and at the top centre) still work.
 
 Both sample games (War and **Simplified UNO**) have two seats, so a third person gets no seat and can only watch and move free objects. To switch games, open the other one from **Games** while hosting: everyone receives the new table.

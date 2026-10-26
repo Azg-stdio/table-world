@@ -11,6 +11,9 @@ namespace Core.Rules
     /// <c>$seat.&lt;id&gt;</c>: seats. A seat's <c>.hand</c> is its HandZone; <c>.&lt;tag&gt;</c> is the object or zone tagged
     /// <c>&lt;tag&gt;:&lt;seatId&gt;</c>; <c>.id</c>, <c>.color</c>, <c>.res.&lt;resource&gt;</c>.</item>
     /// <item><c>$param.&lt;name&gt;</c>: an action parameter; <c>$var.&lt;name&gt;</c>: a variable; <c>$obj.&lt;id&gt;</c>: an object or zone by id.</item>
+    /// <item><c>$secrets</c>: how many secret choices wait for the reveal; <c>$secrets.&lt;action&gt;</c>: of that action.
+    /// On a seat, <c>.chose.&lt;action&gt;</c> is its waiting secret choice (shown with <c>$viewer</c> in a panel only that
+    /// player sees) and <c>.name</c> its name.</item>
     /// <item><c>$diceTotal.&lt;zone&gt;</c>: the total of the dice in a zone; <c>$diceTotal.&lt;zone&gt;.&lt;seat&gt;</c>: that seat's dice there
     /// (dice tagged <c>owner:&lt;seat&gt;</c>).</item>
     /// <item>On objects, decks and zones: <c>.count</c>, <c>.top</c>, <c>.bottom</c>, <c>.meta.&lt;key&gt;</c>, <c>.name</c>, <c>.id</c>,
@@ -21,7 +24,7 @@ namespace Core.Rules
     public static class References
     {
         /// <summary><c>$viewer</c> is the seat looking at a UI panel (only meaningful in <c>ui</c> texts and values).</summary>
-        public static readonly IReadOnlyList<string> Roots = new[] { "actor", "current", "player", "other", "it", "param", "var", "seat", "obj", "viewer", "diceTotal" };
+        public static readonly IReadOnlyList<string> Roots = new[] { "actor", "current", "player", "other", "it", "param", "var", "seat", "obj", "viewer", "diceTotal", "secrets" };
 
         public static bool IsReference(string? text) => text != null && text.StartsWith("$");
 

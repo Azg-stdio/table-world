@@ -53,7 +53,8 @@ namespace Core.Engine
 
         /// <summary>
         /// Puts the zone's unlocked objects on its grid, in reading order of where they lie now (so a re-layout keeps the
-        /// order, and a dropped object goes about where it was dropped). Cells are as big as the biggest object.
+        /// order, and a dropped object goes about where it was dropped). Cells are as big as the biggest object. More than
+        /// fit close up and overlap (a fanned row), so everything stays inside the zone and keeps counting as in it.
         /// </summary>
         private void Arrange(LayoutZone zone, List<StateEvent> events)
         {
@@ -77,6 +78,11 @@ namespace Core.Engine
                 : items.OrderBy(o => (int)Math.Floor((depth / 2f - Local(o).Z) / cellZ)).ThenBy(o => Across(Local(o)));
             var list = ordered.ThenBy(o => o.Id, StringComparer.Ordinal).ToList();
 
+            var lines = (list.Count + perLine - 1) / perLine;
+            var inLine = Math.Min(perLine, list.Count);
+            var (startX, stepX) = Fit(width, cellX, spacing, down ? lines : inLine);
+            var (startZ, stepZ) = Fit(depth, cellZ, spacing, down ? inLine : lines);
+
             var p = zone.Transform.Position;
             var floor = Math.Max(0f, p.Y - zone.Size.Y * zone.Transform.Scale.Y / 2f) + ArrangeLift;
             var moved = new List<TableObject>();
@@ -86,8 +92,8 @@ namespace Core.Engine
                 var k = i % perLine;
                 var col = down ? line : k;
                 var row = down ? k : line;
-                var x = -width / 2f + cellX / 2f + col * cellX;
-                var z = depth / 2f - cellZ / 2f - row * cellZ;
+                var x = startX + col * stepX;
+                var z = -(startZ + row * stepZ);
                 var world = Geometry.Add(p, Geometry.Rotate(zone.Transform.Rotation, new Vec3(mirror ? -x : x, 0f, z)));
                 var obj = list[i];
                 var r = obj.Transform.Rotation;
@@ -106,6 +112,21 @@ namespace Core.Engine
                 moved.Add(obj);
             }
             RefreshZones(moved, events);
+        }
+
+        /// <summary>
+        /// Where the first of <paramref name="count"/> cells goes across a zone <paramref name="span"/> wide (from its
+        /// left or back edge, as an offset from the centre) and the step to the next. Cells that fit keep their size; more
+        /// close up so the last one still ends at the edge; a single object wider than the zone sits in its middle.
+        /// </summary>
+        private static (float Start, float Step) Fit(float span, float cell, float spacing, int count)
+        {
+            if (count * cell <= span + spacing + 1e-4f)
+                return (-span / 2f + cell / 2f, cell);
+            var size = cell - spacing;
+            if (count <= 1 || size >= span)
+                return (count <= 1 ? 0f : -span / 2f + size / 2f, count <= 1 ? 0f : Math.Max(0f, (span - size) / (count - 1)));
+            return (-span / 2f + size / 2f, (span - size) / (count - 1));
         }
 
         private static bool Near(Vec3 a, Vec3 b) => Math.Abs(a.X - b.X) < 0.0005f && Math.Abs(a.Y - b.Y) < 0.0005f && Math.Abs(a.Z - b.Z) < 0.0005f;

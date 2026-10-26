@@ -93,6 +93,47 @@
     bottom: 0;
 }
 
+/* Before the start, a marker over each seat (SeatJoinView): "+" on a free seat sits you there; a taken one names who
+   sits there. Positions follow the camera, so they come from code. */
+.seat-joins {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.seat-join {
+    position: absolute;
+    translate: -50% -100%;
+    flex-direction: row;
+    align-items: center;
+    padding: 4px 12px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.18);
+    border-radius: 14px;
+    background-color: rgba(16, 18, 22, 0.82);
+}
+
+.seat-join:hover {
+    background-color: rgb(66, 76, 92);
+}
+
+.seat-join--fixed:hover {
+    background-color: rgba(16, 18, 22, 0.82);
+}
+
+.seat-join-label {
+    margin-left: 6px;
+    font-size: 15px;
+    color: rgb(240, 236, 226);
+}
+
+.seat-join--free .seat-join-label {
+    font-size: 20px;
+    -unity-font-style: bold;
+}
+
 .dice-total {
     position: absolute;
     translate: -50% -100%;

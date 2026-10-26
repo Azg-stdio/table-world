@@ -99,7 +99,7 @@ namespace TableWorld.Tests.PlayMode
             yield return new WaitForSeconds(2f);
 
             var pawn = table.ViewOf("p1");
-            StringAssert.StartsWith("model:", pawn.Filter.sharedMesh.name, "drawn with its own mesh");
+            StringAssert.StartsWith("model:", pawn.Filter.sharedMesh.name, "drawn with its own mesh: " + pawn.Filter.sharedMesh.name);
             Assert.AreEqual(0.034f, pawn.Filter.sharedMesh.bounds.size.y, 0.001f);
             Assert.IsInstanceOf<MeshCollider>(pawn.Collider);
             Assert.Greater(OutwardShare(pawn.Filter.sharedMesh), 0.95f, "an OBJ wound as OBJ expects comes out facing outward");

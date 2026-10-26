@@ -156,7 +156,7 @@ namespace Core.Engine
             return CommandResult.Success(new List<StateEvent>
             {
                 new CardShown(obj.Id, card, c.Actor),
-                new GameMessage($"{Names.Seat(State, c.Actor)} shows {name}."),
+                new GameMessage(Names.Message(State, "shows", "{seat} shows {card}.", ("seat", Names.Seat(State, c.Actor)), ("card", name))),
             });
         }
 
@@ -167,7 +167,7 @@ namespace Core.Engine
             {
                 // Starting again while one runs keeps what is hidden.
                 State.Blind ??= new BlindRound();
-                events.Add(new GameMessage($"{Names.Seat(State, c.Actor)} started a blind round: what each player moves stays hidden until the reveal."));
+                events.Add(new GameMessage(Names.Message(State, "blindRound", "{seat} started a blind round: what each player moves stays hidden until the reveal.", ("seat", Names.Seat(State, c.Actor)))));
                 return CommandResult.Success(events);
             }
             if (State.Blind is { } blind)
@@ -178,7 +178,8 @@ namespace Core.Engine
                         obj.InvisibleTo = pair.Value;
                         events.Add(new ObjectUpdated(obj.Id));
                     }
-                events.Add(new GameMessage($"{Names.Seat(State, c.Actor)} revealed the blind round ({blind.Before.Count} piece{(blind.Before.Count == 1 ? "" : "s")})."));
+                events.Add(new GameMessage(Names.Message(State, "reveal", "{seat} revealed the blind round ({count} piece" + (blind.Before.Count == 1 ? "" : "s") + ").",
+                    ("seat", Names.Seat(State, c.Actor)), ("count", blind.Before.Count.ToString()))));
             }
             State.Blind = null;
             return CommandResult.Success(events);

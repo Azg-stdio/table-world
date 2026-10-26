@@ -8,6 +8,13 @@ namespace Core.Rules
         public string Id { get; set; } = "";
         public string Name { get; set; } = "";
         public string? Description { get; set; }
+        /// <summary>
+        /// The game's own words for the lines the engine writes, keyed by what they say: <c>win</c> ("{seat} wins."),
+        /// <c>choseInSecret</c>, <c>chose</c> ("{seat} chose {action}{choice}."), <c>blindRound</c>, <c>reveal</c>, <c>shows</c>
+        /// ("{seat} shows {card}."). <c>{seat}</c> and the other names in braces are filled in; a missing key keeps the
+        /// English line.
+        /// </summary>
+        public Dictionary<string, string>? Messages { get; set; }
         [System.ComponentModel.DefaultValue(1)]
         public int MinPlayers { get; set; } = 1;
         public int MaxPlayers { get; set; } = 8;
@@ -74,6 +81,11 @@ namespace Core.Rules
         public ParamType Type { get; set; }
         public ParamFilter? Filter { get; set; }
         public List<string> Options { get; set; } = new List<string>();
+        /// <summary>
+        /// What players read for each option (option → label: "mazmorra" → "Mazmorra"), so rules keep plain ids while
+        /// buttons and logs speak the game's language. An option without a label shows as itself.
+        /// </summary>
+        public Dictionary<string, string>? Labels { get; set; }
     }
 
     public sealed class ActionDef

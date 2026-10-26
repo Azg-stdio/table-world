@@ -29,6 +29,10 @@ namespace TableWorld.View.Hud
         private Button _blindButton;
         private ActionPicker _picker;
         private DiceTotalsView _diceTotals;
+        private SeatJoinView _seatJoins;
+        /// <summary>Hot seat, before the start: the seats this machine's players sat at (the first seat to begin with).</summary>
+        private readonly HashSet<string> _joined = new HashSet<string>();
+        private object _joinedFor;
         private ShowcaseView _showcase;
         private readonly CardImages _choiceImages = new CardImages();
         private string _followedTurn;
@@ -175,6 +179,8 @@ namespace TableWorld.View.Hud
             _root.Q<Button>("saveButton").clicked += Save;
             _picker = new ActionPicker(_root);
             _diceTotals = new DiceTotalsView(_root, _table);
+            _seatJoins = new SeatJoinView(_root, _table, () => _table.Game is { State: { HasRules: true }, Session: null },
+                SitterLabel, CanClickSeat, ClickSeat);
             if (_root.Q<Button>("calculatorButton") is { } calculator)
                 calculator.clicked += AddCalculator;
             _showcase = new ShowcaseView(_root);
@@ -425,6 +431,7 @@ namespace TableWorld.View.Hud
             }
             FollowTurnInHotSeat();
             _diceTotals?.Update(Camera.main);
+            _seatJoins?.Update(Camera.main);
             // A game's bottom panels stand above the hand while it shows cards, never over them.
             _root.EnableInClassList("hand-showing", _handBar != null && _handBar.Showing);
             _showcase?.Update(_table.Assets);
@@ -487,36 +494,85 @@ namespace TableWorld.View.Hud
         }
 
         /// <summary>
-        /// Start: online, with the seats people sit in; alone (hot seat), one button per player count the game takes, the
-        /// players spread evenly around the table. A table keeps all its seats; the empty ones sit the game out.
+        /// Start: one button that plays the seats people sat at (the "+" over each seat on the table), so the player
+        /// count is who sat down. A table keeps all its seats; the empty ones sit the game out.
         /// </summary>
         private void AddStartButtons(TableState state)
         {
-            var seats = state.Players.Seats.Select(s => s.Id).ToList();
-            var min = Mathf.Max(1, state.Game?.MinPlayers ?? seats.Count);
-            var max = Mathf.Min(seats.Count, state.Game?.MaxPlayers > 0 ? state.Game.MaxPlayers : seats.Count);
-            void Start(List<string> playing)
+            var seated = SeatedSeats();
+            var min = Mathf.Max(1, state.Game?.MinPlayers ?? 1);
+            var max = state.Game?.MaxPlayers > 0 ? state.Game.MaxPlayers : state.Players.Seats.Count;
+            var players = $"{seated.Count} {(seated.Count == 1 ? "player" : "players")}";
+            var button = new Button(() =>
             {
-                var result = _table.Execute(new StartGameCommand { Seats = playing });
+                var result = _table.Execute(new StartGameCommand { Seats = seated });
                 if (!result.Ok)
                     ShowStatus(result.Error.Message, error: true);
+            }) { text = $"Start game ({players})" };
+            button.AddToClassList("hud-button");
+            var fits = seated.Count >= min && seated.Count <= max;
+            button.SetEnabled(fits);
+            var takes = min == max ? $"{min}" : $"{min} to {max}";
+            button.tooltip = fits ? "Sit at more seats with the + over each seat on the table"
+                : $"This game takes {takes} players: sit at the seats with the + over each one on the table";
+            _gameActions.Add(button);
+        }
+
+        // ---- sitting down before the start: the + over each seat ------------------------------------------------
+
+        /// <summary>The seats people sat at, in seat order: online, where each person sits; hot seat, the seats taken here.</summary>
+        public List<string> SeatedSeats()
+        {
+            var seats = _table.Engine?.State.Players.Seats ?? new List<Seat>();
+            if (_table.Networked && _session != null)
+                return seats.Where(s => _session.Occupants.ContainsKey(s.Id)).Select(s => s.Id).ToList();
+            if (_joinedFor != _table.Engine)
+            {
+                // A new table: whoever plays here sits at the first seat; the others are joined with their +.
+                _joinedFor = _table.Engine;
+                _joined.Clear();
+                if (seats.FirstOrDefault() is { } first)
+                    _joined.Add(first.Id);
             }
+            return seats.Where(s => _joined.Contains(s.Id)).Select(s => s.Id).ToList();
+        }
+
+        /// <summary>Who sits at a seat as its marker says it ("Red (you)", a player's name), or null when it is free.</summary>
+        private string SitterLabel(Seat seat)
+        {
+            var name = Names.Of(seat);
             if (_table.Networked && _session != null)
             {
-                var seated = seats.Where(s => _session.Occupants.ContainsKey(s)).ToList();
-                AddGameButton($"Start game ({seated.Count} {(seated.Count == 1 ? "player" : "players")})", () => Start(seated));
+                if (seat.Id == _table.LocalSeat)
+                    return $"{name} (you)";
+                return _session.Occupants.TryGetValue(seat.Id, out var who) ? _session.NameOf(who) ?? name : null;
+            }
+            return SeatedSeats().Contains(seat.Id) ? name : null;
+        }
+
+        /// <summary>A free seat can be sat at; at a hot-seat table a taken one can also be left.</summary>
+        private bool CanClickSeat(Seat seat)
+        {
+            if (_table.Networked && _session != null)
+                return !_session.Occupants.ContainsKey(seat.Id);
+            return true;
+        }
+
+        /// <summary>
+        /// The + over a seat: online it moves you there (the host decides); at a hot-seat table it adds the seat to the
+        /// players, or takes it away again.
+        /// </summary>
+        public void ClickSeat(string seat)
+        {
+            if (_table.Networked && _session != null)
+            {
+                SitAt(seat);
                 return;
             }
-            if (min >= max)
-            {
-                AddGameButton("Start game", () => Start(SeatLayout.Spread(seats, max)));
-                return;
-            }
-            for (var n = min; n <= max; n++)
-            {
-                var count = n;
-                AddGameButton($"Start: {n} players", () => Start(SeatLayout.Spread(seats, count)));
-            }
+            SeatedSeats();
+            if (!_joined.Remove(seat))
+                _joined.Add(seat);
+            _shownGameKey = null;
         }
 
         /// <summary>
@@ -586,7 +642,7 @@ namespace TableWorld.View.Hud
                 : new List<(string Seat, LegalAction Action)>();
             var turns = state.FreeTurns;
             var key = $"{state.HasRules}|{session?.Turn}|{session?.Phase}|{session?.CurrentSeat}|{session?.Over}|{session?.Log.Count}|" +
-                      $"{turns?.Current}|{turns?.Count}|{turns?.Reverse}|{_table.LocalSeat}|" +
+                      $"{turns?.Current}|{turns?.Count}|{turns?.Reverse}|{_table.LocalSeat}|{string.Join(",", SeatedSeats())}|" +
                       string.Join(",", legal.Select(l => $"{l.Seat}/{l.Action.ActionId}/{l.Action.Choices.Count}"));
             if (key == _shownGameKey)
                 return;
@@ -636,19 +692,20 @@ namespace TableWorld.View.Hud
                 if (action.Choices.Count == 1)
                 {
                     var only = action.Choices[0];
-                    AddGameButton(only.Count == 0 ? name : $"{name} · {ChoiceLabel(only)}", () => Perform(only));
+                    AddGameButton(only.Count == 0 ? name : $"{name} · {ChoiceLabel(id, only)}", () => Perform(only));
                     continue;
                 }
                 var choices = action.Choices;
                 AddGameButton($"{name} ({choices.Count})", () => _picker.Show(name, choices.Select(c => new ActionPicker.Choice
                 {
-                    Label = ChoiceLabel(c), Image = ChoiceImage(c), Pick = () => Perform(c),
+                    Label = ChoiceLabel(id, c), Image = ChoiceImage(c), Pick = () => Perform(c),
                 }).ToList()));
             }
         }
 
-        private string ChoiceLabel(Dictionary<string, string> choice) =>
-            string.Join(", ", choice.Values.Select(v => _table.Engine.Find(v) is { } o ? Names.Of(o) : v));
+        /// <summary>What players read for a choice: the options' labels, or the chosen objects' names.</summary>
+        private string ChoiceLabel(string actionId, Dictionary<string, string> choice) =>
+            string.Join(", ", choice.Select(p => _table.Game.OptionLabel(actionId, p.Key, p.Value)));
 
         /// <summary>The card face of a choice that is one card, for the picker.</summary>
         private Sprite ChoiceImage(Dictionary<string, string> choice)

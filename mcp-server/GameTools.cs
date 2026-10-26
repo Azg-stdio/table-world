@@ -31,8 +31,19 @@ namespace TableWorld.Mcp
             [Description("Minimum players the game supports.")] int? minPlayers = null,
             [Description("Maximum players the game supports.")] int? maxPlayers = null,
             [Description("One-paragraph summary of the rules.")] string? description = null,
-            [Description("Dice for each seat in its colour (d6, tagged owner:<seat>), in front of its hand; 0 for none.")] int dicePerSeat = 0) =>
-            session.Locked(() => Reply(session.NewGame(id, name, players, minPlayers ?? players, maxPlayers ?? players, description, dicePerSeat), session));
+            [Description("Dice for each seat in its colour (d6, tagged owner:<seat>), in front of its hand; 0 for none.")] int dicePerSeat = 0,
+            [Description("Optional names players read for the seats, comma-separated in seat order (e.g. 'Hunter, Mage, Thief'); a seat without one is called by its colour.")] string? seatNames = null) =>
+            session.Locked(() => Reply(session.NewGame(id, name, players, minPlayers ?? players, maxPlayers ?? players, description, dicePerSeat,
+                seatNames?.Split(',').Select(n => n.Trim()).ToArray()), session));
+
+        [McpServerTool(Name = "set_messages"), Description("The game's own words for the lines the engine writes in the log, e.g. in the game's language: {\"win\":\"¡{seat} gana!\",\"choseInSecret\":\"{seat} eligió en secreto.\",\"chose\":\"{seat} eligió {option}.\"}. Keys: win, choseInSecret, chose ({seat}, {action}, {option}, {choice}), blindRound, reveal ({count}), shows ({card}). A key left out keeps the English line. Option labels are set on choice params (\"labels\": {\"dungeon\":\"Mazmorra\"}).")]
+        public static string SetMessages(GameSession session, [Description("JSON object: message key to text.")] string messagesJson) =>
+            session.Locked(() => Reply(session.Edit(doc =>
+            {
+                var game = doc["game"] as JObject ?? new JObject();
+                game["messages"] = GameSession.ParseObject(messagesJson, "messagesJson");
+                doc["game"] = game;
+            }), session));
 
         [McpServerTool(Name = "create_deck"), Description("Create a deck of cards on the table. cards: 'standard52' or 'standard54' (with jokers) for the builtin French deck (card meta: rank 2-14 aces high, suit, color), or a JSON array of cards {id, name, faceIndex, meta}; for your own art, add_asset a sprite sheet (columns x rows) and pass it as faceAsset, faceIndex counting left to right, top to bottom. Tag a deck '<role>:<seatId>' (e.g. 'deck:seat_south') so rules can say $actor.deck.")]
         public static string CreateDeck(GameSession session,
@@ -189,13 +200,17 @@ namespace TableWorld.Mcp
             });
 
         [McpServerTool(Name = "run_lua"), Description("Try Lua against a copy of the table as it is now (the game in play, or the setup), with the table's scripts loaded: call your functions, read Game.getResource, move objects. Nothing changes in the real game. Returns what the code returned, what it printed, refused commands, and the copy's resources, variables and phase afterwards.")]
-        public static string RunLua(GameSession session, [Description("Lua to run, e.g. 'return fight({actor=\"seat_south\", params={}, args={cost=2}})'.")] string code) =>
+        public static string RunLua(GameSession session, [Description("Lua to run, e.g. 'return fight({actor=\"seat_south\", params={}, args={cost=2}})'.")] string code,
+            [Description("At most this many printed lines and characters of the returned value come back (the rest is counted), so a big table does not flood the reply.")] int limit = 50) =>
             session.Locked(() =>
             {
                 var (error, value, lines, after) = session.TryLua(code);
+                limit = System.Math.Max(1, limit);
+                var returned = value != null && value.Length > limit * 80 ? value.Substring(0, limit * 80) + $"... ({value.Length - limit * 80} more characters)" : value;
                 return Json(new
                 {
-                    ok = error == null, error, returned = value, printed = lines,
+                    ok = error == null, error, returned, printed = lines.Take(limit),
+                    morePrinted = lines.Count > limit ? lines.Count - limit : (int?)null,
                     after = after.Session == null ? null : new { phase = after.Session.Phase, currentSeat = after.Session.CurrentSeat, resources = after.Session.Resources, variables = after.Session.Variables, log = after.Session.Log.TakeLast(10) },
                 });
             });
@@ -543,7 +558,9 @@ namespace TableWorld.Mcp
         });
 
         [McpServerTool(Name = "get_table_state"), Description("What is on the table now: seats with their hands, decks with card counts and visible top cards, zones, and during play the turn, phase, current seat, variables, resources, recent log and every seat's legal actions.")]
-        public static string GetTableState(GameSession session) => session.Locked(() => Json(Summary(session)));
+        public static string GetTableState(GameSession session,
+            [Description("'full' (default): every object and zone; 'play': only the turn, log, seats' resources and hand sizes, and the legal actions with their first choices.")] string detail = "full") =>
+            session.Locked(() => Json(Summary(session, compact: detail == "play")));
 
         [McpServerTool(Name = "save_game"), Description("Save the game document (with the session if a game is running) to a JSON file.")]
         public static string SaveGame(GameSession session, [Description("File path, e.g. games/my-game.json. Defaults to the file the session was opened with.")] string? path = null) =>
@@ -579,15 +596,53 @@ namespace TableWorld.Mcp
         {
             if (!result.Ok)
                 return Json(new { ok = false, errors = Errors(result.Errors), stateRestored = result.Result?.StateRestored ?? false });
-            return Json(new { ok = true, messages = result.Messages, state = Summary(session) });
+            return Json(new { ok = true, messages = result.Messages, state = Summary(session, compact: true) });
         }
 
-        internal static object Summary(GameSession session)
+        /// <summary>Choices listed per legal action in a compact reply; the rest are counted.</summary>
+        public const int CompactChoices = 12;
+
+        /// <summary>
+        /// The table as the agent reads it. Compact (the reply to a move, or <c>get_table_state detail=play</c>): the turn,
+        /// the last lines of the log, each seat's resources and hand size, and the legal actions with their first choices,
+        /// without the objects and zones.
+        /// </summary>
+        internal static object Summary(GameSession session, bool compact = false)
         {
             var state = session.Current;
             var game = session.Game;
             var table = game?.Table ?? new TableEngine(state, 1);
             var session0 = state.Session;
+            if (compact)
+                return new
+                {
+                    seats = state.Players.Seats.Select(s => new
+                    {
+                        s.Id,
+                        name = Names.Of(s),
+                        handCards = s.HandZone == null ? 0 : table.ObjectsIn(s.HandZone).Count(),
+                        resources = session0?.Resources.TryGetValue(s.Id, out var r) == true ? r : null,
+                    }),
+                    play = session0 == null ? null : new
+                    {
+                        session0.Turn,
+                        session0.Phase,
+                        session0.CurrentSeat,
+                        session0.Over,
+                        session0.Winner,
+                        secretsWaiting = session0.Secrets.Count > 0 ? session0.Secrets.Count : (int?)null,
+                        log = session0.Log.Skip(System.Math.Max(0, session0.Log.Count - 5)),
+                        legalActions = game == null || session0.Over ? null : state.Players.Seats
+                            .Select(s => (s.Id, Actions: game.LegalActions(s.Id)))
+                            .Where(s => s.Actions.Count > 0)
+                            .ToDictionary(s => s.Id, s => s.Actions.Select(a => new
+                            {
+                                action = a.ActionId,
+                                choices = a.Choices.Count == 1 && a.Choices[0].Count == 0 ? null : a.Choices.Take(CompactChoices),
+                                moreChoices = a.Choices.Count > CompactChoices ? a.Choices.Count - CompactChoices : (int?)null,
+                            })),
+                    },
+                };
             return new
             {
                 game = state.Game == null ? null : new { state.Game.Id, state.Game.Name },

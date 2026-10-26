@@ -209,8 +209,12 @@ namespace TableWorld.Mcp
         // ---- authoring ----------------------------------------------------------------------------------------------
 
         /// <summary>A new empty game: standard deck assets, seats around the table, one hand zone per seat.</summary>
-        public EditResult NewGame(string id, string name, int players, int minPlayers, int maxPlayers, string? description, int dicePerSeat = 0)
+        public EditResult NewGame(string id, string name, int players, int minPlayers, int maxPlayers, string? description, int dicePerSeat = 0,
+            string[]? seatNames = null)
         {
+            if (seatNames != null && seatNames.Length > players)
+                return EditResult.Rejected(new ValidationError("seatNames", ErrorCodes.InvalidValue, $"{seatNames.Length} seat names for {players} seats.",
+                    "Give one name per seat, in seat order, or fewer (the rest are called by their colour)."));
             if (dicePerSeat < 0 || dicePerSeat > 8)
                 return EditResult.Rejected(new ValidationError("dicePerSeat", ErrorCodes.InvalidValue, "dicePerSeat is 0 to 8.", "Use 0 for no dice."));
             if (players < 1 || players > SeatLayout.MaxSeats)
@@ -231,19 +235,22 @@ namespace TableWorld.Mcp
             var (tableSize, places) = SeatLayout.Arrange(players);
             if (tableSize != TableLookDef.DefaultSize)
                 doc.Environment = new EnvironmentDef { Table = { Size = tableSize } };
+            var index = 0;
             foreach (var place in places)
             {
+                var seatName = seatNames != null && index < seatNames.Length && seatNames[index].Length > 0 ? seatNames[index] : null;
+                index++;
                 var hand = new HandZone { Id = place.HandId, Owner = place.SeatId, Size = new Vec3(place.Width, 0.1f, 0.12f) };
                 hand.Transform.Position = place.Position;
                 hand.Transform.Rotation = new Vec3(0, place.Yaw, 0);
                 doc.Zones.Add(hand);
-                doc.Players.Seats.Add(new Seat { Id = place.SeatId, Color = place.Color, HandZone = hand.Id });
+                doc.Players.Seats.Add(new Seat { Id = place.SeatId, Color = place.Color, HandZone = hand.Id, Name = seatName });
                 // Each player's own dice, in their colour, in front of their hand.
                 for (var d = 0; d < dicePerSeat; d++)
                 {
                     var die = new Die
                     {
-                        Id = $"die_{place.SeatId.Replace("seat_", "")}_{d + 1}", Name = $"{place.SeatId} die {d + 1}",
+                        Id = $"die_{place.SeatId.Replace("seat_", "")}_{d + 1}", Name = $"{seatName ?? Names.Humanize(place.Color)} die {d + 1}",
                         Tint = SeatLayout.Rgb(place.Color), Tags = { TableEngine.OwnerTag + place.SeatId },
                     };
                     die.Transform.Position = SeatLayout.InFrontOf(place, (d - (dicePerSeat - 1) / 2f) * 0.035f);

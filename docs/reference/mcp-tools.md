@@ -142,6 +142,10 @@ The rules format reference: objects, zones, phases, actions, effects, conditions
 
 What is on the table now: seats with their hands, decks with card counts and visible top cards, zones, and during play the turn, phase, current seat, variables, resources, recent log and every seat's legal actions.
 
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `detail` | string | `full` | 'full' (default): every object and zone; 'play': only the turn, log, seats' resources and hand sizes, and the legal actions with their first choices. |
+
 ### `load_game`
 
 Load a game document (or a saved game in progress) from a JSON file.
@@ -163,6 +167,7 @@ Start a new game document: name, player seats with a hand zone each, and the bui
 | `maxPlayers` | integer | none | Maximum players the game supports. |
 | `description` | string | none | One-paragraph summary of the rules. |
 | `dicePerSeat` | integer | `0` | Dice for each seat in its colour (d6, tagged owner:<seat>), in front of its hand; 0 for none. |
+| `seatNames` | string | none | Optional names players read for the seats, comma-separated in seat order (e.g. 'Hunter, Mage, Thief'); a seat without one is called by its colour. |
 
 ### `perform_action`
 
@@ -205,6 +210,7 @@ Try Lua against a copy of the table as it is now (the game in play, or the setup
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `code` | string | required | Lua to run, e.g. 'return fight({actor="seat_south", params={}, args={cost=2}})'. |
+| `limit` | integer | `50` | At most this many printed lines and characters of the returned value come back (the rest is counted), so a big table does not flood the reply. |
 
 ### `save_game`
 
@@ -224,6 +230,14 @@ Look at the table in the game window: returns a picture with the HUD. view: 'sea
 | `seat` | string | none | For view 'seat': the seat id. |
 | `target` | string | none | For view 'object': the object id. |
 | `width` | integer | `1280` | Picture width in pixels (320-2560). |
+
+### `set_messages`
+
+The game's own words for the lines the engine writes in the log, e.g. in the game's language: {"win":"¡{seat} gana!","choseInSecret":"{seat} eligió en secreto.","chose":"{seat} eligió {option}."}. Keys: win, choseInSecret, chose ({seat}, {action}, {option}, {choice}), blindRound, reveal ({count}), shows ({card}). A key left out keeps the English line. Option labels are set on choice params ("labels": {"dungeon":"Mazmorra"}).
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `messagesJson` | string | required | JSON object: message key to text. |
 
 ### `set_notebook`
 

@@ -809,6 +809,44 @@ namespace TableWorld.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator SittingAtSeatsWithTheirPlus_SetsThePlayerCount_ForStart()
+        {
+            const string json = @"{ ""game"": { ""id"": ""seated"", ""name"": ""Seated"", ""minPlayers"": 2, ""maxPlayers"": 3 },
+  ""players"": { ""seats"": [
+    { ""id"": ""seat_south"", ""color"": ""red"", ""handZone"": ""hand_south"" },
+    { ""id"": ""seat_east"", ""color"": ""green"", ""handZone"": ""hand_east"" },
+    { ""id"": ""seat_north"", ""color"": ""blue"", ""handZone"": ""hand_north"" } ] },
+  ""zones"": [
+    { ""id"": ""hand_south"", ""type"": ""HandZone"", ""owner"": ""seat_south"", ""transform"": { ""position"": [0, 0.05, -0.42] }, ""size"": [0.6, 0.1, 0.12] },
+    { ""id"": ""hand_east"", ""type"": ""HandZone"", ""owner"": ""seat_east"", ""transform"": { ""position"": [0.42, 0.05, 0], ""rotation"": [0, 90, 0] }, ""size"": [0.6, 0.1, 0.12] },
+    { ""id"": ""hand_north"", ""type"": ""HandZone"", ""owner"": ""seat_north"", ""transform"": { ""position"": [0, 0.05, 0.42], ""rotation"": [0, 180, 0] }, ""size"": [0.6, 0.1, 0.12] } ],
+  ""turn"": { ""phases"": [ ""play"" ] }, ""phases"": [ { ""id"": ""play"" } ] }";
+            Assert.IsTrue(_table.Load(json, null));
+            yield return new WaitForSeconds(0.6f);
+            var hud = Object.FindAnyObjectByType<HudController>();
+            var root = hud.GetComponent<UIDocument>().rootVisualElement;
+            Button StartButton() => root.Query<Button>().Where(b => b.text.StartsWith("Start game")).First();
+
+            // The table opens with this player at the first seat; a game of 2 or 3 cannot start with one.
+            Assert.AreEqual("Start game (1 player)", StartButton()?.text);
+            Assert.IsFalse(StartButton().enabledSelf, "one player is too few");
+            var east = root.Q("seatJoins").Children().First(m => m.tooltip == "Sit at Green");
+            Assert.AreEqual("+", east.Q<Label>().text, "a free seat shows its plus");
+            Assert.IsFalse(east.ClassListContains("hidden"), "over the seat, in view");
+
+            hud.ClickSeat("seat_east");
+            yield return new WaitForSeconds(0.4f);
+            Assert.AreEqual("Green", east.Q<Label>().text, "sat at: the seat's name");
+            Assert.AreEqual("Start game (2 players)", StartButton()?.text);
+            Assert.IsTrue(StartButton().enabledSelf);
+
+            using (var click = NavigationSubmitEvent.GetPooled()) { var b = StartButton(); click.target = b; b.SendEvent(click); }
+            yield return new WaitForSeconds(0.4f);
+            CollectionAssert.AreEqual(new[] { "seat_south", "seat_east" }, _table.Game.Playing.Select(p => p.Id).ToArray(), "the seated seats play");
+            Assert.IsTrue(root.Q("seatJoins").ClassListContains("hidden"), "the pluses go once the game starts");
+        }
+
+        [UnityTest]
         public IEnumerator ASelectedCalculator_TakesTheKeyboard()
         {
             var id = _table.Execute(new AddCalculatorCommand { Position = new Vec3(0.55f, 0f, 0.3f), Actor = _table.LocalSeat }).CreatedId;

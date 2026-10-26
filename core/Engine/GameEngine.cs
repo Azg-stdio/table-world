@@ -238,7 +238,7 @@ namespace Core.Engine
                 // Recorded, not run: a later choice of the same action replaces it until the reveal.
                 session.Secrets.RemoveAll(s => s.Seat == seat && s.Action == action.Id);
                 session.Secrets.Add(new SecretChoice { Seat = seat, Action = action.Id, Params = new Dictionary<string, string>(command.Params) });
-                Log($"{Names.Seat(State, seat)} chose in secret.");
+                Log(Names.Message(State, "choseInSecret", "{seat} chose in secret.", ("seat", Names.Seat(State, seat))));
             }
             else
                 RunEffects(action.Effects);
@@ -396,7 +396,7 @@ namespace Core.Engine
             var session = Session!;
             session.Over = true;
             session.Winner = seat;
-            Log($"{Names.Seat(State, seat)} wins.");
+            Log(Names.Message(State, "win", "{seat} wins.", ("seat", Names.Seat(State, seat))));
         }
 
         // ---- effects ----------------------------------------------------------------------------------------------
@@ -576,7 +576,7 @@ namespace Core.Engine
                     _ => (null, null, false),
                 };
                 var zone = zoneId == null ? null : State.Zones.FirstOrDefault(z => z.Id == zoneId);
-                if (zone == null || (enter ? zone.OnEnter : zone.OnLeave).Count == 0)
+                if (zone == null || (enter ? zone.OnEnter : zone.OnLeave).Count == 0 || Table.Find(objectId!) is Board)
                     continue;
                 if (State.Blind != null && actor != null)
                 {
@@ -629,8 +629,11 @@ namespace Core.Engine
                 var action = State.Actions.FirstOrDefault(a => a.Id == choice.Action);
                 if (action == null)
                     continue;
-                var what = choice.Params.Count == 0 ? "" : " (" + string.Join(", ", choice.Params.Select(p => $"{p.Key}: {p.Value}")) + ")";
-                Log($"{Names.Seat(State, choice.Seat)} chose {action.Name ?? Names.Humanize(action.Id)}{what}.");
+                // Players read the option's label ("Mazmorra"), not the id the rules use.
+                var picked = string.Join(", ", choice.Params.Select(p => OptionLabel(action.Id, p.Key, p.Value)));
+                Log(Names.Message(State, "chose", "{seat} chose {action}{choice}.",
+                    ("seat", Names.Seat(State, choice.Seat)), ("action", action.Name ?? Names.Humanize(action.Id)),
+                    ("choice", picked.Length == 0 ? "" : ": " + picked), ("option", picked)));
                 _ctx = new Context { Actor = choice.Seat, Params = choice.Params };
                 RunEffects(action.Effects);
             }
@@ -698,7 +701,7 @@ namespace Core.Engine
         private int SourceCount(object source) => source switch
         {
             Deck deck => deck.Cards.Count,
-            Zone zone => Table.ObjectsIn(zone.Id).Count(),
+            Zone zone => PiecesIn(zone.Id).Count(),
             _ => 0,
         };
 
@@ -720,7 +723,7 @@ namespace Core.Engine
                 }
                 case Zone zone:
                 {
-                    var stack = Table.ObjectsIn(zone.Id).OrderByDescending(o => o.Transform.Position.Y).ToList();
+                    var stack = PiecesIn(zone.Id).OrderByDescending(o => o.Transform.Position.Y).ToList();
                     if (stack.Count == 0)
                         throw new RuleException("move.from", ErrorCodes.ContainerEmpty, $"Zone '{zone.Id}' is empty.");
                     return fromBottom ? stack[stack.Count - 1] : stack[0];
@@ -784,7 +787,7 @@ namespace Core.Engine
 
         private IEnumerable<object> ItemsIn(object container) => container switch
         {
-            Zone zone => Table.ObjectsIn(zone.Id).Cast<object>().ToList(),
+            Zone zone => PiecesIn(zone.Id).Cast<object>().ToList(),
             Deck deck => deck.Cards.Select(c => (object)new CardRef(deck, c)).ToList(),
             Bag bag => Table.ContentsOf(bag.Id).Cast<object>().ToList(),
             _ => Enumerable.Empty<object>(),
@@ -837,17 +840,32 @@ namespace Core.Engine
             _ => throw new RuleException(condition.Kind, ErrorCodes.RuleFailed, $"Condition '{condition.Kind}' is not supported."),
         };
 
+        /// <summary>
+        /// What lies in a zone as the rules see it: the pieces, not a board the zone sits on (a space drawn on the board
+        /// would otherwise always hold the board itself).
+        /// </summary>
+        private IEnumerable<TableObject> PiecesIn(string zoneId) => Table.ObjectsIn(zoneId).Where(o => !(o is Board));
+
+        /// <summary>What players read for a choice option: its label from the action's parameter, or the option itself.</summary>
+        public string OptionLabel(string actionId, string param, string value)
+        {
+            var def = State.Actions.FirstOrDefault(a => a.Id == actionId)?.Params.FirstOrDefault(p => p.Name == param);
+            if (def?.Labels != null && def.Labels.TryGetValue(value, out var label) && !string.IsNullOrWhiteSpace(label))
+                return label;
+            return Table.Find(value) is { } obj ? Names.Of(obj) : value;
+        }
+
         private int CountOf(object target) => target switch
         {
             Deck deck => deck.Cards.Count,
             Bag bag => Table.ContentsOf(bag.Id).Count(),
-            Zone zone => Table.ObjectsIn(zone.Id).Sum(o => o is Deck d ? d.Cards.Count : 1),
+            Zone zone => PiecesIn(zone.Id).Sum(o => o is Deck d ? d.Cards.Count : 1),
             _ => 1,
         };
 
         private bool Contains(object container, object thing) => (container, thing) switch
         {
-            (Zone zone, TableObject obj) => Table.ZonesOf(obj.Id).Contains(zone.Id),
+            (Zone zone, TableObject obj) => !(obj is Board) && Table.ZonesOf(obj.Id).Contains(zone.Id),
             (Deck deck, CardRef card) => card.Deck == deck,
             (Bag bag, TableObject obj) => obj.Container == bag.Id,
             _ => false,
@@ -1016,6 +1034,12 @@ namespace Core.Engine
                     break;
                 case "seat": i = 2; current = SeatById(parts[1]); break;
                 case "obj": i = 2; current = (object?)Table.Find(parts[1]) ?? State.Zones.FirstOrDefault(z => z.Id == parts[1]); break;
+                case "secrets":
+                {
+                    // How many secret choices wait for the reveal: all, or one action's.
+                    var waiting = Session?.Secrets ?? new List<SecretChoice>();
+                    return new JValue(parts.Length > 1 ? waiting.Count(c => c.Action == parts[1]) : waiting.Count);
+                }
                 case "diceTotal":
                 {
                     var (total, _, bySeat) = Table.DiceIn(parts[1]);
@@ -1042,6 +1066,19 @@ namespace Core.Engine
                         case "id": return new JValue(seat.Id);
                         case "color": return new JValue(seat.Color);
                         case "hand": return State.Zones.FirstOrDefault(z => z.Id == seat.HandZone);
+                        case "name": return new JValue(Names.Of(seat));
+                        case "chose":
+                        {
+                            // $viewer.chose.<action>: that seat's secret choice, waiting for the reveal (its first parameter, or "yes").
+                            if (++i >= parts.Length || Session == null)
+                                return null;
+                            var actionId = parts[i];
+                            var choice = Session.Secrets.FirstOrDefault(c => c.Seat == seat.Id && c.Action == actionId);
+                            if (choice == null)
+                                return null;
+                            var value = choice.Params.Values.FirstOrDefault();
+                            return new JValue(value == null ? "yes" : OptionLabel(choice.Action, choice.Params.Keys.First(), value));
+                        }
                         case "res":
                             if (++i >= parts.Length || Session == null)
                                 return null;
@@ -1060,7 +1097,7 @@ namespace Core.Engine
                     return ObjectProperty(obj, part, parts, ref i);
                 case Zone zone:
                 {
-                    var stack = Table.ObjectsIn(zone.Id).OrderByDescending(o => o.Transform.Position.Y).ToList();
+                    var stack = PiecesIn(zone.Id).OrderByDescending(o => o.Transform.Position.Y).ToList();
                     return part switch
                     {
                         "count" => new JValue(CountOf(zone)),

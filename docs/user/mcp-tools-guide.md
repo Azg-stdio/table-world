@@ -31,13 +31,22 @@ get_rules_reference
 `seat_1` to `seat_12` in clockwise order from the south side (hands `hand_1`, ...; that order is the turn order), and
 the table grows so every hand has room. Make one table for all player counts: `players` is the most players and
 `minPlayers` the fewest; `start_game` then says who plays (`seats`, or `players` to spread a number of players evenly
-around the table), and the empty seats sit the game out. In the game window, Start offers each player count, or online
-starts with the people seated. More people than seats can join a session online: they watch, talk and take a
-seat when one frees up. `dicePerSeat` gives each seat its own d6s in its colour, in front of its hand.
+around the table), and the empty seats sit the game out. In the game window players sit down with the **+** over each
+seat, and Start plays the seats they sat at. More people than seats can join a session online: they watch, talk and
+take a seat when one frees up. `dicePerSeat` gives each seat its own d6s in its colour, in front of its hand, and
+`seatNames` names the seats players read (a seat without one is called by its colour).
 
 ```call
 new_game {"id": "high-card-race", "name": "High Card Race", "players": 2,
           "description": "Draw a card each turn; a 10 or higher scores. First to 3 points wins."}
+```
+
+**`set_messages`**: the game's own words for the lines the engine writes in the log, such as the game's language. A
+line left out stays in English. Choice options get their words from `labels` on the parameter
+([rules and scripting](rules-and-scripting.md#3-actions)).
+
+```call
+set_messages {"messagesJson": {"win": "{seat} takes the race!", "choseInSecret": "{seat} has chosen."}}
 ```
 
 **`ask_host`**: when the rulebook does not say something, the agent asks you instead of guessing. The server only
@@ -94,6 +103,7 @@ set_script {"target": "global", "code": "function bonus(ctx)\n  Game.log(ctx.act
 
 **`run_lua`**: tries Lua against a copy of the table as it is now, with the table's scripts loaded, and shows what it
 returned and printed. Nothing changes in the real game, so the agent can test a function before a rule calls it.
+`limit` caps how many printed lines come back (50 by default), so a loop over the whole table stays readable.
 
 ```call
 run_lua {"code": "return #Game.getSeats()"}
@@ -207,7 +217,9 @@ start_game {"seed": 7}
 ```
 
 **`get_table_state`**: what is on the table, whose turn it is, and every legal action for every seat with its
-choices. Your agent reads it before acting, and so can you.
+choices. Your agent reads it before acting, and so can you. `detail: "play"` leaves out the objects and zones and
+keeps the turn, the last log lines, each seat's resources and hand size, and the legal actions with their first
+choices; `perform_action` replies in that short form.
 
 ```call
 get_table_state
