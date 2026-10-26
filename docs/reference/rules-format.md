@@ -1247,6 +1247,7 @@ object or object or object or object or object or object or object or object or 
 | `action` | string |  |
 | `seat` | string |  |
 | `params` | map of string |  |
+| `visibleTo` | array of string |  |
 | `asset` | string |  |
 
 ### Session

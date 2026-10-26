@@ -4191,6 +4191,12 @@
             "type": "string"
           }
         },
+        "visibleTo": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "asset": {
           "type": "string"
         }

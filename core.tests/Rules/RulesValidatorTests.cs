@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Core.Rules;
 using Core.Tests.Engine;
@@ -130,6 +131,23 @@ namespace Core.Tests.Rules
             Single(WithUi(@"{ ""type"": ""image"", ""asset"": ""shet"" }"), ErrorCodes.UnknownAsset);
             Single(WithUi(@"{ ""type"": ""slider"" }"), ErrorCodes.InvalidValue);
             Assert.Empty(TableJson.Parse(WithUi(@"{ ""type"": ""counter"", ""text"": ""Mine"", ""value"": ""$viewer.mine.count"" }, { ""type"": ""button"", ""action"": ""b"", ""seat"": ""s2"" }")).Errors);
+        }
+
+        [Fact]
+        public void Ui_VisibleTo_TakesSeatsOrTheHost()
+        {
+            static string WithUi(string elements) => MiniGame.Json(MiniGame.Action("")).Replace(@"""winConditions"": []",
+                @"""winConditions"": [], ""ui"": { ""panels"": [ { ""id"": ""p"", ""visibleTo"": [""host""], ""elements"": [" + elements + "] } ] }");
+
+            var state = TableJson.Parse(WithUi(@"{ ""type"": ""button"", ""action"": ""b"", ""seat"": ""$current"", ""visibleTo"": [""host"", ""s2""] }"));
+            Assert.Empty(state.Errors);
+            Assert.Equal("Did you mean 'host'?", Single(WithUi(@"{ ""type"": ""label"", ""text"": ""x"", ""visibleTo"": [""hots""] }"), ErrorCodes.UnknownSeat).Suggestion);
+
+            var element = state.State!.Ui!.Panels[0].Elements[0];
+            Assert.True(PanelDef.Shows(element.VisibleTo, null, host: true), "the host sees it, seated or not");
+            Assert.True(PanelDef.Shows(element.VisibleTo, "s2", host: false));
+            Assert.False(PanelDef.Shows(element.VisibleTo, "s1", host: false), "another player does not");
+            Assert.True(PanelDef.Shows(new List<string>(), "s1", host: false), "an empty list lets everyone see");
         }
 
         [Theory]

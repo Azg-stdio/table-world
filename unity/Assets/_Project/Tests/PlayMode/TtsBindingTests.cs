@@ -907,6 +907,29 @@ namespace TableWorld.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator AHostOnlyButton_ShowsOnTheHostsScreenAlone()
+        {
+            const string json = @"{ ""game"": { ""id"": ""hosted"", ""name"": ""Hosted"" },
+  ""players"": { ""seats"": [ { ""id"": ""seat_south"", ""color"": ""red"" } ] },
+  ""ui"": { ""panels"": [ { ""id"": ""day"", ""anchor"": ""top"", ""elements"": [
+      { ""type"": ""label"", ""text"": ""Day 1"" },
+      { ""type"": ""label"", ""text"": ""Host tools"", ""visibleTo"": [""host""] } ] } ] } }";
+            UnityEngine.PlayerPrefs.DeleteKey("tw.panel.hosted.day");
+            Assert.IsTrue(_table.Load(json, null));
+            yield return new WaitForSeconds(0.5f);
+            var root = Object.FindAnyObjectByType<HudController>().GetComponent<UIDocument>().rootVisualElement;
+            Label Find(string text) => root.Query<Label>().Where(l => l.text == text).First();
+            Assert.IsFalse(Find("Host tools").ClassListContains("hidden"), "the host sees it");
+
+            // The same table on a joined player's screen.
+            _table.HostsTable = false;
+            yield return new WaitForSeconds(0.5f);
+            Assert.IsTrue(Find("Host tools").ClassListContains("hidden"), "a joined player does not");
+            Assert.IsFalse(Find("Day 1").ClassListContains("hidden"), "the rest of the panel stays");
+            _table.HostsTable = true;
+        }
+
+        [UnityTest]
         public IEnumerator ASelectedCalculator_TakesTheKeyboard()
         {
             var id = _table.Execute(new AddCalculatorCommand { Position = new Vec3(0.55f, 0f, 0.3f), Actor = _table.LocalSeat }).CreatedId;

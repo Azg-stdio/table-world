@@ -239,8 +239,21 @@ of each turn (`turnEnd`):
 { "type": "counter", "text": "South's deck", "value": "$seat.seat_south.deck.count" }
 ```
 
-Each player sees a panel filled in for themselves through `$viewer`, and `visibleTo` keeps a panel to some seats. A
-reminder of your own secret pick, seen by you alone:
+Each player sees a panel filled in for themselves through `$viewer`, and `visibleTo` keeps a panel, or one element of
+it, to some seats. `"host"` in that list is the player running the game, seated or not, so the controls only the host
+should press sit in the panel everyone reads (give such a button a `seat`, e.g. `"$current"`, for a host who only
+watches):
+
+```json
+{ "id": "day", "title": "Day", "anchor": "top",
+  "elements": [ { "type": "label", "text": "Day {$var.day}" },
+                { "type": "button", "text": "Next day", "action": "next_day", "seat": "$current", "visibleTo": ["host"] } ] }
+```
+
+Hiding is honest play, as with hidden zones: it keeps the screen tidy, it does not stop a player who edits their game.
+Lua screen panels do the same with XmlUI's `visibility="Host"`.
+
+A reminder of your own secret pick, seen by you alone:
 
 ```json
 { "id": "my_pick", "title": "Your pick", "anchor": "right",

@@ -147,11 +147,13 @@ namespace Core.Rules
                 if (string.IsNullOrEmpty(panel.Id))
                     Add($"{path}.id", ErrorCodes.MissingField, "A panel needs an id.");
                 for (var j = 0; j < panel.VisibleTo.Count; j++)
-                    Seat(panel.VisibleTo[j], $"{path}.visibleTo[{j}]");
+                    Viewer(panel.VisibleTo[j], $"{path}.visibleTo[{j}]");
                 for (var j = 0; j < panel.Elements.Count; j++)
                 {
                     var e = panel.Elements[j];
                     var ep = $"{path}.elements[{j}]";
+                    for (var k = 0; k < e.VisibleTo.Count; k++)
+                        Viewer(e.VisibleTo[k], $"{ep}.visibleTo[{k}]");
                     if (e.Text != null)
                         foreach (var reference in References.InTemplate(e.Text))
                             if (References.Check(reference, $"{ep}.text", _state, null) is { } error)
@@ -306,6 +308,14 @@ namespace Core.Rules
                 Add(path, ErrorCodes.UnknownObject, $"No object or zone '{text}'.",
                     Suggest.OneOf(text, _ids, "an object or zone id") ?? "Create it first (place_object / define_zone).");
             }
+        }
+
+        /// <summary>A <c>visibleTo</c> entry: a seat id or <c>host</c>.</summary>
+        private void Viewer(string who, string path)
+        {
+            if (who != PanelDef.Host && _state.Players.Seats.All(s => s.Id != who))
+                Add(path, ErrorCodes.UnknownSeat, $"'{who}' is neither a seat nor '{PanelDef.Host}'.",
+                    Suggest.OneOf(who, _state.Players.Seats.Select(s => s.Id).Append(PanelDef.Host), "a seat id or host"));
         }
 
         private void Seat(string text, string path)

@@ -18,9 +18,19 @@ namespace Core.Rules
         public string Id { get; set; } = "";
         public string? Title { get; set; }
         public UiAnchor Anchor { get; set; }
-        /// <summary>Seat ids allowed to see the panel; empty means everyone.</summary>
+        /// <summary>Who sees the panel: seat ids, or <c>host</c> (the player running the game, seated or not); empty means everyone.</summary>
         public List<string> VisibleTo { get; set; } = new List<string>();
         public List<UiElementDef> Elements { get; set; } = new List<UiElementDef>();
+
+        /// <summary>The role in <c>visibleTo</c> lists that means the player running the game.</summary>
+        public const string Host = "host";
+
+        /// <summary>
+        /// True when a viewer at <paramref name="seat"/> (hosting when <paramref name="host"/>) is in
+        /// <paramref name="visibleTo"/>: empty lets everyone see.
+        /// </summary>
+        public static bool Shows(List<string> visibleTo, string? seat, bool host) =>
+            visibleTo.Count == 0 || (seat != null && visibleTo.Contains(seat)) || (host && visibleTo.Contains(Host));
     }
 
     public enum UiElementType { Label, Counter, Button, Image }
@@ -38,6 +48,11 @@ namespace Core.Rules
         public string? Seat { get; set; }
         /// <summary>Button: parameter values for the action.</summary>
         public Dictionary<string, string> Params { get; set; } = new Dictionary<string, string>();
+        /// <summary>
+        /// Who sees this element, like a panel's <c>visibleTo</c>: seat ids or <c>host</c>; empty means whoever sees the
+        /// panel. A button only the host presses (deal the next day, reveal) sits in a panel everyone sees.
+        /// </summary>
+        public List<string> VisibleTo { get; set; } = new List<string>();
         /// <summary>Image: an image asset id.</summary>
         public string? Asset { get; set; }
     }

@@ -192,11 +192,13 @@ namespace TableWorld.View.Hud
             if (game == null)
                 return;
             var viewer = _table.LocalSeat;
+            var host = _table.HostsTable;
             foreach (var (def, root) in _panels)
-                root.EnableInClassList("hidden", def.VisibleTo.Count > 0 && !def.VisibleTo.Contains(viewer));
+                root.EnableInClassList("hidden", !PanelDef.Shows(def.VisibleTo, viewer, host));
 
             foreach (var (def, element) in _bound)
             {
+                element.EnableInClassList("hidden", !PanelDef.Shows(def.VisibleTo, viewer, host));
                 switch (def.Type)
                 {
                     case UiElementType.Label:
