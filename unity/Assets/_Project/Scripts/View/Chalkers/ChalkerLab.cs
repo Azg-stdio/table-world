@@ -18,7 +18,7 @@ namespace TableWorld.View.Chalkers
     public sealed class ChalkerLab : MonoBehaviour
     {
         public static readonly string[] Colors = { "red", "blue", "green", "yellow", "orange", "purple", "pink", "teal", "white", "brown" };
-        public static readonly Vector3 HeadTarget = new Vector3(0f, 0.3f, 0f);
+        public static readonly Vector3 HeadTarget = new Vector3(0f, 0.3f + Chalker.TorsoHeight, 0f);
         public const float HomeYaw = 180f;
         public const float HomePitch = 12f;
         public const float HomeDistance = 1.6f;
@@ -34,6 +34,7 @@ namespace TableWorld.View.Chalkers
         private readonly Dictionary<VoiceMode, Button> _modeButtons = new Dictionary<VoiceMode, Button>();
         private readonly List<VisualElement> _swatches = new List<VisualElement>();
         private Chalker _chalker;
+        private ChalkerChair _chair;
         private string _color = "red";
         private bool _codec;
         private float _yaw = HomeYaw;
@@ -82,9 +83,11 @@ namespace TableWorld.View.Chalkers
             PlaceCamera();
         }
 
-        /// <summary>A floor and a little table in front of the chalker, so it sits somewhere.</summary>
+        /// <summary>A floor, a chair and a little table in front of the chalker, so it sits somewhere.</summary>
         private void BuildSet()
         {
+            _chair = new ChalkerChair("lab", transform);
+            _chair.Place(Vector3.zero, Vector3.forward);
             var floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
             floor.name = "Floor";
             floor.transform.SetParent(transform, false);
@@ -322,6 +325,7 @@ namespace TableWorld.View.Chalkers
         private void OnDestroy()
         {
             _chalker?.Destroy();
+            _chair?.Destroy();
             VoiceChat.HearMyself = false;
         }
     }

@@ -28,7 +28,7 @@ sequenceDiagram
 | Join codes (Unity Relay) | [RelayLobby.cs](../../../unity/Assets/_Project/Scripts/View/Net/RelayLobby.cs) |
 | A rebuilt prediction on screen | [TableView.cs](../../../unity/Assets/_Project/Scripts/View/TableView.cs) (`Reconcile` for a rebuild, `Adopt` for a snapshot) |
 | Presence (pointers, held objects) | [Presence.cs](../../../core/Net/Presence.cs), [NetworkTableSession.Presence.cs](../../../unity/Assets/_Project/Scripts/View/Net/NetworkTableSession.Presence.cs), [PresenceView.cs](../../../unity/Assets/_Project/Scripts/View/Net/PresenceView.cs) |
-| Voice and chalkers (T7.3) | [Voice.cs](../../../core/Net/Voice.cs) (binary packet codec, Opus encoder, `VoiceStream` jitter buffer, `VoiceGate`, `MouthFollower`), [NetworkTableSession.Voice.cs](../../../unity/Assets/_Project/Scripts/View/Net/NetworkTableSession.Voice.cs), [VoiceChat.cs](../../../unity/Assets/_Project/Scripts/View/Voice/VoiceChat.cs), [VoiceSpeaker.cs](../../../unity/Assets/_Project/Scripts/View/Voice/VoiceSpeaker.cs), [ChalkersView.cs](../../../unity/Assets/_Project/Scripts/View/Chalkers/ChalkersView.cs) |
+| Voice and chalkers (T7.3) | [Voice.cs](../../../core/Net/Voice.cs) (binary packet codec, Opus encoder, `VoiceStream` jitter buffer, `VoiceGate`, `MouthFollower`), [NetworkTableSession.Voice.cs](../../../unity/Assets/_Project/Scripts/View/Net/NetworkTableSession.Voice.cs), [VoiceChat.cs](../../../unity/Assets/_Project/Scripts/View/Voice/VoiceChat.cs), [VoiceSpeaker.cs](../../../unity/Assets/_Project/Scripts/View/Voice/VoiceSpeaker.cs), [ChalkersView.cs](../../../unity/Assets/_Project/Scripts/View/Chalkers/ChalkersView.cs) (each seat's place at the table and its chair, T11.10), [ChalkerChair.cs](../../../unity/Assets/_Project/Scripts/View/Chalkers/ChalkerChair.cs) |
 | Chat and the game log | [Chat.cs](../../../core/Net/Chat.cs), [NetworkTableSession.Chat.cs](../../../unity/Assets/_Project/Scripts/View/Net/NetworkTableSession.Chat.cs) |
 | Players, seats, roles | [Players.cs](../../../core/Net/Players.cs), [Seating.cs](../../../core/Net/Seating.cs), [NetworkTableSession.Players.cs](../../../unity/Assets/_Project/Scripts/View/Net/NetworkTableSession.Players.cs) |
 | Files for clients | [AssetSync.cs](../../../core/Net/AssetSync.cs) (manifest with hashes, chunks, client cache); web addresses each machine fetches itself ([AssetLibrary.cs](../../../unity/Assets/_Project/Scripts/View/AssetLibrary.cs)) |
@@ -51,6 +51,9 @@ sequenceDiagram
   concealment for a lost frame, and a cut back to 60 ms when more than 200 ms piles up. Playback pulls the stream in
   `OnAudioFilterRead` (a streamed `AudioClip` reads about a second ahead, too late for talking). The microphone runs
   only online or with Settings → Voice → Hear myself, which loops your voice through the same path to a mirror chalker.
+  Every seat but your own has a chair at the table's edge, played or not (M10 T11.10): level with the seat's hand zone
+  on the nearest edge, or, for seats without one, spread evenly round the table in seat order. A player's chalker sits
+  on its seat's chair, hands on the table.
 - **Host-only commands** (`IHostCommand`: physics mode, grid, music, script UI ...) are refused from clients unless the
   host promoted them.
 

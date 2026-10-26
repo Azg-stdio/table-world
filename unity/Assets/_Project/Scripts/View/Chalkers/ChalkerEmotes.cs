@@ -39,8 +39,8 @@ namespace TableWorld.View.Chalkers
     /// <summary>The faces of the personalities and the timelines of the emotes.</summary>
     public static class ChalkerEmotes
     {
-        /// <summary>Arms hang a little away from the body and a little bent at rest.</summary>
-        public static readonly BodyPose Rest = new BodyPose { LeftRaise = 8f, RightRaise = 8f, LeftElbow = 10f, RightElbow = 10f };
+        /// <summary>Seated with the forearms on the table, hands just past its edge (shoulders 0.2 m above the top, T11.10).</summary>
+        public static readonly BodyPose Rest = new BodyPose { LeftRaise = 6f, RightRaise = 6f, LeftForward = 32f, RightForward = 32f, LeftElbow = 52f, RightElbow = 52f };
 
         public static FaceShape Face(ChalkerPersonality personality)
         {

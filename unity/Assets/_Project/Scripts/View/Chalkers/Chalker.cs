@@ -5,8 +5,8 @@ using UnityEngine;
 namespace TableWorld.View.Chalkers
 {
     /// <summary>
-    /// One chalker (T7.3, placeholder body until the real model): a seated figure in a seat colour with simple arms and a
-    /// chalkboard head. Its face rests in the player's <see cref="Personality"/>; <see cref="Play"/> runs an emote (face
+    /// One chalker (T7.3, simple shapes until an artist's model): a figure in a seat colour seated on a
+    /// <see cref="ChalkerChair"/>, hands on the table, with a chalkboard head. Its face rests in the player's <see cref="Personality"/>; <see cref="Play"/> runs an emote (face
     /// and body for a couple of seconds); <see cref="Pose"/> seats it, turns its head to a gaze point, its pupils to an
     /// eye target, and opens its mouth with a voice level. Everything is driven from code: no Animator.
     /// </summary>
@@ -15,6 +15,15 @@ namespace TableWorld.View.Chalkers
         public const float MaxHeadYaw = 75f;
         public const float MaxHeadPitch = 40f;
         public const float HeadTurnRate = 8f;
+        /// <summary>
+        /// The torso's height above the origin (table-top height): seated on a <see cref="ChalkerChair"/>, the shoulders
+        /// clear the table so the hands rest on it (T11.10).
+        /// </summary>
+        public const float TorsoHeight = 0.14f;
+        /// <summary>The thighs' axis below the origin, resting on the chair's cushion.</summary>
+        public const float HipHeight = ChalkerChair.SeatTop + 0.05f;
+        /// <summary>How far forward the knees reach, under the table's edge.</summary>
+        public const float KneeForward = 0.24f;
 
         private readonly GameObject _root;
         private readonly Transform _torso;
@@ -60,6 +69,15 @@ namespace TableWorld.View.Chalkers
             var bodyMaterial = Lit(color, 0.35f, tinted: true);
             var limbMaterial = Lit(color * 0.85f, 0.3f, tinted: true);
             Part(PrimitiveType.Capsule, "Body", _torso, new Vector3(0f, -0.12f, 0f), new Vector3(0.34f, 0.3f, 0.24f), bodyMaterial);
+            // Seated legs, on the root so emotes move only the upper body: thighs forward on the cushion, shins down to the floor.
+            var footY = EnvironmentView.FloorY + 0.025f;
+            foreach (var x in new[] { -0.085f, 0.085f })
+            {
+                var thigh = Part(PrimitiveType.Capsule, "Thigh", _root.transform, new Vector3(x, HipHeight, KneeForward / 2f), new Vector3(0.1f, KneeForward / 2f + 0.04f, 0.1f), limbMaterial);
+                thigh.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+                Part(PrimitiveType.Capsule, "Shin", _root.transform, new Vector3(x, (HipHeight + footY) / 2f, KneeForward), new Vector3(0.085f, (HipHeight - footY) / 2f, 0.085f), limbMaterial);
+                Part(PrimitiveType.Cube, "Foot", _root.transform, new Vector3(x, footY, KneeForward + 0.04f), new Vector3(0.09f, 0.05f, 0.15f), bodyMaterial);
+            }
             for (var side = 0; side < 2; side++)
             {
                 var x = side == 0 ? -0.165f : 0.165f;
@@ -204,7 +222,7 @@ namespace TableWorld.View.Chalkers
 
         private void Apply(BodyPose pose)
         {
-            _torso.localPosition = new Vector3(0f, pose.Bob, 0f);
+            _torso.localPosition = new Vector3(0f, TorsoHeight + pose.Bob, 0f);
             _torso.localRotation = Quaternion.Euler(pose.Lean, 0f, pose.Sway);
             _head.localRotation = Quaternion.Euler(pose.Head);
             // Left is side 0 (-x): raising it out to the side turns it the other way round Z.
