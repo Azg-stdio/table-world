@@ -661,5 +661,82 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsTrue(chat.DrawnText.Any(t => t.Contains("flipped")), "the Log tab lists actions");
             chat.Hide();
         }
+
+        /// <summary>Panel point of a UI element's centre, as a screen point for the virtual mouse.</summary>
+        private static Vector2 ScreenOfUi(VisualElement element)
+        {
+            var tree = element.panel.visualTree.worldBound;
+            var c = element.worldBound.center;
+            return new Vector2(c.x / tree.width * Screen.width, Screen.height - c.y / tree.height * Screen.height);
+        }
+
+        [UnityTest]
+        public IEnumerator AGamesPanel_IsAWindow_DraggedByItsBar_Folded_AndRemembered()
+        {
+            const string json = @"{ ""game"": { ""id"": ""windowed"", ""name"": ""Windowed"" },
+  ""players"": { ""seats"": [ { ""id"": ""seat_south"", ""color"": ""red"" } ] },
+  ""ui"": { ""panels"": [ { ""id"": ""quick_actions"", ""anchor"": ""topLeft"", ""elements"": [ { ""type"": ""label"", ""text"": ""Gold: 8"" } ] } ] } }";
+            UnityEngine.PlayerPrefs.DeleteKey("tw.panel.windowed.quick_actions");
+            Assert.IsTrue(_table.Load(json, null));
+            yield return new WaitForSeconds(0.3f);
+            var root = Object.FindAnyObjectByType<HudController>().GetComponent<UIDocument>().rootVisualElement;
+            var bar = root.Q(className: "game-ui-titlebar");
+            Assert.IsNotNull(bar, "the panel has a title bar");
+            Assert.AreEqual("Quick actions", bar.Q<Label>().text, "named from its id, in words");
+            var window = bar.parent;
+            var before = window.worldBound.position;
+
+            // The bar is dragged with UI pointer events (the virtual mouse drives the table, not the UI's event system).
+            void Send(EventType type, Vector2 at)
+            {
+                var imgui = new Event { type = type, mousePosition = at, button = 0, pointerType = UnityEngine.PointerType.Mouse };
+                using EventBase e = type == EventType.MouseDown ? PointerDownEvent.GetPooled(imgui)
+                    : type == EventType.MouseUp ? PointerUpEvent.GetPooled(imgui) : (EventBase)PointerMoveEvent.GetPooled(imgui);
+                e.target = bar;
+                bar.SendEvent(e);
+            }
+            var from = bar.worldBound.center;
+            Send(EventType.MouseDown, from);
+            yield return null;
+            Send(EventType.MouseDrag, from + new Vector2(160f, 90f));
+            yield return null;
+            Send(EventType.MouseUp, from + new Vector2(160f, 90f));
+            yield return null;
+            var moved = window.worldBound.position - before;
+            Assert.Greater(moved.x, 40f, "dragged right by its bar");
+            Assert.Greater(moved.y, 20f, "and down");
+
+            var fold = window.Q<Button>(className: "game-ui-fold");
+            using (var click = NavigationSubmitEvent.GetPooled()) { click.target = fold; fold.SendEvent(click); }
+            yield return null;
+            Assert.IsTrue(window.Q(className: "game-ui-body").ClassListContains("hidden"), "folded to its bar");
+
+            // Loaded again: where the player left it, still folded.
+            var left = window.worldBound.position;
+            Assert.IsTrue(_table.Load(json, null));
+            yield return new WaitForSeconds(0.3f);
+            var again = root.Q(className: "game-ui-titlebar").parent;
+            Assert.AreEqual(left.x, again.worldBound.position.x, 2f);
+            Assert.IsTrue(again.Q(className: "game-ui-body").ClassListContains("hidden"));
+            UnityEngine.PlayerPrefs.DeleteKey("tw.panel.windowed.quick_actions");
+        }
+
+        [UnityTest]
+        public IEnumerator ASelectedCalculator_TakesTheKeyboard()
+        {
+            var id = _table.Execute(new AddCalculatorCommand { Position = new Vec3(0.55f, 0f, 0.3f), Actor = _table.LocalSeat }).CreatedId;
+            yield return null;
+            _interaction.Select(_table.ViewOf(id));
+            var seen = "";
+            foreach (var key in new ButtonControl[] { _keyboard.digit4Key, _keyboard.digit2Key, _keyboard.numpadPlusKey, _keyboard.digit8Key, _keyboard.enterKey })
+            {
+                yield return Tap(key);
+                seen += ((Calculator)M(id)).Display + " ";
+            }
+            Assert.AreEqual("50", ((Calculator)M(id)).Display, "after each key: " + seen);
+            yield return Tap(_keyboard.backspaceKey);
+            yield return Tap(_keyboard.cKey);
+            Assert.AreEqual("0", ((Calculator)M(id)).Display);
+        }
     }
 }

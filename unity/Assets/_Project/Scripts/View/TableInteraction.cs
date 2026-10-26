@@ -1170,9 +1170,11 @@ namespace TableWorld.View
             char? key = null;
             for (var n = 0; n <= 9 && key == null; n++)
             {
+                // The number row runs 1…9 then 0 in the key list; the numpad runs 0…9.
+                var row = n == 0 ? Key.Digit0 : Key.Digit1 + (n - 1);
                 if (keyboard[Key.Numpad0 + n].wasPressedThisFrame)
                     key = (char)('0' + n);
-                else if (keyboard[Key.Digit0 + n].wasPressedThisFrame)
+                else if (keyboard[row].wasPressedThisFrame)
                     key = shift && n == 8 ? '*' : (char)('0' + n);
             }
             if (key == null)

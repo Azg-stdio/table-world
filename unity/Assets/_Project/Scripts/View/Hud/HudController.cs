@@ -437,7 +437,8 @@ namespace TableWorld.View.Hud
             if (_agent != null && _agent.Visible)
                 _agent.Update();
             MenuKeys();
-            _chat?.Update(TypingInUi() || (_interaction != null && _interaction.IgnoreDevices));
+            // While a calculator is selected, Enter is its = key, not the chat.
+            _chat?.Update(TypingInUi() || (_interaction != null && (_interaction.IgnoreDevices || _interaction.Selected?.Model is Calculator)));
             _players?.Update();
             _notes?.Update();
             _reader?.Update();
