@@ -1293,6 +1293,83 @@ namespace TableWorld.View
             view.Body.isKinematic = view.Pinned || view.InHand;
         }
 
+        public const float ShuffleSeconds = 0.7f;
+
+        /// <summary>
+        /// A shuffle you can see: a few cards from the middle of the deck spin round and slide back in, one after
+        /// another. Drawn with stand-in cards (the deck's own mesh and materials, one card thick) while the deck stays
+        /// where it is; nothing in the state moves.
+        /// </summary>
+        private IEnumerator AnimateShuffle(ObjectView deck)
+        {
+            if (deck.Filter == null || deck.Renderer == null || deck.Filter.sharedMesh == null || !(deck.Model is Deck model))
+                yield break;
+            const int spinners = 4;
+            const float stagger = 0.08f;
+            var spin = ShuffleSeconds - stagger * (spinners - 1);
+            var root = new GameObject("Shuffle " + deck.Id).transform;
+            root.SetPositionAndRotation(deck.transform.position, deck.transform.rotation);
+            root.localScale = deck.transform.lossyScale;
+            var bounds = deck.Filter.sharedMesh.bounds;
+            var thickness = bounds.size.y;
+            // One card thick, or a little more on a thin deck so the spinning card is seen.
+            var cardScale = Mathf.Clamp(1f / Mathf.Max(1, model.Cards.Count), 0.08f, 0.5f);
+            var cards = new Transform[spinners];
+            var heights = new float[spinners];
+            var turns = new float[spinners];
+            for (var i = 0; i < spinners; i++)
+            {
+                var card = new GameObject("Card " + i);
+                card.transform.SetParent(root, false);
+                card.AddComponent<MeshFilter>().sharedMesh = deck.Filter.sharedMesh;
+                card.AddComponent<MeshRenderer>().sharedMaterials = deck.Renderer.sharedMaterials;
+                card.transform.localScale = new Vector3(1f, cardScale, 1f);
+                cards[i] = card.transform;
+                // From the middle of the pile, never its top or bottom.
+                heights[i] = thickness * (0.25f + 0.5f * i / Mathf.Max(1, spinners - 1) - 0.5f);
+                turns[i] = (i % 2 == 0 ? 1f : -1f) * 360f;
+                card.SetActive(false);
+            }
+            for (var t = 0f; t < ShuffleSeconds; t += Time.deltaTime)
+            {
+                if (deck == null || deck.Held)
+                    break;
+                for (var i = 0; i < spinners; i++)
+                {
+                    var p = Mathf.Clamp01((t - i * stagger) / spin);
+                    cards[i].gameObject.SetActive(p > 0f && p < 1f);
+                    var eased = Mathf.SmoothStep(0f, 1f, p);
+                    // Out to the side and back in while it turns a full circle about its middle.
+                    var reach = Mathf.Sin(p * Mathf.PI) * bounds.size.x * 0.35f;
+                    var angle = turns[i] * eased;
+                    var side = Quaternion.Euler(0f, angle * 0.5f, 0f) * Vector3.right;
+                    cards[i].localPosition = new Vector3(side.x * reach, heights[i], side.z * reach);
+                    cards[i].localRotation = Quaternion.Euler(0f, angle, 0f);
+                }
+                yield return null;
+            }
+            Destroy(root.gameObject);
+        }
+
+        /// <summary>A bag shaken: a quick wobble about its base.</summary>
+        private IEnumerator AnimateShake(ObjectView bag)
+        {
+            var start = bag.transform.rotation;
+            bag.Animating = true;
+            for (var t = 0f; t < 0.45f; t += Time.deltaTime)
+            {
+                if (bag == null || bag.Held)
+                    yield break;
+                var wobble = Mathf.Sin(t * 50f) * 9f * (1f - t / 0.45f);
+                bag.transform.rotation = start * Quaternion.Euler(wobble, 0f, wobble * 0.6f);
+                yield return null;
+            }
+            if (bag == null)
+                yield break;
+            bag.transform.rotation = start;
+            bag.Animating = false;
+        }
+
         /// <summary>A short kinematic tumble that lands on the value the engine already chose.</summary>
         private IEnumerator AnimateRoll(ObjectView view, int value)
         {
@@ -1370,6 +1447,11 @@ namespace TableWorld.View
                     case EffectTriggered effect:
                         if (ViewOf(effect.ObjectId)?.transform.Find("Bundle")?.GetComponentInChildren<ITtsBundleEffects>(true) is { } effects)
                             effects.PlayTrigger(effect.Index);
+                        break;
+                    case Shuffled shuffled:
+                        // Seen on every screen: cards spin in a deck, a bag shakes (the state already holds the new order).
+                        if (ViewOf(shuffled.ObjectId) is { } shuffledView && isActiveAndEnabled && !shuffledView.Held)
+                            StartCoroutine(shuffledView.Model is Deck ? AnimateShuffle(shuffledView) : AnimateShake(shuffledView));
                         break;
                     case DieRolled rolled:
                         // A free die is tossed by physics and lands on the value (R again sends it higher); a locked or
