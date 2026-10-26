@@ -47,6 +47,15 @@ namespace TableWorld.View.Bridge
 
         public void Configure(TableView table) => _table = table;
 
+        /// <summary>
+        /// Off while PlayMode tests run: an agent's MCP server running elsewhere on this machine would otherwise connect
+        /// and load its own table over the test's. Back on at every Play start, so a cancelled run cannot leave it off.
+        /// </summary>
+        public static bool Disabled { get; set; }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetForPlay() => Disabled = false;
+
         private void OnEnable()
         {
             if (_table != null)
@@ -80,6 +89,12 @@ namespace TableWorld.View.Bridge
 
         private void PollDiscovery()
         {
+            if (Disabled)
+            {
+                if (_socket != null)
+                    Disconnect();
+                return;
+            }
             string text;
             try
             {
