@@ -2330,6 +2330,18 @@
             "$ref": "#/$defs/UiNode"
           }
         },
+        "onEnter": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        },
+        "onLeave": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        },
         "owner": {
           "type": "string"
         }
@@ -2338,718 +2350,6 @@
       "required": [
         "type"
       ]
-    },
-    "HiddenZone": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "type": {
-          "const": "HiddenZone"
-        },
-        "name": {
-          "type": "string"
-        },
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "transform": {
-          "$ref": "#/$defs/TableTransform"
-        },
-        "size": {
-          "type": "array",
-          "items": {
-            "type": "number"
-          },
-          "minItems": 3,
-          "maxItems": 3
-        },
-        "parent": {
-          "type": "string"
-        },
-        "script": {
-          "type": "string"
-        },
-        "scriptState": {
-          "type": "string"
-        },
-        "scriptUi": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/UiNode"
-          }
-        },
-        "visibleTo": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "type"
-      ]
-    },
-    "ScriptingZone": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "type": {
-          "const": "ScriptingZone"
-        },
-        "name": {
-          "type": "string"
-        },
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "transform": {
-          "$ref": "#/$defs/TableTransform"
-        },
-        "size": {
-          "type": "array",
-          "items": {
-            "type": "number"
-          },
-          "minItems": 3,
-          "maxItems": 3
-        },
-        "parent": {
-          "type": "string"
-        },
-        "script": {
-          "type": "string"
-        },
-        "scriptState": {
-          "type": "string"
-        },
-        "scriptUi": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/UiNode"
-          }
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "type"
-      ]
-    },
-    "SnapPoint": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "type": {
-          "const": "SnapPoint"
-        },
-        "name": {
-          "type": "string"
-        },
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "transform": {
-          "$ref": "#/$defs/TableTransform"
-        },
-        "size": {
-          "type": "array",
-          "items": {
-            "type": "number"
-          },
-          "minItems": 3,
-          "maxItems": 3
-        },
-        "parent": {
-          "type": "string"
-        },
-        "script": {
-          "type": "string"
-        },
-        "scriptState": {
-          "type": "string"
-        },
-        "scriptUi": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/UiNode"
-          }
-        },
-        "rotationSnap": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "type"
-      ]
-    },
-    "LayoutZone": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "type": {
-          "const": "LayoutZone"
-        },
-        "name": {
-          "type": "string"
-        },
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "transform": {
-          "$ref": "#/$defs/TableTransform"
-        },
-        "size": {
-          "type": "array",
-          "items": {
-            "type": "number"
-          },
-          "minItems": 3,
-          "maxItems": 3
-        },
-        "parent": {
-          "type": "string"
-        },
-        "script": {
-          "type": "string"
-        },
-        "scriptState": {
-          "type": "string"
-        },
-        "scriptUi": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/UiNode"
-          }
-        },
-        "direction": {
-          "enum": [
-            "rightThenDown",
-            "downThenRight",
-            "leftThenDown",
-            "downThenLeft"
-          ]
-        },
-        "maxPerRow": {
-          "type": "integer"
-        },
-        "spacing": {
-          "type": "number"
-        },
-        "facing": {
-          "enum": [
-            "keep",
-            "faceUp",
-            "faceDown"
-          ]
-        },
-        "manualOnly": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "type"
-      ]
-    },
-    "RandomizeZone": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "type": {
-          "const": "RandomizeZone"
-        },
-        "name": {
-          "type": "string"
-        },
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "transform": {
-          "$ref": "#/$defs/TableTransform"
-        },
-        "size": {
-          "type": "array",
-          "items": {
-            "type": "number"
-          },
-          "minItems": 3,
-          "maxItems": 3
-        },
-        "parent": {
-          "type": "string"
-        },
-        "script": {
-          "type": "string"
-        },
-        "scriptState": {
-          "type": "string"
-        },
-        "scriptUi": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/UiNode"
-          }
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "type"
-      ]
-    },
-    "Players": {
-      "type": "object",
-      "properties": {
-        "seats": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/Seat"
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    "Seat": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "color": {
-          "type": "string"
-        },
-        "handZone": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
-    },
-    "EnvironmentDef": {
-      "type": "object",
-      "properties": {
-        "room": {
-          "enum": [
-            "gameNight",
-            "none"
-          ]
-        },
-        "roomAsset": {
-          "type": "string"
-        },
-        "skyAsset": {
-          "type": "string"
-        },
-        "wallColor": {
-          "type": "array",
-          "items": {
-            "type": "number"
-          }
-        },
-        "floorColor": {
-          "type": "array",
-          "items": {
-            "type": "number"
-          }
-        },
-        "lighting": {
-          "$ref": "#/$defs/LightingDef"
-        },
-        "table": {
-          "$ref": "#/$defs/TableLookDef"
-        }
-      },
-      "additionalProperties": false
-    },
-    "LightingDef": {
-      "type": "object",
-      "properties": {
-        "ambientIntensity": {
-          "type": "number"
-        },
-        "ambientColor": {
-          "type": "array",
-          "items": {
-            "type": "number"
-          }
-        },
-        "lampIntensity": {
-          "type": "number"
-        },
-        "lampColor": {
-          "type": "array",
-          "items": {
-            "type": "number"
-          }
-        },
-        "tableLightIntensity": {
-          "type": "number"
-        },
-        "tableLightColor": {
-          "type": "array",
-          "items": {
-            "type": "number"
-          }
-        },
-        "lightScale": {
-          "type": "number"
-        },
-        "ambientScale": {
-          "type": "number"
-        },
-        "lightTint": {
-          "type": "array",
-          "items": {
-            "type": "number"
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    "TableLookDef": {
-      "type": "object",
-      "properties": {
-        "size": {
-          "type": "array",
-          "items": {
-            "type": "number"
-          },
-          "minItems": 2,
-          "maxItems": 2
-        },
-        "hidden": {
-          "type": "boolean"
-        },
-        "lowestY": {
-          "type": "number"
-        },
-        "feltColor": {
-          "type": "array",
-          "items": {
-            "type": "number"
-          }
-        },
-        "feltAsset": {
-          "type": "string"
-        },
-        "woodColor": {
-          "type": "array",
-          "items": {
-            "type": "number"
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    "FreeTurns": {
-      "type": "object",
-      "properties": {
-        "enabled": {
-          "type": "boolean"
-        },
-        "seats": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "current": {
-          "type": "string"
-        },
-        "reverse": {
-          "type": "boolean"
-        },
-        "skipEmptyHands": {
-          "type": "boolean"
-        },
-        "count": {
-          "type": "integer"
-        }
-      },
-      "additionalProperties": false
-    },
-    "BlindRound": {
-      "type": "object",
-      "properties": {
-        "movedBy": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "before": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    "GridDef": {
-      "type": "object",
-      "properties": {
-        "shape": {
-          "enum": [
-            "square",
-            "hex"
-          ]
-        },
-        "lines": {
-          "type": "boolean"
-        },
-        "snapping": {
-          "enum": [
-            "off",
-            "centers",
-            "corners",
-            "both"
-          ]
-        },
-        "sizeX": {
-          "type": "number"
-        },
-        "sizeZ": {
-          "type": "number"
-        },
-        "offsetX": {
-          "type": "number"
-        },
-        "offsetZ": {
-          "type": "number"
-        },
-        "color": {
-          "type": "array",
-          "items": {
-            "type": "number"
-          }
-        },
-        "opacity": {
-          "type": "number"
-        },
-        "hexRow": {
-          "type": "number"
-        }
-      },
-      "additionalProperties": false
-    },
-    "MusicState": {
-      "type": "object",
-      "properties": {
-        "playlist": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/MusicTrack"
-          }
-        },
-        "current": {
-          "$ref": "#/$defs/MusicTrack"
-        },
-        "index": {
-          "type": "integer"
-        },
-        "playing": {
-          "type": "boolean"
-        },
-        "repeat": {
-          "type": "boolean"
-        },
-        "shuffle": {
-          "type": "boolean"
-        },
-        "starts": {
-          "type": "integer"
-        }
-      },
-      "additionalProperties": false
-    },
-    "MusicTrack": {
-      "type": "object",
-      "properties": {
-        "title": {
-          "type": "string"
-        },
-        "url": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
-    },
-    "NoteTab": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "title": {
-          "type": "string"
-        },
-        "body": {
-          "type": "string"
-        },
-        "color": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
-    },
-    "DrawingDef": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "points": {
-          "type": "array",
-          "items": {
-            "type": "array",
-            "items": {
-              "type": "number"
-            },
-            "minItems": 3,
-            "maxItems": 3
-          }
-        },
-        "color": {
-          "type": "array",
-          "items": {
-            "type": "number"
-          }
-        },
-        "thickness": {
-          "type": "number"
-        },
-        "arrow": {
-          "type": "boolean"
-        },
-        "seat": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
-    },
-    "GameInfo": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "minPlayers": {
-          "type": "integer"
-        },
-        "maxPlayers": {
-          "type": "integer"
-        }
-      },
-      "additionalProperties": false
-    },
-    "ResourceDef": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "initial": {
-          "type": "number"
-        },
-        "min": {
-          "type": "number"
-        },
-        "max": {
-          "type": "number"
-        }
-      },
-      "additionalProperties": false
-    },
-    "TurnDef": {
-      "type": "object",
-      "properties": {
-        "order": {
-          "enum": [
-            "clockwise",
-            "counterclockwise"
-          ]
-        },
-        "startingPlayer": {
-          "type": "string"
-        },
-        "phases": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    "PhaseDef": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "actions": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "onEnter": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/Effect"
-          }
-        },
-        "onExit": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/Effect"
-          }
-        },
-        "advanceWhen": {
-          "$ref": "#/$defs/AdvanceRule"
-        }
-      },
-      "additionalProperties": false
     },
     "Effect": {
       "oneOf": [
@@ -3254,6 +2554,30 @@
           },
           "required": [
             "lua"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "refuse": {
+              "$ref": "#/$defs/RefuseEffect"
+            }
+          },
+          "required": [
+            "refuse"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "blindRound": {
+              "$ref": "#/$defs/BlindRoundEffect"
+            }
+          },
+          "required": [
+            "blindRound"
           ],
           "additionalProperties": false
         }
@@ -3697,6 +3021,796 @@
       },
       "additionalProperties": false
     },
+    "RefuseEffect": {
+      "type": "object",
+      "properties": {
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "BlindRoundEffect": {
+      "type": "object",
+      "properties": {
+        "on": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "HiddenZone": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "HiddenZone"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "size": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "parent": {
+          "type": "string"
+        },
+        "script": {
+          "type": "string"
+        },
+        "scriptState": {
+          "type": "string"
+        },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
+          }
+        },
+        "onEnter": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        },
+        "onLeave": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        },
+        "visibleTo": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "ScriptingZone": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "ScriptingZone"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "size": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "parent": {
+          "type": "string"
+        },
+        "script": {
+          "type": "string"
+        },
+        "scriptState": {
+          "type": "string"
+        },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
+          }
+        },
+        "onEnter": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        },
+        "onLeave": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "SnapPoint": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "SnapPoint"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "size": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "parent": {
+          "type": "string"
+        },
+        "script": {
+          "type": "string"
+        },
+        "scriptState": {
+          "type": "string"
+        },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
+          }
+        },
+        "onEnter": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        },
+        "onLeave": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        },
+        "rotationSnap": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "LayoutZone": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "LayoutZone"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "size": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "parent": {
+          "type": "string"
+        },
+        "script": {
+          "type": "string"
+        },
+        "scriptState": {
+          "type": "string"
+        },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
+          }
+        },
+        "onEnter": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        },
+        "onLeave": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        },
+        "direction": {
+          "enum": [
+            "rightThenDown",
+            "downThenRight",
+            "leftThenDown",
+            "downThenLeft"
+          ]
+        },
+        "maxPerRow": {
+          "type": "integer"
+        },
+        "spacing": {
+          "type": "number"
+        },
+        "facing": {
+          "enum": [
+            "keep",
+            "faceUp",
+            "faceDown"
+          ]
+        },
+        "manualOnly": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "RandomizeZone": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "RandomizeZone"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "transform": {
+          "$ref": "#/$defs/TableTransform"
+        },
+        "size": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "parent": {
+          "type": "string"
+        },
+        "script": {
+          "type": "string"
+        },
+        "scriptState": {
+          "type": "string"
+        },
+        "scriptUi": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UiNode"
+          }
+        },
+        "onEnter": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        },
+        "onLeave": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "Players": {
+      "type": "object",
+      "properties": {
+        "seats": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Seat"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "Seat": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "color": {
+          "type": "string"
+        },
+        "handZone": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EnvironmentDef": {
+      "type": "object",
+      "properties": {
+        "room": {
+          "enum": [
+            "gameNight",
+            "none"
+          ]
+        },
+        "roomAsset": {
+          "type": "string"
+        },
+        "skyAsset": {
+          "type": "string"
+        },
+        "wallColor": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "floorColor": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "lighting": {
+          "$ref": "#/$defs/LightingDef"
+        },
+        "table": {
+          "$ref": "#/$defs/TableLookDef"
+        }
+      },
+      "additionalProperties": false
+    },
+    "LightingDef": {
+      "type": "object",
+      "properties": {
+        "ambientIntensity": {
+          "type": "number"
+        },
+        "ambientColor": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "lampIntensity": {
+          "type": "number"
+        },
+        "lampColor": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "tableLightIntensity": {
+          "type": "number"
+        },
+        "tableLightColor": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "lightScale": {
+          "type": "number"
+        },
+        "ambientScale": {
+          "type": "number"
+        },
+        "lightTint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "TableLookDef": {
+      "type": "object",
+      "properties": {
+        "size": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "hidden": {
+          "type": "boolean"
+        },
+        "lowestY": {
+          "type": "number"
+        },
+        "feltColor": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "feltAsset": {
+          "type": "string"
+        },
+        "woodColor": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "FreeTurns": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "seats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "current": {
+          "type": "string"
+        },
+        "reverse": {
+          "type": "boolean"
+        },
+        "skipEmptyHands": {
+          "type": "boolean"
+        },
+        "count": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "BlindRound": {
+      "type": "object",
+      "properties": {
+        "movedBy": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "before": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "GridDef": {
+      "type": "object",
+      "properties": {
+        "shape": {
+          "enum": [
+            "square",
+            "hex"
+          ]
+        },
+        "lines": {
+          "type": "boolean"
+        },
+        "snapping": {
+          "enum": [
+            "off",
+            "centers",
+            "corners",
+            "both"
+          ]
+        },
+        "sizeX": {
+          "type": "number"
+        },
+        "sizeZ": {
+          "type": "number"
+        },
+        "offsetX": {
+          "type": "number"
+        },
+        "offsetZ": {
+          "type": "number"
+        },
+        "color": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "opacity": {
+          "type": "number"
+        },
+        "hexRow": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MusicState": {
+      "type": "object",
+      "properties": {
+        "playlist": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MusicTrack"
+          }
+        },
+        "current": {
+          "$ref": "#/$defs/MusicTrack"
+        },
+        "index": {
+          "type": "integer"
+        },
+        "playing": {
+          "type": "boolean"
+        },
+        "repeat": {
+          "type": "boolean"
+        },
+        "shuffle": {
+          "type": "boolean"
+        },
+        "starts": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MusicTrack": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "NoteTab": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "body": {
+          "type": "string"
+        },
+        "color": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DrawingDef": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "points": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "color": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "thickness": {
+          "type": "number"
+        },
+        "arrow": {
+          "type": "boolean"
+        },
+        "seat": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "GameInfo": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "minPlayers": {
+          "type": "integer"
+        },
+        "maxPlayers": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ResourceDef": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "initial": {
+          "type": "number"
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "TurnDef": {
+      "type": "object",
+      "properties": {
+        "order": {
+          "enum": [
+            "clockwise",
+            "counterclockwise"
+          ]
+        },
+        "startingPlayer": {
+          "type": "string"
+        },
+        "phases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "PhaseDef": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "onEnter": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        },
+        "onExit": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        },
+        "advanceWhen": {
+          "$ref": "#/$defs/AdvanceRule"
+        }
+      },
+      "additionalProperties": false
+    },
     "AdvanceRule": {
       "type": "object",
       "properties": {
@@ -3955,6 +4069,12 @@
             }
           }
         },
+        "heldZoneMoves": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ZoneMove"
+          }
+        },
         "secrets": {
           "type": "array",
           "items": {
@@ -3970,6 +4090,24 @@
         "randomState": {
           "type": "integer",
           "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "ZoneMove": {
+      "type": "object",
+      "properties": {
+        "object": {
+          "type": "string"
+        },
+        "zone": {
+          "type": "string"
+        },
+        "seat": {
+          "type": "string"
+        },
+        "enter": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false

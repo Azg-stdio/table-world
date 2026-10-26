@@ -116,6 +116,24 @@ reveals when it ends:
 `{ "reveal": { "action": "pick_space" } }` shows only that action's choices. A choice is checked when it is made (its
 parameters and preconditions), so a player cannot pick something illegal and be found out later.
 
+**Moving pieces instead of pressing buttons.** Any zone can carry rules. `onEnter` runs when a player puts a piece in
+the zone during a game, `onLeave` when a piece is taken out; `$it` is the piece and `$actor` the player who moved it.
+A `refuse` effect undoes the move and tells the player why:
+
+```json
+{ "id": "dungeon", "type": "ScriptingZone", "transform": { "position": [0.4, 0.05, 0.2] }, "size": [0.2, 0.1, 0.2],
+  "onEnter": [
+    { "if": { "condition": { "variable": { "name": "blocked", "op": "==", "value": "dungeon" } },
+              "then": [ { "refuse": { "reason": "The roulette blocked the dungeon." } } ] } },
+    { "setVariable": { "name": "fighters", "delta": 1 } } ] }
+```
+
+For simultaneous secret moves with the pieces themselves, use a **blind round**: `{ "blindRound": { "on": true } }`
+starts one (in a phase's `onEnter`, say), and while it runs every piece a player moves is hidden from the others and the
+zones' effects wait. `{ "blindRound": { "on": false } }` reveals: the held zone effects run in turn order, for pieces
+still where they were put, and then the `onReveal` event. Players can also start and reveal a blind round from the top
+bar.
+
 ## 4. Naming things: `$` references
 
 Rules rarely name one card. They say "the actor's deck" or "the top card of the discard pile". A `$` reference names
@@ -140,7 +158,7 @@ pile, is empty, and comparisons with it are false.
 
 **Effects** change the table: `move`, `deal`, `shuffle`, `flip`, `lock`, `roll`, `setVariable`, `setResource`,
 `message`, `endTurn`, `endPhase`, `gotoPhase` and `win`, plus `if` and `forEach` to build logic from them, `reveal` for
-secret choices (section 3) and `lua` to call a script (section 8).
+secret choices, `refuse` and `blindRound` for pieces moved by hand (section 3) and `lua` to call a script (section 8).
 
 **Conditions** ask questions: `zoneCount`, `compare`, `variable`, `resource`, `isCurrentPlayer`, `objectIn` and
 `hasTag`, combined with `and`, `or` and `not`.
@@ -177,7 +195,8 @@ War's tie rule ("war!") puts one card face down for each player, then goes back 
 
 ## 6. Events, the end of the game, and the screen
 
-`events` run at fixed moments: `onGameStart` (set up the table), `onTurnStart` and `onTurnEnd`. War counts its battles
+`events` run at fixed moments: `onGameStart` (set up the table), `onTurnStart`, `onTurnEnd` and `onReveal` (after a
+blind round is revealed). War counts its battles
 in `onTurnEnd` with `{ "setVariable": { "name": "battles", "delta": 1 } }`.
 
 `winConditions` are checked for each seat in turn (`$player`), either after every action (`anyCommand`) or at the end

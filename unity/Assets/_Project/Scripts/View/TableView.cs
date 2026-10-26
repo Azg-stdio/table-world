@@ -676,6 +676,9 @@ namespace TableWorld.View
             // A refused command is normal play (the HUD tells the player why through CommandExecuted), not a console warning.
             if (result.Ok)
                 Apply(result.Events);
+            // A move the rules refused (a zone's refuse effect): the piece goes back where the table says it is.
+            if (!result.Ok && (command is MoveCommand or DropCommand) && ViewOf((command as MoveCommand)?.ObjectId ?? ((DropCommand)command).ObjectId) is { } refused)
+                refused.SnapToState();
             if (result.StateRestored)
             {
                 // A rules command failed midway and the engine rolled the table back: rebuild every view.

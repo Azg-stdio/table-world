@@ -31,6 +31,17 @@ namespace Core.Rules
         /// <summary>UI its script drew at the zone (M5; TTS scripting triggers can carry XmlUI), in the zone's frame.</summary>
         public List<UiNode> ScriptUi { get; set; } = new List<UiNode>();
         public bool ShouldSerializeScriptUi() => ScriptUi.Count > 0;
+
+        /// <summary>
+        /// Rules effects run during a game when a piece is put in the zone (<c>$it</c> is the piece, <c>$actor</c> the seat
+        /// that moved it): move your pawn to the Shop and the Shop happens. A <c>refuse</c> effect undoes the move. In a
+        /// blind round they wait for the reveal.
+        /// </summary>
+        public List<Effect> OnEnter { get; set; } = new List<Effect>();
+        public bool ShouldSerializeOnEnter() => OnEnter.Count > 0;
+        /// <summary>Rules effects run when a piece is taken out of the zone (as <see cref="OnEnter"/>).</summary>
+        public List<Effect> OnLeave { get; set; } = new List<Effect>();
+        public bool ShouldSerializeOnLeave() => OnLeave.Count > 0;
     }
 
     /// <summary>A seat's hand. Contents are hidden from every other seat.</summary>

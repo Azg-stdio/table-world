@@ -39,6 +39,7 @@ name: agents and tests match on them.
 | `object_locked` | `ObjectLocked` |
 | `player_count` | `PlayerCount` |
 | `precondition_failed` | `PreconditionFailed` |
+| `refused` | `Refused` |
 | `rule_failed` | `RuleFailed` |
 | `rules_loop` | `RulesLoop` |
 | `script_failed` | `ScriptFailed` |

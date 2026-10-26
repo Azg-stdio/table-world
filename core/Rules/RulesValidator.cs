@@ -112,6 +112,12 @@ namespace Core.Rules
                 Effects(pair.Value, $"events.{pair.Key}", phaseIds);
             }
 
+            for (var i = 0; i < _state.Zones.Count; i++)
+            {
+                Effects(_state.Zones[i].OnEnter, $"zones[{i}].onEnter", phaseIds);
+                Effects(_state.Zones[i].OnLeave, $"zones[{i}].onLeave", phaseIds);
+            }
+
             for (var i = 0; i < _state.WinConditions.Count; i++)
             {
                 var win = _state.WinConditions[i];

@@ -62,6 +62,28 @@ namespace Core.Engine
                         AdvanceLoop();
                         CheckWins(WinCheck.AnyCommand);
                     });
+                // With zone rules, a move is a rules command: its zone effects run with it, and a refusal undoes it.
+                case Command table when Session is { Started: true, Over: false } && (HasZoneRules || table is BlindRoundCommand):
+                {
+                    CommandResult? done = null;
+                    var wrapped = Transaction(() =>
+                    {
+                        done = Table.Execute(table);
+                        if (!done.Ok)
+                            throw new RuleException(done.Error!.Path, done.Error.Code, done.Error.Message, done.Error.Suggestion);
+                        _events.AddRange(done.Events);
+                        ZoneRules(done.Events, table.Actor);
+                        if (table is BlindRoundCommand { On: false })
+                            Revealed();
+                        AdvanceLoop();
+                        CheckWins(WinCheck.AnyCommand);
+                    });
+                    if (!wrapped.Ok)
+                        return wrapped;
+                    var merged = done!.WithEvents(wrapped.Events.ToList());
+                    merged.ScriptsRan = wrapped.ScriptsRan;
+                    return merged;
+                }
                 default:
                     var result = Table.Execute(command);
                     if (result.Ok && Session is { Started: true, Over: false })
@@ -106,6 +128,7 @@ namespace Core.Engine
             var objects = TableJson.Serialize(new TableState { Objects = State.Objects, Zones = State.Zones }, indented: false);
             var session = State.Session;
             var sessionJson = session == null ? null : Newtonsoft.Json.JsonConvert.SerializeObject(session);
+            var blindJson = State.Blind == null ? null : Newtonsoft.Json.JsonConvert.SerializeObject(State.Blind);
             var random = Table.Random.State;
             _events = new List<StateEvent>();
             _pendingGoto = null;
@@ -132,6 +155,7 @@ namespace Core.Engine
                     Table.Reindex();
                 }
                 State.Session = sessionJson == null ? null : Newtonsoft.Json.JsonConvert.DeserializeObject<Session>(sessionJson);
+                State.Blind = blindJson == null ? null : Newtonsoft.Json.JsonConvert.DeserializeObject<BlindRound>(blindJson);
                 Table.Random.State = random;
                 var fail = CommandResult.Fail(e.Error.Path, e.Error.Code, e.Error.Message, e.Error.Suggestion);
                 fail.StateRestored = mutated;
@@ -439,6 +463,16 @@ namespace Core.Engine
                 }
                 case MessageEffect message: Log(Template(message.Text)); break;
                 case RevealEffect reveal: Reveal(reveal.Action); break;
+                case RefuseEffect refuse:
+                    throw new RuleException("refuse", ErrorCodes.Refused, string.IsNullOrWhiteSpace(refuse.Reason) ? "The rules do not allow that." : Template(refuse.Reason));
+                case BlindRoundEffect blind:
+                {
+                    var hadRound = State.Blind != null;
+                    TableCommand(new BlindRoundCommand { On = blind.On });
+                    if (!blind.On && hadRound)
+                        Revealed();
+                    break;
+                }
                 case LuaEffect lua:
                 {
                     // Peers without scripts skip it; the host's state hash then sets their table right.
@@ -517,6 +551,58 @@ namespace Core.Engine
                 default:
                     throw new RuleException("op", ErrorCodes.InvalidValue, $"Unknown script change '{c.Op}'.");
             }
+        }
+
+        private bool HasZoneRules => State.Zones.Any(z => z.OnEnter.Count > 0 || z.OnLeave.Count > 0) || State.Events.ContainsKey(GameEvents.OnReveal);
+
+        /// <summary>Runs the effects of the zones pieces entered or left; in a blind round a seat's moves wait for the reveal.</summary>
+        private void ZoneRules(IReadOnlyList<StateEvent> events, string? actor)
+        {
+            foreach (var e in events)
+            {
+                var (objectId, zoneId, enter) = e switch
+                {
+                    ZoneEntered entered => (entered.ObjectId, entered.ZoneId, true),
+                    ZoneLeft left => (left.ObjectId, left.ZoneId, false),
+                    _ => (null, null, false),
+                };
+                var zone = zoneId == null ? null : State.Zones.FirstOrDefault(z => z.Id == zoneId);
+                if (zone == null || (enter ? zone.OnEnter : zone.OnLeave).Count == 0)
+                    continue;
+                if (State.Blind != null && actor != null)
+                {
+                    // Only where the piece ends up counts: a later move replaces an earlier one.
+                    Session!.HeldZoneMoves.RemoveAll(m => m.Object == objectId && m.Enter == enter);
+                    Session.HeldZoneMoves.Add(new ZoneMove { Object = objectId!, Zone = zoneId!, Seat = actor, Enter = enter });
+                    continue;
+                }
+                RunZone(zone, objectId!, actor, enter);
+            }
+        }
+
+        private void RunZone(Zone zone, string objectId, string? actor, bool enter)
+        {
+            // A piece removed from the table has nothing left to act on.
+            if (Table.Find(objectId) is not { } piece)
+                return;
+            WithContext(new Context { Actor = actor ?? Session!.CurrentSeat, It = piece }, () => RunEffects(enter ? zone.OnEnter : zone.OnLeave));
+        }
+
+        /// <summary>A blind round was revealed: the zone effects it held back run (pieces still where they were put), then onReveal.</summary>
+        private void Revealed()
+        {
+            var session = Session!;
+            var order = TurnOrderFrom(session.CurrentSeat);
+            var held = session.HeldZoneMoves.OrderBy(m => m.Seat == null ? int.MaxValue : order.IndexOf(m.Seat)).ToList();
+            session.HeldZoneMoves.Clear();
+            foreach (var move in held)
+            {
+                var zone = State.Zones.FirstOrDefault(z => z.Id == move.Zone);
+                var stillThere = Table.ZonesOf(move.Object).Contains(move.Zone);
+                if (zone != null && stillThere == move.Enter)
+                    RunZone(zone, move.Object, move.Seat, move.Enter);
+            }
+            RunEvent(GameEvents.OnReveal);
         }
 
         private void Reveal(string? actionId)

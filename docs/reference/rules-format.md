@@ -8,7 +8,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 
 ## Types
 
-[TableState](#tablestate) · [Asset](#asset) · [TableObject](#tableobject) · [Card](#card) · [TableTransform](#tabletransform) · [JointDef](#jointdef) · [ButtonDef](#buttondef) · [InputDef](#inputdef) · [UiNode](#uinode) · [CardText](#cardtext) · [CardStyle](#cardstyle) · [Deck](#deck) · [DeckCard](#deckcard) · [Token](#token) · [Tile](#tile) · [Die](#die) · [Model](#model) · [Bag](#bag) · [InfiniteBag](#infinitebag) · [Board](#board) · [Figure](#figure) · [Counter](#counter) · [Clock](#clock) · [Notecard](#notecard) · [Pdf](#pdf) · [Zone](#zone) · [HandZone](#handzone) · [HiddenZone](#hiddenzone) · [ScriptingZone](#scriptingzone) · [SnapPoint](#snappoint) · [LayoutZone](#layoutzone) · [RandomizeZone](#randomizezone) · [Players](#players) · [Seat](#seat) · [EnvironmentDef](#environmentdef) · [LightingDef](#lightingdef) · [TableLookDef](#tablelookdef) · [FreeTurns](#freeturns) · [BlindRound](#blindround) · [GridDef](#griddef) · [MusicState](#musicstate) · [MusicTrack](#musictrack) · [NoteTab](#notetab) · [DrawingDef](#drawingdef) · [GameInfo](#gameinfo) · [ResourceDef](#resourcedef) · [TurnDef](#turndef) · [PhaseDef](#phasedef) · [Effect](#effect) · [MoveEffect](#moveeffect) · [DealEffect](#dealeffect) · [ShuffleEffect](#shuffleeffect) · [FlipEffect](#flipeffect) · [SetVariableEffect](#setvariableeffect) · [SetResourceEffect](#setresourceeffect) · [IfEffect](#ifeffect) · [Condition](#condition) · [ZoneCountCondition](#zonecountcondition) · [CompareCondition](#comparecondition) · [VariableCondition](#variablecondition) · [ResourceCondition](#resourcecondition) · [IsCurrentPlayerCondition](#iscurrentplayercondition) · [ObjectInCondition](#objectincondition) · [HasTagCondition](#hastagcondition) · [ForEachEffect](#foreacheffect) · [MessageEffect](#messageeffect) · [EndTurnEffect](#endturneffect) · [EndPhaseEffect](#endphaseeffect) · [GotoPhaseEffect](#gotophaseeffect) · [WinEffect](#wineffect) · [LockEffect](#lockeffect) · [RollEffect](#rolleffect) · [RevealEffect](#revealeffect) · [LuaEffect](#luaeffect) · [AdvanceRule](#advancerule) · [ActionDef](#actiondef) · [ParamDef](#paramdef) · [ParamFilter](#paramfilter) · [WinCondition](#wincondition) · [UiDef](#uidef) · [PanelDef](#paneldef) · [UiElementDef](#uielementdef) · [Session](#session) · [SecretChoice](#secretchoice)
+[TableState](#tablestate) · [Asset](#asset) · [TableObject](#tableobject) · [Card](#card) · [TableTransform](#tabletransform) · [JointDef](#jointdef) · [ButtonDef](#buttondef) · [InputDef](#inputdef) · [UiNode](#uinode) · [CardText](#cardtext) · [CardStyle](#cardstyle) · [Deck](#deck) · [DeckCard](#deckcard) · [Token](#token) · [Tile](#tile) · [Die](#die) · [Model](#model) · [Bag](#bag) · [InfiniteBag](#infinitebag) · [Board](#board) · [Figure](#figure) · [Counter](#counter) · [Clock](#clock) · [Notecard](#notecard) · [Pdf](#pdf) · [Zone](#zone) · [HandZone](#handzone) · [Effect](#effect) · [MoveEffect](#moveeffect) · [DealEffect](#dealeffect) · [ShuffleEffect](#shuffleeffect) · [FlipEffect](#flipeffect) · [SetVariableEffect](#setvariableeffect) · [SetResourceEffect](#setresourceeffect) · [IfEffect](#ifeffect) · [Condition](#condition) · [ZoneCountCondition](#zonecountcondition) · [CompareCondition](#comparecondition) · [VariableCondition](#variablecondition) · [ResourceCondition](#resourcecondition) · [IsCurrentPlayerCondition](#iscurrentplayercondition) · [ObjectInCondition](#objectincondition) · [HasTagCondition](#hastagcondition) · [ForEachEffect](#foreacheffect) · [MessageEffect](#messageeffect) · [EndTurnEffect](#endturneffect) · [EndPhaseEffect](#endphaseeffect) · [GotoPhaseEffect](#gotophaseeffect) · [WinEffect](#wineffect) · [LockEffect](#lockeffect) · [RollEffect](#rolleffect) · [RevealEffect](#revealeffect) · [LuaEffect](#luaeffect) · [RefuseEffect](#refuseeffect) · [BlindRoundEffect](#blindroundeffect) · [HiddenZone](#hiddenzone) · [ScriptingZone](#scriptingzone) · [SnapPoint](#snappoint) · [LayoutZone](#layoutzone) · [RandomizeZone](#randomizezone) · [Players](#players) · [Seat](#seat) · [EnvironmentDef](#environmentdef) · [LightingDef](#lightingdef) · [TableLookDef](#tablelookdef) · [FreeTurns](#freeturns) · [BlindRound](#blindround) · [GridDef](#griddef) · [MusicState](#musicstate) · [MusicTrack](#musictrack) · [NoteTab](#notetab) · [DrawingDef](#drawingdef) · [GameInfo](#gameinfo) · [ResourceDef](#resourcedef) · [TurnDef](#turndef) · [PhaseDef](#phasedef) · [AdvanceRule](#advancerule) · [ActionDef](#actiondef) · [ParamDef](#paramdef) · [ParamFilter](#paramfilter) · [WinCondition](#wincondition) · [UiDef](#uidef) · [PanelDef](#paneldef) · [UiElementDef](#uielementdef) · [Session](#session) · [ZoneMove](#zonemove) · [SecretChoice](#secretchoice)
 
 ### TableState
 
@@ -668,255 +668,13 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `script` | string |  |
 | `scriptState` | string |  |
 | `scriptUi` | array of [UiNode](#uinode) |  |
-| `owner` | string |  |
-
-### HiddenZone
-
-| Field | Type | Required |
-|---|---|---|
-| `id` | string |  |
-| `type` | any | yes |
-| `name` | string |  |
-| `tags` | array of string |  |
-| `transform` | [TableTransform](#tabletransform) |  |
-| `size` | array of number |  |
-| `parent` | string |  |
-| `script` | string |  |
-| `scriptState` | string |  |
-| `scriptUi` | array of [UiNode](#uinode) |  |
-| `visibleTo` | array of string |  |
-
-### ScriptingZone
-
-| Field | Type | Required |
-|---|---|---|
-| `id` | string |  |
-| `type` | any | yes |
-| `name` | string |  |
-| `tags` | array of string |  |
-| `transform` | [TableTransform](#tabletransform) |  |
-| `size` | array of number |  |
-| `parent` | string |  |
-| `script` | string |  |
-| `scriptState` | string |  |
-| `scriptUi` | array of [UiNode](#uinode) |  |
-
-### SnapPoint
-
-| Field | Type | Required |
-|---|---|---|
-| `id` | string |  |
-| `type` | any | yes |
-| `name` | string |  |
-| `tags` | array of string |  |
-| `transform` | [TableTransform](#tabletransform) |  |
-| `size` | array of number |  |
-| `parent` | string |  |
-| `script` | string |  |
-| `scriptState` | string |  |
-| `scriptUi` | array of [UiNode](#uinode) |  |
-| `rotationSnap` | boolean |  |
-
-### LayoutZone
-
-| Field | Type | Required |
-|---|---|---|
-| `id` | string |  |
-| `type` | any | yes |
-| `name` | string |  |
-| `tags` | array of string |  |
-| `transform` | [TableTransform](#tabletransform) |  |
-| `size` | array of number |  |
-| `parent` | string |  |
-| `script` | string |  |
-| `scriptState` | string |  |
-| `scriptUi` | array of [UiNode](#uinode) |  |
-| `direction` | one of `rightThenDown`, `downThenRight`, `leftThenDown`, `downThenLeft` |  |
-| `maxPerRow` | integer |  |
-| `spacing` | number |  |
-| `facing` | one of `keep`, `faceUp`, `faceDown` |  |
-| `manualOnly` | boolean |  |
-
-### RandomizeZone
-
-| Field | Type | Required |
-|---|---|---|
-| `id` | string |  |
-| `type` | any | yes |
-| `name` | string |  |
-| `tags` | array of string |  |
-| `transform` | [TableTransform](#tabletransform) |  |
-| `size` | array of number |  |
-| `parent` | string |  |
-| `script` | string |  |
-| `scriptState` | string |  |
-| `scriptUi` | array of [UiNode](#uinode) |  |
-
-### Players
-
-| Field | Type | Required |
-|---|---|---|
-| `seats` | array of [Seat](#seat) |  |
-
-### Seat
-
-| Field | Type | Required |
-|---|---|---|
-| `id` | string |  |
-| `color` | string |  |
-| `handZone` | string |  |
-
-### EnvironmentDef
-
-| Field | Type | Required |
-|---|---|---|
-| `room` | one of `gameNight`, `none` |  |
-| `roomAsset` | string |  |
-| `skyAsset` | string |  |
-| `wallColor` | array of number |  |
-| `floorColor` | array of number |  |
-| `lighting` | [LightingDef](#lightingdef) |  |
-| `table` | [TableLookDef](#tablelookdef) |  |
-
-### LightingDef
-
-| Field | Type | Required |
-|---|---|---|
-| `ambientIntensity` | number |  |
-| `ambientColor` | array of number |  |
-| `lampIntensity` | number |  |
-| `lampColor` | array of number |  |
-| `tableLightIntensity` | number |  |
-| `tableLightColor` | array of number |  |
-| `lightScale` | number |  |
-| `ambientScale` | number |  |
-| `lightTint` | array of number |  |
-
-### TableLookDef
-
-| Field | Type | Required |
-|---|---|---|
-| `size` | array of number |  |
-| `hidden` | boolean |  |
-| `lowestY` | number |  |
-| `feltColor` | array of number |  |
-| `feltAsset` | string |  |
-| `woodColor` | array of number |  |
-
-### FreeTurns
-
-| Field | Type | Required |
-|---|---|---|
-| `enabled` | boolean |  |
-| `seats` | array of string |  |
-| `current` | string |  |
-| `reverse` | boolean |  |
-| `skipEmptyHands` | boolean |  |
-| `count` | integer |  |
-
-### BlindRound
-
-| Field | Type | Required |
-|---|---|---|
-| `movedBy` | map of string |  |
-| `before` | map of array of string |  |
-
-### GridDef
-
-| Field | Type | Required |
-|---|---|---|
-| `shape` | one of `square`, `hex` |  |
-| `lines` | boolean |  |
-| `snapping` | one of `off`, `centers`, `corners`, `both` |  |
-| `sizeX` | number |  |
-| `sizeZ` | number |  |
-| `offsetX` | number |  |
-| `offsetZ` | number |  |
-| `color` | array of number |  |
-| `opacity` | number |  |
-| `hexRow` | number |  |
-
-### MusicState
-
-| Field | Type | Required |
-|---|---|---|
-| `playlist` | array of [MusicTrack](#musictrack) |  |
-| `current` | [MusicTrack](#musictrack) |  |
-| `index` | integer |  |
-| `playing` | boolean |  |
-| `repeat` | boolean |  |
-| `shuffle` | boolean |  |
-| `starts` | integer |  |
-
-### MusicTrack
-
-| Field | Type | Required |
-|---|---|---|
-| `title` | string |  |
-| `url` | string |  |
-
-### NoteTab
-
-| Field | Type | Required |
-|---|---|---|
-| `id` | string |  |
-| `title` | string |  |
-| `body` | string |  |
-| `color` | string |  |
-
-### DrawingDef
-
-| Field | Type | Required |
-|---|---|---|
-| `id` | string |  |
-| `points` | array of array of number |  |
-| `color` | array of number |  |
-| `thickness` | number |  |
-| `arrow` | boolean |  |
-| `seat` | string |  |
-
-### GameInfo
-
-| Field | Type | Required |
-|---|---|---|
-| `id` | string |  |
-| `name` | string |  |
-| `description` | string |  |
-| `minPlayers` | integer |  |
-| `maxPlayers` | integer |  |
-
-### ResourceDef
-
-| Field | Type | Required |
-|---|---|---|
-| `id` | string |  |
-| `name` | string |  |
-| `initial` | number |  |
-| `min` | number |  |
-| `max` | number |  |
-
-### TurnDef
-
-| Field | Type | Required |
-|---|---|---|
-| `order` | one of `clockwise`, `counterclockwise` |  |
-| `startingPlayer` | string |  |
-| `phases` | array of string |  |
-
-### PhaseDef
-
-| Field | Type | Required |
-|---|---|---|
-| `id` | string |  |
-| `name` | string |  |
-| `actions` | array of string |  |
 | `onEnter` | array of [Effect](#effect) |  |
-| `onExit` | array of [Effect](#effect) |  |
-| `advanceWhen` | [AdvanceRule](#advancerule) |  |
+| `onLeave` | array of [Effect](#effect) |  |
+| `owner` | string |  |
 
 ### Effect
 
-object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object
+object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object
 
 ### MoveEffect
 
@@ -1098,6 +856,272 @@ object or object or object or object or object or object or object or object or 
 | `call` | string |  |
 | `args` | object |  |
 
+### RefuseEffect
+
+| Field | Type | Required |
+|---|---|---|
+| `reason` | string |  |
+
+### BlindRoundEffect
+
+| Field | Type | Required |
+|---|---|---|
+| `on` | boolean |  |
+
+### HiddenZone
+
+| Field | Type | Required |
+|---|---|---|
+| `id` | string |  |
+| `type` | any | yes |
+| `name` | string |  |
+| `tags` | array of string |  |
+| `transform` | [TableTransform](#tabletransform) |  |
+| `size` | array of number |  |
+| `parent` | string |  |
+| `script` | string |  |
+| `scriptState` | string |  |
+| `scriptUi` | array of [UiNode](#uinode) |  |
+| `onEnter` | array of [Effect](#effect) |  |
+| `onLeave` | array of [Effect](#effect) |  |
+| `visibleTo` | array of string |  |
+
+### ScriptingZone
+
+| Field | Type | Required |
+|---|---|---|
+| `id` | string |  |
+| `type` | any | yes |
+| `name` | string |  |
+| `tags` | array of string |  |
+| `transform` | [TableTransform](#tabletransform) |  |
+| `size` | array of number |  |
+| `parent` | string |  |
+| `script` | string |  |
+| `scriptState` | string |  |
+| `scriptUi` | array of [UiNode](#uinode) |  |
+| `onEnter` | array of [Effect](#effect) |  |
+| `onLeave` | array of [Effect](#effect) |  |
+
+### SnapPoint
+
+| Field | Type | Required |
+|---|---|---|
+| `id` | string |  |
+| `type` | any | yes |
+| `name` | string |  |
+| `tags` | array of string |  |
+| `transform` | [TableTransform](#tabletransform) |  |
+| `size` | array of number |  |
+| `parent` | string |  |
+| `script` | string |  |
+| `scriptState` | string |  |
+| `scriptUi` | array of [UiNode](#uinode) |  |
+| `onEnter` | array of [Effect](#effect) |  |
+| `onLeave` | array of [Effect](#effect) |  |
+| `rotationSnap` | boolean |  |
+
+### LayoutZone
+
+| Field | Type | Required |
+|---|---|---|
+| `id` | string |  |
+| `type` | any | yes |
+| `name` | string |  |
+| `tags` | array of string |  |
+| `transform` | [TableTransform](#tabletransform) |  |
+| `size` | array of number |  |
+| `parent` | string |  |
+| `script` | string |  |
+| `scriptState` | string |  |
+| `scriptUi` | array of [UiNode](#uinode) |  |
+| `onEnter` | array of [Effect](#effect) |  |
+| `onLeave` | array of [Effect](#effect) |  |
+| `direction` | one of `rightThenDown`, `downThenRight`, `leftThenDown`, `downThenLeft` |  |
+| `maxPerRow` | integer |  |
+| `spacing` | number |  |
+| `facing` | one of `keep`, `faceUp`, `faceDown` |  |
+| `manualOnly` | boolean |  |
+
+### RandomizeZone
+
+| Field | Type | Required |
+|---|---|---|
+| `id` | string |  |
+| `type` | any | yes |
+| `name` | string |  |
+| `tags` | array of string |  |
+| `transform` | [TableTransform](#tabletransform) |  |
+| `size` | array of number |  |
+| `parent` | string |  |
+| `script` | string |  |
+| `scriptState` | string |  |
+| `scriptUi` | array of [UiNode](#uinode) |  |
+| `onEnter` | array of [Effect](#effect) |  |
+| `onLeave` | array of [Effect](#effect) |  |
+
+### Players
+
+| Field | Type | Required |
+|---|---|---|
+| `seats` | array of [Seat](#seat) |  |
+
+### Seat
+
+| Field | Type | Required |
+|---|---|---|
+| `id` | string |  |
+| `color` | string |  |
+| `handZone` | string |  |
+
+### EnvironmentDef
+
+| Field | Type | Required |
+|---|---|---|
+| `room` | one of `gameNight`, `none` |  |
+| `roomAsset` | string |  |
+| `skyAsset` | string |  |
+| `wallColor` | array of number |  |
+| `floorColor` | array of number |  |
+| `lighting` | [LightingDef](#lightingdef) |  |
+| `table` | [TableLookDef](#tablelookdef) |  |
+
+### LightingDef
+
+| Field | Type | Required |
+|---|---|---|
+| `ambientIntensity` | number |  |
+| `ambientColor` | array of number |  |
+| `lampIntensity` | number |  |
+| `lampColor` | array of number |  |
+| `tableLightIntensity` | number |  |
+| `tableLightColor` | array of number |  |
+| `lightScale` | number |  |
+| `ambientScale` | number |  |
+| `lightTint` | array of number |  |
+
+### TableLookDef
+
+| Field | Type | Required |
+|---|---|---|
+| `size` | array of number |  |
+| `hidden` | boolean |  |
+| `lowestY` | number |  |
+| `feltColor` | array of number |  |
+| `feltAsset` | string |  |
+| `woodColor` | array of number |  |
+
+### FreeTurns
+
+| Field | Type | Required |
+|---|---|---|
+| `enabled` | boolean |  |
+| `seats` | array of string |  |
+| `current` | string |  |
+| `reverse` | boolean |  |
+| `skipEmptyHands` | boolean |  |
+| `count` | integer |  |
+
+### BlindRound
+
+| Field | Type | Required |
+|---|---|---|
+| `movedBy` | map of string |  |
+| `before` | map of array of string |  |
+
+### GridDef
+
+| Field | Type | Required |
+|---|---|---|
+| `shape` | one of `square`, `hex` |  |
+| `lines` | boolean |  |
+| `snapping` | one of `off`, `centers`, `corners`, `both` |  |
+| `sizeX` | number |  |
+| `sizeZ` | number |  |
+| `offsetX` | number |  |
+| `offsetZ` | number |  |
+| `color` | array of number |  |
+| `opacity` | number |  |
+| `hexRow` | number |  |
+
+### MusicState
+
+| Field | Type | Required |
+|---|---|---|
+| `playlist` | array of [MusicTrack](#musictrack) |  |
+| `current` | [MusicTrack](#musictrack) |  |
+| `index` | integer |  |
+| `playing` | boolean |  |
+| `repeat` | boolean |  |
+| `shuffle` | boolean |  |
+| `starts` | integer |  |
+
+### MusicTrack
+
+| Field | Type | Required |
+|---|---|---|
+| `title` | string |  |
+| `url` | string |  |
+
+### NoteTab
+
+| Field | Type | Required |
+|---|---|---|
+| `id` | string |  |
+| `title` | string |  |
+| `body` | string |  |
+| `color` | string |  |
+
+### DrawingDef
+
+| Field | Type | Required |
+|---|---|---|
+| `id` | string |  |
+| `points` | array of array of number |  |
+| `color` | array of number |  |
+| `thickness` | number |  |
+| `arrow` | boolean |  |
+| `seat` | string |  |
+
+### GameInfo
+
+| Field | Type | Required |
+|---|---|---|
+| `id` | string |  |
+| `name` | string |  |
+| `description` | string |  |
+| `minPlayers` | integer |  |
+| `maxPlayers` | integer |  |
+
+### ResourceDef
+
+| Field | Type | Required |
+|---|---|---|
+| `id` | string |  |
+| `name` | string |  |
+| `initial` | number |  |
+| `min` | number |  |
+| `max` | number |  |
+
+### TurnDef
+
+| Field | Type | Required |
+|---|---|---|
+| `order` | one of `clockwise`, `counterclockwise` |  |
+| `startingPlayer` | string |  |
+| `phases` | array of string |  |
+
+### PhaseDef
+
+| Field | Type | Required |
+|---|---|---|
+| `id` | string |  |
+| `name` | string |  |
+| `actions` | array of string |  |
+| `onEnter` | array of [Effect](#effect) |  |
+| `onExit` | array of [Effect](#effect) |  |
+| `advanceWhen` | [AdvanceRule](#advancerule) |  |
+
 ### AdvanceRule
 
 | Field | Type | Required |
@@ -1189,9 +1213,19 @@ object or object or object or object or object or object or object or object or 
 | `actionCounts` | map of integer |  |
 | `variables` | map of any |  |
 | `resources` | map of map of number |  |
+| `heldZoneMoves` | array of [ZoneMove](#zonemove) |  |
 | `secrets` | array of [SecretChoice](#secretchoice) |  |
 | `log` | array of string |  |
 | `randomState` | integer |  |
+
+### ZoneMove
+
+| Field | Type | Required |
+|---|---|---|
+| `object` | string |  |
+| `zone` | string |  |
+| `seat` | string |  |
+| `enter` | boolean |  |
 
 ### SecretChoice
 

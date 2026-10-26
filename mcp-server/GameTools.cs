@@ -222,7 +222,7 @@ namespace TableWorld.Mcp
         public static string PlaceObject(GameSession session, [Description("The object as JSON.")] string objectJson) =>
             session.Locked(() => Reply(session.Edit(doc => Upsert(doc, "objects", GameSession.ParseObject(objectJson, "objectJson"))), session));
 
-        [McpServerTool(Name = "define_zone"), Description("Define a zone from JSON: HandZone (owner seat, hidden from others), HiddenZone, ScriptingZone (an area rules can count, e.g. a battlefield), SnapPoint, LayoutZone (arranges what is dropped in it in a grid: direction rightThenDown|downThenRight|leftThenDown|downThenLeft, maxPerRow, spacing m, facing keep|faceUp|faceDown, manualOnly), RandomizeZone (players shuffle where things in it lie). Example: {\"id\":\"battlefield\",\"type\":\"ScriptingZone\",\"transform\":{\"position\":[0,0.05,0]},\"size\":[0.3,0.1,0.2]}. Replaces a zone with the same id.")]
+        [McpServerTool(Name = "define_zone"), Description("Define a zone from JSON: HandZone (owner seat, hidden from others), HiddenZone, ScriptingZone (an area rules can count, e.g. a battlefield), SnapPoint, LayoutZone (arranges what is dropped in it in a grid: direction rightThenDown|downThenRight|leftThenDown|downThenLeft, maxPerRow, spacing m, facing keep|faceUp|faceDown, manualOnly), RandomizeZone (players shuffle where things in it lie). Example: {\"id\":\"battlefield\",\"type\":\"ScriptingZone\",\"transform\":{\"position\":[0,0.05,0]},\"size\":[0.3,0.1,0.2]}. Any zone can carry rules: onEnter / onLeave effects run during a game when a player puts a piece in or takes it out ($it = the piece, $actor = who moved it), so moving a pawn onto a space can be the move itself; a refuse effect ({\"refuse\":{\"reason\":\"...\"}}) undoes the move; inside a blind round they wait for the reveal. Replaces a zone with the same id.")]
         public static string DefineZone(GameSession session, [Description("The zone as JSON.")] string zoneJson) =>
             session.Locked(() => Reply(session.Edit(doc => Upsert(doc, "zones", GameSession.ParseObject(zoneJson, "zoneJson"))), session));
 
@@ -269,9 +269,9 @@ namespace TableWorld.Mcp
         public static string AddAction(GameSession session, [Description("The action as JSON.")] string actionJson) =>
             session.Locked(() => Reply(session.Edit(doc => Upsert(doc, "actions", GameSession.ParseObject(actionJson, "actionJson"))), session));
 
-        [McpServerTool(Name = "add_event"), Description("Set the effects run on an event: onGameStart (setup: shuffle, deal), onTurnStart, onTurnEnd. Example effects: [{\"shuffle\":{\"object\":\"deck\"}},{\"deal\":{\"from\":\"deck\",\"count\":7,\"toZone\":\"$it.hand\"}}].")]
+        [McpServerTool(Name = "add_event"), Description("Set the effects run on an event: onGameStart (setup: shuffle, deal), onTurnStart, onTurnEnd, onReveal (after a blind round is revealed). Example effects: [{\"shuffle\":{\"object\":\"deck\"}},{\"deal\":{\"from\":\"deck\",\"count\":7,\"toZone\":\"$it.hand\"}}].")]
         public static string AddEvent(GameSession session,
-            [Description("onGameStart, onTurnStart or onTurnEnd.")] string eventName,
+            [Description("onGameStart, onTurnStart, onTurnEnd or onReveal.")] string eventName,
             [Description("JSON array of effects.")] string effectsJson,
             [Description("true to append to existing effects instead of replacing them.")] bool append = false) =>
             session.Locked(() => Reply(session.Edit(doc =>

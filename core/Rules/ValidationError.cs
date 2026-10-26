@@ -81,6 +81,8 @@ namespace Core.Rules
         public const string ScriptFailed = "script_failed";
         /// <summary>A seat that is at the table but not in the game being played (it started without that seat).</summary>
         public const string NotPlaying = "not_playing";
+        /// <summary>A rules <c>refuse</c> effect undid what was attempted; the message is the game's reason.</summary>
+        public const string Refused = "refused";
 
         // Engine (command) errors.
         public const string UnknownCommand = "unknown_command";

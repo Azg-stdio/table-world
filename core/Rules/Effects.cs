@@ -141,6 +141,18 @@ namespace Core.Rules
         public JObject? Args { get; set; }
     }
 
+    /// <summary>Refuses what is happening (a move onto a zone, an action) and undoes it; the player reads <see cref="Reason"/>.</summary>
+    public sealed class RefuseEffect : Effect
+    {
+        public string Reason { get; set; } = "";
+    }
+
+    /// <summary>Starts a blind round (<see cref="On"/>) or reveals it, from the rules: everyone moves in secret, then all is shown.</summary>
+    public sealed class BlindRoundEffect : Effect
+    {
+        public bool On { get; set; }
+    }
+
     public static class EffectKinds
     {
         public static readonly IReadOnlyDictionary<string, Type> ByName = new Dictionary<string, Type>
@@ -162,6 +174,8 @@ namespace Core.Rules
             ["roll"] = typeof(RollEffect),
             ["reveal"] = typeof(RevealEffect),
             ["lua"] = typeof(LuaEffect),
+            ["refuse"] = typeof(RefuseEffect),
+            ["blindRound"] = typeof(BlindRoundEffect),
         };
 
         private static readonly Dictionary<Type, string> Names = ByName.ToDictionary(p => p.Value, p => p.Key);

@@ -99,6 +99,15 @@ namespace Core.Rules
         public bool Button { get; set; } = true;
     }
 
+    /// <summary>A piece put in (or taken out of) a zone during a blind round, whose zone effects wait for the reveal.</summary>
+    public sealed class ZoneMove
+    {
+        public string Object { get; set; } = "";
+        public string Zone { get; set; } = "";
+        public string? Seat { get; set; }
+        public bool Enter { get; set; }
+    }
+
     /// <summary>A secret action a seat performed, waiting for a <c>reveal</c>.</summary>
     public sealed class SecretChoice
     {
@@ -136,6 +145,8 @@ namespace Core.Rules
         public Dictionary<string, JToken> Variables { get; set; } = new Dictionary<string, JToken>();
         /// <summary>seat → resource → value.</summary>
         public Dictionary<string, Dictionary<string, double>> Resources { get; set; } = new Dictionary<string, Dictionary<string, double>>();
+        /// <summary>Zone effects held back by a blind round, run at its reveal: the last move of each piece.</summary>
+        public List<ZoneMove> HeldZoneMoves { get; set; } = new List<ZoneMove>();
         /// <summary>Secret choices made and not yet revealed, in the order they were made.</summary>
         public List<SecretChoice> Secrets { get; set; } = new List<SecretChoice>();
         /// <summary>Messages from <c>message</c> effects, oldest first (last 50).</summary>
@@ -149,6 +160,8 @@ namespace Core.Rules
         public const string OnGameStart = "onGameStart";
         public const string OnTurnStart = "onTurnStart";
         public const string OnTurnEnd = "onTurnEnd";
-        public static readonly IReadOnlyList<string> All = new[] { OnGameStart, OnTurnStart, OnTurnEnd };
+        /// <summary>After a blind round is revealed and the zone effects it held back have run.</summary>
+        public const string OnReveal = "onReveal";
+        public static readonly IReadOnlyList<string> All = new[] { OnGameStart, OnTurnStart, OnTurnEnd, OnReveal };
     }
 }
