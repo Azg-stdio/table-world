@@ -57,6 +57,7 @@
                 <ui:Button name="escSaves" class="hud-button escape-button" text="Save &amp; load" />
                 <ui:Button name="escSettings" class="hud-button escape-button" text="Settings" />
                 <ui:Button name="escControls" class="hud-button escape-button" text="Controls" />
+                <ui:Button name="escAgent" class="hud-button escape-button" text="Connect an AI agent" />
                 <ui:Button name="escLeave" class="hud-button escape-button" text="Leave session" />
                 <ui:Button name="escQuit" class="hud-button escape-button" text="Quit to desktop" />
                 <ui:VisualElement name="escQuitConfirm" class="escape-confirm hidden">
@@ -77,6 +78,32 @@
                 <ui:Label name="savesHint" class="settings-note" />
                 <ui:VisualElement class="settings-buttons">
                     <ui:Button name="savesBack" class="hud-button" text="Back (Esc)" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="agentPanel" class="help-panel settings-panel hidden">
+                <ui:Label class="help-title" text="Connect an AI agent" />
+                <ui:ScrollView class="help-list">
+                    <ui:Label class="settings-note agent-intro" text="Your own agent (Claude Code, Claude Desktop or Codex) can build board games here from a rulebook: it sets up the table, writes the rules, asks you when the rulebook is unclear, and plays test games while you watch. Set it up once with the lines below, then ask it to build a game." />
+                    <ui:Label name="agentStatus" class="agent-status" />
+                    <ui:Label class="help-group" text="Claude Code: run once in a terminal" />
+                    <ui:VisualElement class="agent-block">
+                        <ui:Label name="agentClaudeCode" class="agent-code" />
+                        <ui:Button name="agentCopyClaudeCode" class="hud-button agent-copy" text="Copy" />
+                    </ui:VisualElement>
+                    <ui:Label class="help-group" text="Claude Desktop: Settings, Developer, Edit config" />
+                    <ui:VisualElement class="agent-block">
+                        <ui:Label name="agentClaudeDesktop" class="agent-code" />
+                        <ui:Button name="agentCopyClaudeDesktop" class="hud-button agent-copy" text="Copy" />
+                    </ui:VisualElement>
+                    <ui:Label class="help-group" text="Codex: add to ~/.codex/config.toml" />
+                    <ui:VisualElement class="agent-block">
+                        <ui:Label name="agentCodex" class="agent-code" />
+                        <ui:Button name="agentCopyCodex" class="hud-button agent-copy" text="Copy" />
+                    </ui:VisualElement>
+                    <ui:Label name="agentGames" class="settings-note" />
+                </ui:ScrollView>
+                <ui:VisualElement class="settings-buttons">
+                    <ui:Button name="agentBack" class="hud-button" text="Back (Esc)" />
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="settingsPanel" class="help-panel settings-panel hidden">

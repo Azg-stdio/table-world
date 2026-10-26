@@ -26,7 +26,7 @@ namespace TableWorld.Mcp.Tests
             {
                 Name = "table-world",
                 Command = "dotnet",
-                Arguments = new[] { typeof(GameTools).Assembly.Location },
+                Arguments = new[] { typeof(GameTools).Assembly.Location, "--games", Path.Combine(Path.GetTempPath(), "tw-bridge-e2e-games") },
             });
             await using var client = await McpClient.CreateAsync(transport);
 

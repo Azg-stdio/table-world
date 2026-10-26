@@ -39,6 +39,9 @@ namespace TableWorld.View.Hud
         /// <summary>Opens the save and load page (the HUD owns it).</summary>
         public Action OpenSaves { get; set; }
 
+        /// <summary>Opens the Connect an AI agent page (the HUD's <see cref="AgentPanel"/>).</summary>
+        public Action OpenAgent { get; set; }
+
         /// <summary>Raised instead of quitting when set (tests).</summary>
         public Action QuitOverride { get; set; }
 
@@ -59,6 +62,11 @@ namespace TableWorld.View.Hud
             {
                 _menu.AddToClassList(Hidden);
                 OpenSaves?.Invoke();
+            };
+            root.Q<Button>("escAgent").clicked += () =>
+            {
+                _menu.AddToClassList(Hidden);
+                OpenAgent?.Invoke();
             };
             root.Q<Button>("escControls").clicked += () =>
             {

@@ -24,49 +24,47 @@ subscription; the agent runs on your account.
 
 ## 1. Set up (once)
 
-You need:
+The server ships with the game (`TableWorld.Mcp.exe`, next to `TableWorld.exe`); you do not need .NET or this
+repository.
 
-- the .NET SDK 9;
-- this repository;
-- to watch and play the table: Unity 6.6 with the project open, or a game build.
+1. Start Table World and open **Escape → Connect an AI agent**. The page shows the setup for Claude Code, Claude
+   Desktop and Codex with your install's path already filled in, each with a **Copy** button:
 
-1. Build the server:
-
-   ```bash
-   dotnet build mcp-server -c Release
-   ```
-
-2. Connect your agent.
-
-   - **Claude Code, inside this repository:** nothing to do. The repository's `.mcp.json` declares the server, and
-     Claude Code asks you to approve it the first time. It saves your game to `games/my-game.json`.
-   - **Claude Code, in another folder:**
+   - **Claude Code:** paste the line into a terminal once. It looks like
 
      ```bash
-     claude mcp add table-world -- dotnet "<repo>/mcp-server/bin/Release/net9.0/TableWorld.Mcp.dll" --file "<repo>/games/my-game.json"
+     claude mcp add --scope user table-world -- "C:/…/Table World/TableWorld.Mcp.exe"
      ```
 
-   - **Claude Desktop:** add the server to `claude_desktop_config.json` (Settings → Developer → Edit config):
+     `--scope user` makes the server available in every folder you start Claude Code in.
+   - **Claude Desktop:** paste the block into `claude_desktop_config.json` (Settings → Developer → Edit config) and
+     restart Claude Desktop.
+   - **Codex:** paste the block into `~/.codex/config.toml`.
 
-     ```json
-     { "mcpServers": { "table-world": { "command": "dotnet",
-         "args": ["<repo>/mcp-server/bin/Release/net9.0/TableWorld.Mcp.dll", "--file", "<repo>/games/my-game.json"] } } }
-     ```
+2. Start your agent in any folder and ask it to build a game (section 3). Each new game is saved in your Games folder
+   under its id (the page shows where) and appears in **Games**, so you can open and play it later without the agent.
+3. Keep the Table World window open to watch: it finds the agent's server by itself within a couple of seconds, and the
+   page says "An agent is connected to this window now". Without the window the agent still builds and plays the game;
+   you just cannot see it.
 
-   - **Codex:** add the server to `~/.codex/config.toml`:
+The server comes with the game it talks to, so updating the game updates both. If you set the server up from an older
+install folder, copy the line again from the page.
 
-     ```toml
-     [mcp_servers.table-world]
-     command = "dotnet"
-     args = ["<repo>/mcp-server/bin/Release/net9.0/TableWorld.Mcp.dll", "--file", "<repo>/games/my-game.json"]
-     ```
+### From the repository (developers)
 
-   `--file` saves every change to that file and reopens it next time. Never start the server with `dotnet run`: its
-   build messages would break the connection.
+Build the server with `dotnet build mcp-server -c Release` (never start it with `dotnet run`: its build messages would
+break the connection).
 
-3. Open the game window. In Unity, open `Assets/_Project/Scenes/Table.unity` and press Play, or run a build. The
-   window finds the server by itself within a couple of seconds. Without a window, the agent still builds and plays
-   the game, only you cannot see it.
+- **Claude Code, inside this repository:** nothing to do. The repository's `.mcp.json` declares the server, and Claude
+  Code asks you to approve it the first time. It saves your game to `games/my-game.json`.
+- **Anywhere else:** in the Editor, Escape → Connect an AI agent gives the same lines pointing at the repository's
+  Release build (`dotnet "<repo>/mcp-server/bin/Release/net9.0/TableWorld.Mcp.dll"`).
+
+Server options: `--file <path>` saves every change to that one file and reopens it next time; without it, each
+`new_game` gets its own file in the Games folder the game wrote to `%LOCALAPPDATA%/TableWorld/game.json` (or a `games`
+folder where the agent runs, before the game has ever started). `--games <folder>` picks that folder instead, and
+`--no-bridge` runs without a game window. A Windows build publishes the server next to the game
+(`ShipMcpServer`); `python -I tools/mcp/smoke.py "<build>/TableWorld.Mcp.exe"` checks a published one.
 
 ## 2. The build loop
 

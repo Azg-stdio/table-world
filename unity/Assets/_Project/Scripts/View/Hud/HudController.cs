@@ -69,6 +69,7 @@ namespace TableWorld.View.Hud
         /// <summary>Exact position, turn and scale of one object (G28).</summary>
         public GizmoPanel Gizmo => _gizmo;
         private SavesPanel _savesPanel;
+        private AgentPanel _agent;
 
         /// <summary>Named saves and autosaves (G30).</summary>
         public SaveLibrary Saves => _saves;
@@ -149,6 +150,8 @@ namespace TableWorld.View.Hud
             }
             _escape = new EscapeMenu(_root, GameSettings.Load(GameSettings.DefaultPath), ApplySettings, _session, () => _help?.Show());
             ApplySettings(_escape.Settings);
+            _agent = new AgentPanel(_root, CloseAgent);
+            _escape.OpenAgent = _agent.Show;
             if (_table != null)
             {
                 _saves = new SaveLibrary(_table);
@@ -310,12 +313,21 @@ namespace TableWorld.View.Hud
                 _players.Hide();
             else if (_savesPanel != null && _savesPanel.Visible)
                 CloseSaves();
+            else if (_agent != null && _agent.Visible)
+                CloseAgent();
             else if (_notes != null && _notes.Visible)
                 _notes.Hide();
             else if (_help != null && _help.Visible)
                 _help.Hide();
             else
                 _escape?.Back();
+        }
+
+        /// <summary>Back from the agent page to the Escape menu.</summary>
+        private void CloseAgent()
+        {
+            _agent.Hide();
+            _escape.Open();
         }
 
         /// <summary>Back from the save page to the Escape menu.</summary>
@@ -401,6 +413,8 @@ namespace TableWorld.View.Hud
             _overlay?.Update();
             _handBar?.Update();
             _escape?.PollKeyCapture();
+            if (_agent != null && _agent.Visible)
+                _agent.Update();
             MenuKeys();
             _chat?.Update(TypingInUi() || (_interaction != null && _interaction.IgnoreDevices));
             _players?.Update();

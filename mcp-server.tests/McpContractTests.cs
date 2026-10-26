@@ -14,6 +14,9 @@ namespace TableWorld.Mcp.Tests
     {
         public McpClient Client { get; private set; } = null!;
 
+        /// <summary>Where the server saves new games (a server without <c>--file</c> would use the player's Games folder).</summary>
+        public string GamesFolder { get; } = Path.Combine(Path.GetTempPath(), "tw-mcp-tests-" + Guid.NewGuid().ToString("N"));
+
         public async Task InitializeAsync()
         {
             var server = typeof(GameTools).Assembly.Location;
@@ -21,12 +24,17 @@ namespace TableWorld.Mcp.Tests
             {
                 Name = "table-world",
                 Command = "dotnet",
-                Arguments = new[] { server, "--no-bridge" },
+                Arguments = new[] { server, "--no-bridge", "--games", GamesFolder },
             });
             Client = await McpClient.CreateAsync(transport);
         }
 
-        public async Task DisposeAsync() => await Client.DisposeAsync();
+        public async Task DisposeAsync()
+        {
+            await Client.DisposeAsync();
+            if (Directory.Exists(GamesFolder))
+                Directory.Delete(GamesFolder, recursive: true);
+        }
 
         public async Task<JObject> Call(string tool, Dictionary<string, object?>? args = null)
         {
@@ -52,6 +60,26 @@ namespace TableWorld.Mcp.Tests
             _server.Call(tool, args.ToDictionary(a => a.Key, a => a.Value));
 
         private static void Ok(JObject reply) => Assert.True((bool?)reply["ok"] == true, reply.ToString());
+
+        /// <summary>
+        /// Started without --file (as a player connects it), each new game is saved in the Games folder under its id, so
+        /// the game window lists it; starting the same game again keeps its file, another game gets its own.
+        /// </summary>
+        [Fact]
+        public async Task WithoutAFile_EachNewGameIsSavedInTheGamesFolder()
+        {
+            var first = await Call("new_game", ("id", "pile_race"), ("name", "Pile Race"), ("players", 2));
+            Ok(first);
+            var path = (string?)first["savedTo"];
+            Assert.Equal(Path.GetFullPath(Path.Combine(_server.GamesFolder, "pile_race.json")), path);
+            Ok(await Call("create_deck", ("id", "draw")));
+            Assert.Contains("\"draw\"", File.ReadAllText(path!));
+
+            Assert.Equal(path, (string?)(await Call("new_game", ("id", "pile_race"), ("name", "Pile Race"), ("players", 2)))["savedTo"]);
+            var other = (string?)(await Call("new_game", ("id", "Other Game!"), ("name", "Other"), ("players", 2)))["savedTo"];
+            Assert.Equal(Path.GetFullPath(Path.Combine(_server.GamesFolder, "Other-Game.json")), other);
+            Assert.True(File.Exists(path) && File.Exists(other));
+        }
 
         [Fact]
         public async Task ListsEveryTool()

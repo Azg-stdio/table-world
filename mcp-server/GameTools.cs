@@ -286,7 +286,7 @@ namespace TableWorld.Mcp
         // ---- helpers ----------------------------------------------------------------------------------------------
 
         private static string Reply(EditResult result, GameSession session) => Json(result.Ok
-            ? (object)new { ok = true, problems = Errors(result.Errors), hint = result.Errors.Count > 0 ? "Kept. The document is incomplete; fix the problems before start_game." : null }
+            ? (object)new { ok = true, problems = Errors(result.Errors), hint = result.Errors.Count > 0 ? "Kept. The document is incomplete; fix the problems before start_game." : null, savedTo = session.FilePath }
             : new { ok = false, errors = Errors(result.Errors), hint = "Not applied. " + Format });
 
         private static string PlayReply(PlayResult result, GameSession session)
@@ -306,6 +306,7 @@ namespace TableWorld.Mcp
             {
                 game = state.Game == null ? null : new { state.Game.Id, state.Game.Name },
                 gameWindow = session.Remote ? "connected: play runs in the game window" : "not connected: playing headless",
+                savedTo = session.FilePath,
                 seats = state.Players.Seats.Select(s => new
                 {
                     s.Id,

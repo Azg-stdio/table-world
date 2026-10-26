@@ -30,6 +30,27 @@ namespace TableWorld.Mcp
         /// <summary>Raised after every change, with the current document (the Unity bridge pushes it).</summary>
         public event Action<TableState>? Changed;
 
+        /// <summary>
+        /// Where games are saved when the server was started without <c>--file</c>: each <c>new_game</c> starts its own
+        /// file here (the player's Games folder, which the game window lists). Null: only <c>--file</c> or
+        /// <c>save_game</c> save.
+        /// </summary>
+        public string? GamesFolder { get; init; }
+
+        /// <summary>The file a new game goes to in <see cref="GamesFolder"/>: its id, never someone else's earlier game.</summary>
+        private string NewGameFile(string id)
+        {
+            var name = new string(id.Select(c => char.IsLetterOrDigit(c) || c == '-' || c == '_' ? c : '-').ToArray()).Trim('-');
+            if (name.Length == 0)
+                name = "game";
+            var path = Path.GetFullPath(Path.Combine(GamesFolder!, name + ".json"));
+            // Starting the same game again in this session rewrites its file; a file from another session is kept.
+            for (var n = 2; File.Exists(path) && !string.Equals(path, FilePath, StringComparison.OrdinalIgnoreCase); n++)
+                path = Path.GetFullPath(Path.Combine(GamesFolder!, $"{name}-{n}.json"));
+            Directory.CreateDirectory(GamesFolder!);
+            return path;
+        }
+
         public GameSession(string? filePath)
         {
             FilePath = filePath;
@@ -119,6 +140,8 @@ namespace TableWorld.Mcp
         {
             if (players < 1 || players > 4)
                 return EditResult.Rejected(new ValidationError("players", ErrorCodes.InvalidValue, "players must be 1 to 4 in v0.", "Use 2 for a two-player game."));
+            if (GamesFolder != null)
+                FilePath = NewGameFile(id);
             var doc = new TableState
             {
                 Game = new GameInfo { Id = id, Name = name, MinPlayers = minPlayers, MaxPlayers = maxPlayers, Description = description },

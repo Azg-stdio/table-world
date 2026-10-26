@@ -196,6 +196,9 @@ python -I tools/unity/playmode_tests.py [--filter Name]   # PlayMode tests with 
 # .mcp.json registers it for Claude Code in this repo; docs/user/agent-guide.md covers other agents.
 dotnet build mcp-server -c Release
 dotnet mcp-server/bin/Release/net9.0/TableWorld.Mcp.dll --file games/my-game.json   # --no-bridge: headless only
+# Without --file, each new_game is saved in the player's Games folder (the game writes it to %LOCALAPPDATA%/TableWorld/game.json); --games <folder> overrides.
+# Players: a Windows build ships TableWorld.Mcp.exe next to the game (ShipMcpServer, needs the .NET 9 SDK); Escape -> Connect an AI agent shows the setup lines.
+python -I tools/mcp/smoke.py "<build>/TableWorld.Mcp.exe"   # handshake, tool list, a game in a temp folder
 dotnet test mcp-server.tests          # contract tests: starts the server over stdio
 
 # Multiplayer (T3.2, T3.4): build the player, then host in the Editor (HUD "Host") and join from the build, or script both:

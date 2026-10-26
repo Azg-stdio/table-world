@@ -1323,3 +1323,44 @@
     align-self: center;
     margin: 18px 0 0 0;
 }
+
+/* Connect an AI agent: the setup lines to copy, one block per agent. */
+.agent-intro {
+    margin-top: 0;
+    white-space: normal;
+}
+
+.agent-status {
+    margin: 10px 0 4px 0;
+    font-size: 14px;
+    color: rgb(250, 214, 140);
+    white-space: normal;
+}
+
+.agent-status--ok {
+    color: rgb(140, 220, 170);
+}
+
+.agent-block {
+    flex-direction: row;
+    align-items: flex-start;
+    flex-shrink: 0;
+    margin-bottom: 4px;
+}
+
+.agent-code {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    padding: 8px 10px;
+    border-radius: 4px;
+    background-color: rgb(12, 14, 18);
+    color: rgb(220, 226, 232);
+    font-size: 13px;
+    white-space: pre-wrap;
+}
+
+.agent-copy {
+    flex-shrink: 0;
+    margin-left: 8px;
+}

@@ -9,17 +9,19 @@ var builder = Host.CreateApplicationBuilder(args);
 builder.Logging.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Trace);
 
 var file = Arguments.Value(args, "--file");
+// Without --file, each new game gets its own file in the player's Games folder, so the game window lists it.
+var games = file == null ? Arguments.Value(args, "--games") ?? GamesFolder.Find() : null;
 // --no-bridge: headless only (tests, CI); no game window can attach.
 var withBridge = System.Array.IndexOf(args, "--no-bridge") < 0;
 if (!withBridge)
-    builder.Services.AddSingleton(new GameSession(file));
+    builder.Services.AddSingleton(new GameSession(file) { GamesFolder = games });
 else
 {
     builder.Services.AddSingleton<UnityBridge>();
     builder.Services.AddHostedService(sp => sp.GetRequiredService<UnityBridge>());
     builder.Services.AddSingleton(sp =>
     {
-        var session = new GameSession(file) { Bridge = sp.GetRequiredService<UnityBridge>() };
+        var session = new GameSession(file) { Bridge = sp.GetRequiredService<UnityBridge>(), GamesFolder = games };
         var bridge = session.Bridge;
         bridge.StateReported += session.Report;
         bridge.StateChanged += session.MarkChanged;
