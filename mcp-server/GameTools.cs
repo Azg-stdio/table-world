@@ -30,8 +30,9 @@ namespace TableWorld.Mcp
             [Description("Number of seats to create (1-12).")] int players = 2,
             [Description("Minimum players the game supports.")] int? minPlayers = null,
             [Description("Maximum players the game supports.")] int? maxPlayers = null,
-            [Description("One-paragraph summary of the rules.")] string? description = null) =>
-            session.Locked(() => Reply(session.NewGame(id, name, players, minPlayers ?? players, maxPlayers ?? players, description), session));
+            [Description("One-paragraph summary of the rules.")] string? description = null,
+            [Description("Dice for each seat in its colour (d6, tagged owner:<seat>), in front of its hand; 0 for none.")] int dicePerSeat = 0) =>
+            session.Locked(() => Reply(session.NewGame(id, name, players, minPlayers ?? players, maxPlayers ?? players, description, dicePerSeat), session));
 
         [McpServerTool(Name = "create_deck"), Description("Create a deck of cards on the table. cards: 'standard52' or 'standard54' (with jokers) for the builtin French deck (card meta: rank 2-14 aces high, suit, color), or a JSON array of cards {id, name, faceIndex, meta}; for your own art, add_asset a sprite sheet (columns x rows) and pass it as faceAsset, faceIndex counting left to right, top to bottom. Tag a deck '<role>:<seatId>' (e.g. 'deck:seat_south') so rules can say $actor.deck.")]
         public static string CreateDeck(GameSession session,
@@ -222,7 +223,7 @@ namespace TableWorld.Mcp
         public static string PlaceObject(GameSession session, [Description("The object as JSON.")] string objectJson) =>
             session.Locked(() => Reply(session.Edit(doc => Upsert(doc, "objects", GameSession.ParseObject(objectJson, "objectJson"))), session));
 
-        [McpServerTool(Name = "define_zone"), Description("Define a zone from JSON: HandZone (owner seat, hidden from others), HiddenZone, ScriptingZone (an area rules can count, e.g. a battlefield), SnapPoint, LayoutZone (arranges what is dropped in it in a grid: direction rightThenDown|downThenRight|leftThenDown|downThenLeft, maxPerRow, spacing m, facing keep|faceUp|faceDown, manualOnly), RandomizeZone (players shuffle where things in it lie). Example: {\"id\":\"battlefield\",\"type\":\"ScriptingZone\",\"transform\":{\"position\":[0,0.05,0]},\"size\":[0.3,0.1,0.2]}. Any zone can carry rules: onEnter / onLeave effects run during a game when a player puts a piece in or takes it out ($it = the piece, $actor = who moved it), so moving a pawn onto a space can be the move itself; a refuse effect ({\"refuse\":{\"reason\":\"...\"}}) undoes the move; inside a blind round they wait for the reveal. Replaces a zone with the same id.")]
+        [McpServerTool(Name = "define_zone"), Description("Define a zone from JSON: HandZone (owner seat, hidden from others), HiddenZone, ScriptingZone (an area rules can count, e.g. a battlefield), SnapPoint, LayoutZone (arranges what is dropped in it in a grid: direction rightThenDown|downThenRight|leftThenDown|downThenLeft, maxPerRow, spacing m, facing keep|faceUp|faceDown, manualOnly), RandomizeZone (players shuffle where things in it lie). Example: {\"id\":\"battlefield\",\"type\":\"ScriptingZone\",\"transform\":{\"position\":[0,0.05,0]},\"size\":[0.3,0.1,0.2]}. Any zone can show the total of the dice thrown in it (diceTotal: true; per player for dice tagged owner:<seat>; rules read $diceTotal.<zone> and $diceTotal.<zone>.<seat>). Any zone can carry rules: onEnter / onLeave effects run during a game when a player puts a piece in or takes it out ($it = the piece, $actor = who moved it), so moving a pawn onto a space can be the move itself; a refuse effect ({\"refuse\":{\"reason\":\"...\"}}) undoes the move; inside a blind round they wait for the reveal. Replaces a zone with the same id.")]
         public static string DefineZone(GameSession session, [Description("The zone as JSON.")] string zoneJson) =>
             session.Locked(() => Reply(session.Edit(doc => Upsert(doc, "zones", GameSession.ParseObject(zoneJson, "zoneJson"))), session));
 

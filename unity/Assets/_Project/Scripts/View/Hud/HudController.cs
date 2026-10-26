@@ -28,6 +28,7 @@ namespace TableWorld.View.Hud
         private Label _netStatus;
         private Button _blindButton;
         private ActionPicker _picker;
+        private DiceTotalsView _diceTotals;
         private readonly CardImages _choiceImages = new CardImages();
         private string _followedTurn;
         private string _shownBlind;
@@ -172,6 +173,7 @@ namespace TableWorld.View.Hud
 
             _root.Q<Button>("saveButton").clicked += Save;
             _picker = new ActionPicker(_root);
+            _diceTotals = new DiceTotalsView(_root, _table);
             _blindButton = _root.Q<Button>("blindButton");
             if (_blindButton != null)
                 _blindButton.clicked += ToggleBlindRound;
@@ -418,6 +420,7 @@ namespace TableWorld.View.Hud
                 _shownSelection = null;
             }
             FollowTurnInHotSeat();
+            _diceTotals?.Update(Camera.main);
             FaceLocalSeat();
             RefreshBlindRound();
             RefreshSelection();

@@ -669,6 +669,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `scriptState` | string |  |
 | `scriptUi` | array of [UiNode](#uinode) |  |
 | `onEnter` | array of [Effect](#effect) |  |
+| `diceTotal` | boolean |  |
 | `onLeave` | array of [Effect](#effect) |  |
 | `owner` | string |  |
 
@@ -883,6 +884,7 @@ object or object or object or object or object or object or object or object or 
 | `scriptState` | string |  |
 | `scriptUi` | array of [UiNode](#uinode) |  |
 | `onEnter` | array of [Effect](#effect) |  |
+| `diceTotal` | boolean |  |
 | `onLeave` | array of [Effect](#effect) |  |
 | `visibleTo` | array of string |  |
 
@@ -901,6 +903,7 @@ object or object or object or object or object or object or object or object or 
 | `scriptState` | string |  |
 | `scriptUi` | array of [UiNode](#uinode) |  |
 | `onEnter` | array of [Effect](#effect) |  |
+| `diceTotal` | boolean |  |
 | `onLeave` | array of [Effect](#effect) |  |
 
 ### SnapPoint
@@ -918,6 +921,7 @@ object or object or object or object or object or object or object or object or 
 | `scriptState` | string |  |
 | `scriptUi` | array of [UiNode](#uinode) |  |
 | `onEnter` | array of [Effect](#effect) |  |
+| `diceTotal` | boolean |  |
 | `onLeave` | array of [Effect](#effect) |  |
 | `rotationSnap` | boolean |  |
 
@@ -936,6 +940,7 @@ object or object or object or object or object or object or object or object or 
 | `scriptState` | string |  |
 | `scriptUi` | array of [UiNode](#uinode) |  |
 | `onEnter` | array of [Effect](#effect) |  |
+| `diceTotal` | boolean |  |
 | `onLeave` | array of [Effect](#effect) |  |
 | `direction` | one of `rightThenDown`, `downThenRight`, `leftThenDown`, `downThenLeft` |  |
 | `maxPerRow` | integer |  |
@@ -958,6 +963,7 @@ object or object or object or object or object or object or object or object or 
 | `scriptState` | string |  |
 | `scriptUi` | array of [UiNode](#uinode) |  |
 | `onEnter` | array of [Effect](#effect) |  |
+| `diceTotal` | boolean |  |
 | `onLeave` | array of [Effect](#effect) |  |
 
 ### Players

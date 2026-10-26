@@ -29,7 +29,8 @@ namespace TableWorld.View
 
         public static GameObject Create(Zone zone, Color seatColor, AssetLibrary assets, Transform parent)
         {
-            if (zone is ScriptingZone)
+            // A scripting zone is invisible, unless players throw dice in it: then they see where.
+            if (zone is ScriptingZone && !zone.DiceTotal)
                 return null;
 
             var root = new GameObject($"{zone.Type} {zone.Id}");

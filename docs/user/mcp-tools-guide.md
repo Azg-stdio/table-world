@@ -33,7 +33,7 @@ the table grows so every hand has room. Make one table for all player counts: `p
 `minPlayers` the fewest; `start_game` then says who plays (`seats`, or `players` to spread a number of players evenly
 around the table), and the empty seats sit the game out. In the game window, Start offers each player count, or online
 starts with the people seated. More people than seats can join a session online: they watch, talk and take a
-seat when one frees up.
+seat when one frees up. `dicePerSeat` gives each seat its own d6s in its colour, in front of its hand.
 
 ```call
 new_game {"id": "high-card-race", "name": "High Card Race", "players": 2,

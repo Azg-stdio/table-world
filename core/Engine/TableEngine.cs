@@ -68,6 +68,32 @@ namespace Core.Engine
         public IEnumerable<TableObject> ObjectsIn(string zoneId) =>
             State.Objects.Where(o => _zonesOf.TryGetValue(o.Id, out var zones) && zones.Contains(zoneId));
 
+        /// <summary>The tag naming a die's (or any piece's) owner: <c>owner:&lt;seatId&gt;</c>.</summary>
+        public const string OwnerTag = "owner:";
+
+        /// <summary>
+        /// The dice lying in a zone: their total, how many there are, and each owner's total (by <see cref="OwnerTag"/>;
+        /// dice without an owner count only in the total). A die not rolled yet counts 0.
+        /// </summary>
+        public (int Total, int Dice, Dictionary<string, int> BySeat) DiceIn(string zoneId)
+        {
+            var bySeat = new Dictionary<string, int>();
+            var total = 0;
+            var count = 0;
+            foreach (var die in ObjectsIn(zoneId).OfType<Die>())
+            {
+                var value = die.Value ?? 0;
+                total += value;
+                count++;
+                if (die.Tags.FirstOrDefault(t => t.StartsWith(OwnerTag, System.StringComparison.Ordinal)) is { } tag)
+                {
+                    var seat = tag.Substring(OwnerTag.Length);
+                    bySeat[seat] = (bySeat.TryGetValue(seat, out var sum) ? sum : 0) + value;
+                }
+            }
+            return (total, count, bySeat);
+        }
+
         /// <summary>
         /// True when <paramref name="seat"/> may not see the object's face: it lies in another seat's hand zone, or in a
         /// hidden zone that does not list the seat. Null seat means the host, who sees everything except other hands.

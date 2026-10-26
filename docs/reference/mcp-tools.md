@@ -108,7 +108,7 @@ Deal cards from a deck into seats' hands right now (free play, outside the rules
 
 ### `define_zone`
 
-Define a zone from JSON: HandZone (owner seat, hidden from others), HiddenZone, ScriptingZone (an area rules can count, e.g. a battlefield), SnapPoint, LayoutZone (arranges what is dropped in it in a grid: direction rightThenDown\|downThenRight\|leftThenDown\|downThenLeft, maxPerRow, spacing m, facing keep\|faceUp\|faceDown, manualOnly), RandomizeZone (players shuffle where things in it lie). Example: {"id":"battlefield","type":"ScriptingZone","transform":{"position":[0,0.05,0]},"size":[0.3,0.1,0.2]}. Any zone can carry rules: onEnter / onLeave effects run during a game when a player puts a piece in or takes it out ($it = the piece, $actor = who moved it), so moving a pawn onto a space can be the move itself; a refuse effect ({"refuse":{"reason":"..."}}) undoes the move; inside a blind round they wait for the reveal. Replaces a zone with the same id.
+Define a zone from JSON: HandZone (owner seat, hidden from others), HiddenZone, ScriptingZone (an area rules can count, e.g. a battlefield), SnapPoint, LayoutZone (arranges what is dropped in it in a grid: direction rightThenDown\|downThenRight\|leftThenDown\|downThenLeft, maxPerRow, spacing m, facing keep\|faceUp\|faceDown, manualOnly), RandomizeZone (players shuffle where things in it lie). Example: {"id":"battlefield","type":"ScriptingZone","transform":{"position":[0,0.05,0]},"size":[0.3,0.1,0.2]}. Any zone can show the total of the dice thrown in it (diceTotal: true; per player for dice tagged owner:<seat>; rules read $diceTotal.<zone> and $diceTotal.<zone>.<seat>). Any zone can carry rules: onEnter / onLeave effects run during a game when a player puts a piece in or takes it out ($it = the piece, $actor = who moved it), so moving a pawn onto a space can be the move itself; a refuse effect ({"refuse":{"reason":"..."}}) undoes the move; inside a blind round they wait for the reveal. Replaces a zone with the same id.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
@@ -146,6 +146,7 @@ Start a new game document: name, player seats with a hand zone each, and the bui
 | `minPlayers` | integer | none | Minimum players the game supports. |
 | `maxPlayers` | integer | none | Maximum players the game supports. |
 | `description` | string | none | One-paragraph summary of the rules. |
+| `dicePerSeat` | integer | `0` | Dice for each seat in its colour (d6, tagged owner:<seat>), in front of its hand; 0 for none. |
 
 ### `perform_action`
 

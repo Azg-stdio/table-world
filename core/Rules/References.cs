@@ -11,6 +11,8 @@ namespace Core.Rules
     /// <c>$seat.&lt;id&gt;</c>: seats. A seat's <c>.hand</c> is its HandZone; <c>.&lt;tag&gt;</c> is the object or zone tagged
     /// <c>&lt;tag&gt;:&lt;seatId&gt;</c>; <c>.id</c>, <c>.color</c>, <c>.res.&lt;resource&gt;</c>.</item>
     /// <item><c>$param.&lt;name&gt;</c>: an action parameter; <c>$var.&lt;name&gt;</c>: a variable; <c>$obj.&lt;id&gt;</c>: an object or zone by id.</item>
+    /// <item><c>$diceTotal.&lt;zone&gt;</c>: the total of the dice in a zone; <c>$diceTotal.&lt;zone&gt;.&lt;seat&gt;</c>: that seat's dice there
+    /// (dice tagged <c>owner:&lt;seat&gt;</c>).</item>
     /// <item>On objects, decks and zones: <c>.count</c>, <c>.top</c>, <c>.bottom</c>, <c>.meta.&lt;key&gt;</c>, <c>.name</c>, <c>.id</c>,
     /// <c>.faceUp</c>, <c>.value</c> (die).</item>
     /// </list>
@@ -19,7 +21,7 @@ namespace Core.Rules
     public static class References
     {
         /// <summary><c>$viewer</c> is the seat looking at a UI panel (only meaningful in <c>ui</c> texts and values).</summary>
-        public static readonly IReadOnlyList<string> Roots = new[] { "actor", "current", "player", "other", "it", "param", "var", "seat", "obj", "viewer" };
+        public static readonly IReadOnlyList<string> Roots = new[] { "actor", "current", "player", "other", "it", "param", "var", "seat", "obj", "viewer", "diceTotal" };
 
         public static bool IsReference(string? text) => text != null && text.StartsWith("$");
 
@@ -49,7 +51,7 @@ namespace Core.Rules
             var root = parts[0];
             if (!Roots.Contains(root))
                 return new ValidationError(path, ErrorCodes.InvalidReference, $"Unknown reference root '${root}'.", Suggest.OneOf(root, Roots.Select(r => r), "one of"));
-            var needsName = root == "param" || root == "var" || root == "seat" || root == "obj";
+            var needsName = root == "param" || root == "var" || root == "seat" || root == "obj" || root == "diceTotal";
             if (needsName && parts.Length < 2)
                 return new ValidationError(path, ErrorCodes.InvalidReference, $"'${root}' needs a name: ${root}.<name>.");
             switch (root)
@@ -63,6 +65,12 @@ namespace Core.Rules
                 case "obj" when state.Objects.All(o => o.Id != parts[1]) && state.Zones.All(z => z.Id != parts[1]):
                     return new ValidationError(path, ErrorCodes.UnknownObject, $"No object or zone '{parts[1]}'.",
                         Suggest.OneOf(parts[1], state.Objects.Select(o => o.Id).Concat(state.Zones.Select(z => z.Id)), "an id"));
+                case "diceTotal" when state.Zones.All(z => z.Id != parts[1]):
+                    return new ValidationError(path, ErrorCodes.UnknownZone, $"No zone '{parts[1]}' to count dice in.",
+                        Suggest.OneOf(parts[1], state.Zones.Select(z => z.Id), "a zone id"));
+                case "diceTotal" when parts.Length > 2 && parts[2] != "actor" && parts[2] != "player" && parts[2] != "current" && state.Players.Seats.All(s => s.Id != parts[2]):
+                    return new ValidationError(path, ErrorCodes.UnknownSeat, $"Seat '{parts[2]}' does not exist.",
+                        Suggest.OneOf(parts[2], state.Players.Seats.Select(s => s.Id), "a seat id"));
                 case "param" when paramNames != null && !paramNames.Contains(parts[1]):
                     return new ValidationError(path, ErrorCodes.InvalidReference, $"This action has no parameter '{parts[1]}'.",
                         paramNames.Count == 0 ? "Declare it under the action's 'params'." : Suggest.OneOf(parts[1], paramNames, "a parameter"));

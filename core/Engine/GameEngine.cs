@@ -1000,6 +1000,15 @@ namespace Core.Engine
                     break;
                 case "seat": i = 2; current = SeatById(parts[1]); break;
                 case "obj": i = 2; current = (object?)Table.Find(parts[1]) ?? State.Zones.FirstOrDefault(z => z.Id == parts[1]); break;
+                case "diceTotal":
+                {
+                    var (total, _, bySeat) = Table.DiceIn(parts[1]);
+                    if (parts.Length == 2)
+                        return new JValue(total);
+                    // The seat may be a name or a seat reference segment ($diceTotal.arena.actor reads the actor's dice).
+                    var seat = parts[2] switch { "actor" => _ctx.Actor, "player" => _ctx.Player, "current" => Session?.CurrentSeat, _ => parts[2] };
+                    return new JValue(seat != null && bySeat.TryGetValue(seat, out var mine) ? mine : 0);
+                }
                 default: throw new RuleException(field, ErrorCodes.InvalidReference, $"Unknown reference root in '{reference}'.");
             }
             for (; i < parts.Length && current != null; i++)

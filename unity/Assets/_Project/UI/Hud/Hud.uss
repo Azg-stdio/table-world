@@ -52,6 +52,45 @@
     background-color: rgba(255, 255, 255, 0.06);
 }
 
+/* Dice zones (DiceTotalsView): the total over the zone, each player's share under it. */
+.dice-totals {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.dice-total {
+    position: absolute;
+    translate: -50% -100%;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 8px;
+    background-color: rgba(16, 18, 22, 0.82);
+}
+
+.dice-total-sum {
+    font-size: 30px;
+    -unity-font-style: bold;
+    color: rgb(255, 252, 244);
+}
+
+.dice-total-seats {
+    flex-direction: row;
+}
+
+.dice-total-seat {
+    flex-direction: row;
+    align-items: center;
+    margin: 0 4px;
+}
+
+.dice-total-value {
+    font-size: 16px;
+    color: rgb(240, 236, 226);
+}
+
 /* The choices of one game action (ActionPicker): cards show their faces. */
 .action-picker {
     position: absolute;

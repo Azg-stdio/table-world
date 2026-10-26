@@ -39,6 +39,13 @@ namespace Core.Rules
         /// </summary>
         public List<Effect> OnEnter { get; set; } = new List<Effect>();
         public bool ShouldSerializeOnEnter() => OnEnter.Count > 0;
+        /// <summary>
+        /// The zone shows the total of the dice lying in it, and each player's share (a die belongs to the seat named by
+        /// its <c>owner:&lt;seatId&gt;</c> tag): an arena where everyone throws and the sums are read off the table. Rules
+        /// read it as <c>$diceTotal.&lt;zone&gt;</c> and <c>$diceTotal.&lt;zone&gt;.&lt;seat&gt;</c>.
+        /// </summary>
+        public bool DiceTotal { get; set; }
+
         /// <summary>Rules effects run when a piece is taken out of the zone (as <see cref="OnEnter"/>).</summary>
         public List<Effect> OnLeave { get; set; } = new List<Effect>();
         public bool ShouldSerializeOnLeave() => OnLeave.Count > 0;

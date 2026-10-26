@@ -18,6 +18,35 @@ namespace Core.Rules
         public static readonly string[] Colors =
             { "red", "blue", "green", "yellow", "orange", "purple", "pink", "teal", "white", "brown", "lime", "maroon" };
 
+        /// <summary>RGB (0–1) of a seat colour name, as the game draws it; white for an unknown name.</summary>
+        public static float[] Rgb(string color) => color.ToLowerInvariant() switch
+        {
+            "red" => new[] { 0.86f, 0.2f, 0.18f },
+            "blue" => new[] { 0.2f, 0.42f, 0.9f },
+            "green" => new[] { 0.25f, 0.75f, 0.3f },
+            "yellow" => new[] { 0.95f, 0.85f, 0.2f },
+            "orange" => new[] { 0.95f, 0.55f, 0.15f },
+            "purple" => new[] { 0.6f, 0.3f, 0.8f },
+            "pink" => new[] { 0.95f, 0.5f, 0.7f },
+            "teal" => new[] { 0.15f, 0.7f, 0.7f },
+            "brown" => new[] { 0.5f, 0.32f, 0.18f },
+            "lime" => new[] { 0.65f, 0.85f, 0.15f },
+            "maroon" => new[] { 0.5f, 0.08f, 0.15f },
+            _ => new[] { 0.95f, 0.95f, 0.95f },
+        };
+
+        /// <summary>
+        /// Where a seat's own pieces go: in front of its hand, towards the centre, <paramref name="along"/> metres to the
+        /// player's right of the hand's middle.
+        /// </summary>
+        public static Vec3 InFrontOf(Place place, float along, float inward = 0.13f)
+        {
+            var yaw = place.Yaw * (float)Math.PI / 180f;
+            var inX = (float)Math.Sin(yaw);
+            var inZ = (float)Math.Cos(yaw);
+            return new Vec3(place.Position.X + inX * inward + inZ * along, 0f, place.Position.Z + inZ * inward - inX * along);
+        }
+
         /// <summary>Hand width for five seats or more, metres, and the distance between neighbouring hands' centres.</summary>
         public const float HandWidth = 0.5f;
         public const float HandPitch = 0.55f;

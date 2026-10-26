@@ -2336,6 +2336,9 @@
             "$ref": "#/$defs/Effect"
           }
         },
+        "diceTotal": {
+          "type": "boolean"
+        },
         "onLeave": {
           "type": "array",
           "items": {
@@ -3089,6 +3092,9 @@
             "$ref": "#/$defs/Effect"
           }
         },
+        "diceTotal": {
+          "type": "boolean"
+        },
         "onLeave": {
           "type": "array",
           "items": {
@@ -3157,6 +3163,9 @@
             "$ref": "#/$defs/Effect"
           }
         },
+        "diceTotal": {
+          "type": "boolean"
+        },
         "onLeave": {
           "type": "array",
           "items": {
@@ -3218,6 +3227,9 @@
           "items": {
             "$ref": "#/$defs/Effect"
           }
+        },
+        "diceTotal": {
+          "type": "boolean"
         },
         "onLeave": {
           "type": "array",
@@ -3283,6 +3295,9 @@
           "items": {
             "$ref": "#/$defs/Effect"
           }
+        },
+        "diceTotal": {
+          "type": "boolean"
         },
         "onLeave": {
           "type": "array",
@@ -3369,6 +3384,9 @@
           "items": {
             "$ref": "#/$defs/Effect"
           }
+        },
+        "diceTotal": {
+          "type": "boolean"
         },
         "onLeave": {
           "type": "array",

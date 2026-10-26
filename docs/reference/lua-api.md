@@ -22,7 +22,7 @@ API the local mods' calls find is measured in [`docs/data/lua-coverage-*.md`](..
 | `dynamic` | table | `eval`, `prepare` |
 | `editNotebookTab` | function |  |
 | `error` | function |  |
-| `Game` | table | `addResource`, `endPhase`, `endTurn`, `getCurrentSeat`, `getLegalActions`, `getPhase`, `getResource`, `getSeatColor`, `getSeats`, `getTurn`, `getVariable`, `getWinner`, `gotoPhase`, `isOver`, `isStarted`, `log`, `perform`, `roll`, `setResource`, `setVariable`, `win` |
+| `Game` | table | `addResource`, `endPhase`, `endTurn`, `getCurrentSeat`, `getDiceTotal`, `getLegalActions`, `getPhase`, `getResource`, `getSeatColor`, `getSeats`, `getTurn`, `getVariable`, `getWinner`, `gotoPhase`, `isOver`, `isStarted`, `log`, `perform`, `roll`, `setResource`, `setVariable`, `win` |
 | `getAllObjects` | function |  |
 | `getmetatable` | function |  |
 | `getNotebookTabs` | function |  |

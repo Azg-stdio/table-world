@@ -128,6 +128,12 @@ A `refuse` effect undoes the move and tells the player why:
     { "setVariable": { "name": "fighters", "delta": 1 } } ] }
 ```
 
+**Dice thrown on the table.** A zone with `"diceTotal": true` is an arena: while dice lie in it, the game shows their
+total over it, and each player's share in their colour (a die belongs to the seat its `owner:<seat>` tag names;
+`new_game` with `dicePerSeat` gives every seat its own coloured dice). Rules read `$diceTotal.arena` and
+`$diceTotal.arena.<seat>` (or `.actor`), Lua `Game.getDiceTotal("arena", seat)`, so a duel can be decided from the dice
+the players actually threw.
+
 For simultaneous secret moves with the pieces themselves, use a **blind round**: `{ "blindRound": { "on": true } }`
 starts one (in a phase's `onEnter`, say), and while it runs every piece a player moves is hidden from the others and the
 zones' effects wait. `{ "blindRound": { "on": false } }` reveals: the held zone effects run in turn order, for pieces

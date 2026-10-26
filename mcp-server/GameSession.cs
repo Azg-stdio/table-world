@@ -209,8 +209,10 @@ namespace TableWorld.Mcp
         // ---- authoring ----------------------------------------------------------------------------------------------
 
         /// <summary>A new empty game: standard deck assets, seats around the table, one hand zone per seat.</summary>
-        public EditResult NewGame(string id, string name, int players, int minPlayers, int maxPlayers, string? description)
+        public EditResult NewGame(string id, string name, int players, int minPlayers, int maxPlayers, string? description, int dicePerSeat = 0)
         {
+            if (dicePerSeat < 0 || dicePerSeat > 8)
+                return EditResult.Rejected(new ValidationError("dicePerSeat", ErrorCodes.InvalidValue, "dicePerSeat is 0 to 8.", "Use 0 for no dice."));
             if (players < 1 || players > SeatLayout.MaxSeats)
                 return EditResult.Rejected(new ValidationError("players", ErrorCodes.InvalidValue, $"players must be 1 to {SeatLayout.MaxSeats}.",
                     "Use the number of seats at the table; more people can still join a session and watch."));
@@ -236,6 +238,17 @@ namespace TableWorld.Mcp
                 hand.Transform.Rotation = new Vec3(0, place.Yaw, 0);
                 doc.Zones.Add(hand);
                 doc.Players.Seats.Add(new Seat { Id = place.SeatId, Color = place.Color, HandZone = hand.Id });
+                // Each player's own dice, in their colour, in front of their hand.
+                for (var d = 0; d < dicePerSeat; d++)
+                {
+                    var die = new Die
+                    {
+                        Id = $"die_{place.SeatId.Replace("seat_", "")}_{d + 1}", Name = $"{place.SeatId} die {d + 1}",
+                        Tint = SeatLayout.Rgb(place.Color), Tags = { TableEngine.OwnerTag + place.SeatId },
+                    };
+                    die.Transform.Position = SeatLayout.InFrontOf(place, (d - (dicePerSeat - 1) / 2f) * 0.035f);
+                    doc.Objects.Add(die);
+                }
             }
             Game = null;
             Document = doc;

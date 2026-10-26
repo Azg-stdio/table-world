@@ -141,6 +141,14 @@ namespace Core.Scripting
                 Game()?.Session?.Variables is { } vars && Arg(args, 0) is { } name && vars.TryGetValue(name, out var value)
                     ? ToLua(value, script)
                     : DynValue.Nil);
+            // The dice in a zone: the total, or one seat's dice (tagged owner:<seat>).
+            t["getDiceTotal"] = Fn(args =>
+            {
+                if (Arg(args, 0) is not { } zone)
+                    return DynValue.Nil;
+                var (total, _, bySeat) = Engine.DiceIn(zone);
+                return DynValue.NewNumber(Arg(args, 1) is { } seat ? (bySeat.TryGetValue(seat, out var mine) ? mine : 0) : total);
+            });
             t["getLegalActions"] = Fn(args => Game() is { } game && Arg(args, 0) is { } seat
                 ? List(script, game.LegalActions(seat).Select(a => a.ActionId))
                 : List(script, Enumerable.Empty<string>()));

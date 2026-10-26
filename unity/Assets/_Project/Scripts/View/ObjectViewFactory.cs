@@ -324,9 +324,10 @@ namespace TableWorld.View
             var geometry = DiceGeometry.Get(die.Faces);
             // A custom d6 image follows the TTS template (G21); other custom dice use the builtin atlas layout.
             view.Filter.sharedMesh = die.Asset != null && geometry.TemplateMesh != null ? geometry.TemplateMesh : geometry.Mesh;
+            // Tinted like TTS's ColorDiffuse: a player's dice in their colour, pips still dark.
             var material = die.Asset != null
-                ? assets.ImageMaterial(die.Asset, tint)
-                : assets.ImageMaterial(BuiltinDiceAsset(assets), tint);
+                ? assets.TintedImageMaterial(die.Asset, tint)
+                : assets.TintedImageMaterial(BuiltinDiceAsset(assets), tint);
             view.Renderer.sharedMaterials = new[] { material };
             if (!(view.Collider is MeshCollider collider))
             {
