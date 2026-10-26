@@ -1,0 +1,34 @@
+# M10 — Social games
+
+Hidden-role and party games played by talking, looking and voting: Avalon, Werewolf, Wink Murder. Secrets reach only
+the seats allowed to know them, roles and eyes-closed phases are rules data, and the chalkers sit at the table, face to
+face. Design: [ADR 0012](../adr/0012-social-games.md).
+
+**Done when:** four or more players finish a game of Avalon, Werewolf and Wink Murder over Relay, seated as chalkers,
+and no client ever received a secret it was not allowed to know.
+
+Sizes: S ≤ 1 day, M 2–4 days, L 1–2 weeks. Status values as in the [overview](README.md).
+
+Two tracks run side by side: **secrets and rules** (T11.1–T11.8) and **seated chalkers** (T11.9–T11.13). They meet at
+Werewolf and Wink Murder.
+
+| Id | Task | Size | Depends on | Done check | Status |
+|---|---|---|---|---|---|
+| T11.1 ⚗ | Simulation before the protocol change: a core test plays UNO and War between a host and two clients with every snapshot and order recorded; list which fields and commands leak secrets today (hands, deck order via the generator state, `Session.Secrets`) and which commands use the generator | S | — | Numbers recorded here: leaking fields, generator-using commands, order sizes | todo |
+| T11.2 | Seat views in `core/Net`: `SeatView.For(state, seat)` redacts roles, secret choices, unrevealed votes, private log lines and the generator state; the host sends seat views in snapshots; the hash covers the public part | L | T11.1 | Core tests: two clients with different secrets agree on the hash; a client's received messages contain no other seat's secret (searched as text) | todo |
+| T11.2b | The host's own screen and agent through the seat view: HUD, log, inspector, GM notes, Lua console, debug panels and the MCP agent's reads show only the host seat's view while a game with roles runs (all of it when the host has no seat) | M | T11.2, T11.4 | PlayMode test: the hosting player with a role sees no other role anywhere in the HUD; MCP contract test: `get_state` from a seated host names no other role | todo |
+| T11.3 | Host-run randomness: shuffles, deals, rolls and role draws run only on the host and reach peers as results; clients keep predicting moves and physics | M | T11.2 | Core tests: 1 000 random UNO games with redacted clients, no desync; a client cannot predict the next deal | todo |
+| T11.4 | Roles in the rules format: `roles` (teams, list, `byPlayers`, optional roles, `knows` with `role`/`team`/`oneOf`), the deal at start, `$role`/`$team` in conditions, `reveal_role`, private log lines; Start dialog ticks optional roles; schema and reference docs | L | T11.2 | Core tests: every Avalon count from 5 to 10, Merlin/Percival/Mordred/Oberon knowledge; validation errors for impossible counts | todo |
+| T11.5 | Votes: `vote` actions (`named`, `count`, `secret` reveals, majority and ties, seat targets), tallies in variables, timers through `Clock`; the HUD's vote panel | M | T11.4 | Core tests for each reveal kind; PlayMode test: three seats vote, the result shows on every screen at the same order | todo |
+| T11.6 | Avalon as a game file (`games/avalon.json`), built through the MCP tools from a plain-text rulebook, asking about ambiguities, as in M2 | M | T11.4, T11.5 | Played to the end by 5 seats (Editor + builds, Miguel decides when) with placeholder chalkers; no secret in any client's received data | todo |
+| T11.7 | Eyes-closed phases: `awake` on phases, the sleeping screen, presence not forwarded to sleepers, chalker eyes closed and head down; night as phases in a row | M | T11.4, T11.11 | PlayMode test: a sleeping seat receives no presence from awake seats; screenshots of both sides | todo |
+| T11.8 | Voice channels: the host routes voice by the phase's `voice` and team channels; spectators and narrator hear all | M | T11.7 | PlayMode test with fake microphones: the village hears nothing from wolves at night, wolves hear each other | todo |
+| T11.9 **human** | The chalker model: how it is made | S | — | Decision recorded here | done 2026-10-26: simple shapes in code for now; Miguel hires an artist for the final model later, which plugs into the same named points (hips, hands, head, eyes) |
+| T11.10 | Chairs and seating: a chair per seat placed from its hand zone or the table's edge; the chalker sits (hips, hands on the table, head height facing across); seats without a player show an empty chair | M | — | Screenshots with 2, 5 and 10 seats on the default table and Tornaris; PlayMode test: every chalker sits on its chair | todo |
+| T11.11 | The seated chalker from simple shapes in place of the capsule (body, arms, legs that sit; named points hips, hands, head, eyes for the artist's model later): personalities, emotes, mouth and gaze kept; eyes drawn separately (open, closed, wink) | M | T11.9, T11.10 | ChalkerLab shows every personality, emote, a wink and closed eyes on the model; PlayMode `ChalkerTests` and `EmoteTests` green | todo |
+| T11.12 | First-person seat view: the camera can start from the player's chalker's head; the table camera keeps working | S | T11.10 | Screenshot from a seat sees the faces across; toggling back to the table camera works | todo |
+| T11.13 | Gaze at faces and gestures: `lookingAt` in presence, a wink gesture (key and wheel), gestures at full presence rate, the `onGesture` rules event with `$target` | M | T11.11 | PlayMode test: a wink at a seat raises `onGesture` with that target on the host; a second client sees the wink | todo |
+| T11.14 | Werewolf as a game file: roles, nights with wolves, seer and doctor, the lynch vote, the narrator as a host without a seat | M | T11.6, T11.7, T11.8 | Played to the end by 6 seats over Relay (Miguel decides when) | todo |
+| T11.15 | Wink Murder as a game file: murderer and detective roles, the wink rule with a private message and a delay, the accusation vote | S | T11.13, T11.14 | Played to the end by 5 seats over Relay; a wink is seen by someone looking and missed by someone not looking | todo |
+| T11.16 | Table objects redacted (ADR 0012 §1 second step): hand cards and hidden-zone pieces sent as blanks to other seats | L | T11.3 | Core tests: a client's received data names no card in another hand; UNO plays unchanged in PlayMode | todo |
+| T11.17 | Player docs: playing a social game, hosting as narrator, building one with an agent (`docs/user/`); rules reference regenerated | S | T11.6 | `check_docs.py` clean | todo |
