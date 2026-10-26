@@ -52,6 +52,74 @@
     background-color: rgba(255, 255, 255, 0.06);
 }
 
+/* The choices of one game action (ActionPicker): cards show their faces. */
+.action-picker {
+    position: absolute;
+    left: 15%;
+    right: 15%;
+    bottom: 22%;
+    max-height: 60%;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background-color: rgba(16, 18, 22, 0.94);
+}
+
+.action-picker-header {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.action-picker-title {
+    flex-grow: 1;
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: rgb(240, 236, 226);
+}
+
+.action-picker-scroll {
+    flex-shrink: 1;
+}
+
+.action-picker-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.action-choice {
+    margin: 4px;
+    padding: 6px 12px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    background-color: rgb(46, 52, 62);
+    color: rgb(240, 236, 226);
+    font-size: 15px;
+}
+
+.action-choice:hover {
+    border-color: rgb(242, 196, 82);
+}
+
+.action-choice--card {
+    width: 132px;
+    padding: 6px 6px 10px 6px;
+    align-items: center;
+}
+
+.action-choice-image {
+    width: 120px;
+    height: 168px;
+    margin-bottom: 4px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.action-choice-label {
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
 .seat-chip--out {
     opacity: 0.4;
 }

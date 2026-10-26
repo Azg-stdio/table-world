@@ -1119,6 +1119,7 @@ object or object or object or object or object or object or object or object or 
 | `effects` | array of [Effect](#effect) |  |
 | `limitPerPhase` | integer |  |
 | `secret` | boolean |  |
+| `button` | boolean |  |
 
 ### ParamDef
 

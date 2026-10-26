@@ -90,8 +90,11 @@ precondition keeps only the cards that match:
   "effects": [ { "move": { "object": "$param.card", "to": "discard" } }, { "endTurn": {} } ] }
 ```
 
-The game works out every legal action with every legal choice. The HUD shows them as buttons, and your agent sees
-them in `get_table_state`. A player never has to know the rules to play correctly.
+The game works out every legal action with every legal choice. The HUD shows one button per action the player may
+take now; an action with several choices opens a picker, where card choices show the cards themselves (pick a
+character, buy from the shop). Your agent sees the same in `get_table_state`. Mark an action `"button": false` when
+players do it with the pieces (a card dragged from the hand), or only scripts and agents use it: the game still knows
+it, and the HUD stays short.
 
 **An action happens completely or not at all.** If any effect fails, the table goes back to how it was.
 

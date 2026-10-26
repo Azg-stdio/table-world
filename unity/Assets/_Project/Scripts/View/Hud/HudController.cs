@@ -27,6 +27,9 @@ namespace TableWorld.View.Hud
         [SerializeField] private TableWorld.View.Net.NetworkTableSession _session;
         private Label _netStatus;
         private Button _blindButton;
+        private ActionPicker _picker;
+        private readonly CardImages _choiceImages = new CardImages();
+        private string _followedTurn;
         private string _shownBlind;
 
         private VisualElement _root;
@@ -168,6 +171,7 @@ namespace TableWorld.View.Hud
             }
 
             _root.Q<Button>("saveButton").clicked += Save;
+            _picker = new ActionPicker(_root);
             _blindButton = _root.Q<Button>("blindButton");
             if (_blindButton != null)
                 _blindButton.clicked += ToggleBlindRound;
@@ -413,6 +417,7 @@ namespace TableWorld.View.Hud
                 _gameUi.Build();
                 _shownSelection = null;
             }
+            FollowTurnInHotSeat();
             FaceLocalSeat();
             RefreshBlindRound();
             RefreshSelection();
@@ -517,16 +522,35 @@ namespace TableWorld.View.Hud
             }
         }
 
-        /// <summary>Turn line, Start button and one button per legal action: every seat that can act when playing alone
-        /// (hot seat), only the local seat online.</summary>
+        /// <summary>
+        /// Playing alone (hot seat), a seat picked from its chip is kept until the turn passes; then the view follows the
+        /// seat whose turn it is again, as when players pass the device.
+        /// </summary>
+        private void FollowTurnInHotSeat()
+        {
+            if (_table.Networked)
+                return;
+            var turn = _table.Game?.Session?.CurrentSeat;
+            if (turn == _followedTurn)
+                return;
+            _followedTurn = turn;
+            _table.SeatOverride = null;
+        }
+
+        /// <summary>
+        /// Turn line, Start button and one button per action the local seat may perform now (in hot seat, the seat whose
+        /// turn it is, or the one picked from its chip). An action with several choices opens the picker; actions marked
+        /// <c>button: false</c> are done with the pieces, by scripts or by agents, and get none.
+        /// </summary>
         private void RefreshGame()
         {
             var game = _table.Game;
             var state = game.State;
             var session = game.Session;
             var legal = session is { Started: true, Over: false }
-                ? state.Players.Seats.Where(s => !_table.Networked || s.Id == _table.LocalSeat)
-                    .SelectMany(s => game.LegalActions(s.Id).Select(a => (Seat: s.Id, Action: a))).ToList()
+                ? state.Players.Seats.Where(s => s.Id == _table.LocalSeat)
+                    .SelectMany(s => game.LegalActions(s.Id).Select(a => (Seat: s.Id, Action: a)))
+                    .Where(l => state.Actions.FirstOrDefault(a => a.Id == l.Action.ActionId)?.Button != false).ToList()
                 : new List<(string Seat, LegalAction Action)>();
             var turns = state.FreeTurns;
             var key = $"{state.HasRules}|{session?.Turn}|{session?.Phase}|{session?.CurrentSeat}|{session?.Over}|{session?.Log.Count}|" +
@@ -564,17 +588,41 @@ namespace TableWorld.View.Hud
             var count = 0;
             foreach (var (seat, action) in legal)
             {
-                foreach (var choice in action.Choices)
+                if (count++ >= MaxActionButtons)
+                    return;
+                var name = action.Name ?? action.ActionId;
+                var actor = seat;
+                var id = action.ActionId;
+                void Perform(Dictionary<string, string> parameters)
                 {
-                    if (count++ >= MaxActionButtons)
-                        return;
-                    var label = $"{seat}: {action.Name ?? action.ActionId}";
-                    if (choice.Count > 0)
-                        label += " · " + string.Join(", ", choice.Values.Select(v => _table.Engine.Find(v)?.Name ?? v));
-                    var parameters = choice;
-                    AddGameButton(label, () => _table.Execute(new PerformActionCommand { Actor = seat, ActionId = action.ActionId, Params = new Dictionary<string, string>(parameters) }));
+                    var result = _table.Execute(new PerformActionCommand { Actor = actor, ActionId = id, Params = new Dictionary<string, string>(parameters) });
+                    if (!result.Ok)
+                        ShowStatus(result.Error.Message, error: true);
                 }
+                if (action.Choices.Count == 1)
+                {
+                    var only = action.Choices[0];
+                    AddGameButton(only.Count == 0 ? name : $"{name} · {ChoiceLabel(only)}", () => Perform(only));
+                    continue;
+                }
+                var choices = action.Choices;
+                AddGameButton($"{name} ({choices.Count})", () => _picker.Show(name, choices.Select(c => new ActionPicker.Choice
+                {
+                    Label = ChoiceLabel(c), Image = ChoiceImage(c), Pick = () => Perform(c),
+                }).ToList()));
             }
+        }
+
+        private string ChoiceLabel(Dictionary<string, string> choice) =>
+            string.Join(", ", choice.Values.Select(v => _table.Engine.Find(v)?.Name ?? v));
+
+        /// <summary>The card face of a choice that is one card, for the picker.</summary>
+        private Sprite ChoiceImage(Dictionary<string, string> choice)
+        {
+            if (choice.Count != 1 || !(_table.Engine.Find(choice.Values.First()) is Card card))
+                return null;
+            var (asset, index) = _table.Assets.Face(card);
+            return _choiceImages.Face(_table.Assets, asset, index);
         }
 
         private string TurnText(Command command)

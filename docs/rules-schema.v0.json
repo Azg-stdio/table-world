@@ -3753,6 +3753,9 @@
         },
         "secret": {
           "type": "boolean"
+        },
+        "button": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false

@@ -91,6 +91,12 @@ namespace Core.Rules
         /// the seat's choice, which others cannot see, and its effects run when a <c>reveal</c> effect shows the choices.
         /// </summary>
         public bool Secret { get; set; }
+        /// <summary>
+        /// Shown as a button in the game window (default). False for actions players do with the pieces themselves (a
+        /// card dragged from the hand), or that only scripts and agents perform: the HUD stays short.
+        /// </summary>
+        [System.ComponentModel.DefaultValue(true)]
+        public bool Button { get; set; } = true;
     }
 
     /// <summary>A secret action a seat performed, waiting for a <c>reveal</c>.</summary>
