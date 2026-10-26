@@ -123,6 +123,7 @@ namespace TableWorld.View
                     var edge = model.Tint.ToColor(Ivory) * 0.85f;
                     SetPrism(view, mesh, face, face, token.Count > 1 ? assets.Grooved(edge) : assets.Plain(edge), 0.002f * token.Count);
                     SetCell(view, assets, MeshFactory.SideSubmesh, new Vector4(1f, token.Count, 0f, 0f));
+                    UseFlatPiecePhysics(view, size);
                     break;
                 }
                 case Tile tile:
@@ -141,6 +142,7 @@ namespace TableWorld.View
                     var edge = model.Tint.ToColor(new Color(0.6f, 0.5f, 0.35f));
                     SetPrism(view, mesh, face, face, tile.Count > 1 ? assets.Grooved(edge) : assets.Plain(edge), 0.005f * tile.Count);
                     SetCell(view, assets, MeshFactory.SideSubmesh, new Vector4(1f, tile.Count, 0f, 0f));
+                    UseFlatPiecePhysics(view, thickness);
                     break;
                 }
                 case Die die:
@@ -363,6 +365,21 @@ namespace TableWorld.View
             if (assets.Find(id) == null)
                 assets.Register(new Asset { Id = id, Type = AssetType.Image, Path = "builtin:dice_numbers", Columns = 5, Rows = 4 });
             return id;
+        }
+
+        /// <summary>Spin a flat piece loses per second: enough that a chip tipped onto its rim stops instead of rolling away.</summary>
+        public const float FlatAngularDamping = 3f;
+
+        /// <summary>
+        /// Chips and tiles lie flat, as real ones do: a little spin drag, and the centre of mass below the bottom face, so a
+        /// piece that lands on its rim (dropped from a height, tipped off a mat's edge) falls flat instead of standing or
+        /// rolling on it. On its rim a piece rests on a line as wide as it is thick, so the centre has to sit beyond half
+        /// the thickness to tip it. Lying flat, either face up, nothing changes.
+        /// </summary>
+        private static void UseFlatPiecePhysics(ObjectView view, float thickness)
+        {
+            view.Body.angularDamping = FlatAngularDamping;
+            view.Body.centerOfMass = new Vector3(0f, -thickness * 0.8f, 0f);
         }
 
         private static void UseCardPhysics(ObjectView view)

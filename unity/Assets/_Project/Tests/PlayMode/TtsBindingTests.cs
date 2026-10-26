@@ -885,6 +885,28 @@ namespace TableWorld.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator AChipOnItsRim_FallsFlat_InsteadOfRolling()
+        {
+            // Small, thin chips like a game's character markers (1.5 cm across, 6 mm thick), one stood on its rim and
+            // nudged, as one lands tipped off a mat's edge.
+            const string json = @"{ ""objects"": [
+    { ""id"": ""chip"", ""type"": ""Token"", ""shape"": ""round"", ""thickness"": 0.006, ""transform"": { ""position"": [0.2, 0.01, 0.1], ""rotation"": [90, 0, 0], ""scale"": [0.6, 1, 0.6] } },
+    { ""id"": ""tile"", ""type"": ""Tile"", ""transform"": { ""position"": [-0.2, 0.03, 0.1], ""rotation"": [0, 0, 88] } } ],
+  ""players"": { ""seats"": [ { ""id"": ""seat_south"", ""color"": ""red"" } ] } }";
+            Assert.IsTrue(_table.Load(json, null));
+            yield return null;
+            var chip = _table.ViewOf("chip");
+            chip.Body.WakeUp();
+            chip.Body.angularVelocity = new Vector3(8f, 0f, 0f);
+            chip.Body.linearVelocity = new Vector3(0f, 0f, 0.3f);
+            var start = chip.transform.position;
+            yield return new WaitForSeconds(2.5f);
+            foreach (var id in new[] { "chip", "tile" })
+                Assert.Greater(Mathf.Abs(Vector3.Dot(_table.ViewOf(id).transform.up, Vector3.up)), 0.95f, id + " lies flat");
+            Assert.Less(Vector3.Distance(start, chip.transform.position), 0.12f, "the chip stopped instead of rolling away");
+        }
+
+        [UnityTest]
         public IEnumerator ASelectedCalculator_TakesTheKeyboard()
         {
             var id = _table.Execute(new AddCalculatorCommand { Position = new Vec3(0.55f, 0f, 0.3f), Actor = _table.LocalSeat }).CreatedId;
