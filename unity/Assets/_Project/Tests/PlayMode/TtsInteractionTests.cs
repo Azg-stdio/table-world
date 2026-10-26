@@ -271,7 +271,8 @@ namespace TableWorld.Tests.PlayMode
             Assert.AreEqual("seat_north", _table.LocalSeat);
             var you = root.Query(className: "seat-chip--local").ToList();
             Assert.AreEqual(1, you.Count);
-            StringAssert.Contains("seat_north (you)", you[0].Q<Label>().text);
+            // Players read the seat's colour, not its id.
+            StringAssert.Contains(Core.Rules.Names.Of(_table.Engine.State.Players.Seats.First(s => s.Id == "seat_north")) + " (you)", you[0].Q<Label>().text);
 
             _table.Spectating = true;
             Assert.IsNull(_table.LocalSeat);

@@ -1,5 +1,6 @@
 using System.Linq;
 using Core.Engine;
+using Core.Rules;
 using Core.Net;
 using Newtonsoft.Json.Linq;
 using Unity.Netcode;
@@ -133,7 +134,7 @@ namespace TableWorld.View.Net
         {
             if (IsHost || IsClient)
                 return;
-            Log(_table.Engine, command, result, LocalName.Length > 0 ? LocalName : _table.LocalSeat);
+            Log(_table.Engine, command, result, LocalName.Length > 0 ? LocalName : _table.LocalSeat == null ? null : Names.Seat(_table.Engine.State, _table.LocalSeat));
             ScriptsHear(command, result, command.Actor ?? _table.LocalSeat);
         }
 
@@ -146,7 +147,7 @@ namespace TableWorld.View.Net
         private void OnClientOrdered(string origin, Command command, CommandResult result)
         {
             var seat = _occupants.FirstOrDefault(o => o.Value == origin).Key;
-            Log(_client.Confirmed.Table, command, result, NameOf(origin) ?? seat ?? (origin == SessionHost.HostId ? "The host" : "A spectator"));
+            Log(_client.Confirmed.Table, command, result, NameOf(origin) ?? (seat != null ? Names.Seat(_client.Confirmed.State, seat) : origin == SessionHost.HostId ? "The host" : "A spectator"));
         }
 
         private void Log(TableEngine engine, Command command, CommandResult result, string actor)

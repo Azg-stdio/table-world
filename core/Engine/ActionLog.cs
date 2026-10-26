@@ -172,8 +172,8 @@ namespace Core.Engine
             // In another hand or a deck, a card is never named; face down, only when it hides its name (G39, the default).
             if (o is Card && (hidden || o.Container != null))
                 return "a card";
-            if (!string.IsNullOrWhiteSpace(o.Name) && !o.NameHidden)
-                return o.Name!;
+            if (!o.NameHidden && (!string.IsNullOrWhiteSpace(o.Name) || o is Card { Text: { } }))
+                return Names.Of(o);
             return o switch
             {
                 Card _ => "a card",

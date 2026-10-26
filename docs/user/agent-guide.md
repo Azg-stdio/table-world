@@ -64,6 +64,7 @@ And **resources** an agent can read on its own: the rules reference, the game br
 
 ## 4. Things that trip agents up
 
+- Players read names, never ids: give every object, deck, card, zone, phase, action and resource a `name` in the game's own language ("Night events", "Eventos de noche"), with no underscores. Ids (`eventos_noche`) are for rules and scripts; where a name is missing the game turns the id into words, which reads worse.
 - Effects and conditions are single-key objects: `{ "move": { "from": "deck", "to": "$actor.hand" } }`, not `{ "type": "move", ... }`.
 - `and` / `or` take an array; `not` takes one condition.
 - An action is only allowed in the phases that list it.

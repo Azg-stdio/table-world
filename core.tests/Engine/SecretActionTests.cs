@@ -52,7 +52,7 @@ namespace Core.Tests.Engine
             Assert.Equal(0, game.Session!.Resources["a"]["space"]);
             Assert.Equal(0, game.Session.Resources["b"]["space"]);
             Assert.Equal(2, game.Session.Secrets.Count);
-            Assert.Contains("b chose in secret.", game.Session.Log);
+            Assert.Contains("Blue chose in secret.", game.Session.Log);
             Assert.DoesNotContain(game.Session.Log, l => l.Contains("goes to"));
             Assert.Equal("choose", game.Session.Phase);
 
@@ -64,7 +64,7 @@ namespace Core.Tests.Engine
             Assert.Equal(1, game.Session.Resources["c"]["space"]);
             // Revealed from the current seat (a) on, whatever order they chose in.
             var reveals = game.Session.Log.Where(l => l.Contains("goes to")).ToList();
-            Assert.Equal(new[] { "a goes to 1", "b goes to 3", "c goes to 1" }, reveals);
+            Assert.Equal(new[] { "Red goes to 1", "Blue goes to 3", "Green goes to 1" }, reveals);
         }
 
         [Fact]

@@ -152,11 +152,11 @@ namespace Core.Engine
             };
             if (card == null)
                 return CommandResult.Fail("objectId", ErrorCodes.InvalidValue, $"'{c.ObjectId}' is not a card or a deck with cards.", "Show a card, or a deck to show its top card.");
-            var name = card.Name ?? card.Text?.Title ?? "a card";
+            var name = Names.Of(card);
             return CommandResult.Success(new List<StateEvent>
             {
                 new CardShown(obj.Id, card, c.Actor),
-                new GameMessage($"{c.Actor ?? "The game"} shows {name}."),
+                new GameMessage($"{Names.Seat(State, c.Actor)} shows {name}."),
             });
         }
 
@@ -167,7 +167,7 @@ namespace Core.Engine
             {
                 // Starting again while one runs keeps what is hidden.
                 State.Blind ??= new BlindRound();
-                events.Add(new GameMessage($"{c.Actor ?? "The host"} started a blind round: what each player moves stays hidden until the reveal."));
+                events.Add(new GameMessage($"{Names.Seat(State, c.Actor)} started a blind round: what each player moves stays hidden until the reveal."));
                 return CommandResult.Success(events);
             }
             if (State.Blind is { } blind)
@@ -178,7 +178,7 @@ namespace Core.Engine
                         obj.InvisibleTo = pair.Value;
                         events.Add(new ObjectUpdated(obj.Id));
                     }
-                events.Add(new GameMessage($"{c.Actor ?? "The host"} revealed the blind round ({blind.Before.Count} piece{(blind.Before.Count == 1 ? "" : "s")})."));
+                events.Add(new GameMessage($"{Names.Seat(State, c.Actor)} revealed the blind round ({blind.Before.Count} piece{(blind.Before.Count == 1 ? "" : "s")})."));
             }
             State.Blind = null;
             return CommandResult.Success(events);

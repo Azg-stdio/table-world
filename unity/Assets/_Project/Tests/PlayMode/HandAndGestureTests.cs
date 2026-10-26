@@ -65,14 +65,21 @@ namespace TableWorld.Tests.PlayMode
 
             if (unplayable != null)
             {
-                // Dropped on the table: refused, back in the hand, still this seat's turn.
+                // No legal play for it: put down by hand like any card (free play), and still this seat's turn.
                 Assert.IsTrue(_interaction.Grab(_table.ViewOf(unplayable), false));
-                _interaction.DragTo(new Vector3(0.1f, 0f, 0f));
+                // A clear spot of felt, away from the piles (dropped on one it would join it).
+                _interaction.DragTo(new Vector3(-0.6f, 0f, 0.3f));
+                yield return new WaitForSeconds(0.3f);
+                _interaction.Release();
+                yield return new WaitForSeconds(0.5f);
+                Assert.IsFalse(_table.Engine.ZonesOf(unplayable).Contains(hand), "an unplayable card is put down, not bounced back");
+                Assert.AreEqual(seat, Current);
+                // Back into the hand for the rest of the test.
+                Assert.IsTrue(_interaction.Grab(_table.ViewOf(unplayable), false));
+                _interaction.DragTo(_table.Engine.State.Zones.First(z => z.Id == hand).Transform.Position.ToUnity());
                 yield return new WaitForSeconds(0.3f);
                 _interaction.Release();
                 yield return null;
-                Assert.IsTrue(_table.Engine.ZonesOf(unplayable).Contains(hand));
-                Assert.AreEqual(seat, Current);
             }
 
             if (playable.Count > 0)

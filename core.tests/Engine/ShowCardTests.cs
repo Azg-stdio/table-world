@@ -15,7 +15,7 @@ namespace Core.Tests.Engine
             var card = shown.Events.OfType<CardShown>().Single();
             Assert.Equal("loose", card.Card.Id);
             Assert.Equal("seat_1", card.Seat);
-            Assert.Contains(shown.Events.OfType<GameMessage>(), m => m.Text.StartsWith("seat_1 shows"));
+            Assert.Contains(shown.Events.OfType<GameMessage>(), m => m.Text.StartsWith("Red shows"));
 
             var top = engine.Ok(new ShowCommand { ObjectId = "deck" }).Events.OfType<CardShown>().Single();
             Assert.Equal("c0", top.Card.Id);

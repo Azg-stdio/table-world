@@ -69,7 +69,7 @@ namespace TableWorld.View.Hud
             }),
             ("Playing a game", new[]
             {
-                ("Drag a card from your hand to the table", "Play it, if the rules allow (otherwise it comes back, with the reason)"),
+                ("Drag a card from your hand to the table", "Played, when the rules have a play for it (a refused play comes back, with the reason); otherwise put down like any card"),
                 ("Drag the pile the rules draw from", "Draw"),
                 ("Buttons at the top and in game panels", "The game's actions"),
             }),

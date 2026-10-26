@@ -238,7 +238,7 @@ namespace Core.Engine
                 // Recorded, not run: a later choice of the same action replaces it until the reveal.
                 session.Secrets.RemoveAll(s => s.Seat == seat && s.Action == action.Id);
                 session.Secrets.Add(new SecretChoice { Seat = seat, Action = action.Id, Params = new Dictionary<string, string>(command.Params) });
-                Log($"{seat} chose in secret.");
+                Log($"{Names.Seat(State, seat)} chose in secret.");
             }
             else
                 RunEffects(action.Effects);
@@ -396,7 +396,7 @@ namespace Core.Engine
             var session = Session!;
             session.Over = true;
             session.Winner = seat;
-            Log($"{seat} wins.");
+            Log($"{Names.Seat(State, seat)} wins.");
         }
 
         // ---- effects ----------------------------------------------------------------------------------------------
@@ -630,7 +630,7 @@ namespace Core.Engine
                 if (action == null)
                     continue;
                 var what = choice.Params.Count == 0 ? "" : " (" + string.Join(", ", choice.Params.Select(p => $"{p.Key}: {p.Value}")) + ")";
-                Log($"{choice.Seat} chose {action.Name ?? action.Id}{what}.");
+                Log($"{Names.Seat(State, choice.Seat)} chose {action.Name ?? Names.Humanize(action.Id)}{what}.");
                 _ctx = new Context { Actor = choice.Seat, Params = choice.Params };
                 RunEffects(action.Effects);
             }
@@ -941,7 +941,14 @@ namespace Core.Engine
                 if (end < 0)
                     break;
                 var reference = result.Substring(start + 1, end - start - 1);
-                var value = ToValue(TryResolve(reference))?.ToString() ?? "";
+                // Players read names: a seat by its name or colour, an object by its name, never an id.
+                var resolved = TryResolve(reference);
+                var value = resolved switch
+                {
+                    Seat seat => Names.Of(seat),
+                    TableObject obj => Names.Of(obj),
+                    _ => ToValue(resolved)?.ToString() ?? "",
+                };
                 result = result.Substring(0, start) + value + result.Substring(end + 1);
                 start = result.IndexOf("{$", start + value.Length, StringComparison.Ordinal);
             }

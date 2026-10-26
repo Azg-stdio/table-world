@@ -243,7 +243,7 @@ namespace TableWorld.View.Hud
                 element.style.height = _cardHeight;
                 element.style.bottom = BottomPadding;
                 element.style.left = i * step;
-                element.tooltip = card.Name;
+                element.tooltip = Names.Of(card);
                 // The hovered card comes to the front and rises into full view; the others keep their places.
                 element.RegisterCallback<PointerEnterEvent>(_ =>
                 {

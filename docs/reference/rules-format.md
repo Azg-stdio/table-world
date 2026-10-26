@@ -985,6 +985,7 @@ object or object or object or object or object or object or object or object or 
 | `id` | string |  |
 | `color` | string |  |
 | `handZone` | string |  |
+| `name` | string |  |
 
 ### EnvironmentDef
 

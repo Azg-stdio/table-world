@@ -75,6 +75,8 @@ namespace Core.Rules
         public string Id { get; set; } = "";
         public string Color { get; set; } = "";
         public string? HandZone { get; set; }
+        /// <summary>What players call the seat ("North", a character); null shows its colour ("Red"), as TTS names players.</summary>
+        public string? Name { get; set; }
     }
 
     public sealed class Players

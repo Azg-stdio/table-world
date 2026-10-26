@@ -761,6 +761,9 @@ namespace TableWorld.View
                 if (!result.Ok || !(_table.ViewOf(result.CreatedId) is { } taken))
                     return false;
                 view = taken;
+                // The card in hand is the selection now, not the deck it came from (keys act on what you hold).
+                Selected = taken;
+                SetSelection(new[] { taken });
             }
             else if (model.Locked)
             {
@@ -1097,7 +1100,7 @@ namespace TableWorld.View
                 return false;
             _table.Tell(game.Session.CurrentSeat != seat
                 ? $"It is {game.Session.CurrentSeat}'s turn."
-                : $"The rules do not let you take from {pile.Model.Name ?? pile.Id} now.");
+                : $"The rules do not let you take from {Names.Of(pile.Model)} now.");
             return true;
         }
 
@@ -1110,13 +1113,12 @@ namespace TableWorld.View
             var game = _table.Game;
             var seat = _table.LocalSeat;
             var plays = Gestures.Plays(game, seat, card.Id);
-            if (plays.Count > 0 && _table.Execute(plays[0]).Ok)
-                return true;
+            // No rule plays this card: it is put down like any card (onto a deck, the table), as free play always allows.
             if (plays.Count == 0)
-                _table.Tell(game.Session.CurrentSeat != seat
-                    ? $"It is {game.Session.CurrentSeat}'s turn."
-                    : $"{card.Model.Name ?? card.Id} cannot be played now.");
-            // Back to its slot in the hand: the state never moved it.
+                return false;
+            if (_table.Execute(plays[0]).Ok)
+                return true;
+            // A play the rules refused: back to its slot in the hand (the state never moved it); the HUD says why.
             card.SnapToState();
             _table.PresentHands();
             return true;

@@ -51,7 +51,7 @@ namespace Core.Tests.Engine
             var game = Start(blind: false);
             Assert.True(Move(game, "a", "pawn_a", 0, 0.2f).Ok);
             Assert.Equal(1, game.Session!.Resources["a"]["visits"]);
-            Assert.Contains("a goes shopping", game.Session.Log);
+            Assert.Contains("Red goes shopping", game.Session.Log);
             Assert.True(Move(game, "a", "pawn_a", -0.5f, -0.3f).Ok);
             Assert.Equal(0, game.Session.Resources["a"]["visits"]);
         }
@@ -83,7 +83,7 @@ namespace Core.Tests.Engine
             Assert.Equal(1, game.Session.Resources["a"]["visits"]);
             Assert.Equal(1, game.Session.Resources["b"]["visits"]);
             var log = game.Session.Log;
-            Assert.True(log.IndexOf("a goes shopping") < log.IndexOf("b goes shopping"), string.Join(" | ", log));
+            Assert.True(log.IndexOf("Red goes shopping") < log.IndexOf("Blue goes shopping"), string.Join(" | ", log));
             Assert.Equal("Revealed!", log.Last(l => l == "Revealed!"));
             Assert.Empty(game.Table.Find("pawn_b")!.InvisibleTo);
             // The next turn opens a new blind round.

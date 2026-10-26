@@ -574,7 +574,7 @@ namespace TableWorld.View.Hud
             _turnLabel.text = !state.HasRules ? (turns is { Enabled: true } ? FreeTurnText(turns) : "Free play")
                 : session == null ? $"{state.Game?.Name ?? "Game"}: not started"
                 : session.Over ? $"Game over: {session.Winner ?? "nobody"} wins"
-                : $"Turn {session.Turn} · {PhaseName(state, session.Phase)} · {session.CurrentSeat}";
+                : $"Turn {session.Turn} · {PhaseName(state, session.Phase)} · {Names.Seat(state, session.CurrentSeat)}";
             // A long turn line is cut short in the bar; the whole of it is on hover.
             _turnLabel.tooltip = _turnLabel.text;
 
@@ -602,7 +602,7 @@ namespace TableWorld.View.Hud
             {
                 if (count++ >= MaxActionButtons)
                     return;
-                var name = action.Name ?? action.ActionId;
+                var name = action.Name ?? Names.Humanize(action.ActionId);
                 var actor = seat;
                 var id = action.ActionId;
                 void Perform(Dictionary<string, string> parameters)
@@ -626,7 +626,7 @@ namespace TableWorld.View.Hud
         }
 
         private string ChoiceLabel(Dictionary<string, string> choice) =>
-            string.Join(", ", choice.Values.Select(v => _table.Engine.Find(v)?.Name ?? v));
+            string.Join(", ", choice.Values.Select(v => _table.Engine.Find(v) is { } o ? Names.Of(o) : v));
 
         /// <summary>The card face of a choice that is one card, for the picker.</summary>
         private Sprite ChoiceImage(Dictionary<string, string> choice)
@@ -684,7 +684,7 @@ namespace TableWorld.View.Hud
                 ShowStatus("Your turn", error: false);
         }
 
-        private static string PhaseName(TableState state, string phase) => state.Phases.FirstOrDefault(p => p.Id == phase)?.Name ?? phase;
+        private static string PhaseName(TableState state, string phase) => state.Phases.FirstOrDefault(p => p.Id == phase)?.Name ?? Names.Humanize(phase);
 
         private void AddGameButton(string text, Action action)
         {
@@ -737,11 +737,12 @@ namespace TableWorld.View.Hud
                 // Online, a seat shows who sits there by name (G23); free seats show the seat.
                 var who = sitter != null ? _session.NameOf(sitter) : null;
                 var suffix = seat.Id == local ? " (you)" : sitter == TableWorld.View.Net.NetworkTableSession.HostIdForUi ? " (host)" : takenByOther && who == null ? " (taken)" : "";
-                var name = new Label((who ?? seat.Id) + suffix) { pickingMode = PickingMode.Ignore, enableRichText = false };
+                var name = new Label((who ?? Names.Of(seat)) + suffix) { pickingMode = PickingMode.Ignore, enableRichText = false };
                 name.AddToClassList("seat-name");
                 chip.Add(swatch);
                 chip.Add(name);
-                chip.tooltip = takenByOther ? $"{who ?? "Someone"} sits at {seat.Id}" : seat.Id == local ? $"Your seat ({seat.Id})" : $"Click to sit at {seat.Id}";
+                var seatName = Names.Of(seat);
+                chip.tooltip = takenByOther ? $"{who ?? "Someone"} sits at {seatName}" : seat.Id == local ? $"Your seat ({seatName})" : $"Click to sit at {seatName}";
                 var id = seat.Id;
                 if (!takenByOther && seat.Id != local)
                     chip.RegisterCallback<ClickEvent>(_ => SitAt(id));
@@ -859,7 +860,7 @@ namespace TableWorld.View.Hud
         {
             // A card shown to everyone (by a player, a rule or a script) comes up big on every screen.
             if (result.Ok && result.Events.OfType<CardShown>().LastOrDefault() is { } shown)
-                _showcase?.Show(shown.Card, $"{shown.Seat ?? "The game"} shows {shown.Card.Name ?? shown.Card.Text?.Title ?? "a card"}");
+                _showcase?.Show(shown.Card, $"{shown.Seat ?? "The game"} shows {Names.Of(shown.Card)}");
             // What table scripts do is theirs to tell (chat, their own UI); their refusals are in the log.
             if (command.ByScript)
                 return;

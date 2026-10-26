@@ -93,8 +93,12 @@ namespace TableWorld.View.Hud
             return true;
         }
 
+        /// <summary>The frame the menu opened in: the click that opened it must not close it.</summary>
+        private int _menuOpenedFrame = -1;
+
         public void Update()
         {
+            CloseMenuOnClickElsewhere();
             UpdateBox();
             UpdateTooltip();
             UpdateMeasure();
@@ -129,6 +133,7 @@ namespace TableWorld.View.Hud
             _menu.style.left = panelPoint.x;
             _menu.style.top = panelPoint.y;
             _menu.RemoveFromClassList(Hidden);
+            _menuOpenedFrame = Time.frameCount;
         }
 
         /// <summary>A menu opened near the bottom or right edge moves up or left so all of it shows.</summary>
@@ -143,6 +148,20 @@ namespace TableWorld.View.Hud
                 _menu.style.top = Mathf.Max(margin, screen.height - menu.height - margin);
             if (menu.xMax > screen.width - margin)
                 _menu.style.left = Mathf.Max(margin, screen.width - menu.width - margin);
+        }
+
+        /// <summary>A left or right click anywhere outside the menu (the table, another panel) closes it, as menus do.</summary>
+        private void CloseMenuOnClickElsewhere()
+        {
+            var mouse = UnityEngine.InputSystem.Mouse.current;
+            if (mouse == null || !MenuOpen || Time.frameCount == _menuOpenedFrame || _menu.panel == null)
+                return;
+            if (!mouse.leftButton.wasPressedThisFrame && !mouse.rightButton.wasPressedThisFrame)
+                return;
+            var screen = mouse.position.ReadValue();
+            var point = RuntimePanelUtils.ScreenToPanel(_menu.panel, new Vector2(screen.x, Screen.height - screen.y));
+            if (!_menu.worldBound.Contains(point))
+                CloseMenu();
         }
 
         public void CloseMenu()
@@ -524,7 +543,7 @@ namespace TableWorld.View.Hud
                     var card = result.DeckContents[i];
                     var (faceAsset, faceIndex) = _table.Assets.Face(deck, card);
                     var face = _images.Face(_table.Assets, faceAsset, faceIndex);
-                    grid.Add(SearchCell(container, card.Name ?? card.Id ?? $"Card {i + 1}", card.Id, i, face));
+                    grid.Add(SearchCell(container, Names.Of(card), card.Id, i, face));
                 }
             }
             else
@@ -604,7 +623,7 @@ namespace TableWorld.View.Hud
         /// <summary>The name a player may see: a face-down card (or anything hiding when face down, G39) shows its kind only.</summary>
         public static string DisplayName(TableObject model) =>
             model.NameHidden ? (model is Card ? "Face-down card" : model.Type)
-            : string.IsNullOrEmpty(model.Name) ? $"{model.Type} {model.Id}" : model.Name;
+            : Names.Of(model);
 
         private void OnLook(ObjectView view, bool peek)
         {
@@ -616,7 +635,7 @@ namespace TableWorld.View.Hud
             _lookImage.style.backgroundImage = Background.FromRenderTexture(_look.Texture);
             // Peeking shows the face, so its name; a plain look at a face-down card shows only its back (G39).
             _lookCaption.text = view.HideFace ? "A card in another player's hand"
-                : peek ? "Peek: " + (view.Model.Name ?? view.Model.Id) : DisplayName(view.Model);
+                : peek ? "Peek: " + Names.Of(view.Model) : DisplayName(view.Model);
         }
 
         /// <summary>
