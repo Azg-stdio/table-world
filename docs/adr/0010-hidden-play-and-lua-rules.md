@@ -43,6 +43,20 @@ Lua already ran on the host (ADR 0003), but only as TTS-style table scripts, bli
   - `run_lua` runs code against a copy of the table, so the agent can test a function without changing the game.
   - `validate_rules` checks that each called function is defined in the global script (a text search, not a parse).
 
+## Addendum (2026-10-26): moves the rules react to
+
+Clicking a button to go to a space felt wrong in Tornaris; players move the pawn. Zones now carry rules:
+- `onEnter` / `onLeave` effects run during a game when a piece is put in a zone or taken out (`$it` the piece,
+  `$actor` the mover).
+- A `refuse` effect undoes the move with a reason, and the view snaps the piece back.
+- During a blind round, these effects are held in `Session.HeldZoneMoves` (the last move of each piece). At the reveal
+  they run in turn order, for pieces still where they were put, followed by the `onReveal` event.
+- `blindRound` effects start and reveal a round from the rules.
+
+On a table with zone rules, a table command during a game runs as a rules transaction. That costs a snapshot of the
+objects per move, which is fine for rules games, and keeps a refused move atomic. Transactions now also restore
+`TableState.Blind`.
+
 ## Consequences
 
 - Secret choices and blind moves are hidden by the view, not by the protocol: peers receive the full table, as they
