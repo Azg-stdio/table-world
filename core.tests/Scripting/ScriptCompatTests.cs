@@ -174,6 +174,30 @@ namespace Core.Tests.Scripting
             Assert.Equal(new[] { "in the bag: nil", "arrived t1", "timed out" }, said); // the main function never runs on a timeout
         }
 
+        /// <summary>One light alone while playing: night in the room, the cards still lit; a TTS apply leaves them be.</summary>
+        [Fact]
+        public void RoomAndTableLights_ChangeOneAtATime()
+        {
+            var (engine, _, said) = Load(@"
+                function onLoad()
+                  broadcastToAll('room ' .. tostring(Lighting.setRoomLight({ intensity = 0.25, color = { r = 0.6, g = 0.7, b = 1 } })))
+                  broadcastToAll('table ' .. tostring(Lighting.setTableLight({ intensity = 1.2 })))
+                  Lighting.light_intensity = 0.54
+                  Lighting.apply()
+                end");
+            Assert.Equal(new[] { "room true", "table true" }, said.Take(2));
+            var lighting = engine.State.Environment!.Lighting;
+            Assert.Equal(0.25f, lighting.RoomScale!.Value, 3);
+            Assert.Equal(new[] { 0.6f, 0.7f, 1f }, lighting.RoomTint!);
+            Assert.Equal(1.2f, lighting.TableScale!.Value, 3);
+            Assert.Null(lighting.TableTint);
+            // Day again: the room back to normal, the table untouched.
+            Assert.True(engine.Execute(new SetLightCommand { Light = "room" }).Ok);
+            Assert.Null(lighting.RoomScale);
+            Assert.Equal(1.2f, lighting.TableScale!.Value, 3);
+            Assert.False(engine.Execute(new SetLightCommand { Light = "sky" }).Ok);
+        }
+
         /// <summary>The last of the local mods' calls: Lighting, Notes, hover, changeColor and setAngularVelocity.</summary>
         [Fact]
         public void LightingNotesHoverAndSeatChanges_WorkLikeTts()

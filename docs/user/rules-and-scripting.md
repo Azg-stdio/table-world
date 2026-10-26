@@ -275,6 +275,19 @@ left out stays in English:
 The keys are `win`, `choseInSecret`, `chose` (`{seat}`, `{action}`, `{option}`), `blindRound`, `reveal` (`{count}`) and
 `shows` (`{card}`).
 
+**Light.** The room has two lights: the room's own (the lamp and its warm fill, on the walls, the floor and the table's
+frame) and the table light on the felt and the pieces. The `light` effect changes one of them while playing, so night
+can fall in the room while the cards stay readable. `scale` multiplies it (1 normal, 0 off) and `tint` colours it (three
+numbers from 0 to 2); leaving both out puts it back to normal:
+
+```json
+{ "light": { "part": "room", "scale": 0.25, "tint": [0.6, 0.7, 1] } }
+{ "light": { "part": "room" } }
+```
+
+Lua does the same with `Lighting.setRoomLight({ intensity = 0.25, color = { 0.6, 0.7, 1 } })` and
+`Lighting.setTableLight({ ... })`. TTS's `Lighting.apply()` still scales both lights and the ambient at once.
+
 ## 7. Editing a rule by hand
 
 1. Open the game file in any text editor.

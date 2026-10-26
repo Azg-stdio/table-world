@@ -314,6 +314,7 @@ namespace Core.Engine
             BlindRoundCommand c => SetBlindRound(c),
             SetGridCommand c => SetGrid(c),
             SetLightingCommand c => SetLighting(c),
+            SetLightCommand c => SetLight(c),
             MoveZoneCommand c => MoveZone(c),
             SetMusicCommand c => SetMusic(c),
             AddDrawingCommand c => AddDrawing(c),
@@ -662,6 +663,29 @@ namespace Core.Engine
             lighting.LightScale = c.LightScale;
             lighting.AmbientScale = c.AmbientScale;
             lighting.LightTint = c.LightTint;
+            return CommandResult.Success(new List<StateEvent> { new LightingChanged() });
+        }
+
+        private CommandResult SetLight(SetLightCommand c)
+        {
+            if (c.Light != SetLightCommand.Room && c.Light != SetLightCommand.TableLight)
+                return CommandResult.Fail("light", ErrorCodes.InvalidValue, $"'{c.Light}' is not a light.", "Use room (the lamp and the room) or table (the felt and the pieces).");
+            if (c.Scale is < 0f or > 8f)
+                return CommandResult.Fail("scale", ErrorCodes.InvalidValue, "A light's scale goes from 0 (off) to 8; 1 is normal.");
+            if (c.Tint != null && (c.Tint.Length != 3 || c.Tint.Any(v => !(v >= 0f && v <= 2f))))
+                return CommandResult.Fail("tint", ErrorCodes.InvalidValue, "A tint is three numbers from 0 to 2.");
+            State.Environment ??= new EnvironmentDef();
+            var lighting = State.Environment.Lighting;
+            if (c.Light == SetLightCommand.Room)
+            {
+                lighting.RoomScale = c.Scale;
+                lighting.RoomTint = c.Tint;
+            }
+            else
+            {
+                lighting.TableScale = c.Scale;
+                lighting.TableTint = c.Tint;
+            }
             return CommandResult.Success(new List<StateEvent> { new LightingChanged() });
         }
 

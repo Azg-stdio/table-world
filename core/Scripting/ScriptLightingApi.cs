@@ -51,6 +51,34 @@ namespace Core.Scripting
                     return DynValue.True;
                 });
             }
+            // Our own: one light alone while playing, the others untouched. Lighting.setRoomLight{ intensity = 0.3,
+            // color = { 0.6, 0.7, 1 } } brings night to the room and leaves the cards readable; setTableLight the felt and
+            // the pieces. intensity 1 and no color (or no table at all) are normal.
+            DynValue SetOne(CallbackArguments a, string light)
+            {
+                var arg = Arg(a);
+                float? scale = null;
+                float[]? tint = null;
+                if (arg.Type == DataType.Table)
+                {
+                    var t = arg.Table;
+                    if (t.Get("intensity").Type == DataType.Number)
+                        scale = (float)Math.Max(0, Math.Min(8, t.Get("intensity").Number));
+                    if (t.Get("color").Type == DataType.Table)
+                    {
+                        var c = t.Get("color").Table;
+                        float Channel(string key, int index) => (float)Math.Max(0, Math.Min(2,
+                            c.Get(key).Type == DataType.Number ? c.Get(key).Number : c.Get(index).Type == DataType.Number ? c.Get(index).Number : 1));
+                        tint = new[] { Channel("r", 1), Channel("g", 2), Channel("b", 3) };
+                    }
+                }
+                if (scale is > 0.995f and < 1.005f)
+                    scale = null;
+                return DynValue.NewBoolean(Issue(new SetLightCommand { Light = light, Scale = scale, Tint = tint }));
+            }
+            lighting["setRoomLight"] = DynValue.NewCallback((_, a) => SetOne(a, SetLightCommand.Room));
+            lighting["setTableLight"] = DynValue.NewCallback((_, a) => SetOne(a, SetLightCommand.TableLight));
+
             lighting["apply"] = DynValue.NewCallback((_, a) =>
             {
                 float? Scale(string key, float normal)

@@ -88,6 +88,30 @@ namespace Core.Tests.Engine
         }
 
         [Fact]
+        public void ALightEffect_DimsTheRoom_AndARefusedActionPutsItBack()
+        {
+            const string json = @"{
+  ""players"": { ""seats"": [ { ""id"": ""a"", ""color"": ""red"" } ] },
+  ""turn"": { ""phases"": [ ""play"" ] },
+  ""phases"": [ { ""id"": ""play"", ""actions"": [ ""night"", ""bad_night"" ] } ],
+  ""actions"": [
+    { ""id"": ""night"", ""actor"": ""any"", ""effects"": [ { ""light"": { ""part"": ""room"", ""scale"": 0.3, ""tint"": [0.6, 0.7, 1] } } ] },
+    { ""id"": ""bad_night"", ""actor"": ""any"", ""effects"": [ { ""light"": { ""part"": ""table"", ""scale"": 0.2 } }, { ""refuse"": { ""reason"": ""No."" } } ] } ]
+}";
+            var game = Start(json);
+            Run(game, "a", "night");
+            var lighting = game.State.Environment!.Lighting;
+            Assert.Equal(0.3f, lighting.RoomScale!.Value, 3);
+            Assert.Null(lighting.TableScale);
+            Assert.False(game.Execute(new PerformActionCommand { Actor = "a", ActionId = "bad_night" }).Ok);
+            Assert.Null(game.State.Environment!.Lighting.TableScale);
+            Assert.Equal(0.3f, game.State.Environment.Lighting.RoomScale!.Value, 3);
+
+            var bad = TableJson.Parse(json.Replace(@"""part"": ""room""", @"""part"": ""lamp""")).State!;
+            Assert.Contains(TableValidator.Validate(bad), e => e.Path.EndsWith(".part"));
+        }
+
+        [Fact]
         public void ASpaceDrawnOnABoard_HoldsOnlyThePiecesOnIt()
         {
             const string json = @"{

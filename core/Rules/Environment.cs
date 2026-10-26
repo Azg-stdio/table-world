@@ -35,6 +35,17 @@ namespace Core.Rules
         public float? AmbientScale { get; set; }
         /// <summary>Tints the lamp and the table light: TTS's <c>light_color</c> over its default warm white. Null is none.</summary>
         public float[]? LightTint { get; set; }
+
+        /// <summary>
+        /// The room's lights alone (the lamp and its warm fill: the walls, the floor, the table's frame), changed while
+        /// playing (<c>SetLightCommand</c>): a multiplier (1 normal, 0 dark) and a tint (0–2 per channel). Night in the
+        /// room leaves the cards readable. Null is normal.
+        /// </summary>
+        public float? RoomScale { get; set; }
+        public float[]? RoomTint { get; set; }
+        /// <summary>The table light alone (the felt and the pieces on it), changed while playing. Null is normal.</summary>
+        public float? TableScale { get; set; }
+        public float[]? TableTint { get; set; }
     }
 
     /// <summary>TTS's lighting, as saves and scripts give it, against the multipliers of <see cref="LightingDef"/>.</summary>

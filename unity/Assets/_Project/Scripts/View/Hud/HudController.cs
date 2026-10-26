@@ -950,7 +950,9 @@ namespace TableWorld.View.Hud
                               command is SetUiAttributesCommand || command is UiEventCommand || command is SetInputsCommand ||
                               command is TypeInputCommand || command is SpawnCommand))
                 return;
-            var name = command.GetType().Name.Replace("Command", "");
+            // In words, never the type's name: "SetLightCommand" reads "Set light".
+            var words = System.Text.RegularExpressions.Regex.Replace(command.GetType().Name.Replace("Command", ""), "(?<=[a-z])(?=[A-Z])", " ").ToLowerInvariant();
+            var name = char.ToUpperInvariant(words[0]) + words.Substring(1);
             _status.text = result.Ok ? (command is RollCommand ? RollText(result) : command is SetPhysicsCommand physics ? $"Physics: {PhysicsName(physics.Mode)}" : TurnText(command) ?? $"{name}: done")
                 : $"{name} rejected: {result.Error.Message} {result.Error.Suggestion}";
             _status.EnableInClassList("status-label--error", !result.Ok);

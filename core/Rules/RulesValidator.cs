@@ -257,6 +257,14 @@ namespace Core.Rules
                 case ShowEffect show:
                     Target(show.Object, $"{path}.object");
                     break;
+                case LightEffect light:
+                    if (light.Part != "room" && light.Part != "table")
+                        Add($"{path}.part", ErrorCodes.InvalidValue, $"'{light.Part}' is not a light.", "Use room (the lamp and the room) or table (the felt and the pieces).");
+                    if (light.Scale is < 0f or > 8f)
+                        Add($"{path}.scale", ErrorCodes.InvalidValue, "A light's scale goes from 0 (off) to 8; 1 is normal.");
+                    if (light.Tint != null && (light.Tint.Length != 3 || light.Tint.Any(v => !(v >= 0f && v <= 2f))))
+                        Add($"{path}.tint", ErrorCodes.InvalidValue, "A tint is three numbers from 0 to 2.");
+                    break;
                 case LuaEffect lua:
                     if (string.IsNullOrWhiteSpace(lua.Call))
                         Add($"{path}.call", ErrorCodes.MissingField, "A lua effect needs the name of a global Lua function to call.");

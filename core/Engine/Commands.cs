@@ -318,6 +318,20 @@ namespace Core.Engine
         public float[]? LightTint { get; set; }
     }
 
+    /// <summary>
+    /// Changes one light while playing, the others untouched: <see cref="Light"/> <c>room</c> (the lamp and its fill: the
+    /// room's mood) or <c>table</c> (the felt and the pieces). <see cref="Scale"/> multiplies it (1 normal, 0 off) and
+    /// <see cref="Tint"/> colours it (three numbers 0–2); null puts that one back to normal. Host only.
+    /// </summary>
+    public sealed class SetLightCommand : Command, IHostCommand
+    {
+        public const string Room = "room";
+        public const string TableLight = "table";
+        public string Light { get; set; } = Room;
+        public float? Scale { get; set; }
+        public float[]? Tint { get; set; }
+    }
+
     /// <summary>Sets the table grid (G28): lines, snapping, shape and size; null removes it. Host only.</summary>
     public sealed class SetGridCommand : Command, IHostCommand
     {

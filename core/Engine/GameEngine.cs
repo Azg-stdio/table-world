@@ -129,6 +129,7 @@ namespace Core.Engine
             var session = State.Session;
             var sessionJson = session == null ? null : Newtonsoft.Json.JsonConvert.SerializeObject(session);
             var blindJson = State.Blind == null ? null : Newtonsoft.Json.JsonConvert.SerializeObject(State.Blind);
+            var lightingJson = State.Environment == null ? null : Newtonsoft.Json.JsonConvert.SerializeObject(State.Environment.Lighting);
             var random = Table.Random.State;
             _events = new List<StateEvent>();
             _pendingGoto = null;
@@ -156,6 +157,8 @@ namespace Core.Engine
                 }
                 State.Session = sessionJson == null ? null : Newtonsoft.Json.JsonConvert.DeserializeObject<Session>(sessionJson);
                 State.Blind = blindJson == null ? null : Newtonsoft.Json.JsonConvert.DeserializeObject<BlindRound>(blindJson);
+                if (State.Environment != null)
+                    State.Environment.Lighting = lightingJson == null ? new LightingDef() : Newtonsoft.Json.JsonConvert.DeserializeObject<LightingDef>(lightingJson)!;
                 Table.Random.State = random;
                 var fail = CommandResult.Fail(e.Error.Path, e.Error.Code, e.Error.Message, e.Error.Suggestion);
                 fail.StateRestored = mutated;
@@ -472,6 +475,9 @@ namespace Core.Engine
                     TableCommand(new ShowCommand { ObjectId = id });
                     break;
                 }
+                case LightEffect light:
+                    TableCommand(new SetLightCommand { Light = light.Part, Scale = light.Scale, Tint = light.Tint });
+                    break;
                 case RefuseEffect refuse:
                     throw new RuleException("refuse", ErrorCodes.Refused, string.IsNullOrWhiteSpace(refuse.Reason) ? "The rules do not allow that." : Template(refuse.Reason));
                 case BlindRoundEffect blind:

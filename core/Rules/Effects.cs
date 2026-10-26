@@ -159,6 +159,19 @@ namespace Core.Rules
         public bool On { get; set; }
     }
 
+    /// <summary>
+    /// Changes one light: <c>room</c> (the lamp and the room: night falls without darkening the cards) or <c>table</c>
+    /// (the felt and the pieces). <see cref="Scale"/> 1 is normal and 0 off; <see cref="Tint"/> is three numbers 0–2.
+    /// Leaving both out puts the light back to normal.
+    /// </summary>
+    public sealed class LightEffect : Effect
+    {
+        /// <summary><c>room</c> or <c>table</c>.</summary>
+        public string Part { get; set; } = "room";
+        public float? Scale { get; set; }
+        public float[]? Tint { get; set; }
+    }
+
     public static class EffectKinds
     {
         public static readonly IReadOnlyDictionary<string, Type> ByName = new Dictionary<string, Type>
@@ -183,6 +196,7 @@ namespace Core.Rules
             ["refuse"] = typeof(RefuseEffect),
             ["blindRound"] = typeof(BlindRoundEffect),
             ["show"] = typeof(ShowEffect),
+            ["light"] = typeof(LightEffect),
         };
 
         private static readonly Dictionary<Type, string> Names = ByName.ToDictionary(p => p.Value, p => p.Key);

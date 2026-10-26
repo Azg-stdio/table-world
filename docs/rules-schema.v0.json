@@ -2721,6 +2721,18 @@
             "show"
           ],
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "light": {
+              "$ref": "#/$defs/LightEffect"
+            }
+          },
+          "required": [
+            "light"
+          ],
+          "additionalProperties": false
         }
       ]
     },
@@ -3189,6 +3201,24 @@
       },
       "additionalProperties": false
     },
+    "LightEffect": {
+      "type": "object",
+      "properties": {
+        "part": {
+          "type": "string"
+        },
+        "scale": {
+          "type": "number"
+        },
+        "tint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "HiddenZone": {
       "type": "object",
       "properties": {
@@ -3650,6 +3680,24 @@
           "type": "number"
         },
         "lightTint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "roomScale": {
+          "type": "number"
+        },
+        "roomTint": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "tableScale": {
+          "type": "number"
+        },
+        "tableTint": {
           "type": "array",
           "items": {
             "type": "number"

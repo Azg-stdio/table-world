@@ -211,6 +211,12 @@ namespace TableWorld.View
             var lighting = (_table != null && _table.Engine != null ? _table.Engine.State.Environment : null)?.Lighting ?? new LightingDef();
             var scale = lighting.LightScale ?? 1f;
             var tint = lighting.LightTint is { Length: 3 } t ? new Color(t[0], t[1], t[2]) : Color.white;
+            // Each light alone, on top of the TTS scale and tint: the room (lamp, fill) and the table (felt, pieces).
+            Color Tint(float[] c) => c is { Length: 3 } ? new Color(c[0], c[1], c[2]) : Color.white;
+            var roomScale = scale * (lighting.RoomScale ?? 1f);
+            var roomTint = tint * Tint(lighting.RoomTint);
+            var tableScale = scale * (lighting.TableScale ?? 1f);
+            var tableTint = tint * Tint(lighting.TableTint);
             RenderSettings.ambientMode = AmbientMode.Flat;
             // Indoors, shiny and metal pieces reflect the room (its probe), not the default sky, which tints them cyan.
             RenderSettings.reflectionIntensity = 1f;
@@ -218,24 +224,24 @@ namespace TableWorld.View
                 * (lighting.AmbientIntensity ?? (_gameNight ? DefaultAmbientIntensity : 1f)) * (lighting.AmbientScale ?? 1f);
             if (_lamp != null)
             {
-                _lamp.color = ToColor(lighting.LampColor, DefaultLamp) * tint;
-                _lamp.intensity = (lighting.LampIntensity ?? DefaultLampIntensity) * scale;
+                _lamp.color = ToColor(lighting.LampColor, DefaultLamp) * roomTint;
+                _lamp.intensity = (lighting.LampIntensity ?? DefaultLampIntensity) * roomScale;
             }
             if (_tableLight != null)
             {
-                _tableLight.color = ToColor(lighting.TableLightColor, DefaultTableLight) * tint;
-                _tableLight.intensity = (lighting.TableLightIntensity ?? DefaultTableLightIntensity) * (_bigTable ? DirectionalShare : 1f) * scale;
+                _tableLight.color = ToColor(lighting.TableLightColor, DefaultTableLight) * tableTint;
+                _tableLight.intensity = (lighting.TableLightIntensity ?? DefaultTableLightIntensity) * (_bigTable ? DirectionalShare : 1f) * tableScale;
             }
             foreach (var side in _sideLights)
                 if (side != null)
                 {
-                    side.color = DefaultTableLight * tint;
-                    side.intensity = SideLightIntensity * scale;
+                    side.color = DefaultTableLight * tableTint;
+                    side.intensity = SideLightIntensity * tableScale;
                 }
             if (_fill != null)
             {
-                _fill.color = FillColor * tint;
-                _fill.intensity = FillIntensity * scale;
+                _fill.color = FillColor * roomTint;
+                _fill.intensity = FillIntensity * roomScale;
             }
         }
 
