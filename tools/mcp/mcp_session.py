@@ -58,14 +58,17 @@ class McpSession:
     def call(self, tool, **arguments):
         """Calls a tool; JSON-valued arguments may be given as Python objects. Exits on a refusal."""
         for key, value in list(arguments.items()):
-            if key.endswith("Json") and not isinstance(value, str):
+            # JSON-valued tool arguments (fooJson, a deck's cards) travel as text.
+            if (key.endswith("Json") or key == "cards") and not isinstance(value, str):
                 arguments[key] = json.dumps(value)
         reply = self._rpc("tools/call", {"name": tool, "arguments": arguments})
         text = reply["result"]["content"][0]["text"]
         try:
             body = json.loads(text)
         except ValueError:
-            body = {"ok": True, "text": text}
+            body = {"ok": not reply["result"].get("isError", False), "text": text}
+        if reply["result"].get("isError"):
+            body["ok"] = False
         if body.get("ok") is False:
             print(f"{tool} failed:\n{json.dumps(body, indent=2)}")
             self._server.kill()

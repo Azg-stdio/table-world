@@ -4608,6 +4608,12 @@
             "role",
             "oneOf"
           ]
+        },
+        "minPlayers": {
+          "type": "integer"
+        },
+        "maxPlayers": {
+          "type": "integer"
         }
       },
       "additionalProperties": false

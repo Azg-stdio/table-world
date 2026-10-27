@@ -113,6 +113,11 @@ dedicated server. What matters is that no one sees a secret by accident or with 
   player's machine holds it, not even the one it is about. What one player alone may know about themselves belongs in a
   hidden trait (a role `set`, here `fate`: alive or winked at), which reaches that player only. The docs say so where
   they describe secret variables.
+- **The sandbox check (T11.15b, Secret Dictator: plays like Secret Hitler, a game the milestone does not name)**
+  needed one more general piece: `knows` rules that hold only for some player counts (`minPlayers`, `maxPlayers`: the
+  Dictator knows the fascists only at 5–6). Everything else (a policy deck passed hand to hand, chained phases, term
+  limits, executions, chaos after three failed elections) was already in the format. It also showed why hand cards must
+  stop reaching every machine (T11.16): the policies a president passes are the game's whole secret.
 
 ### 3. Eyes-closed phases
 

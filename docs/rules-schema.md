@@ -359,7 +359,8 @@ starts, and who knows whom:
     { "role": "merlin", "sees": { "team": "evil", "except": [ "mordred" ] } },              // as their team
     { "team": "evil",   "sees": { "team": "evil", "except": [ "oberon" ] } },
     { "role": "oberon", "sees": {} },                                                       // a role's own rules replace its team's
-    { "role": "percival", "sees": { "roles": [ "merlin", "morgana" ] }, "as": "oneOf" }    // one of those, not which
+    { "role": "percival", "sees": { "roles": [ "merlin", "morgana" ] }, "as": "oneOf" },   // one of those, not which
+    { "role": "dictator", "sees": { "roles": [ "fascist" ] }, "maxPlayers": 6 }            // only in small games
   ]
 }
 ```

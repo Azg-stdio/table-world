@@ -246,6 +246,8 @@ namespace Core.Rules
                 Known(null, rule.Sees.Team, $"{path}.sees");
                 foreach (var seen in rule.Sees.Roles.Concat(rule.Sees.Except))
                     Known(seen, null, $"{path}.sees");
+                if (rule.MinPlayers > rule.MaxPlayers)
+                    Add(path, ErrorCodes.InvalidValue, $"minPlayers {rule.MinPlayers} is above maxPlayers {rule.MaxPlayers}.");
                 if (rule.As == KnowsAs.OneOf && rule.Sees.Roles.Count < 2)
                     Add($"{path}.sees.roles", ErrorCodes.InvalidValue, "oneOf shows a seat as one of several roles: list at least two.");
             }

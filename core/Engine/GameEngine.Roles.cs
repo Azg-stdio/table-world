@@ -132,8 +132,10 @@ namespace Core.Engine
                 if (session.Roles.TryGetValue(seat.Id, out var mine))
                 {
                     var team = roles.List.First(r => r.Id == mine).Team;
-                    // A role's own rules replace its team's (Oberon is evil but sees none of the other minions).
-                    var rules = roles.Knows.Any(k => k.Role == mine) ? roles.Knows.Where(k => k.Role == mine) : roles.Knows.Where(k => k.Role == null && k.Team == team);
+                    // A role's own rules replace its team's (Oberon is evil but sees none of the other minions); a rule may hold
+                    // only for some player counts.
+                    var counted = roles.Knows.Where(k => (k.MinPlayers ?? 0) <= seats.Count && seats.Count <= (k.MaxPlayers ?? int.MaxValue)).ToList();
+                    var rules = counted.Any(k => k.Role == mine) ? counted.Where(k => k.Role == mine) : counted.Where(k => k.Role == null && k.Team == team);
                     foreach (var rule in rules)
                         foreach (var other in seats.Where(o => o.Id != seat.Id && session.Roles.ContainsKey(o.Id) && Matches(rule.Sees, session.Roles[o.Id])))
                         {

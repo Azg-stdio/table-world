@@ -1378,6 +1378,8 @@ object or object or object or object or object or object or object or object or 
 | `team` | string |  |
 | `sees` | [SeesDef](#seesdef) |  |
 | `as` | one of `team`, `role`, `oneOf` |  |
+| `minPlayers` | integer |  |
+| `maxPlayers` | integer |  |
 
 ### SeesDef
 

@@ -65,6 +65,10 @@ namespace Core.Rules
         public string? Team { get; set; }
         public SeesDef Sees { get; set; } = new SeesDef();
         public KnowsAs As { get; set; }
+        /// <summary>The rule holds only with at least this many players (a role that knows its team only in small games).</summary>
+        public int? MinPlayers { get; set; }
+        /// <summary>The rule holds only with at most this many players.</summary>
+        public int? MaxPlayers { get; set; }
     }
 
     public sealed class SeesDef
