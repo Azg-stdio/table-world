@@ -700,6 +700,11 @@ namespace TableWorld.View.Hud
         /// turn it is, or the one picked from its chip). An action with several choices opens the picker; actions marked
         /// <c>button: false</c> are done with the pieces, by scripts or by agents, and get none.
         /// </summary>
+        /// <summary>Who won, as players say it: a team's name, a seat's, or nobody.</summary>
+        private static string WinnerName(TableState state, Session session) =>
+            session.WinnerTeam is { } team && state.Roles != null ? GameEngine.TeamName(state.Roles, team)
+            : session.Winner != null ? Names.Seat(state, session.Winner) : "nobody";
+
         /// <summary>A vote with up to this many options shows one button per option.</summary>
         private const int MaxVoteButtons = 4;
 
@@ -725,7 +730,7 @@ namespace TableWorld.View.Hud
             AnnounceTurn();
             _turnLabel.text = !state.HasRules ? (turns is { Enabled: true } ? FreeTurnText(turns) : "Free play")
                 : session == null ? $"{state.Game?.Name ?? "Game"}: not started"
-                : session.Over ? $"Game over: {session.Winner ?? "nobody"} wins"
+                : session.Over ? $"Game over: {WinnerName(state, session)} {(session.WinnerTeam != null ? "win" : "wins")}"
                 : $"Turn {session.Turn} · {PhaseName(state, session.Phase)} · {Names.Seat(state, session.CurrentSeat)}";
             // A long turn line is cut short in the bar; the whole of it is on hover.
             _turnLabel.tooltip = _turnLabel.text;

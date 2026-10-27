@@ -412,6 +412,21 @@ namespace Core.Engine
             Log(Names.Message(State, "win", "{seat} wins.", ("seat", Names.Seat(State, seat))));
         }
 
+        /// <summary>A team wins (hidden roles): the game ends, and the log names the team and its players, now no secret.</summary>
+        private void WinTeam(string team)
+        {
+            var session = Session!;
+            var roles = State.Roles ?? throw new RuleException("win.team", ErrorCodes.UnknownTeam, "This game has no teams.");
+            if (roles.Teams.All(t => t.Id != team))
+                throw new RuleException("win.team", ErrorCodes.UnknownTeam, $"Team '{team}' does not exist.");
+            session.Over = true;
+            session.Winner = team;
+            session.WinnerTeam = team;
+            _secretsRead = true;
+            var members = Playing.Where(s => TeamOf(s.Id) == team).Select(s => Names.Of(s)).ToList();
+            Log(Names.Message(State, "teamWins", "{team} win: {seats}.", ("team", TeamName(roles, team)), ("seats", Join(members))));
+        }
+
         // ---- effects ----------------------------------------------------------------------------------------------
 
         private void RunEffects(List<Effect> effects)
@@ -446,6 +461,18 @@ namespace Core.Engine
                 case SetVariableEffect set:
                 {
                     var vars = Session!.Variables;
+                    if (set.Add != null || set.Remove != null)
+                    {
+                        // A list grows or shrinks by one item; a non-list starts as an empty one.
+                        var list = vars.TryGetValue(set.Name, out var current) && current is JArray existing ? new JArray(existing) : new JArray();
+                        if (set.Add != null && Value(set.Add) is { } item)
+                            list.Add(item.DeepClone());
+                        if (set.Remove != null && Value(set.Remove) is { } gone)
+                            foreach (var match in list.Where(t => JToken.DeepEquals(t, gone)).ToList())
+                                match.Remove();
+                        vars[set.Name] = list;
+                        break;
+                    }
                     vars[set.Name] = set.Delta is { } delta
                         ? new JValue(Number(vars.TryGetValue(set.Name, out var old) ? old : null) + delta)
                         : Value(set.Value) ?? JValue.CreateNull();
@@ -531,6 +558,7 @@ namespace Core.Engine
                 case EndTurnEffect _: _pendingEndTurn = true; break;
                 case EndPhaseEffect _: _pendingEndPhase = true; break;
                 case GotoPhaseEffect go: _pendingGoto = go.Phase; break;
+                case WinEffect win when win.Team != null: WinTeam(win.Team); break;
                 case WinEffect win: Win(ResolveSeat(win.Player, "win.player")); break;
                 default: throw new RuleException(effect.Kind, ErrorCodes.RuleFailed, $"Effect '{effect.Kind}' is not supported.");
             }
@@ -867,6 +895,7 @@ namespace Core.Engine
             ResourceCondition r => Compare(new JValue(Session!.Resources[ResolveSeat(r.Player, "resource.player")][r.Resource]), r.Op, Value(r.Value)),
             IsCurrentPlayerCondition p => ResolveSeat(p.Player, "isCurrentPlayer.player") == Session!.CurrentSeat,
             ObjectInCondition oi => Contains(ResolveTarget(oi.Zone, "objectIn.zone"), ResolveTarget(oi.Object, "objectIn.object")),
+            InListCondition il => Value(il.List) is JArray list && Value(il.Value) is { } wanted && list.Any(t => JToken.DeepEquals(t, wanted)),
             HasTagCondition ht => ResolveTarget(ht.Object, "hasTag.object") switch
             {
                 TableObject o => o.Tags.Contains(ht.Tag),
@@ -1167,6 +1196,9 @@ namespace Core.Engine
                     };
                 case JObject jo:
                     return jo[part];
+                case JArray list:
+                    // A list's size, or an item by its position from 0.
+                    return part == "count" ? new JValue(list.Count) : int.TryParse(part, out var at) && at >= 0 && at < list.Count ? list[at] : null;
                 default:
                     return null;
             }

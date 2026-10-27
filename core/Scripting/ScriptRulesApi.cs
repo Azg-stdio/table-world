@@ -130,7 +130,7 @@ namespace Core.Scripting
             t["getPhase"] = Fn(_ => Game()?.Session?.Phase is { } p ? DynValue.NewString(p) : DynValue.Nil);
             t["getTurn"] = Fn(_ => DynValue.NewNumber(Game()?.Session?.Turn ?? 0));
             // The seats in the game (those it started with), in turn order; the empty ones are left out.
-            t["getSeats"] = Fn(_ => List(script, (Game()?.Playing ?? Engine.State.Players.Seats).Select(s => s.Id)));
+            t["getSeats"] = Fn(_ => Texts(script, (Game()?.Playing ?? Engine.State.Players.Seats).Select(s => s.Id)));
             t["getSeatColor"] = Fn(args => Engine.State.Players.Seats.FirstOrDefault(s => s.Id == Arg(args, 0))?.Color is { } c ? DynValue.NewString(c) : DynValue.Nil);
             t["getResource"] = Fn(args =>
                 Game()?.Session?.Resources is { } all && Arg(args, 0) is { } seat && all.TryGetValue(seat, out var values) &&
@@ -154,8 +154,8 @@ namespace Core.Scripting
             t["getRole"] = Fn(args => Game() is { } game && Arg(args, 0) is { } seat && game.RoleOf(seat, Arg(args, 1)) is { } role ? DynValue.NewString(role) : DynValue.Nil);
             t["getTeam"] = Fn(args => Game() is { } game && Arg(args, 0) is { } seat && game.TeamOf(seat) is { } team ? DynValue.NewString(team) : DynValue.Nil);
             t["getLegalActions"] = Fn(args => Game() is { } game && Arg(args, 0) is { } seat
-                ? List(script, game.LegalActions(seat).Select(a => a.ActionId))
-                : List(script, Enumerable.Empty<string>()));
+                ? Texts(script, game.LegalActions(seat).Select(a => a.ActionId))
+                : Texts(script, Enumerable.Empty<string>()));
 
             t["setResource"] = Fn(args => Change("setResource", Arg(args, 0), Arg(args, 1), ToJson(args.Count > 2 ? args[2] : DynValue.Nil)));
             t["addResource"] = Fn(args => Change("addResource", Arg(args, 0), Arg(args, 1), ToJson(args.Count > 2 ? args[2] : DynValue.Nil)));

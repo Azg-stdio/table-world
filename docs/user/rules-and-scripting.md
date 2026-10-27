@@ -189,6 +189,12 @@ only how many chose each option (`count`, like face-down mission cards), or only
 `$vote.result` and the counts (`$vote.fail`). A vote can be for a player (`"seats": true`), and `closeVote` ends one
 early. The format is in [the rules format](../rules-schema.md#votes).
 
+**Picking a group, and a team that wins.** A variable can hold a list: `{ "setVariable": { "name": "team", "add":
+"$param.member" } }` adds one item, `"remove"` takes one out, `"value": []` empties it. Rules read `$var.team.count`
+and check `{ "inList": { "list": "$var.team", "value": "$param.member" } }`, and a vote's `who` can be the list.
+`{ "win": { "team": "evil" } }` ends a game with hidden roles: the whole team wins. `games/avalon.json` puts it all
+together.
+
 ## 4. Naming things: `$` references
 
 Rules rarely name one card. They say "the actor's deck" or "the top card of the discard pile". A `$` reference names

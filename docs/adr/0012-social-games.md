@@ -99,6 +99,11 @@ dedicated server. What matters is that no one sees a secret by accident or with 
   privately (`to`: a seat, `team:<id>`, `role:<id>`, on `revealRole` and `message`), and roles with a `set` deal more
   hidden traits beside the role (`$actor.role.<set>`). Each game the milestone builds is a test of the format: a gap
   it finds is fixed for every game, never for that one.
+- **What building Avalon through MCP found (T11.6)**, each fixed in general: list variables (`setVariable` `add` /
+  `remove`, `.count`, items by position, the `inList` condition) for a team picked one seat at a time; `win` with a
+  `team`; a vote's `who` taking a list. The quest table (size by player count and quest) went to Lua, the format's
+  own escape hatch. A bug any game would have hit: Lua's `Game.getSeats()` and `getLegalActions()` returned their ids
+  as object handles, so every entry was nil; they return plain strings now.
 
 ### 3. Eyes-closed phases
 

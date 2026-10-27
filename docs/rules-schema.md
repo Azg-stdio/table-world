@@ -222,7 +222,7 @@ Fields that name a thing accept a plain id (object, zone, or a card inside a dec
 | `$seat.<id>`, `$obj.<id>` | a seat; an object, zone or deck by id |
 | `$param.<name>`, `$var.<name>` | an action parameter; a variable's current value |
 
-Properties: on a seat `.role` and `.team` (its hidden role and team, where this machine knows them; see Roles), `.hand` (its HandZone), `.<tag>` (the object or zone tagged `<tag>:<seatId>`, e.g. `$actor.deck` → tag `deck:seat_1`), `.id`, `.color`, `.res.<resource>`. On decks `.top`, `.bottom`, `.count`; on zones `.top`/`.bottom` (highest/lowest object in the zone), `.count`; on cards and objects `.meta.<key>`, `.name`, `.id`, `.faceUp`, `.value` (die). A reference to something that does not exist right now (the top of an empty deck) is null: comparisons with null are false except `!=`.
+Lists (a variable holding `[...]`) have `.count` and items by position (`$var.team.0`). Properties: on a seat `.role` and `.team` (its hidden role and team, where this machine knows them; see Roles), `.hand` (its HandZone), `.<tag>` (the object or zone tagged `<tag>:<seatId>`, e.g. `$actor.deck` → tag `deck:seat_1`), `.id`, `.color`, `.res.<resource>`. On decks `.top`, `.bottom`, `.count`; on zones `.top`/`.bottom` (highest/lowest object in the zone), `.count`; on cards and objects `.meta.<key>`, `.name`, `.id`, `.faceUp`, `.value` (die). A reference to something that does not exist right now (the top of an empty deck) is null: comparisons with null are false except `!=`.
 
 ## Effects (v0)
 
@@ -235,14 +235,14 @@ Each effect is a single-key object, e.g. `{ "shuffle": { "object": "deck_main" }
 | `shuffle` / `flip` | `object` |
 | `lock` | `object`, `locked` (default true) |
 | `roll` | `object` (a die), `store` (variable for the value) |
-| `setVariable` | `name`, exactly one of `value` (literal or reference) or `delta` |
+| `setVariable` | `name`, exactly one of `value` (literal or reference), `delta`, or for a list `add` / `remove` (one item; `"value": []` empties it) |
 | `setResource` | `player`, `resource`, exactly one of `value` or `delta`; clamped to `min`/`max` |
 | `if` | `condition`, `then`, `else` |
 | `forEach` | exactly one of `players: true` or `objectsIn` (zone, deck or bag); `do` (binds `$it`) |
 | `message` | `text`; `{$reference}` is replaced by its value; goes to the session log, or with `to` (a seat, `team:<id>`, `role:<id>`) privately to those players only |
 | `endTurn` / `endPhase` | `{}` — take effect after the current effect list |
 | `gotoPhase` | `phase` |
-| `win` | `player` |
+| `win` | `player`, or `team` (hidden roles: every seat of that team wins; the log names them) |
 | `revealRole` | `seat`; `to` (a seat, `team:<id>`, `role:<id>`; every seat when left out or `all`); `teamOnly` (show only the team); `set` (show a trait of an extra role set) |
 | `setRole` | `seat`, `role` (an id or a reference), `set`, `tell` (let the player know); the new role brings its team |
 | `swapRoles` | `a`, `b`, `set`, `tell`; each seat's team goes with its role |
@@ -265,6 +265,7 @@ Moving cards into a deck makes them take the deck's orientation; into a zone the
 | `hasTag` | `object`, `tag` |
 | `and` / `or` | an array of conditions: `{ "and": [ ..., ... ] }` |
 | `not` | one condition: `{ "not": { "isCurrentPlayer": { "player": "$actor" } } }` |
+| `inList` | `list` (a list, e.g. `$var.team`), `value`: the list holds it |
 
 `op` is one of `==`, `!=`, `<`, `<=`, `>`, `>=`.
 

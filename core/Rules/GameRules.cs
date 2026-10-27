@@ -150,6 +150,8 @@ namespace Core.Rules
         public bool Started { get; set; }
         public bool Over { get; set; }
         public string? Winner { get; set; }
+        /// <summary>Set when a team won (<c>win</c> with <c>team</c>); <see cref="Winner"/> is then the team id.</summary>
+        public string? WinnerTeam { get; set; }
         public int Turn { get; set; }
         /// <summary>Seats playing this game, in seat order; empty means every seat (games saved before seats were chosen).</summary>
         public List<string> Players { get; set; } = new List<string>();

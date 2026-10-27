@@ -55,11 +55,17 @@ namespace Core.Rules
         public string Object { get; set; } = "";
     }
 
+    /// <summary>
+    /// Sets a variable: exactly one of <see cref="Value"/>, <see cref="Delta"/> (a number), or for a list
+    /// <see cref="Add"/> / <see cref="Remove"/> (an item, e.g. a seat picked for a team; <c>"value": []</c> empties it).
+    /// </summary>
     public sealed class SetVariableEffect : Effect
     {
         public string Name { get; set; } = "";
         public JToken? Value { get; set; }
         public double? Delta { get; set; }
+        public JToken? Add { get; set; }
+        public JToken? Remove { get; set; }
     }
 
     public sealed class SetResourceEffect : Effect
@@ -105,9 +111,11 @@ namespace Core.Rules
         public string Phase { get; set; } = "";
     }
 
+    /// <summary>Ends the game: <see cref="Player"/> wins, or with <see cref="Team"/> every seat of that team (hidden roles).</summary>
     public sealed class WinEffect : Effect
     {
         public string Player { get; set; } = "";
+        public string? Team { get; set; }
     }
 
     public sealed class LockEffect : Effect
@@ -313,6 +321,13 @@ namespace Core.Rules
         public string Zone { get; set; } = "";
     }
 
+    /// <summary>A list (a variable holding one, e.g. a team being picked) contains <see cref="Value"/>.</summary>
+    public sealed class InListCondition : Condition
+    {
+        public JToken? List { get; set; }
+        public JToken? Value { get; set; }
+    }
+
     public sealed class HasTagCondition : Condition
     {
         public string Object { get; set; } = "";
@@ -345,6 +360,7 @@ namespace Core.Rules
             ["isCurrentPlayer"] = typeof(IsCurrentPlayerCondition),
             ["objectIn"] = typeof(ObjectInCondition),
             ["hasTag"] = typeof(HasTagCondition),
+            ["inList"] = typeof(InListCondition),
             ["and"] = typeof(AndCondition),
             ["or"] = typeof(OrCondition),
             ["not"] = typeof(NotCondition),

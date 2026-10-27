@@ -320,6 +320,16 @@ namespace Core.Scripting
             }
         }
 
+        /// <summary>A Lua list of plain strings (seat ids, action ids): not objects, so not proxied.</summary>
+        private static DynValue Texts(Script script, IEnumerable<string> values)
+        {
+            var t = new Table(script);
+            var i = 1;
+            foreach (var value in values)
+                t[i++] = DynValue.NewString(value);
+            return DynValue.NewTable(t);
+        }
+
         private DynValue List(Script script, IEnumerable<string> ids)
         {
             var t = new Table(script);

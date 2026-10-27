@@ -1,0 +1,42 @@
+AVALON (summary written for Table World's tests; plays like The Resistance: Avalon)
+
+Players: 5 to 10.
+
+Teams and roles
+- Two teams: the Loyal servants of Arthur (good) and the Minions of Mordred (evil).
+- Team sizes by player count: 5 players 3 good / 2 evil; 6: 4/2; 7: 4/3; 8: 5/3; 9: 6/3; 10: 6/4.
+- Always in play: Merlin (good) and the Assassin (evil). The other good players are Loyal servants, the other evil
+  players Minions of Mordred.
+- Optional roles the host may add: Percival (good), Morgana, Mordred and Oberon (evil). They replace a Loyal servant or
+  a Minion.
+- At the start, each player secretly learns their role.
+  - The evil players learn who the other evil players are, except Oberon.
+  - Merlin learns who the evil players are, except Mordred.
+  - Oberon learns nobody, and the other evil players do not learn him.
+  - Percival learns which two players are Merlin and Morgana, but not which is which.
+
+A round
+- The leader moves clockwise every round; the first leader is chosen at random.
+- 1. The leader picks a team for the current quest. The team's size depends on the quest and the player count:
+       5 players: 2, 3, 2, 3, 3        6 players: 2, 3, 4, 3, 4        7 players: 2, 3, 3, 4, 4
+       8, 9 or 10 players: 3, 4, 4, 5, 5
+- 2. Everyone votes, openly, to approve or reject the team.
+  - A majority of approvals sends the team on the quest. A tie rejects it.
+  - If the team is rejected, the next player becomes leader and proposes again.
+  - Five rejected teams in a row: evil wins.
+- 3. The team members secretly choose success or fail. Good players must choose success; evil players may choose
+     either. Only the number of fails is revealed, not who played them.
+  - The quest fails with one fail card.
+  - Exception: with 7 or more players, the fourth quest fails only with two fail cards.
+- After the quest, the next player becomes leader.
+
+The end
+- Three failed quests: evil wins at once.
+- Three successful quests: the Assassin names one good player.
+  - If it is Merlin, evil wins.
+  - Otherwise good wins.
+
+Questions the rulebook leaves open (asked of the host when building)
+- Can the leader include themselves in the team? Yes.
+- Is the rejection count reset after a quest goes ahead? Yes, it resets once a team is approved.
+- Does the Assassin choose alone or with the evil team's advice? Alone in the rules (talking is free at the table).

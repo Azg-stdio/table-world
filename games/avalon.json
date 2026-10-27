@@ -1,0 +1,841 @@
+{
+  "schemaVersion": "0.1",
+  "assets": [
+    {
+      "id": "std_deck",
+      "path": "builtin:standard_deck",
+      "columns": 10,
+      "rows": 7
+    },
+    {
+      "id": "std_back",
+      "path": "builtin:standard_back",
+      "columns": 1,
+      "rows": 1
+    }
+  ],
+  "zones": [
+    {
+      "id": "hand_1",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          0.55,
+          0.05,
+          -0.67
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_1"
+    },
+    {
+      "id": "hand_2",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          -0.0,
+          0.05,
+          -0.67
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_2"
+    },
+    {
+      "id": "hand_3",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          -0.55,
+          0.05,
+          -0.67
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_3"
+    },
+    {
+      "id": "hand_4",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          -1.08,
+          0.05,
+          -0.275
+        ],
+        "rotation": [
+          0.0,
+          90.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_4"
+    },
+    {
+      "id": "hand_5",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          -1.08,
+          0.05,
+          0.275
+        ],
+        "rotation": [
+          0.0,
+          90.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_5"
+    },
+    {
+      "id": "hand_6",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          -0.55,
+          0.05,
+          0.67
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_6"
+    },
+    {
+      "id": "hand_7",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          0.0,
+          0.05,
+          0.67
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_7"
+    },
+    {
+      "id": "hand_8",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          0.55,
+          0.05,
+          0.67
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_8"
+    },
+    {
+      "id": "hand_9",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          1.08,
+          0.05,
+          0.275
+        ],
+        "rotation": [
+          0.0,
+          270.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_9"
+    },
+    {
+      "id": "hand_10",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          1.08,
+          0.05,
+          -0.275
+        ],
+        "rotation": [
+          0.0,
+          270.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_10"
+    }
+  ],
+  "players": {
+    "seats": [
+      {
+        "id": "seat_1",
+        "color": "red",
+        "handZone": "hand_1"
+      },
+      {
+        "id": "seat_2",
+        "color": "blue",
+        "handZone": "hand_2"
+      },
+      {
+        "id": "seat_3",
+        "color": "green",
+        "handZone": "hand_3"
+      },
+      {
+        "id": "seat_4",
+        "color": "yellow",
+        "handZone": "hand_4"
+      },
+      {
+        "id": "seat_5",
+        "color": "orange",
+        "handZone": "hand_5"
+      },
+      {
+        "id": "seat_6",
+        "color": "purple",
+        "handZone": "hand_6"
+      },
+      {
+        "id": "seat_7",
+        "color": "pink",
+        "handZone": "hand_7"
+      },
+      {
+        "id": "seat_8",
+        "color": "teal",
+        "handZone": "hand_8"
+      },
+      {
+        "id": "seat_9",
+        "color": "white",
+        "handZone": "hand_9"
+      },
+      {
+        "id": "seat_10",
+        "color": "brown",
+        "handZone": "hand_10"
+      }
+    ]
+  },
+  "environment": {
+    "lighting": {},
+    "table": {
+      "size": [
+        2.4,
+        1.5
+      ]
+    }
+  },
+  "game": {
+    "id": "avalon",
+    "name": "Avalon",
+    "description": "Hidden loyalties: good completes three quests, evil fails three or finds Merlin at the end. A leader picks each quest's team, everyone votes on it, and the team succeeds or fails it in secret.",
+    "minPlayers": 5,
+    "maxPlayers": 10
+  },
+  "variables": {
+    "quest": 1,
+    "size": 2,
+    "needFails": 1,
+    "team": [],
+    "successes": 0,
+    "fails": 0,
+    "rejections": 0
+  },
+  "turn": {
+    "startingPlayer": "random",
+    "phases": [
+      "propose",
+      "team_vote",
+      "quest",
+      "assassinate"
+    ]
+  },
+  "phases": [
+    {
+      "id": "propose",
+      "name": "Pick the team",
+      "actions": [
+        "pick",
+        "unpick"
+      ],
+      "onEnter": [
+        {
+          "lua": {
+            "call": "setQuest"
+          }
+        },
+        {
+          "setVariable": {
+            "name": "team",
+            "value": []
+          }
+        },
+        {
+          "message": {
+            "text": "{$current.name} leads quest {$var.quest}: pick {$var.size} players."
+          }
+        }
+      ],
+      "advanceWhen": {
+        "condition": {
+          "compare": {
+            "left": "$var.team.count",
+            "op": "==",
+            "right": "$var.size"
+          }
+        }
+      }
+    },
+    {
+      "id": "team_vote",
+      "name": "Vote on the team",
+      "actions": [
+        "team_vote"
+      ]
+    },
+    {
+      "id": "quest",
+      "name": "Quest",
+      "actions": [
+        "quest"
+      ]
+    },
+    {
+      "id": "assassinate",
+      "name": "The Assassin strikes",
+      "actions": [
+        "assassinate"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "id": "pick",
+      "name": "Pick",
+      "params": [
+        {
+          "name": "member",
+          "type": "seat"
+        }
+      ],
+      "preconditions": [
+        {
+          "not": {
+            "inList": {
+              "list": "$var.team",
+              "value": "$param.member"
+            }
+          }
+        },
+        {
+          "compare": {
+            "left": "$var.team.count",
+            "op": "<",
+            "right": "$var.size"
+          }
+        }
+      ],
+      "effects": [
+        {
+          "setVariable": {
+            "name": "team",
+            "add": "$param.member"
+          }
+        },
+        {
+          "message": {
+            "text": "{$actor.name} picks {$param.member.name}."
+          }
+        }
+      ]
+    },
+    {
+      "id": "unpick",
+      "name": "Take off the team",
+      "params": [
+        {
+          "name": "member",
+          "type": "seat"
+        }
+      ],
+      "preconditions": [
+        {
+          "inList": {
+            "list": "$var.team",
+            "value": "$param.member"
+          }
+        }
+      ],
+      "effects": [
+        {
+          "setVariable": {
+            "name": "team",
+            "remove": "$param.member"
+          }
+        }
+      ]
+    },
+    {
+      "id": "team_vote",
+      "name": "Team vote",
+      "actor": "any",
+      "vote": {
+        "options": [
+          "approve",
+          "reject"
+        ],
+        "labels": {
+          "approve": "Approve",
+          "reject": "Reject"
+        },
+        "decide": "majority",
+        "otherwise": "reject",
+        "onResult": [
+          {
+            "if": {
+              "condition": {
+                "compare": {
+                  "left": "$vote.result",
+                  "op": "==",
+                  "right": "approve"
+                }
+              },
+              "then": [
+                {
+                  "setVariable": {
+                    "name": "rejections",
+                    "value": 0
+                  }
+                },
+                {
+                  "gotoPhase": {
+                    "phase": "quest"
+                  }
+                }
+              ],
+              "else": [
+                {
+                  "setVariable": {
+                    "name": "rejections",
+                    "delta": 1.0
+                  }
+                },
+                {
+                  "if": {
+                    "condition": {
+                      "compare": {
+                        "left": "$var.rejections",
+                        "op": ">=",
+                        "right": 5
+                      }
+                    },
+                    "then": [
+                      {
+                        "message": {
+                          "text": "Five teams rejected in a row."
+                        }
+                      },
+                      {
+                        "win": {
+                          "player": "",
+                          "team": "evil"
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "endTurn": {}
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "quest",
+      "name": "Quest",
+      "actor": "any",
+      "preconditions": [
+        {
+          "or": [
+            {
+              "compare": {
+                "left": "$actor.team",
+                "op": "==",
+                "right": "evil"
+              }
+            },
+            {
+              "compare": {
+                "left": "$param.choice",
+                "op": "==",
+                "right": "success"
+              }
+            }
+          ]
+        }
+      ],
+      "vote": {
+        "options": [
+          "success",
+          "fail"
+        ],
+        "labels": {
+          "success": "Success",
+          "fail": "Fail"
+        },
+        "who": "$var.team",
+        "reveal": "count",
+        "onResult": [
+          {
+            "if": {
+              "condition": {
+                "compare": {
+                  "left": "$vote.fail",
+                  "op": ">=",
+                  "right": "$var.needFails"
+                }
+              },
+              "then": [
+                {
+                  "setVariable": {
+                    "name": "fails",
+                    "delta": 1.0
+                  }
+                },
+                {
+                  "message": {
+                    "text": "Quest {$var.quest} fails."
+                  }
+                }
+              ],
+              "else": [
+                {
+                  "setVariable": {
+                    "name": "successes",
+                    "delta": 1.0
+                  }
+                },
+                {
+                  "message": {
+                    "text": "Quest {$var.quest} succeeds."
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "if": {
+              "condition": {
+                "compare": {
+                  "left": "$var.fails",
+                  "op": ">=",
+                  "right": 3
+                }
+              },
+              "then": [
+                {
+                  "win": {
+                    "player": "",
+                    "team": "evil"
+                  }
+                }
+              ],
+              "else": [
+                {
+                  "if": {
+                    "condition": {
+                      "compare": {
+                        "left": "$var.successes",
+                        "op": ">=",
+                        "right": 3
+                      }
+                    },
+                    "then": [
+                      {
+                        "message": {
+                          "text": "Three quests succeeded. The Assassin names Merlin."
+                        }
+                      },
+                      {
+                        "gotoPhase": {
+                          "phase": "assassinate"
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "setVariable": {
+                          "name": "quest",
+                          "delta": 1.0
+                        }
+                      },
+                      {
+                        "endTurn": {}
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "assassinate",
+      "name": "Name Merlin",
+      "actor": "any",
+      "params": [
+        {
+          "name": "target",
+          "type": "seat"
+        }
+      ],
+      "preconditions": [
+        {
+          "compare": {
+            "left": "$actor.role",
+            "op": "==",
+            "right": "assassin"
+          }
+        },
+        {
+          "not": {
+            "compare": {
+              "left": "$param.target",
+              "op": "==",
+              "right": "$actor.id"
+            }
+          }
+        }
+      ],
+      "effects": [
+        {
+          "revealRole": {
+            "seat": "$param.target"
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "compare": {
+                "left": "$param.target.role",
+                "op": "==",
+                "right": "merlin"
+              }
+            },
+            "then": [
+              {
+                "win": {
+                  "player": "",
+                  "team": "evil"
+                }
+              }
+            ],
+            "else": [
+              {
+                "win": {
+                  "player": "",
+                  "team": "good"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "global": "\nSIZES = { [5] = {2, 3, 2, 3, 3}, [6] = {2, 3, 4, 3, 4}, [7] = {2, 3, 3, 4, 4},\n          [8] = {3, 4, 4, 5, 5}, [9] = {3, 4, 4, 5, 5}, [10] = {3, 4, 4, 5, 5} }\n\n-- The team size and the fails it takes for the quest about to be played.\nfunction setQuest(ctx)\n  local players = #Game.getSeats()\n  local quest = Game.getVariable(\"quest\")\n  Game.setVariable(\"size\", SIZES[players][quest])\n  if quest == 4 and players >= 7 then Game.setVariable(\"needFails\", 2) else Game.setVariable(\"needFails\", 1) end\nend\n"
+  },
+  "roles": {
+    "teams": [
+      {
+        "id": "good",
+        "name": "Loyal servants of Arthur"
+      },
+      {
+        "id": "evil",
+        "name": "Minions of Mordred"
+      }
+    ],
+    "list": [
+      {
+        "id": "merlin",
+        "name": "Merlin",
+        "team": "good",
+        "description": "Knows the evil players, except Mordred. Must stay hidden from the Assassin."
+      },
+      {
+        "id": "percival",
+        "name": "Percival",
+        "team": "good",
+        "optional": true,
+        "description": "Sees Merlin and Morgana, not which is which."
+      },
+      {
+        "id": "servant",
+        "name": "Loyal servant",
+        "team": "good",
+        "count": "fill"
+      },
+      {
+        "id": "assassin",
+        "name": "Assassin",
+        "team": "evil",
+        "description": "Names one good player at the end: Merlin means evil wins."
+      },
+      {
+        "id": "morgana",
+        "name": "Morgana",
+        "team": "evil",
+        "optional": true,
+        "description": "Appears as Merlin to Percival."
+      },
+      {
+        "id": "mordred",
+        "name": "Mordred",
+        "team": "evil",
+        "optional": true,
+        "description": "Hidden from Merlin."
+      },
+      {
+        "id": "oberon",
+        "name": "Oberon",
+        "team": "evil",
+        "optional": true,
+        "description": "Unknown to the other minions, and knows none of them."
+      },
+      {
+        "id": "minion",
+        "name": "Minion of Mordred",
+        "team": "evil",
+        "count": "fill"
+      }
+    ],
+    "byPlayers": {
+      "5": {
+        "good": 3,
+        "evil": 2
+      },
+      "6": {
+        "good": 4,
+        "evil": 2
+      },
+      "7": {
+        "good": 4,
+        "evil": 3
+      },
+      "8": {
+        "good": 5,
+        "evil": 3
+      },
+      "9": {
+        "good": 6,
+        "evil": 3
+      },
+      "10": {
+        "good": 6,
+        "evil": 4
+      }
+    },
+    "knows": [
+      {
+        "role": "merlin",
+        "sees": {
+          "team": "evil",
+          "except": [
+            "mordred"
+          ]
+        }
+      },
+      {
+        "team": "evil",
+        "sees": {
+          "team": "evil",
+          "except": [
+            "oberon"
+          ]
+        }
+      },
+      {
+        "role": "oberon",
+        "sees": {}
+      },
+      {
+        "role": "percival",
+        "sees": {
+          "roles": [
+            "merlin",
+            "morgana"
+          ]
+        },
+        "as": "oneOf"
+      }
+    ]
+  }
+}

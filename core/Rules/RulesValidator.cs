@@ -341,9 +341,11 @@ namespace Core.Rules
                     break;
                 case SetVariableEffect set:
                     Variable(set.Name, $"{path}.name");
-                    if ((set.Value == null) == (set.Delta == null))
-                        Add(path, ErrorCodes.InvalidValue, "setVariable needs exactly one of 'value' or 'delta'.");
+                    if ((set.Value != null ? 1 : 0) + (set.Delta != null ? 1 : 0) + (set.Add != null || set.Remove != null ? 1 : 0) != 1)
+                        Add(path, ErrorCodes.InvalidValue, "setVariable needs exactly one of 'value', 'delta', or 'add'/'remove' for a list.");
                     Value(set.Value, $"{path}.value");
+                    Value(set.Add, $"{path}.add");
+                    Value(set.Remove, $"{path}.remove");
                     break;
                 case SetResourceEffect res:
                     Seat(res.Player, $"{path}.player");
@@ -365,6 +367,11 @@ namespace Core.Rules
                     break;
                 case GotoPhaseEffect go:
                     CheckPhaseRef(go.Phase, $"{path}.phase", phaseIds);
+                    break;
+                case WinEffect win when win.Team != null:
+                    if (_state.Roles == null || _state.Roles.Teams.All(t => t.Id != win.Team))
+                        Add($"{path}.team", ErrorCodes.UnknownTeam, $"Team '{win.Team}' does not exist.",
+                            _state.Roles == null ? "Teams come with roles (set_roles)." : Suggest.OneOf(win.Team, _state.Roles.Teams.Select(t => t.Id), "a team id"));
                     break;
                 case WinEffect win:
                     Seat(win.Player, $"{path}.player");
@@ -440,6 +447,10 @@ namespace Core.Rules
                 case IsCurrentPlayerCondition p: Seat(p.Player, $"{path}.player"); break;
                 case ObjectInCondition oi: Target(oi.Object, $"{path}.object"); Target(oi.Zone, $"{path}.zone"); break;
                 case HasTagCondition ht: Target(ht.Object, $"{path}.object"); break;
+                case InListCondition il:
+                    Value(il.List, $"{path}.list");
+                    Value(il.Value, $"{path}.value");
+                    break;
                 case AndCondition and: for (var i = 0; i < and.Conditions.Count; i++) Cond(and.Conditions[i], $"{path}[{i}]"); break;
                 case OrCondition or: for (var i = 0; i < or.Conditions.Count; i++) Cond(or.Conditions[i], $"{path}[{i}]"); break;
                 case NotCondition not when not.Condition != null: Cond(not.Condition, path); break;

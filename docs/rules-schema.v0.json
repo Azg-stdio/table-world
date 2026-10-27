@@ -2880,7 +2880,9 @@
         "value": {},
         "delta": {
           "type": "number"
-        }
+        },
+        "add": {},
+        "remove": {}
       },
       "additionalProperties": false
     },
@@ -3004,6 +3006,18 @@
           },
           "required": [
             "hasTag"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "inList": {
+              "$ref": "#/$defs/InListCondition"
+            }
+          },
+          "required": [
+            "inList"
           ],
           "additionalProperties": false
         },
@@ -3137,6 +3151,14 @@
       },
       "additionalProperties": false
     },
+    "InListCondition": {
+      "type": "object",
+      "properties": {
+        "list": {},
+        "value": {}
+      },
+      "additionalProperties": false
+    },
     "ForEachEffect": {
       "type": "object",
       "properties": {
@@ -3190,6 +3212,9 @@
       "type": "object",
       "properties": {
         "player": {
+          "type": "string"
+        },
+        "team": {
           "type": "string"
         }
       },
@@ -4568,6 +4593,9 @@
           "type": "boolean"
         },
         "winner": {
+          "type": "string"
+        },
+        "winnerTeam": {
           "type": "string"
         },
         "turn": {
