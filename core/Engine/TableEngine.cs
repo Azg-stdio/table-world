@@ -317,6 +317,7 @@ namespace Core.Engine
             SetLightCommand c => SetLight(c),
             MoveZoneCommand c => MoveZone(c),
             SetMusicCommand c => SetMusic(c),
+            SetScreenCommand c => SetScreen(c),
             AddDrawingCommand c => AddDrawing(c),
             SetNoteTabCommand c => SetNoteTab(c),
             DeleteNoteTabCommand c => DeleteNoteTab(c),
@@ -619,6 +620,21 @@ namespace Core.Engine
                 return CommandResult.Fail("mode", ErrorCodes.InvalidValue, $"Unknown physics mode {(int)c.Mode}.", "Use full, semiLock or locked.");
             State.Physics = c.Mode;
             return CommandResult.Success(new List<StateEvent> { new TableSettingsChanged() });
+        }
+
+        private CommandResult SetScreen(SetScreenCommand c)
+        {
+            if (c.VideoId == null)
+            {
+                State.Screen = null;
+                return CommandResult.Success(new List<StateEvent> { new ScreenChanged() });
+            }
+            if (YouTube.VideoId(c.VideoId) != c.VideoId)
+                return CommandResult.Fail("videoId", ErrorCodes.InvalidValue, $"'{c.VideoId}' is not a YouTube video id.", "Use the 11 characters after v= in a YouTube link.");
+            if (!(c.Position >= 0 && c.Position < 86_400) || !(c.At >= 0) || double.IsInfinity(c.At))
+                return CommandResult.Fail("position", ErrorCodes.InvalidValue, "A position is 0 or more seconds, at a time on the host's clock.");
+            State.Screen = new ScreenState { VideoId = c.VideoId, Playing = c.Playing, Position = c.Position, At = c.At };
+            return CommandResult.Success(new List<StateEvent> { new ScreenChanged() });
         }
 
         private CommandResult SetMusic(SetMusicCommand c)

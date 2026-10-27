@@ -332,6 +332,19 @@ namespace Core.Engine
         public float[]? Tint { get; set; }
     }
 
+    /// <summary>
+    /// Puts a YouTube video on the big screen, plays, pauses or moves it (karaoke, ADR 0013, T12.11). Anyone in the room
+    /// may: <see cref="At"/> is when <see cref="Position"/> is true, in milliseconds on the host's clock, as the sender
+    /// reckons it. A null <see cref="VideoId"/> turns the screen off.
+    /// </summary>
+    public sealed class SetScreenCommand : Command
+    {
+        public string? VideoId { get; set; }
+        public bool Playing { get; set; }
+        public double Position { get; set; }
+        public double At { get; set; }
+    }
+
     /// <summary>Sets the table grid (G28): lines, snapping, shape and size; null removes it. Host only.</summary>
     public sealed class SetGridCommand : Command, IHostCommand
     {

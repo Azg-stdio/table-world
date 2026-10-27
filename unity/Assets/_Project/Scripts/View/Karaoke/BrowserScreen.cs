@@ -49,6 +49,14 @@ namespace TableWorld.View.Karaoke
 
         public double Duration { get; private set; }
 
+        private float _reportedAt;
+
+        /// <summary>
+        /// The video's time now: the last report, plus the time since it arrived while playing (reports come every tenth
+        /// of a second, so a bare <see cref="Time"/> is up to that much behind).
+        /// </summary>
+        public double TimeNow => State == 1 ? Time + (UnityEngine.Time.realtimeSinceStartup - _reportedAt) : Time;
+
         /// <summary>YouTube's error for the video (2 bad id, 5 HTML5 error, 100 not found, 101 and 150 embedding not allowed), or null.</summary>
         public int? Error { get; private set; }
 
@@ -164,6 +172,7 @@ namespace TableWorld.View.Karaoke
             {
                 State = state;
                 Time = double.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out var t) ? t : Time;
+                _reportedAt = UnityEngine.Time.realtimeSinceStartup;
                 Duration = double.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var d) ? d : Duration;
             }
         }

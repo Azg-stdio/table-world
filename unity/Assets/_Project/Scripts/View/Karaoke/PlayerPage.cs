@@ -82,7 +82,7 @@ namespace TableWorld.View.Karaoke
 
         /// <summary>
         /// The page: one YouTube IFrame player filling it, black around it. <c>window.tw</c> takes the game's commands
-        /// (load, play, pause, seek); the title reports <c>state|time|duration|video</c> every quarter second, with
+        /// (load, play, pause, seek); the title reports <c>state|time|duration|video</c> every tenth of a second, with
         /// <c>error|code</c> when the player fails (a video that will not embed, or is blocked here).
         /// </summary>
         private static string Html(int port) => @"<!doctype html>
@@ -108,7 +108,7 @@ setInterval(function(){
   if(!player||!player.getPlayerState){document.title='loading';return;}
   var d=player.getVideoData?player.getVideoData():{};
   document.title=player.getPlayerState()+'|'+(player.getCurrentTime()||0).toFixed(2)+'|'+(player.getDuration()||0).toFixed(2)+'|'+(d.video_id||'');
-},250);
+},100);
 </script></body></html>";
 
         public void Dispose()

@@ -53,6 +53,9 @@
         "music": {
           "$ref": "#/$defs/MusicState"
         },
+        "screen": {
+          "$ref": "#/$defs/ScreenState"
+        },
         "notebook": {
           "type": "array",
           "items": {
@@ -4098,6 +4101,24 @@
         },
         "url": {
           "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ScreenState": {
+      "type": "object",
+      "properties": {
+        "videoId": {
+          "type": "string"
+        },
+        "playing": {
+          "type": "boolean"
+        },
+        "position": {
+          "type": "number"
+        },
+        "at": {
+          "type": "number"
         }
       },
       "additionalProperties": false

@@ -108,6 +108,12 @@ namespace Core.Engine
         }
     }
 
+    /// <summary>The big screen changed (another video, played, paused, moved).</summary>
+    public sealed class ScreenChanged : StateEvent
+    {
+        public ScreenChanged() : base("") { }
+    }
+
     /// <summary>The table's music changed (a track, playing or paused, the playlist).</summary>
     public sealed class MusicChanged : StateEvent
     {

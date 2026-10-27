@@ -188,9 +188,22 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsFalse(bar.PlayLink("https://example.com/watch?v=M7lc1UVf-VE"));
             Assert.AreEqual("That is not a YouTube link.", root.Q<Label>("screenStatus").text);
             Assert.IsTrue(bar.PlayLink("https://youtu.be/M7lc1UVf-VE"));
-            Assert.IsNotNull(bar.Screen);
+            // Shared: the table's screen says what plays, from where, at what host time.
+            var shared = _table.Engine.State.Screen;
+            Assert.AreEqual("M7lc1UVf-VE", shared.VideoId);
+            Assert.IsTrue(shared.Playing);
+            Assert.AreEqual(0, shared.Position, 1e-6);
+            yield return null;
+            Assert.IsNotNull(bar.Screen, "this machine's player follows it");
             Assert.AreEqual("M7lc1UVf-VE", bar.Screen.VideoId);
             Assert.AreEqual(bar.Screen.transform.parent, _environment.Screen.transform, "on the room's screen");
+
+            yield return new WaitForSeconds(0.3f);
+            Assert.IsTrue(bar.Pause());
+            Assert.IsFalse(_table.Engine.State.Screen.Playing, "paused for everyone");
+            Assert.Greater(_table.Engine.State.Screen.Position, 0.2, "where it was");
+            Assert.IsTrue(bar.PlayLink(""), "an empty link resumes");
+            Assert.IsTrue(_table.Engine.State.Screen.Playing);
 
             Assert.IsTrue(_table.Load(Karaoke.Replace("karaoke", "gameNight"), null));
             yield return null;
