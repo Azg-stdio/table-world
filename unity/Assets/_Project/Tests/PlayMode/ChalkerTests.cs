@@ -35,6 +35,21 @@ namespace TableWorld.Tests.PlayMode
             }
         }
 
+        /// <summary>M10 T11.11: the named points an artist's model binds to exist, and the pose moves them.</summary>
+        [UnityTest]
+        public IEnumerator NamedPoints_ExistAndFollowThePose()
+        {
+            var names = new[] { "root", "torso", "neck", "head", "face", "mouth", "leftShoulder", "rightShoulder", "leftElbow", "rightElbow", "leftHand", "rightHand" };
+            CollectionAssert.AreEquivalent(names, _chalker.Points.Keys);
+            foreach (var name in names)
+                Assert.IsNotNull(_chalker.Points[name], name);
+            yield return Run(0.2f);
+            var hand = _chalker.Points["rightHand"].position;
+            _chalker.Play(ChalkerEmote.Wave);
+            yield return Run(0.6f);
+            Assert.Greater(Vector3.Distance(hand, _chalker.Points["rightHand"].position), 0.1f, "a wave moves the right hand point");
+        }
+
         /// <summary>M10: a wink shuts one eye and opens it again; eyes closed shuts both and lowers the head until woken.</summary>
         [UnityTest]
         public IEnumerator AWink_ShutsOneEye_AndEyesClosed_PutsItToSleep()

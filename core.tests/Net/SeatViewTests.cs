@@ -162,6 +162,31 @@ namespace Core.Tests.Net
             Assert.Equal(TableJson.Hash(game.State), TableJson.Hash(view));
         }
 
+        /// <summary>Whoever searches a face-down deck sees its cards (TTS too); the others keep seeing backs.</summary>
+        [Fact]
+        public void SearchingAFaceDownDeck_ShowsItToTheSearcherAlone()
+        {
+            var game = GameFixtures.Load("uno-lite", 5);
+            Assert.True(game.Execute(new StartGameCommand()).Ok);
+            var seats = game.State.Players.Seats.Select(s => s.Id).ToArray();
+            var table = new Table(game, seats);
+            var draw = game.State.Objects.OfType<Deck>().Single(d => !d.IsFaceUp).Id;
+            Deck DeckOn(string seat) => (Deck)table.Clients[seat].Predicted!.Table.Find(draw)!;
+            Assert.All(DeckOn(seats[0]).Cards, c => Assert.True(c.Unknown));
+
+            var (_, intent) = table.Clients[seats[0]].Submit(new SearchCommand { ContainerId = draw, Actor = seats[0] });
+            foreach (var outgoing in table.Host.Receive(seats[0], intent!))
+                table.Deliver(outgoing);
+            Assert.All(DeckOn(seats[0]).Cards, c => Assert.False(c.Unknown));
+            Assert.Equal(((Deck)game.Table.Find(draw)!).Cards.Select(c => c.Id), DeckOn(seats[0]).Cards.Select(c => c.Id));
+            Assert.All(DeckOn(seats[1]).Cards, c => Assert.True(c.Unknown));
+            foreach (var client in table.Clients.Values)
+            {
+                Assert.Equal(0, client.Resyncs);
+                Assert.Equal(SeatView.Hash(game.State), SeatView.Hash(client.Confirmed!.State));
+            }
+        }
+
         [Fact]
         public void EveryEventType_SurvivesTheWire()
         {

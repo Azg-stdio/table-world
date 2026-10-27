@@ -84,6 +84,15 @@ namespace TableWorld.View.Chalkers
         public Vector3 Mouth => _mouth.position;
         public GameObject Root => _root;
         public Transform RightHand { get; }
+        public Transform LeftHand { get; }
+
+        /// <summary>
+        /// The named points the pose and face drive (docs/dev/chalker-model.md): an artist's model binds its bones to these,
+        /// and replaces the shapes without touching the rules, the network or the emotes.
+        /// </summary>
+        public IReadOnlyDictionary<string, Transform> Points => _points;
+
+        private readonly Dictionary<string, Transform> _points = new Dictionary<string, Transform>();
 
         public Chalker(string key, Transform parent, Color color, ChalkerPersonality personality = ChalkerPersonality.Cheerful)
         {
@@ -119,6 +128,8 @@ namespace TableWorld.View.Chalkers
                 var hand = Part(PrimitiveType.Sphere, "Hand", elbow, new Vector3(0f, -0.17f, 0f), Vector3.one * 0.08f, bodyMaterial);
                 if (side == 1)
                     RightHand = hand.transform;
+                else
+                    LeftHand = hand.transform;
                 _shoulders[side] = shoulder;
                 _elbows[side] = elbow;
             }
@@ -143,6 +154,19 @@ namespace TableWorld.View.Chalkers
             _mouth = new GameObject("Mouth").transform;
             _mouth.SetParent(_head, false);
             _mouth.localPosition = new Vector3(0f, 0.11f, 0.04f);
+
+            _points["root"] = _root.transform;
+            _points["torso"] = _torso;
+            _points["neck"] = _headTurn;
+            _points["head"] = _head;
+            _points["face"] = face.transform;
+            _points["mouth"] = _mouth;
+            _points["leftShoulder"] = _shoulders[0];
+            _points["rightShoulder"] = _shoulders[1];
+            _points["leftElbow"] = _elbows[0];
+            _points["rightElbow"] = _elbows[1];
+            _points["leftHand"] = LeftHand;
+            _points["rightHand"] = RightHand;
         }
 
         /// <summary>Repaints the body in another seat colour.</summary>

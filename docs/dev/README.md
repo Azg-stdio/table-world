@@ -13,6 +13,7 @@ Permanent rules live in [CLAUDE.md](../../CLAUDE.md); context, decisions and ris
   - [Importing a Tabletop Simulator game](flows/tts-import.md): save to package, conventions, placeholders.
   - [Lua scripts](flows/lua.md): the sandbox, events, timers, the API.
   - [User interface](flows/ui.md): HUD, declarative game UI, script UI, buttons.
+- [The chalker model](chalker-model.md): the named points and face texture an artist's model plugs into.
 - [Recipes](recipes.md): add an effect or condition, an MCP tool, an object type, a Lua function, a HUD panel, a PlayMode test or probe.
 
 ## System map

@@ -99,13 +99,15 @@ def run(filter_text, timeout):
         # Play mode alone is no proof: the status can still show the previous run as completed while ours starts, and
         # after a recompile it can come back with the old results although the snapshot taken before starting was empty.
         # A completed status is ours once the run was seen running, or once Play mode started and every result belongs
-        # to our filter.
+        # to our filter. A filtered run can be over between two polls: its results all match a narrower filter than the
+        # full suite's stale ones would, so for a filter those are enough.
         active = active or state not in ("completed", None)
         if not played:
             played = is_playing()
         names = [r.get("FullName", "") for r in status.get("results") or []]
         ours = bool(names) and all(re.search(filter_text or "TableWorld.Tests", n) for n in names)
-        if state == "completed" and (active or (played and ours and json.dumps(status, sort_keys=True) != previous)):
+        fresh = json.dumps(status, sort_keys=True) != previous
+        if state == "completed" and (active or (ours and fresh and (played or bool(filter_text)))):
             return status
         if not played:
             if not played and elapsed > PLAY_MODE_START_SECONDS:

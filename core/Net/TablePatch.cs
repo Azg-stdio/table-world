@@ -42,6 +42,9 @@ namespace Core.Net
                 }
             // A container's contents come along: a bag's shuffle reorders them. Each object as this seat may know it.
             var hidden = SeatView.Hidden(state, seat, table);
+            // Whoever searches a face-down deck sees what is in it (TTS too); the others still see backs.
+            foreach (var searched in result.Events.OfType<Searched>().Where(e => seat != null && e.Actor == seat))
+                hidden.Decks.Remove(searched.ObjectId);
             var objects = new JArray();
             for (var i = 0; i < state.Objects.Count; i++)
             {

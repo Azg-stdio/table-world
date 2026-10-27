@@ -99,6 +99,7 @@ namespace TableWorld.View.Hud
         public void Update()
         {
             CloseMenuOnClickElsewhere();
+            RefreshSearch();
             UpdateBox();
             UpdateTooltip();
             UpdateMeasure();
@@ -535,17 +536,7 @@ namespace TableWorld.View.Hud
             grid.AddToClassList("search-grid");
             _searchList.Add(grid);
             if (result.DeckContents != null)
-            {
-                var deck = (Deck)container.Model;
-                _searchTitle.text = $"Search: {deck.Name ?? "Deck"} ({result.DeckContents.Count} cards, top first)";
-                for (var i = 0; i < result.DeckContents.Count; i++)
-                {
-                    var card = result.DeckContents[i];
-                    var (faceAsset, faceIndex) = _table.Assets.Face(deck, card);
-                    var face = _images.Face(_table.Assets, faceAsset, faceIndex);
-                    grid.Add(SearchCell(container, Names.Of(card), card.Id, i, face));
-                }
-            }
+                FillDeck(grid, container, (Deck)container.Model, result.DeckContents);
             else
             {
                 _searchTitle.text = $"Search: {container.Model.Name ?? "Bag"} ({result.BagContents.Count} items)";
@@ -553,6 +544,38 @@ namespace TableWorld.View.Hud
                     grid.Add(SearchCell(container, _table.Engine.Find(id)?.Name ?? _table.Engine.Find(id)?.Type ?? id, id, -1, null));
             }
             _search.RemoveFromClassList(Hidden);
+        }
+
+        /// <summary>
+        /// The cards of a searched deck, top first. On a table with secret cards a client first holds only their backs
+        /// (ADR 0012): the host's answer brings the real cards, and <see cref="RefreshSearch"/> shows them.
+        /// </summary>
+        private void FillDeck(VisualElement grid, ObjectView container, Deck deck, IReadOnlyList<DeckCard> cards)
+        {
+            _searchTitle.text = $"Search: {deck.Name ?? "Deck"} ({cards.Count} cards, top first)";
+            _searchWaiting = cards.Any(c => c.Unknown);
+            for (var i = 0; i < cards.Count; i++)
+            {
+                var card = cards[i];
+                var (faceAsset, faceIndex) = _table.Assets.Face(deck, card);
+                var face = _images.Face(_table.Assets, faceAsset, faceIndex);
+                grid.Add(SearchCell(container, card.Unknown ? "…" : Names.Of(card), card.Id, i, face));
+            }
+        }
+
+        /// <summary>The search window shows backs, waiting for the host to send the searched cards.</summary>
+        private bool _searchWaiting;
+
+        /// <summary>Once the searched deck's real cards have arrived, the window shows them.</summary>
+        private void RefreshSearch()
+        {
+            if (!_searchWaiting || !SearchOpen || _searchContainer == null || !(_table.Engine?.Find(_searchContainer.Id) is Deck deck) || deck.Cards.Any(c => c.Unknown))
+                return;
+            _searchList.Clear();
+            var grid = new VisualElement();
+            grid.AddToClassList("search-grid");
+            _searchList.Add(grid);
+            FillDeck(grid, _searchContainer, deck, deck.Cards);
         }
 
         public void CloseSearch() => _search.AddToClassList(Hidden);
