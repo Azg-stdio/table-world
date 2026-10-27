@@ -213,6 +213,8 @@ namespace Core.Rules
         public const string OnTurnEnd = "onTurnEnd";
         /// <summary>After a blind round is revealed and the zone effects it held back have run.</summary>
         public const string OnReveal = "onReveal";
-        public static readonly IReadOnlyList<string> All = new[] { OnGameStart, OnTurnStart, OnTurnEnd, OnReveal };
+        /// <summary>A player made a gesture at someone (a wink): <c>$actor</c>, <c>$param.gesture</c>, <c>$param.target</c>.</summary>
+        public const string OnGesture = "onGesture";
+        public static readonly IReadOnlyList<string> All = new[] { OnGameStart, OnTurnStart, OnTurnEnd, OnReveal, OnGesture };
     }
 }

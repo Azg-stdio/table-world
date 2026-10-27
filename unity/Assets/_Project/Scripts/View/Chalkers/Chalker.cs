@@ -20,6 +20,8 @@ namespace TableWorld.View.Chalkers
         /// clear the table so the hands rest on it (T11.10).
         /// </summary>
         public const float TorsoHeight = 0.14f;
+        /// <summary>Where a seated chalker's eyes are above its origin (the view from a seat, T11.12).</summary>
+        public const float EyeHeight = TorsoHeight + 0.22f + 0.17f;
         /// <summary>The thighs' axis below the origin, resting on the chair's cushion.</summary>
         public const float HipHeight = ChalkerChair.SeatTop + 0.05f;
         /// <summary>How far forward the knees reach, under the table's edge.</summary>
@@ -153,6 +155,12 @@ namespace TableWorld.View.Chalkers
         /// <summary>Starts <paramref name="emote"/> from its beginning (a new one replaces the one playing).</summary>
         public void Play(ChalkerEmote emote)
         {
+            // A wink is one eye, not a whole-face emote: whatever else the face does carries on.
+            if (emote == ChalkerEmote.Wink)
+            {
+                Wink();
+                return;
+            }
             Emote = emote;
             _emoteSeconds = 0f;
         }

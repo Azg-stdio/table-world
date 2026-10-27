@@ -16,6 +16,18 @@ namespace Core.Engine
         public List<string> Roles { get; set; } = new List<string>();
     }
 
+    /// <summary>
+    /// A face or body gesture made at someone (ADR 0012 §6, T11.13): a wink, an emote, eyes closed, aimed at the seat whose
+    /// face <see cref="Command.Actor"/> was looking at (<see cref="Target"/>, null for nobody). It runs the rules'
+    /// <c>onGesture</c> effects with <c>$param.gesture</c> and <c>$param.target</c>. Gestures pass between two players:
+    /// the host runs them, and other seats receive the command without its target.
+    /// </summary>
+    public sealed class GestureCommand : Command
+    {
+        public string Gesture { get; set; } = "";
+        public string? Target { get; set; }
+    }
+
     /// <summary>Performs a rules action (docs/rules-schema.md, "Actions") as <see cref="Command.Actor"/>.</summary>
     public sealed class PerformActionCommand : Command
     {

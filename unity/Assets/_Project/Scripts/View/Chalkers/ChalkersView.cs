@@ -128,6 +128,34 @@ namespace TableWorld.View.Chalkers
             }
         }
 
+        /// <summary>How close to the centre of the view a face must be to count as looked at, in degrees.</summary>
+        public const float LookAngle = 7f;
+
+        /// <summary>
+        /// The seat whose chalker's face the centre of <paramref name="camera"/>'s view rests on (ADR 0012 §6: a wink goes
+        /// to whoever you look at), or null. The nearest within <see cref="LookAngle"/> wins.
+        /// </summary>
+        public string LookedAt(Camera camera)
+        {
+            if (camera == null)
+                return null;
+            string best = null;
+            var bestAngle = LookAngle;
+            foreach (var (key, chalker) in _chalkers)
+            {
+                if (key == MirrorKey)
+                    continue;
+                var to = chalker.Mouth + Vector3.up * 0.05f - camera.transform.position;
+                var angle = Vector3.Angle(camera.transform.forward, to);
+                if (angle < bestAngle)
+                {
+                    bestAngle = angle;
+                    best = key;
+                }
+            }
+            return best;
+        }
+
         /// <summary>This player's own emote shows on the mirror chalker (Hear myself), the only chalker of yours you see.</summary>
         private void OnLocalEmote(string name)
         {

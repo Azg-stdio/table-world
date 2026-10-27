@@ -599,6 +599,8 @@ namespace TableWorld.View
                 ToggleBlindfold();
             if (KeyBindings.Pressed(keyboard, GameAction.TopDown))
                 _tableCamera?.ToggleTopDown();
+            if (KeyBindings.Pressed(keyboard, GameAction.SeatView))
+                ToggleSeatView();
             if (KeyBindings.Pressed(keyboard, GameAction.Delete))
                 Delete(targets);
 
@@ -1713,6 +1715,27 @@ namespace TableWorld.View
             if (_peeking && view != wasPeekingAt && (!view.Model.IsFaceUp || view.HideFace) && !_table.Spectating)
                 _table.Execute(new PeekCommand { ObjectId = view.Id, Actor = _table.LocalSeat });
             LookChanged?.Invoke(view, _peeking);
+        }
+
+        /// <summary>
+        /// The view from this player's chair (T11.12): eyes where its chalker's would be, looking across the table. A
+        /// spectator, or a table with no place for the seat, keeps the table camera.
+        /// </summary>
+        public void ToggleSeatView()
+        {
+            if (_tableCamera == null)
+                return;
+            if (_tableCamera.IsSeatView)
+            {
+                _tableCamera.ToggleSeatView(Vector3.zero, Vector3.zero);
+                return;
+            }
+            var chalkers = FindAnyObjectByType<TableWorld.View.Chalkers.ChalkersView>();
+            if (chalkers == null || _table.LocalSeat == null || !(chalkers.Place(_table.LocalSeat) is { } place))
+                return;
+            var eye = place.Position + Vector3.up * TableWorld.View.Chalkers.Chalker.EyeHeight;
+            // A gentle tilt: the table and, above it, the faces across (they are what social games are played with).
+            _tableCamera.ToggleSeatView(eye, place.Position + place.Facing * 1.1f + Vector3.up * 0.22f);
         }
 
         /// <summary>True while this player wears a blindfold (G15): the screen is dark, and everyone was told.</summary>

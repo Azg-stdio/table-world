@@ -76,6 +76,26 @@ namespace TableWorld.Tests.PlayMode
                     Assert.Greater(Vector3.Distance(chairs[i], chairs[j]), ChalkerChair.SeatWidth, "chairs do not overlap");
         }
 
+        /// <summary>T11.12: O puts the eyes where this player's chalker would sit, looking across; again goes back.</summary>
+        [UnityTest]
+        public IEnumerator SeatView_PutsTheEyesAtYourChair_AndGoesBack()
+        {
+            var camera = Object.FindAnyObjectByType<TableCamera>();
+            var interaction = Object.FindAnyObjectByType<TableInteraction>();
+            var before = camera.transform.position;
+            interaction.ToggleSeatView();
+            yield return null;
+            Assert.IsTrue(camera.IsSeatView);
+            var place = _chalkers.Place(_table.LocalSeat).Value;
+            var eye = place.Position + Vector3.up * Chalker.EyeHeight;
+            Assert.AreEqual(0f, Vector3.Distance(eye, camera.transform.position), 0.02f, "eyes at the chair");
+            Assert.Greater(Vector3.Dot(camera.transform.forward, place.Facing), 0.7f, "looking across the table");
+            interaction.ToggleSeatView();
+            yield return null;
+            Assert.IsFalse(camera.IsSeatView);
+            Assert.AreEqual(0f, Vector3.Distance(before, camera.transform.position), 0.02f, "back where it was");
+        }
+
         [Test]
         public void AtEdge_KeepsClearOfTheCorners_AndFacesIn()
         {

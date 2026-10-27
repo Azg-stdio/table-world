@@ -47,6 +47,8 @@ namespace Core.Engine
             {
                 case StartGameCommand start:
                     return Transaction(() => StartGame(start));
+                case GestureCommand gesture:
+                    return Gesture(gesture);
                 case PerformActionCommand perform:
                     if (_inRules)
                         return CommandResult.Fail("", ErrorCodes.ScriptFailed, "A rules action cannot start another one from inside its own Lua.",

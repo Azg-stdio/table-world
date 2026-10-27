@@ -53,6 +53,7 @@ namespace TableWorld.View
         public float Distance => _distance;
         public float Pitch => _pitch;
         public bool IsTopDown => _beforeTopDown.HasValue;
+        public bool IsSeatView => _beforeSeatView.HasValue;
         public bool IsQuickZoomed => _beforeQuickZoom.HasValue;
 
         /// <summary>Set each frame by the interaction: Q/E rotate a held or hovered object instead of turning.</summary>
@@ -112,6 +113,7 @@ namespace TableWorld.View
         {
             _beforeQuickZoom = null;
             _beforeTopDown = null;
+            _beforeSeatView = null;
             SetView(_home);
         }
 
@@ -156,6 +158,34 @@ namespace TableWorld.View
             _beforeTopDown = Current;
             SetView(new View { Pivot = new Vector3(_pivot.x, 0f, _pivot.z), Yaw = _yaw, Pitch = TopDownPitch, Distance = Mathf.Max(_distance, 1.2f) });
         }
+
+        /// <summary>
+        /// O: the view from your own chair, eyes at a seated player's height, looking across the table at the others'
+        /// faces (M10 T11.12); again to go back. The camera still orbits and zooms from there.
+        /// </summary>
+        public void ToggleSeatView(Vector3 eye, Vector3 lookAt)
+        {
+            if (_beforeSeatView is { } back)
+            {
+                _beforeSeatView = null;
+                SetView(back);
+                return;
+            }
+            var toward = lookAt - eye;
+            if (toward.sqrMagnitude < 1e-4f)
+                return;
+            _beforeSeatView = Current;
+            var flat = new Vector2(toward.x, toward.z).magnitude;
+            SetView(new View
+            {
+                Pivot = lookAt,
+                Yaw = Mathf.Atan2(toward.x, toward.z) * Mathf.Rad2Deg,
+                Pitch = Mathf.Atan2(-toward.y, flat) * Mathf.Rad2Deg,
+                Distance = toward.magnitude,
+            });
+        }
+
+        private View? _beforeSeatView;
 
         /// <summary>Ctrl + 1–9.</summary>
         public void Save(int slot) => _saved[slot] = Current;

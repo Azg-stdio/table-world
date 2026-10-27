@@ -21,6 +21,8 @@ namespace TableWorld.View.Hud
                 ("{QuickZoom}, or middle click on the table", "Quick zoom to the pointer (again to go back)"),
                 ("{ResetCamera}", "Back to your seat's view"),
                 ("{TopDown}", "Top-down view (again to go back)"),
+                ("{SeatView}", "View from your seat, eyes level with the others (again to go back)"),
+                ("{Wink}", "Wink at the face you look at (games can react to it)"),
                 ("{RotateLeft} / {RotateRight} over nothing", "Turn the camera"),
                 ("Ctrl + 1–9 / Shift + 1–9", "Save / load a camera view"),
             }),

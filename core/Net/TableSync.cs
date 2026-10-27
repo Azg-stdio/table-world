@@ -221,6 +221,9 @@ namespace Core.Net
             {
                 var seat = ViewerSeat(peer);
                 var sent = command;
+                // A gesture passes between two players: the others learn nothing of whom it was aimed at.
+                if (command is GestureCommand gesture && gesture.Target != null && seat != gesture.Actor && seat != gesture.Target)
+                    sent = new GestureCommand { Actor = gesture.Actor, Gesture = gesture.Gesture };
                 if (command is PerformActionCommand perform && perform.Params.Count > 0 && perform.Actor != seat
                     && Game.State.Actions.FirstOrDefault(a => a.Id == perform.ActionId) is { } secret && (secret.Secret || secret.Vote != null))
                     sent = new PerformActionCommand { Actor = perform.Actor, ActionId = perform.ActionId };

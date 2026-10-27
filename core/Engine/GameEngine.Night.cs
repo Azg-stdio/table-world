@@ -82,6 +82,32 @@ namespace Core.Engine
         /// </summary>
         public bool Sees(string seat, string? viewer) => viewer == null || seat == viewer || !EyesClosedPhase || !IsAwake(seat) || IsAwake(viewer);
 
+        /// <summary>
+        /// A gesture (ADR 0012 §6): the rules' <c>onGesture</c> effects run with the gesture and its target. Always the
+        /// host's to run, since it passes between two players; outside a game with that event it changes nothing.
+        /// </summary>
+        private CommandResult Gesture(GestureCommand command)
+        {
+            if (!(Session is { Started: true, Over: false }) || !State.Events.ContainsKey(GameEvents.OnGesture))
+                return CommandResult.Success(new List<StateEvent>());
+            var seat = command.Actor;
+            if (seat == null || Playing.All(s => s.Id != seat))
+                return CommandResult.Fail("actor", ErrorCodes.NotPlaying, "Only a player in the game makes gestures that count.");
+            if (command.Target != null && Playing.All(s => s.Id != command.Target))
+                return CommandResult.Fail("target", ErrorCodes.UnknownSeat, $"Seat '{command.Target}' is not playing.");
+            var parameters = new Dictionary<string, string> { ["gesture"] = command.Gesture };
+            if (command.Target != null)
+                parameters["target"] = command.Target;
+            var result = Transaction(() =>
+            {
+                WithContext(new Context { Actor = seat, Params = parameters }, () => RunEffects(State.Events[GameEvents.OnGesture]));
+                AdvanceLoop();
+                CheckWins(WinCheck.AnyCommand);
+            });
+            result.ReadsSecrets = true;
+            return result;
+        }
+
         private string? KnownTeam(string seat, string? viewer)
         {
             if (viewer == null || viewer == seat)

@@ -194,6 +194,10 @@ keeps everyone else asleep: their screen goes dark with the phase's `sleepText`,
 nor hear the awake players. `"voice"` sets who hears whom: `all`, `awake` (the default at night), `team` (each team
 among itself, by day too) or `none`. The format is in [the rules format](../rules-schema.md#eyes-closed-and-voice).
 
+**Gestures.** `events.onGesture` reacts to a player's wink (K) or emote aimed at the face they look at: `$param.gesture`
+and `$param.target` say which and at whom. Only the host and the two players involved know the target. See
+[the rules format](../rules-schema.md#gestures).
+
 **Picking a group, and a team that wins.** A variable can hold a list: `{ "setVariable": { "name": "team", "add":
 "$param.member" } }` adds one item, `"remove"` takes one out, `"value": []` empties it. Rules read `$var.team.count`
 and check `{ "inList": { "list": "$var.team", "value": "$param.member" } }`, and a vote's `who` can be the list.

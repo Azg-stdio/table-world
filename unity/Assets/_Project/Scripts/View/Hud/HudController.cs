@@ -173,7 +173,11 @@ namespace TableWorld.View.Hud
             {
                 _chat = new ChatPanel(_root, _table, _session);
                 _players = new PlayersPanel(_root, _table, _session);
-                _emoteWheel = new EmoteWheel(_root, emote => _session?.Emote(emote.ToString()));
+                _emoteWheel = new EmoteWheel(_root, emote =>
+                {
+                    _session?.Emote(emote.ToString());
+                    Gesture(emote.ToString());
+                });
             }
             _escape = new EscapeMenu(_root, GameSettings.Load(GameSettings.DefaultPath), ApplySettings, _session, () => _help?.Show());
             ApplySettings(_escape.Settings);
@@ -472,6 +476,12 @@ namespace TableWorld.View.Hud
             UpdatePresenceLabels();
             if (_netStatus != null && _session != null)
                 _netStatus.text = _session.Status == "offline" ? "" : _session.Status;
+            // K: a wink at the face this player looks at, seen by whoever looks back (ADR 0012 §6).
+            if (UnityEngine.InputSystem.Keyboard.current is { } keys && !TypingInUi() && KeyBindings.Pressed(keys, GameAction.Wink))
+            {
+                _session?.Emote(nameof(TableWorld.View.Chalkers.ChalkerEmote.Wink));
+                Gesture("wink");
+            }
             if (Time.unscaledTime >= _nextGameRefresh)
             {
                 _nextGameRefresh = Time.unscaledTime + 0.25f;
@@ -718,6 +728,22 @@ namespace TableWorld.View.Hud
             _sleepOverlay?.EnableInClassList(Hidden, !asleep);
             if (asleep && _sleepText != null)
                 _sleepText.text = game.SleepText;
+        }
+
+        /// <summary>
+        /// A gesture the rules may react to (ADR 0012 §6): aimed at the face this player looks at. Only sent when the game
+        /// has an onGesture event, so ordinary emotes stay presence only.
+        /// </summary>
+        public void Gesture(string gesture)
+        {
+            var game = _table.Game;
+            if (game?.Session is not { Started: true, Over: false } || !game.State.Events.ContainsKey(GameEvents.OnGesture) || _table.LocalSeat == null)
+                return;
+            var chalkers = FindAnyObjectByType<TableWorld.View.Chalkers.ChalkersView>();
+            var target = chalkers != null ? chalkers.LookedAt(Camera.main) : null;
+            var result = _table.Execute(new GestureCommand { Actor = _table.LocalSeat, Gesture = gesture.ToLowerInvariant(), Target = target });
+            if (!result.Ok)
+                ShowStatus(result.Error.Message, error: true);
         }
 
         /// <summary>Who won, as players say it: a team's name, a seat's, or nobody.</summary>

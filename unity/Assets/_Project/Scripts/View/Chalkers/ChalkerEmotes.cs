@@ -6,7 +6,8 @@ namespace TableWorld.View.Chalkers
     public enum ChalkerPersonality { Cheerful, Calm, Grumpy, Shy, Cool, Curious, Sleepy }
 
     /// <summary>Short reactions: a face and a body movement for a couple of seconds (T7.4).</summary>
-    public enum ChalkerEmote { None, Wave, Laugh, Nod, No, Shrug, Cheer, Think, Surprised, Sad, Angry, Love }
+    /// <summary>The emotes; <see cref="Wink"/> shuts one eye only (ADR 0012: a gesture rules can react to).</summary>
+    public enum ChalkerEmote { None, Wave, Laugh, Nod, No, Shrug, Cheer, Think, Surprised, Sad, Angry, Love, Wink }
 
     /// <summary>
     /// A body pose as offsets from rest, in degrees and metres. Arms: <c>Raise</c> lifts the arm out to the side, <c>Forward</c>

@@ -185,6 +185,22 @@ list such as `$var.night_order`); everyone else sleeps for the phase.
   are heard by nobody), `team` (each team hears only itself), `none`. Spectators and a host without a seat see and
   hear everyone.
 
+### Gestures
+
+`events.onGesture` runs when a player makes a gesture at someone: a wink (K), an emote from the wheel. `$actor` made
+it, `$param.gesture` is its name (`wink`, `wave`, ...), `$param.target` the seat whose face they were looking at
+(missing when nobody). The rules decide what it means:
+
+```jsonc
+"events": { "onGesture": [ { "if": {
+  "condition": { "and": [ { "compare": { "left": "$param.gesture", "right": "wink" } },
+                          { "compare": { "left": "$actor.role", "right": "murderer" } } ] },
+  "then": [ { "message": { "text": "You have been winked at. Count to five, then fall.", "to": "$param.target" } } ] } } ] }
+```
+
+Gestures pass between two players: the host runs them, and the other players' machines never learn whom one was aimed
+at. Whoever looks at the winker's face sees the wink, as at a real table.
+
 ## Actions
 
 ```jsonc

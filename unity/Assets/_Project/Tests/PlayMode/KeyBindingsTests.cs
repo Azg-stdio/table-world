@@ -20,16 +20,16 @@ namespace TableWorld.Tests.PlayMode
         [Test]
         public void Rebinding_Swaps_RefusesReservedKeys_AndStoresOnlyChanges()
         {
-            var moved = KeyBindings.Rebind(new Dictionary<string, string>(), GameAction.Flip, Key.K);
-            CollectionAssert.AreEquivalent(new Dictionary<string, string> { ["Flip"] = "K" }, moved);
-            moved = KeyBindings.Rebind(moved, GameAction.Lock, Key.K);
-            CollectionAssert.AreEquivalent(new Dictionary<string, string> { ["Flip"] = "L", ["Lock"] = "K" }, moved, "Flip gets Lock's old key");
+            var moved = KeyBindings.Rebind(new Dictionary<string, string>(), GameAction.Flip, Key.J);
+            CollectionAssert.AreEquivalent(new Dictionary<string, string> { ["Flip"] = "J" }, moved);
+            moved = KeyBindings.Rebind(moved, GameAction.Lock, Key.J);
+            CollectionAssert.AreEquivalent(new Dictionary<string, string> { ["Flip"] = "L", ["Lock"] = "J" }, moved, "Flip gets Lock's old key");
             CollectionAssert.AreEquivalent(moved, KeyBindings.Rebind(moved, GameAction.Roll, Key.Escape), "Escape stays Escape");
             CollectionAssert.AreEquivalent(moved, KeyBindings.Rebind(moved, GameAction.Roll, Key.Digit3), "digits stay digits");
             Assert.IsEmpty(KeyBindings.Rebind(KeyBindings.Rebind(moved, GameAction.Flip, Key.F), GameAction.Lock, Key.L), "back to the defaults stores nothing");
 
-            var cleaned = KeyBindings.Clean(new Dictionary<string, string> { ["Flip"] = "K", ["Nonsense"] = "J", ["Roll"] = "NotAKey", ["Lock"] = "F1", ["Group"] = "K" });
-            CollectionAssert.AreEquivalent(new Dictionary<string, string> { ["Flip"] = "K" }, cleaned, "unknown, reserved and clashing entries go");
+            var cleaned = KeyBindings.Clean(new Dictionary<string, string> { ["Flip"] = "J", ["Nonsense"] = "J", ["Roll"] = "NotAKey", ["Lock"] = "F1", ["Group"] = "J" });
+            CollectionAssert.AreEquivalent(new Dictionary<string, string> { ["Flip"] = "J" }, cleaned, "unknown, reserved and clashing entries go");
         }
 
         [UnityTest]
@@ -42,15 +42,15 @@ namespace TableWorld.Tests.PlayMode
             hud.Escape.SettingsPath = path;
             try
             {
-                hud.Escape.Set(s => s.Keys = KeyBindings.Rebind(s.Keys, GameAction.Flip, Key.K));
+                hud.Escape.Set(s => s.Keys = KeyBindings.Rebind(s.Keys, GameAction.Flip, Key.J));
                 yield return null;
-                Assert.AreEqual(Key.K, KeyBindings.KeyOf(GameAction.Flip));
+                Assert.AreEqual(Key.J, KeyBindings.KeyOf(GameAction.Flip));
                 Assert.AreEqual(Key.R, KeyBindings.KeyOf(GameAction.Roll), "the others keep TTS's keys");
-                Assert.AreEqual("K, or middle click", KeyBindings.Fill("{Flip}, or middle click"));
+                Assert.AreEqual("J, or middle click", KeyBindings.Fill("{Flip}, or middle click"));
 
                 hud.Escape.Settings.Save(path);
                 var loaded = GameSettings.Load(path);
-                Assert.AreEqual("K", loaded.Keys["Flip"]);
+                Assert.AreEqual("J", loaded.Keys["Flip"]);
             }
             finally
             {

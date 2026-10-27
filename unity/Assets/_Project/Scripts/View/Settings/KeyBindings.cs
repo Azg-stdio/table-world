@@ -13,7 +13,7 @@ namespace TableWorld.View.Settings
     {
         Flip, RotateLeft, RotateRight, Roll, Lock, Group, PlaceUnder, Nudge, Grow, Shrink, Delete,
         PanForward, PanBack, PanLeft, PanRight, ResetCamera, QuickZoom, TopDown, Blindfold, QuickSave, QuickLoad,
-        Talk, Emotes,
+        Talk, Emotes, SeatView, Wink,
     }
 
     /// <summary>
@@ -31,7 +31,7 @@ namespace TableWorld.View.Settings
             [GameAction.PanForward] = Key.W, [GameAction.PanBack] = Key.S, [GameAction.PanLeft] = Key.A, [GameAction.PanRight] = Key.D,
             [GameAction.ResetCamera] = Key.Space, [GameAction.QuickZoom] = Key.Z, [GameAction.TopDown] = Key.P,
             [GameAction.Blindfold] = Key.B, [GameAction.QuickSave] = Key.F5, [GameAction.QuickLoad] = Key.F9,
-            [GameAction.Talk] = Key.T, [GameAction.Emotes] = Key.X,
+            [GameAction.Talk] = Key.T, [GameAction.Emotes] = Key.X, [GameAction.SeatView] = Key.O, [GameAction.Wink] = Key.K,
         };
 
         /// <summary>Keys that keep their own meaning and cannot take an action.</summary>
@@ -149,6 +149,8 @@ namespace TableWorld.View.Settings
             GameAction.QuickLoad => "Quick load",
             GameAction.Talk => "Push to talk (hold)",
             GameAction.Emotes => "Emote wheel (hold)",
+            GameAction.SeatView => "View from your seat",
+            GameAction.Wink => "Wink at the face you look at",
             _ => action.ToString(),
         };
 
