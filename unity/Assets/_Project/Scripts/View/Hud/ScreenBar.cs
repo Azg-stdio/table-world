@@ -42,6 +42,8 @@ namespace TableWorld.View.Hud
             _table = table;
             _bar = root.Q("screenBar");
             _link = root.Q<TextField>("screenLink");
+            _link.textEdition.placeholder = Ui.T("Paste a YouTube link");
+            _link.textEdition.hidePlaceholderOnFocus = true;
             _status = root.Q<Label>("screenStatus");
             root.Q<Button>("screenPlay").clicked += () => PlayLink(_link.value);
             root.Q<Button>("screenPause").clicked += () => Pause();

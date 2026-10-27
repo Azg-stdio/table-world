@@ -1722,3 +1722,38 @@
     flex-shrink: 0;
     margin-left: 8px;
 }
+
+/* The karaoke room's first-time guide: the keys, and how to use the big screen and the stage. */
+.walk-guide {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 140px;
+    align-items: center;
+}
+
+.walk-guide__card {
+    max-width: 560px;
+    padding: 14px 18px;
+    border-radius: 8px;
+    background-color: rgba(16, 18, 22, 0.9);
+}
+
+.walk-guide__title {
+    margin-bottom: 6px;
+    color: rgb(240, 236, 226);
+    font-size: 18px;
+    -unity-font-style: bold;
+}
+
+.walk-guide__line {
+    margin-bottom: 4px;
+    color: rgb(220, 216, 206);
+    font-size: 15px;
+    white-space: normal;
+}
+
+.walk-guide__close {
+    align-self: flex-end;
+    margin-top: 8px;
+}

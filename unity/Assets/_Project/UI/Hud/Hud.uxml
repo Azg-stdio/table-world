@@ -168,6 +168,13 @@
             </ui:VisualElement>
             <ui:VisualElement name="screenSongs" class="screen-bar__songs" />
         </ui:VisualElement>
+        <ui:VisualElement name="walkGuide" class="walk-guide hidden" picking-mode="Ignore">
+            <ui:VisualElement class="walk-guide__card">
+                <ui:Label class="walk-guide__title" text="Karaoke room" />
+                <ui:VisualElement name="walkGuideLines" />
+                <ui:Button name="walkGuideClose" class="hud-button walk-guide__close" text="Got it" />
+            </ui:VisualElement>
+        </ui:VisualElement>
         <ui:VisualElement name="handBar" class="hand-bar hidden" picking-mode="Ignore" />
         <ui:VisualElement name="blindfold" class="blindfold hidden" picking-mode="Ignore">
             <ui:Label class="blindfold-text" text="Blindfolded. Press B to take it off." picking-mode="Ignore" />

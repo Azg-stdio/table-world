@@ -265,6 +265,60 @@ namespace TableWorld.Tests.PlayMode
             Assert.AreEqual(0, root.Q("screenSongs").childCount, "nothing waiting");
         }
 
+        /// <summary>
+        /// Miguel's first walk: W A S D and the arrows stepped the HUD's focus from button to button (Unity's UI navigation),
+        /// and nobody said how the room works. Now navigation keys leave the focus alone, a guide card explains the room
+        /// and closes with Got it, and the link field says what goes in it.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator WalkingKeys_LeaveTheHudAlone_AndAGuideExplainsTheRoom()
+        {
+            var root = _hud.GetComponent<UIDocument>().rootVisualElement;
+            yield return null;
+            var host = root.Q<Button>("hostButton");
+            host.Focus();
+            Assert.AreEqual(host, root.focusController.focusedElement);
+            using (var move = NavigationMoveEvent.GetPooled(NavigationMoveEvent.Direction.Right))
+            {
+                move.target = host;
+                host.SendEvent(move);
+            }
+            yield return null;
+            Assert.AreEqual(host, root.focusController.focusedElement, "a navigation key does not move the focus");
+            host.Blur();
+
+            var guide = root.Q("walkGuide");
+            Assert.IsFalse(guide.ClassListContains("hidden"), "the guide shows in the karaoke room");
+            Assert.AreEqual(5, guide.Q("walkGuideLines").childCount);
+            StringAssert.Contains("W", guide.Q("walkGuideLines").Q<Label>().text, "with the keys as bound");
+            using (var click = NavigationSubmitEvent.GetPooled())
+            {
+                var close = root.Q<Button>("walkGuideClose");
+                click.target = close;
+                close.SendEvent(click);
+            }
+            // Walking, a submit from the keyboard is the room's: the guide is closed by a click instead.
+            yield return null;
+            Assert.IsFalse(guide.ClassListContains("hidden"), "Space or Enter does not press a button while walking");
+            ClickButton(root.Q<Button>("walkGuideClose"));
+            yield return null;
+            Assert.IsTrue(guide.ClassListContains("hidden"), "Got it closes it");
+            Assert.AreEqual("Paste a YouTube link", root.Q<TextField>("screenLink").textEdition.placeholder);
+        }
+
+        /// <summary>Clicks a button the way the mouse does (a click, not a keyboard submit).</summary>
+        private static void ClickButton(Button button)
+        {
+            var at = button.worldBound.center;
+            foreach (var type in new[] { EventType.MouseDown, EventType.MouseUp })
+            {
+                var imgui = new Event { type = type, mousePosition = at, button = 0, pointerType = UnityEngine.PointerType.Mouse };
+                using EventBase e = type == EventType.MouseDown ? PointerDownEvent.GetPooled(imgui) : PointerUpEvent.GetPooled(imgui);
+                e.target = button;
+                button.SendEvent(e);
+            }
+        }
+
         [UnityTest]
         public IEnumerator AnotherRoom_BringsTheTableBack()
         {

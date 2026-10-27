@@ -79,11 +79,27 @@ namespace TableWorld.View.Karaoke
             Destroy(this);
         }
 
+        private bool _looking;
+
         private void Update()
         {
             if (!IgnoreDevices)
                 ReadDevices(Time.unscaledDeltaTime);
-            ApplyCamera();
+        }
+
+        /// <summary>After everything else moved this frame, so nothing pulls the view back.</summary>
+        private void LateUpdate() => ApplyCamera();
+
+        private void OnDisable() => Look(false);
+
+        /// <summary>While looking around the cursor is locked and hidden, so turning never stops at the screen's edge.</summary>
+        private void Look(bool on)
+        {
+            if (on == _looking)
+                return;
+            _looking = on;
+            Cursor.lockState = on ? CursorLockMode.Locked : CursorLockMode.None;
+            Cursor.visible = !on;
         }
 
         private void ReadDevices(float dt)
@@ -91,7 +107,11 @@ namespace TableWorld.View.Karaoke
             var keyboard = Keyboard.current;
             var mouse = Mouse.current;
             var typing = _interaction != null && _interaction.KeyboardBlocked != null && _interaction.KeyboardBlocked();
-            if (mouse != null && mouse.rightButton.isPressed)
+            var looking = mouse != null && mouse.rightButton.isPressed;
+            // The frame the cursor locks it jumps to the middle: that jump is not a turn.
+            var justLocked = looking && !_looking;
+            Look(looking);
+            if (looking && !justLocked)
             {
                 var delta = mouse.delta.ReadValue();
                 var scale = LookPerPixel * (_tableCamera != null ? _tableCamera.OrbitScale : 1f);

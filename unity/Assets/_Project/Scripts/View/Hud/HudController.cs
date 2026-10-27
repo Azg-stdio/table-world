@@ -144,6 +144,27 @@ namespace TableWorld.View.Hud
             _root = document.rootVisualElement;
             // The UXML's own texts are read before any code fills a label, so each keeps its English to translate.
             _localizer = new UiLocalizer(_root);
+            // The game is played with the mouse: W A S D and the arrows walk and pan, they never step the focus from button
+            // to button (Unity's UI takes them for navigation, which moved the focus round the bar while walking). Text
+            // fields keep their own keys.
+            _root.RegisterCallback<NavigationMoveEvent>(e =>
+            {
+                e.StopImmediatePropagation();
+                _root.focusController?.IgnoreEvent(e);
+            }, TrickleDown.TrickleDown);
+            // Walking, Space and Enter belong to the room, not to the last button clicked (it keeps the focus).
+            _root.RegisterCallback<NavigationSubmitEvent>(e =>
+            {
+                if (!TableGeometry.Walk || TypingInUi())
+                    return;
+                e.StopImmediatePropagation();
+                _root.focusController?.IgnoreEvent(e);
+            }, TrickleDown.TrickleDown);
+            _root.Q<Button>("walkGuideClose").clicked += () =>
+            {
+                _walkGuideClosed = true;
+                _root.Q("walkGuide").AddToClassList(Hidden);
+            };
             Ui.Changed += OnLanguageChanged;
             _turnLabel = _root.Q<Label>("turnLabel");
             _seatList = _root.Q("seatList");
@@ -452,6 +473,45 @@ namespace TableWorld.View.Hud
         }
 
         private ScreenBar _screenBar;
+        private bool _walkGuideClosed;
+        private bool _walkGuideShown;
+
+        /// <summary>
+        /// Entering a room people walk in, a card says how: the keys (as bound), the big screen and the stage. Got it hides
+        /// it until another such room loads.
+        /// </summary>
+        private void ShowWalkGuide()
+        {
+            var guide = _root.Q("walkGuide");
+            if (guide == null)
+                return;
+            if (!TableGeometry.Walk)
+            {
+                _walkGuideClosed = false;
+                _walkGuideShown = false;
+                guide.AddToClassList(Hidden);
+                return;
+            }
+            if (_walkGuideClosed || _walkGuideShown)
+                return;
+            _walkGuideShown = true;
+            var lines = guide.Q("walkGuideLines");
+            lines.Clear();
+            foreach (var line in new[]
+                     {
+                         Ui.T("Walk: {PanForward} {PanLeft} {PanBack} {PanRight} or the arrows; hold Shift to hurry."),
+                         Ui.T("Look around: hold the right mouse button and move the mouse."),
+                         Ui.T("Sit: walk up to a sofa and press {Sit}; press it again, or walk, to stand up."),
+                         Ui.T("Big screen: paste a YouTube link in the bar at the top and press Play, or Add to queue to sing it later."),
+                         Ui.T("Sing: walk onto the pink carpet in front of the screen; everyone hears you in time with the song."),
+                     })
+            {
+                var label = new Label(Settings.KeyBindings.Fill(line)) { enableRichText = false };
+                label.AddToClassList("walk-guide__line");
+                lines.Add(label);
+            }
+            guide.RemoveFromClassList(Hidden);
+        }
 
         /// <summary>The karaoke room's big screen bar (null without a table).</summary>
         public ScreenBar ScreenBar => _screenBar;
@@ -464,6 +524,7 @@ namespace TableWorld.View.Hud
             _screenBar?.Update();
             // A room people walk in has no table to grab, draw or measure on.
             _root.Q("toolBar")?.EnableInClassList(Hidden, TableGeometry.Walk);
+            ShowWalkGuide();
             var seatsKey = $"{_table.LocalSeat}|{_table.Spectating}|{CurrentTurnSeat()}|{_table.Networked}|" +
                            (_session != null ? string.Join(",", _session.Occupants.Select(o => o.Key + "=" + o.Value + "=" + _session.NameOf(o.Value))) : "");
             if (_shownEngine != _table.Engine || seatsKey != _shownSeatsKey)
