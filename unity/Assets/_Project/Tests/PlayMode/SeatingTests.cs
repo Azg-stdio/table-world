@@ -96,6 +96,23 @@ namespace TableWorld.Tests.PlayMode
             Assert.AreEqual(0f, Vector3.Distance(before, camera.transform.position), 0.02f, "back where it was");
         }
 
+        /// <summary>A hot seat: a second seat taken from this window shows a chalker, though nobody else is connected.</summary>
+        [UnityTest]
+        public IEnumerator ASeatTakenFromThisWindow_ShowsAChalker()
+        {
+            var rules = "{\"schemaVersion\":\"0.1\",\"objects\":[],\"players\":{\"seats\":[{\"id\":\"a\",\"color\":\"red\"},{\"id\":\"b\",\"color\":\"blue\"},{\"id\":\"c\",\"color\":\"green\"}]},"
+                + "\"turn\":{\"phases\":[\"p\"]},\"phases\":[{\"id\":\"p\",\"actions\":[\"x\"]}],\"actions\":[{\"id\":\"x\",\"actor\":\"current\",\"effects\":[{\"endTurn\":{}}]}]}";
+            Assert.IsTrue(_table.Load(rules, null));
+            yield return null;
+            Assert.IsFalse(_chalkers.Shown.ContainsKey("b"));
+            _hud.ClickSeat("b");
+            yield return null;
+            yield return null;
+            Assert.IsTrue(_chalkers.Shown.ContainsKey("b"), "the second seat shows its chalker");
+            Assert.IsFalse(_chalkers.Shown.ContainsKey(_table.LocalSeat), "never one where the camera sits");
+            Assert.IsFalse(_chalkers.Shown.ContainsKey("c"), "an empty seat keeps only its chair");
+        }
+
         [Test]
         public void AtEdge_KeepsClearOfTheCorners_AndFacesIn()
         {

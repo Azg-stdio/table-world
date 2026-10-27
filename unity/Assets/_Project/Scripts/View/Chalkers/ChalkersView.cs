@@ -55,6 +55,12 @@ namespace TableWorld.View.Chalkers
 
         private string _singer;
 
+        /// <summary>
+        /// Seats taken from this window besides the one the camera is at (a hot seat: one machine, several players). Each
+        /// gets a chalker of its own, idle, looking at the table, unless a remote player sits there.
+        /// </summary>
+        public Func<IEnumerable<string>> LocalSeats { get; set; }
+
         /// <summary>The karaoke room is up: sofas instead of chairs.</summary>
         public bool Karaoke => _table != null && _table.Engine?.State.Environment is { Room: RoomPreset.Karaoke, RoomAsset: null } && !TableGeometry.Hidden;
 
@@ -119,6 +125,19 @@ namespace TableWorld.View.Chalkers
                     chalker.Pose(place.Position, place.Facing, gaze ?? pointer ?? Vector3.zero, pointer ?? gaze, _voice != null ? _voice.LevelOf(frame.Seat) : 0f, dt);
                     Carry(chalker, frame.Seat);
                 }
+
+            if (LocalSeats == null && FindAnyObjectByType<Hud.HudController>() is { } hud)
+                LocalSeats = hud.HotSeats;
+            foreach (var seat in LocalSeats?.Invoke() ?? Enumerable.Empty<string>())
+            {
+                if (seat == _table.LocalSeat || seen.Contains(seat) || !(Place(seat) is { } place))
+                    continue;
+                seen.Add(seat);
+                var chalker = ChalkerFor(seat, ColorOf(seat));
+                chalker.EyesClosed = _table.Game is { EyesClosedPhase: true } nightGame && !nightGame.IsAwake(seat, _table.LocalSeat);
+                chalker.Microphone = Singer != null && Singer == seat;
+                chalker.Pose(place.Position, place.Facing, Vector3.zero, null, 0f, dt);
+            }
 
             var camera = Camera.main;
             if (VoiceChat.HearMyself && camera != null)

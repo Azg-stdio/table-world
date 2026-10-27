@@ -692,6 +692,9 @@ namespace TableWorld.View.Hud
         // ---- sitting down before the start: the + over each seat ------------------------------------------------
 
         /// <summary>The seats people sat at, in seat order: online, where each person sits; hot seat, the seats taken here.</summary>
+        /// <summary>Seats this window sat at at a hot-seat table (each shows a chalker); none online, where each player brings their own.</summary>
+        public IEnumerable<string> HotSeats() => _table.Networked ? Enumerable.Empty<string>() : SeatedSeats();
+
         public List<string> SeatedSeats()
         {
             var seats = _table.Engine?.State.Players.Seats ?? new List<Seat>();
