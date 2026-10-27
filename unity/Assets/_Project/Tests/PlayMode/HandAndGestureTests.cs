@@ -85,12 +85,14 @@ namespace TableWorld.Tests.PlayMode
             if (playable.Count > 0)
             {
                 var card = playable[0];
+                // A drawn card is named afresh in a rules game (T11.16); back in a deck it is its deck id again.
+                var entry = ((Card)_table.Engine.Find(card)).EntryId ?? card;
                 Assert.IsTrue(_interaction.Grab(_table.ViewOf(card), false));
                 _interaction.DragTo(new Vector3(0.1f, 0f, 0f));
                 yield return new WaitForSeconds(0.3f);
                 _interaction.Release();
                 yield return null;
-                Assert.AreEqual(card, ((Deck)_table.Engine.Find("discard")).Cards[0].Id);
+                Assert.AreEqual(entry, ((Deck)_table.Engine.Find("discard")).Cards[0].Id);
             }
             else
             {
