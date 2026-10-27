@@ -90,6 +90,22 @@ karaoke night. Miguel decided:
   makes you the singer (microphone in hand, stage light, every listener's song delayed by your voice); walking out
   ends it. Two people on the stage sing together, out of time as section 2 explains.
 
+### 6. The embedded browser: what we use, and the rules it runs under (2026-10-27)
+
+- **Now:** UnityWebBrowser 2.2.8 (MIT, CEF 143, `dev.voltstro.unitywebbrowser*` from its own registry). Checked:
+  open source and active (releases 2022–2026, 7 open issues, none about security). Unity calls every non-Unity package
+  "unsigned"; its Chromium binaries are built by its maintainer. On Unity 6.6 it needs UniTask 2.5.11 (2.5.10 does not
+  compile). An issue reports it failing in builds, so T12.9 includes a Windows build.
+- **Behind our own interface:** the game talks to "a screen that plays a YouTube video at a time" (load, play, pause,
+  seek, current time, ready, ended), never to the plugin directly, so the engine under it can change.
+- **Before release:** replace it with a thin host of our own on CefSharp's off-screen mode (a separate process sending
+  frames through shared memory; CefSharp follows Chrome releases closely), or, if that proves harder, a fork of
+  UnityWebBrowser whose Chromium we build and sign ourselves. Not a Chromium integration written from zero.
+- **Safety rules, whatever the engine:** the screen loads only YouTube embed URLs (any other navigation, pop-up or
+  download is refused); no saved logins or cookies between sessions; the Chromium version is kept current before each
+  release; YouTube's terms: the official player, ads play (the room waits for everyone's player to be ready), no
+  downloading. A video that will not embed, or is blocked in a player's country, is shown as such in the queue.
+
 ## Consequences
 
 - One singer in time for everyone needs:
