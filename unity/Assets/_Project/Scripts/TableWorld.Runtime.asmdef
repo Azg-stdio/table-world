@@ -11,7 +11,8 @@
         "Unity.Services.Authentication",
         "Unity.Services.Multiplayer",
         "Unity.RenderPipelines.Core.Runtime",
-        "Unity.RenderPipelines.Universal.Runtime"
+        "Unity.RenderPipelines.Universal.Runtime",
+        "VoltstroStudios.UnityWebBrowser"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -19,7 +20,8 @@
     "overrideReferences": true,
     "precompiledReferences": [
         "Core.dll",
-        "Newtonsoft.Json.dll"
+        "Newtonsoft.Json.dll",
+        "VoltstroStudios.UnityWebBrowser.Shared.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

@@ -550,14 +550,13 @@ namespace TableWorld.View.Hud
             var seated = SeatedSeats();
             var min = Mathf.Max(1, state.Game?.MinPlayers ?? 1);
             var max = state.Game?.MaxPlayers > 0 ? state.Game.MaxPlayers : state.Players.Seats.Count;
-            var players = $"{seated.Count} {(seated.Count == 1 ? "player" : "players")}";
             var button = new Button(() =>
             {
                 var roles = state.Roles?.List.Where(r => r.Optional && _optionalRoles.Contains(r.Id)).Select(r => r.Id).ToList() ?? new List<string>();
                 var result = _table.Execute(new StartGameCommand { Seats = seated, Roles = roles, Language = _startLanguage ?? (Translations.Languages(state).Count == 0 ? Ui.Language : null) });
                 if (!result.Ok)
                     ShowStatus(Ui.Refusal(result.Error), error: true);
-            }) { text = Ui.T("Start game ({players})", ("players", players)) };
+            }) { text = seated.Count == 1 ? Ui.T("Start game (1 player)") : Ui.T("Start game ({count} players)", ("count", seated.Count)) };
             button.AddToClassList("hud-button");
             var fits = seated.Count >= min && seated.Count <= max;
             button.SetEnabled(fits);
