@@ -567,7 +567,7 @@ namespace TableWorld.View.Hud
                     if (!_optionalRoles.Remove(id))
                         _optionalRoles.Add(id);
                     _shownGameKey = null;
-                }) { text = GameEngine.RoleName(state.Roles, id) };
+                }) { text = GameEngine.RoleName(state, state.Roles, id) };
                 toggle.AddToClassList("hud-button");
                 toggle.EnableInClassList("hud-button--picked", on);
                 toggle.tooltip = (on ? "In the deal: click to leave it out." : "Left out: click to deal it too.") +
@@ -784,7 +784,7 @@ namespace TableWorld.View.Hud
 
         /// <summary>Who won, as players say it: a team's name, a seat's, or nobody.</summary>
         private static string WinnerName(TableState state, Session session) =>
-            session.WinnerTeam is { } team && state.Roles != null ? GameEngine.TeamName(state.Roles, team)
+            session.WinnerTeam is { } team && state.Roles != null ? GameEngine.TeamName(state, state.Roles, team)
             : session.Winner != null ? Names.Seat(state, session.Winner) : "nobody";
 
         /// <summary>A vote with up to this many options shows one button per option.</summary>

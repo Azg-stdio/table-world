@@ -79,7 +79,7 @@ namespace TableWorld.Tests.PlayMode
             var line = _root.Q<Label>("gameRole");
             Assert.IsFalse(line.ClassListContains("hidden"));
             var seat = _table.LocalSeat;
-            var role = GameEngine.RoleName(_table.Game.State.Roles, _table.Game.Session.Roles[seat]);
+            var role = GameEngine.RoleName(_table.Game.State, _table.Game.State.Roles, _table.Game.Session.Roles[seat]);
             StringAssert.StartsWith($"You are {role} (", line.text);
             Assert.AreEqual(string.Join("\n", GameEngine.RoleLines(_table.Game.State, seat)), line.text);
             Assert.IsNull(Toggle("Percival"), "no toggles once the game runs");

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Core.Rules;
+using Core.Text;
 using Newtonsoft.Json.Linq;
 
 namespace Core.Engine
@@ -204,8 +205,13 @@ namespace Core.Engine
                     $"{seats.Count} {(seats.Count == 1 ? "player" : "players")}; the game takes {State.Game.MinPlayers}–{State.Game.MaxPlayers}.",
                     command.Seats.Count == 0 ? "Choose the seats that play (start_game seats), or change game.minPlayers/maxPlayers." : null);
 
+            var language = command.Language is { Length: > 0 } asked ? asked : Translations.BaseLanguage(State);
+            if (command.Language is { Length: > 0 } && !Speaks(command.Language))
+                throw new RuleException("language", ErrorCodes.InvalidValue, $"The game cannot be played in '{command.Language}'.",
+                    $"Choose one of: {string.Join(", ", PlayableLanguages())}.");
+
             var turn = State.Turn!;
-            var session = new Session { Started = true, Turn = 1 };
+            var session = new Session { Started = true, Turn = 1, Language = language };
             if (command.Seats.Count > 0)
                 session.Players = seats.Select(s => s.Id).ToList();
             foreach (var pair in State.Variables)
@@ -465,8 +471,8 @@ namespace Core.Engine
             var members = Playing.Where(s => TeamOf(s.Id) == team).Select(s => Names.Of(State, s)).ToList();
             // A team nobody plays (the bomb, the house) wins alone.
             Log(members.Count == 0
-                ? Names.Message(State, "teamWinsAlone", ("team", TeamName(roles, team)))
-                : Names.Message(State, "teamWins", ("team", TeamName(roles, team)), ("seats", Join(members))));
+                ? Names.Message(State, "teamWinsAlone", ("team", TeamName(State, roles, team)))
+                : Names.Message(State, "teamWins", ("team", TeamName(State, roles, team)), ("seats", Join(members))));
         }
 
         // ---- effects ----------------------------------------------------------------------------------------------
@@ -981,16 +987,28 @@ namespace Core.Engine
         /// </summary>
         private IEnumerable<TableObject> PiecesIn(string zoneId) => Table.ObjectsIn(zoneId).Where(o => !(o is Board));
 
+        /// <summary>
+        /// The languages this game can be played in: its own and its translations, or for a game in one language every
+        /// language Table World speaks.
+        /// </summary>
+        public IReadOnlyList<string> PlayableLanguages() =>
+            Translations.Languages(State) is { Count: > 0 } languages ? languages : Strings.BuiltIn();
+
+        private bool Speaks(string language) => PlayableLanguages().Contains(language);
+
         /// <summary>What players read for a choice option: its label from the action's parameter, or the option itself.</summary>
         public string OptionLabel(string actionId, string param, string value)
         {
             var action = State.Actions.FirstOrDefault(a => a.Id == actionId);
             var def = action == null ? null : ParamsOf(action).FirstOrDefault(p => p.Name == param);
+            if (def?.Type == ParamType.Choice && def.Options.Contains(value))
+                return Translations.Text(State, $"params.{actionId}.{param}.{value}",
+                    def.Labels != null && def.Labels.TryGetValue(value, out var written) && !string.IsNullOrWhiteSpace(written) ? written : value)!;
             if (def?.Labels != null && def.Labels.TryGetValue(value, out var label) && !string.IsNullOrWhiteSpace(label))
                 return label;
             if (def?.Type == ParamType.Seat)
                 return Names.Seat(State, value);
-            return Table.Find(value) is { } obj ? Names.Of(obj) : value;
+            return Table.Find(value) is { } obj ? Names.Of(State, obj) : value;
         }
 
         private int CountOf(object target) => target switch
@@ -1089,7 +1107,8 @@ namespace Core.Engine
 
         private string Template(string text)
         {
-            var result = text;
+            // A game's own string (@key) in the session's language, then its references.
+            var result = Translations.Resolve(State, text);
             var start = result.IndexOf("{$", StringComparison.Ordinal);
             while (start >= 0)
             {
@@ -1102,7 +1121,7 @@ namespace Core.Engine
                 var value = resolved switch
                 {
                     Seat seat => Names.Of(State, seat),
-                    TableObject obj => Names.Of(obj),
+                    TableObject obj => Names.Of(State, obj),
                     _ => ToValue(resolved)?.ToString() ?? "",
                 };
                 result = result.Substring(0, start) + value + result.Substring(end + 1);
@@ -1411,7 +1430,7 @@ namespace Core.Engine
         }
 
         /// <summary>An action as players read it: its name, else its id as words.</summary>
-        private static string ActionName(ActionDef action) => !string.IsNullOrWhiteSpace(action.Name) ? action.Name! : Names.Humanize(action.Id);
+        private string ActionName(ActionDef action) => Names.Action(State, action);
 
         private sealed class RuleException : Exception
         {

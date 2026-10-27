@@ -153,6 +153,19 @@ namespace Core.Scripting
             // getRole(seat, set): the role, or the trait of an extra role set.
             t["getRole"] = Fn(args => Game() is { } game && Arg(args, 0) is { } seat && game.RoleOf(seat, Arg(args, 1)) is { } role ? DynValue.NewString(role) : DynValue.Nil);
             t["getTeam"] = Fn(args => Game() is { } game && Arg(args, 0) is { } seat && game.TeamOf(seat) is { } team ? DynValue.NewString(team) : DynValue.Nil);
+            // Languages (ADR 0011): the session's language, and the game's own strings in it (text("noche", { space = "A1" })).
+            t["getLanguage"] = Fn(_ => DynValue.NewString(Core.Rules.Names.Language(Engine.State)));
+            t["text"] = Fn(args =>
+            {
+                if (Arg(args, 0) is not { } key)
+                    return DynValue.Nil;
+                var text = Core.Text.Translations.Resolve(Engine.State, "@" + key);
+                var fills = new List<(string, object?)>();
+                if (args.Count > 1 && args[1].Type == DataType.Table)
+                    foreach (var pair in args[1].Table.Pairs)
+                        fills.Add((pair.Key.CastToString(), pair.Value.CastToString()));
+                return DynValue.NewString(Core.Text.Strings.Fill(text, fills.ToArray()));
+            });
             t["getLegalActions"] = Fn(args => Game() is { } game && Arg(args, 0) is { } seat
                 ? Texts(script, game.LegalActions(seat).Select(a => a.ActionId))
                 : Texts(script, Enumerable.Empty<string>()));

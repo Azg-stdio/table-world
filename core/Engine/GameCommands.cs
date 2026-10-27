@@ -14,6 +14,12 @@ namespace Core.Engine
 
         /// <summary>The optional roles to deal (Avalon's Percival, Morgana); the others stay out of the game.</summary>
         public List<string> Roles { get; set; } = new List<string>();
+
+        /// <summary>
+        /// The language everyone reads this game in (ADR 0011): one of the game's languages, or for a game in one
+        /// language any language Table World speaks (its own lines then read in it). Null: the game's own language.
+        /// </summary>
+        public string? Language { get; set; }
     }
 
     /// <summary>

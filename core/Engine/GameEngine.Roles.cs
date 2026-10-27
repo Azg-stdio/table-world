@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Rules;
+using Core.Text;
 using Newtonsoft.Json.Linq;
 
 namespace Core.Engine
@@ -41,11 +42,15 @@ namespace Core.Engine
             return session.Roles.TryGetValue(seat, out var role) ? state.Roles?.List.FirstOrDefault(r => r.Id == role)?.Team : null;
         }
 
-        public static string RoleName(RolesDef roles, string roleId) =>
-            roles.List.FirstOrDefault(r => r.Id == roleId) is { Name: { } name } && name.Length > 0 ? name : Names.Humanize(roleId);
+        /// <summary>A role as players read it, in the session's language.</summary>
+        public static string RoleName(TableState state, RolesDef roles, string roleId) =>
+            roles.List.FirstOrDefault(r => r.Id == roleId) is { Name: { } name } && name.Length > 0
+                ? Translations.Text(state, $"roles.{roleId}.name", name)! : Names.Humanize(roleId);
 
-        public static string TeamName(RolesDef roles, string teamId) =>
-            roles.Teams.FirstOrDefault(t => t.Id == teamId) is { Name: { } name } && name.Length > 0 ? name : Names.Humanize(teamId);
+        /// <summary>A team as players read it, in the session's language.</summary>
+        public static string TeamName(TableState state, RolesDef roles, string teamId) =>
+            roles.Teams.FirstOrDefault(t => t.Id == teamId) is { Name: { } name } && name.Length > 0
+                ? Translations.Text(state, $"teams.{teamId}.name", name)! : Names.Humanize(teamId);
 
         /// <summary>The extra role sets the game deals beside the role, in the order they first appear.</summary>
         public static IEnumerable<string> RoleSets(RolesDef roles) => roles.List.Where(r => r.Set != null).Select(r => r.Set!).Distinct();
@@ -70,10 +75,10 @@ namespace Core.Engine
                     var members = inPlay.Where(r => r.Team == team.Id).ToList();
                     var fixedCount = members.Sum(r => r.Fixed);
                     if (fixedCount > size)
-                        return (null, $"{TeamName(roles, team.Id)} has {size} seats with {players} players, but {fixedCount} roles.");
+                        return (null, $"{(string.IsNullOrWhiteSpace(team.Name) ? Names.Humanize(team.Id) : team.Name)} has {size} seats with {players} players, but {fixedCount} roles.");
                     var fill = members.FirstOrDefault(r => r.Fills);
                     if (fixedCount < size && fill == null)
-                        return (null, $"{TeamName(roles, team.Id)} has {size} seats with {players} players, but only {fixedCount} roles and none to fill the rest.");
+                        return (null, $"{(string.IsNullOrWhiteSpace(team.Name) ? Names.Humanize(team.Id) : team.Name)} has {size} seats with {players} players, but only {fixedCount} roles and none to fill the rest.");
                     foreach (var role in members)
                         dealt.AddRange(Enumerable.Repeat(role.Id, role.Fills ? size - fixedCount : role.Fixed));
                 }
@@ -178,12 +183,12 @@ namespace Core.Engine
             {
                 var team = TeamOf(state, seat) ?? "";
                 lines.Add(team.Length == 0
-                    ? Names.Message(state, "youAreRole", ("role", RoleName(roles, mine)))
-                    : Names.Message(state, "youAre", ("role", RoleName(roles, mine)), ("team", TeamName(roles, team))));
+                    ? Names.Message(state, "youAreRole", ("role", RoleName(state, roles, mine)))
+                    : Names.Message(state, "youAre", ("role", RoleName(state, roles, mine)), ("team", TeamName(state, roles, team))));
             }
             if (session.Traits.TryGetValue(seat, out var traits))
                 foreach (var set in RoleSets(roles).Where(traits.ContainsKey))
-                    lines.Add(Names.Message(state, "youHave", ("set", Names.Humanize(set)), ("role", RoleName(roles, traits[set]))));
+                    lines.Add(Names.Message(state, "youHave", ("set", Names.Humanize(set)), ("role", RoleName(state, roles, traits[set]))));
             lines.AddRange(Describe(state, roles, session.Knows.TryGetValue(seat, out var sights) ? sights : new List<RoleSight>()));
             return lines;
         }
@@ -197,12 +202,12 @@ namespace Core.Engine
                 var who = Join(state, group.Select(s => Names.Seat(state, s.Seat)).ToList());
                 var plural = group.Count() > 1;
                 if (first.Role != null)
-                    yield return Names.Message(state, "seenAsRole", plural ? 2 : 1, ("seats", who), ("role", RoleName(roles, first.Role)));
+                    yield return Names.Message(state, "seenAsRole", plural ? 2 : 1, ("seats", who), ("role", RoleName(state, roles, first.Role)));
                 else if (first.Team != null)
-                    yield return Names.Message(state, "seenAsTeam", plural ? 2 : 1, ("seats", who), ("team", TeamName(roles, first.Team)));
+                    yield return Names.Message(state, "seenAsTeam", plural ? 2 : 1, ("seats", who), ("team", TeamName(state, roles, first.Team)));
                 else
                     yield return Names.Message(state, "seenAsOneOf", ("seats", who),
-                        ("roles", Join(state, (first.OneOf ?? new List<string>()).Select(r => RoleName(roles, r)).ToList(), "or")));
+                        ("roles", Join(state, (first.OneOf ?? new List<string>()).Select(r => RoleName(state, roles, r)).ToList(), "or")));
             }
         }
 
@@ -264,14 +269,14 @@ namespace Core.Engine
             var viewers = to ?? session.Roles.Keys.Concat(session.Traits.Keys).Distinct().ToList();
             string line;
             if (set != null)
-                line = Names.Message(State, "revealedTrait", ("seat", Names.Seat(State, seat)), ("set", Names.Humanize(set).ToLowerInvariant()), ("role", RoleName(roles, role)));
+                line = Names.Message(State, "revealedTrait", ("seat", Names.Seat(State, seat)), ("set", Names.Humanize(set).ToLowerInvariant()), ("role", RoleName(State, roles, role)));
             else
             {
                 var team = TeamOf(seat) ?? "";
                 var sight = teamOnly ? new RoleSight { Seat = seat, Team = team } : new RoleSight { Seat = seat, Role = role };
                 line = teamOnly
-                    ? Names.Message(State, "revealedTeam", ("seat", Names.Seat(State, seat)), ("team", TeamName(roles, team)))
-                    : Names.Message(State, "revealedRole", ("seat", Names.Seat(State, seat)), ("role", RoleName(roles, role)));
+                    ? Names.Message(State, "revealedTeam", ("seat", Names.Seat(State, seat)), ("team", TeamName(State, roles, team)))
+                    : Names.Message(State, "revealedRole", ("seat", Names.Seat(State, seat)), ("role", RoleName(State, roles, role)));
                 foreach (var viewer in viewers.Where(v => v != seat))
                 {
                     if (!session.Knows.TryGetValue(viewer, out var sights))
@@ -349,7 +354,7 @@ namespace Core.Engine
             else
                 session.Teams[seat] = team;
             if (tell)
-                Tell(seat, Names.Message(State, "nowTeam", ("team", TeamName(roles, team))));
+                Tell(seat, Names.Message(State, "nowTeam", ("team", TeamName(State, roles, team))));
         }
 
         /// <summary>A role or team id written plainly, or read from a reference (<c>$param.target.role</c>).</summary>
@@ -361,9 +366,9 @@ namespace Core.Engine
         {
             var roles = State.Roles!;
             if (set != null)
-                Tell(seat, Names.Message(State, "nowTrait", ("set", Names.Humanize(set).ToLowerInvariant()), ("role", RoleName(roles, RoleOf(seat, set)!))));
+                Tell(seat, Names.Message(State, "nowTrait", ("set", Names.Humanize(set).ToLowerInvariant()), ("role", RoleName(State, roles, RoleOf(seat, set)!))));
             else
-                Tell(seat, Names.Message(State, "nowRole", ("role", RoleName(roles, RoleOf(seat)!)), ("team", TeamName(roles, TeamOf(seat) ?? ""))));
+                Tell(seat, Names.Message(State, "nowRole", ("role", RoleName(State, roles, RoleOf(seat)!)), ("team", TeamName(State, roles, TeamOf(seat) ?? ""))));
         }
 
         /// <summary>

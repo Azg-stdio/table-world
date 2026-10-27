@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Rules;
+using Core.Text;
 using Newtonsoft.Json.Linq;
 
 namespace Core.Engine
@@ -121,8 +122,12 @@ namespace Core.Engine
                 Log(line);
         }
 
-        private static string VoteLabel(VoteDef vote, string option) =>
-            vote.Labels != null && vote.Labels.TryGetValue(option, out var label) && !string.IsNullOrWhiteSpace(label) ? label : Names.Humanize(option);
+        private string VoteLabel(VoteDef vote, string option)
+        {
+            var written = vote.Labels != null && vote.Labels.TryGetValue(option, out var label) && !string.IsNullOrWhiteSpace(label) ? label : null;
+            var action = State.Actions.FirstOrDefault(a => a.Vote == vote);
+            return written != null && action != null ? Translations.Text(State, $"votes.{action.Id}.{option}", written)! : written ?? Names.Humanize(option);
+        }
 
         /// <summary>A rule closes a vote before everyone has voted (a timer ran out): the votes in are counted.</summary>
         private void CloseVote(string actionId)

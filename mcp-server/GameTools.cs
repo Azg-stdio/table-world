@@ -597,7 +597,8 @@ namespace TableWorld.Mcp
             [Description("Optional seed for a reproducible game.")] long? seed = null,
             [Description("Comma-separated seat ids that play; empty for every seat.")] string? seats = null,
             [Description("How many play, spread evenly around the table (instead of seats).")] int? players = null,
-            [Description("Comma-separated optional roles to deal this time (e.g. 'percival,morgana'); the others stay out.")] string? roles = null) =>
+            [Description("Comma-separated optional roles to deal this time (e.g. 'percival,morgana'); the others stay out.")] string? roles = null,
+            [Description("The language everyone reads this game in, e.g. 'en': one of the game's languages (set_translations), or for a game in one language any language Table World speaks (its own lines then read in it). Empty: the game's own.")] string? language = null) =>
             session.Locked(() =>
             {
                 if (seed is { } s)
@@ -606,7 +607,7 @@ namespace TableWorld.Mcp
                 var chosen = players is { } n ? SeatLayout.Spread(all, n)
                     : (seats ?? "").Split(',').Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
                 var optional = (roles ?? "").Split(',').Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
-                return PlayReply(session.Start(chosen, optional), session);
+                return PlayReply(session.Start(chosen, optional, string.IsNullOrWhiteSpace(language) ? null : language), session);
             });
 
         [McpServerTool(Name = "perform_action"), Description("Perform a rules action as a seat, e.g. seat 'seat_south', action 'play_card', params {\"card\":\"queen_hearts\"}. get_table_state lists the legal actions and their parameter values.")]

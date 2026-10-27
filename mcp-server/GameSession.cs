@@ -446,7 +446,7 @@ namespace TableWorld.Mcp
 
         // ---- play ---------------------------------------------------------------------------------------------------
 
-        public PlayResult Start(IReadOnlyList<string>? seats = null, IReadOnlyList<string>? roles = null)
+        public PlayResult Start(IReadOnlyList<string>? seats = null, IReadOnlyList<string>? roles = null, string? language = null)
         {
             seats ??= Array.Empty<string>();
             roles ??= Array.Empty<string>();
@@ -461,7 +461,7 @@ namespace TableWorld.Mcp
             var copy = TableJson.Parse(TableJson.Serialize(Document)).State!;
             Game = new GameEngine(copy, Seed);
             StartScripts(Game);
-            var result = Game.Execute(new StartGameCommand { Seats = seats.ToList(), Roles = roles.ToList() });
+            var result = Game.Execute(new StartGameCommand { Seats = seats.ToList(), Roles = roles.ToList(), Language = language });
             if (!result.Ok)
                 Game = null;
             Changed?.Invoke(Current);

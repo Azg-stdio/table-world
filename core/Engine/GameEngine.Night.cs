@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Rules;
+using Core.Text;
 using Newtonsoft.Json.Linq;
 
 namespace Core.Engine
@@ -53,7 +54,7 @@ namespace Core.Engine
         }
 
         /// <summary>What a sleeping seat reads on its dark screen.</summary>
-        public string SleepText => CurrentPhase()?.SleepText is { Length: > 0 } text ? Template(text) : Names.Message(State, "eyesClosed");
+        public string SleepText => CurrentPhase() is { SleepText: { Length: > 0 } text } phase ? Template(Translations.Text(State, $"phases.{phase.Id}.sleepText", text)!) : Names.Message(State, "eyesClosed");
 
         /// <summary>
         /// Whether <paramref name="listener"/> hears <paramref name="speaker"/> now (seats; null for a spectator or a host

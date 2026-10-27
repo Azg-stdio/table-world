@@ -28,19 +28,66 @@ namespace Core.Rules
             : !string.IsNullOrWhiteSpace(seat.Color) && !seat.Color.StartsWith("#") ? Humanize(seat.Color)
             : Humanize(seat.Id);
 
-        /// <summary>A seat as players say it in the session's language: its colour comes from the string table (<c>color.red</c>).</summary>
+        /// <summary>
+        /// A seat as players say it in the session's language: its name as the game translates it, else its colour from
+        /// the string table (<c>color.red</c>).
+        /// </summary>
         public static string Of(TableState state, Seat seat) =>
-            string.IsNullOrWhiteSpace(seat.Name) && !string.IsNullOrWhiteSpace(seat.Color) && !seat.Color.StartsWith("#")
-                && Table(state).Raw("color." + seat.Color.ToLowerInvariant()) is { } colour
+            !string.IsNullOrWhiteSpace(seat.Name) ? Translations.Text(state, $"seats.{seat.Id}.name", seat.Name)!
+            : !string.IsNullOrWhiteSpace(seat.Color) && !seat.Color.StartsWith("#") && Table(state).Raw("color." + seat.Color.ToLowerInvariant()) is { } colour
                 ? colour
                 : Of(seat);
+
+        /// <summary>
+        /// An object as players read it in the session's language (ADR 0011): its name, else a text card's title, as the
+        /// game translates them; a card drawn from a deck reads its deck entry's (<c>cards.&lt;id&gt;</c>).
+        /// </summary>
+        public static string Of(TableState state, TableObject obj)
+        {
+            if (state.Translations.Count == 0)
+                return Of(obj);
+            var key = obj is Card { EntryId: { Length: > 0 } entry } ? "cards." + entry : "objects." + obj.Id;
+            if (!string.IsNullOrWhiteSpace(obj.Name))
+                return Translations.Text(state, key + ".name", obj.Name)!;
+            if (obj is Card { Text: { Title: { } title } } && !string.IsNullOrWhiteSpace(title))
+                return Translations.Text(state, key + ".text.title", title)!;
+            return Of(obj);
+        }
+
+        /// <summary>A card in a deck as players read it in the session's language.</summary>
+        public static string Of(TableState state, DeckCard card)
+        {
+            if (state.Translations.Count == 0 || string.IsNullOrEmpty(card.Id))
+                return Of(card);
+            if (!string.IsNullOrWhiteSpace(card.Name))
+                return Translations.Text(state, $"cards.{card.Id}.name", card.Name)!;
+            if (!string.IsNullOrWhiteSpace(card.Text?.Title))
+                return Translations.Text(state, $"cards.{card.Id}.text.title", card.Text!.Title)!;
+            return Of(card);
+        }
+
+        /// <summary>An action as players read it: its name in the session's language, else its id as words.</summary>
+        public static string Action(TableState state, ActionDef action) =>
+            !string.IsNullOrWhiteSpace(action.Name) ? Translations.Text(state, $"actions.{action.Id}.name", action.Name)! : Humanize(action.Id);
+
+        /// <summary>A phase as players read it: its name in the session's language, else its id as words.</summary>
+        public static string Phase(TableState state, string phaseId) =>
+            state.Phases.FirstOrDefault(p => p.Id == phaseId) is { Name: { Length: > 0 } name }
+                ? Translations.Text(state, $"phases.{phaseId}.name", name)!
+                : Humanize(phaseId);
+
+        /// <summary>The game's name in the session's language.</summary>
+        public static string Game(TableState state) =>
+            state.Game == null ? "" : Translations.Text(state, "game.name", state.Game.Name) ?? state.Game.Name;
 
         /// <summary>The seat <paramref name="seatId"/> as players say it; null is "The game" (the host or the rules).</summary>
         public static string Seat(TableState state, string? seatId) =>
             seatId == null ? Word(state, "theGame") : state.Players.Seats.FirstOrDefault(s => s.Id == seatId) is { } seat ? Of(state, seat) : Humanize(seatId);
 
-        /// <summary>The session's language (<see cref="Session.Language"/>), English when none is set.</summary>
-        public static string Language(TableState state) => string.IsNullOrWhiteSpace(state.Session?.Language) ? Strings.Fallback : state.Session!.Language!;
+        /// <summary>The session's language (<see cref="Session.Language"/>), else the game's own, else English.</summary>
+        public static string Language(TableState state) =>
+            !string.IsNullOrWhiteSpace(state.Session?.Language) ? state.Session!.Language!
+            : Translations.BaseLanguage(state) ?? Strings.Fallback;
 
         // Built-in tables never change while running, so one per language is shared.
         private static readonly ConcurrentDictionary<string, Strings> Tables = new ConcurrentDictionary<string, Strings>();
@@ -64,7 +111,9 @@ namespace Core.Rules
         /// </summary>
         public static string Message(TableState state, string key, int? count, params (string Name, string Value)[] fills)
         {
-            string? Own(string k) => state.Game?.Messages != null && state.Game.Messages.TryGetValue(k, out var own) && !string.IsNullOrWhiteSpace(own) ? own : null;
+            // The game's own words, as its translation in the session's language has them.
+            string? Own(string k) => state.Game?.Messages != null && state.Game.Messages.TryGetValue(k, out var own) && !string.IsNullOrWhiteSpace(own)
+                ? Translations.Text(state, "messages." + k, own) : null;
             var table = Table(state);
             var one = count == 1;
             var text = (one ? Own(key + ".one") : null) ?? Own(key)

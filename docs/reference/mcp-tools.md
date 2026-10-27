@@ -333,6 +333,7 @@ Start playing the game: deals the hidden roles (if the game has them), runs onGa
 | `seats` | string | none | Comma-separated seat ids that play; empty for every seat. |
 | `players` | integer | none | How many play, spread evenly around the table (instead of seats). |
 | `roles` | string | none | Comma-separated optional roles to deal this time (e.g. 'percival,morgana'); the others stay out. |
+| `language` | string | none | The language everyone reads this game in, e.g. 'en': one of the game's languages (set_translations), or for a game in one language any language Table World speaks (its own lines then read in it). Empty: the game's own. |
 
 ### `translate_game`
 

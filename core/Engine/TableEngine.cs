@@ -152,7 +152,7 @@ namespace Core.Engine
             };
             if (card == null)
                 return CommandResult.Fail("objectId", ErrorCodes.InvalidValue, $"'{c.ObjectId}' is not a card or a deck with cards.", "Show a card, or a deck to show its top card.");
-            var name = Names.Of(card);
+            var name = Names.Of(State, card);
             return CommandResult.Success(new List<StateEvent>
             {
                 new CardShown(obj.Id, card, c.Actor),

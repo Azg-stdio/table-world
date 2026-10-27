@@ -21,8 +21,8 @@ namespace Core.Tests.Engine
         {
             var engine = EngineFixture.Create();
             Assert.Equal("seat_1 shuffled a deck", Single(engine, new ShuffleCommand { ObjectId = "deck" }));
-            Assert.Equal("seat_1 dealt 2 cards from a deck to seat_2", Single(engine, new DealCommand { DeckId = "deck", Count = 2, Seats = { "seat_2" } }));
-            Assert.Equal("seat_1 dealt 1 card from a deck to seat_1, seat_2", Single(engine, new DealCommand { DeckId = "deck", Count = 1, Seats = { "seat_1", "seat_2" } }));
+            Assert.Equal("seat_1 dealt 2 cards from a deck to Blue", Single(engine, new DealCommand { DeckId = "deck", Count = 2, Seats = { "seat_2" } }));
+            Assert.Equal("seat_1 dealt 1 card from a deck to Red, Blue", Single(engine, new DealCommand { DeckId = "deck", Count = 1, Seats = { "seat_1", "seat_2" } }));
             Assert.StartsWith("seat_1 rolled a d6: ", Single(engine, new RollCommand { ObjectId = "d6" }));
             Assert.Equal("seat_1 locked a d6", Single(engine, new LockCommand { ObjectId = "d6" }));
             Assert.Equal("Shuffled a deck", Single(engine, new ShuffleCommand { ObjectId = "deck" }, actor: null));
