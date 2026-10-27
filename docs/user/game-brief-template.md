@@ -70,6 +70,20 @@ Best as a table (or attach a CSV with the same columns). Add any columns your ru
 | Hidden information | *hands are secret; the scoring pile is face down but its size is public* |
 | A game master / host role? | *no / the host controls the monsters* |
 
+**Hidden roles** (fill in for social games such as Avalon or Werewolf; skip otherwise):
+
+| | |
+|---|---|
+| Roles and their teams | *Merlin (good), Assassin (evil), Loyal servant (good, the rest)…* |
+| How many of each, by player count | *5 players: 3 good, 2 evil; 6: 4 good, 2 evil…* |
+| Optional roles the host may add | *Percival, Morgana* |
+| Who knows whom at the start | *evil sees evil except Oberon; Merlin sees evil except Mordred* |
+| Can a role change during play? | *no / a bitten villager becomes a wolf, and the wolves learn it* |
+| Votes: who votes, shown how, decided how | *team vote: everyone, by name, majority; quest: the team, only the count* |
+| Eyes-closed phases: who wakes, in what order | *night: wolves, then the Seer, then the Doctor* |
+| Who may talk when | *the wolves whisper at night; the dead stay silent* |
+| Gestures that count | *a wink from the Murderer kills* |
+
 ## 5. Table layout
 
 Where everything sits at the start. A sketch is perfect: draw it, photograph it, or use text.
