@@ -88,7 +88,7 @@ namespace Core.Rules
             {
                 var action = _state.Actions[i];
                 var path = $"actions[{i}]";
-                _params = action.Params.Select(p => p.Name).ToList();
+                _params = Core.Engine.GameEngine.ParamsOf(action).Select(p => p.Name).ToList();
                 for (var j = 0; j < action.Params.Count; j++)
                 {
                     var p = action.Params[j];
@@ -100,6 +100,22 @@ namespace Core.Rules
                 for (var j = 0; j < action.Preconditions.Count; j++)
                     Cond(action.Preconditions[j], $"{path}.preconditions[{j}]");
                 Effects(action.Effects, $"{path}.effects", phaseIds);
+                if (action.Vote is { } vote)
+                {
+                    if (!vote.Seats && vote.Options.Count < 2)
+                        Add($"{path}.vote.options", ErrorCodes.MissingField, "A vote needs at least two options, or \"seats\": true to vote for a player.");
+                    if (vote.Who != null && !References.IsReference(vote.Who))
+                        Audience(vote.Who, $"{path}.vote.who");
+                    else if (vote.Who != null && References.Check(vote.Who, $"{path}.vote.who", _state, _params) is { } whoError)
+                        _errors.Add(whoError);
+                    if (vote.Otherwise != null && !vote.Seats && !vote.Options.Contains(vote.Otherwise) && vote.Otherwise != "tie")
+                        Add($"{path}.vote.otherwise", ErrorCodes.InvalidValue, $"'{vote.Otherwise}' is not one of the vote's options.",
+                            Suggest.OneOf(vote.Otherwise, vote.Options.Append("tie"), "an option or tie"));
+                    if (action.Secret || action.Effects.Count > 0)
+                        Add($"{path}.vote", ErrorCodes.InvalidValue, "A vote is secret by itself and runs its onResult once counted.",
+                            "Drop secret, and move the effects to vote.onResult.");
+                    Effects(vote.OnResult, $"{path}.vote.onResult", phaseIds);
+                }
                 if (action.LimitPerPhase is { } limit && limit < 1)
                     Add($"{path}.limitPerPhase", ErrorCodes.InvalidValue, "limitPerPhase must be at least 1.");
             }
@@ -392,6 +408,10 @@ namespace Core.Rules
                     Seat(team.Seat, $"{path}.seat");
                     if (NeedsRoles(path, null) && !References.IsReference(team.Team) && _state.Roles!.Teams.All(t => t.Id != team.Team))
                         Add($"{path}.team", ErrorCodes.UnknownTeam, $"Team '{team.Team}' does not exist.", Suggest.OneOf(team.Team, _state.Roles.Teams.Select(t => t.Id), "a team id"));
+                    break;
+                case CloseVoteEffect close when _state.Actions.All(a => a.Id != close.Action || a.Vote == null):
+                    Add($"{path}.action", ErrorCodes.UnknownAction, $"'{close.Action}' is not a vote.",
+                        Suggest.OneOf(close.Action, _state.Actions.Where(a => a.Vote != null).Select(a => a.Id), "a vote"));
                     break;
                 case MessageEffect message when message.To != null:
                     Audience(message.To, $"{path}.to");

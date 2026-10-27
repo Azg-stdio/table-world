@@ -13,7 +13,8 @@ namespace Core.Rules
         /// <c>choseInSecret</c>, <c>chose</c> ("{seat} chose {action}{choice}."), <c>blindRound</c>, <c>reveal</c>, <c>shows</c>
         /// ("{seat} shows {card}."), and for roles <c>youAre</c> ("You are {role} ({team})."), <c>youAreRole</c>,
         /// <c>youHave</c> ("{set}: {role}."), <c>seenAsRole</c>, <c>seenAsTeam</c>, <c>seenAsOneOf</c>, <c>revealedRole</c>,
-        /// <c>revealedTeam</c>, <c>revealedTrait</c>, <c>nowRole</c>, <c>nowTeam</c>, <c>nowTrait</c>. <c>{seat}</c> and the other names in
+        /// <c>revealedTeam</c>, <c>revealedTrait</c>, <c>nowRole</c>, <c>nowTeam</c>, <c>nowTrait</c>; for votes <c>voted</c>,
+        /// <c>voteNamed</c> ("{vote}: {votes}."), <c>voteCount</c> ("{vote}: {counts}."), <c>voteResult</c> ("{vote}: {result}."). <c>{seat}</c> and the other names in
         /// braces are filled in; a missing key keeps the English line.
         /// </summary>
         public Dictionary<string, string>? Messages { get; set; }
@@ -105,6 +106,8 @@ namespace Core.Rules
         /// the seat's choice, which others cannot see, and its effects run when a <c>reveal</c> effect shows the choices.
         /// </summary>
         public bool Secret { get; set; }
+        /// <summary>A vote (ADR 0012): cast in secret by its voters, counted when the last one votes. Its choice is <c>choice</c>.</summary>
+        public VoteDef? Vote { get; set; }
         /// <summary>
         /// Shown as a button in the game window (default). False for actions players do with the pieces themselves (a
         /// card dragged from the hand), or that only scripts and agents perform: the HUD stays short.
@@ -165,6 +168,10 @@ namespace Core.Rules
         public List<SecretChoice> Secrets { get; set; } = new List<SecretChoice>();
         /// <summary>Messages from <c>message</c> effects, oldest first (last 50).</summary>
         public List<string> Log { get; set; } = new List<string>();
+        /// <summary>Each vote action's last count (ADR 0012), read through <c>$vote.&lt;action&gt;</c>.</summary>
+        public Dictionary<string, VoteTally> Votes { get; set; } = new Dictionary<string, VoteTally>();
+        /// <summary>The vote counted last, which <c>$vote</c> reads.</summary>
+        public string? LastVote { get; set; }
         /// <summary>Seat → its hidden role (ADR 0012). Each peer receives only its own.</summary>
         public Dictionary<string, string> Roles { get; set; } = new Dictionary<string, string>();
         /// <summary>Seat → set → its trait from an extra role set (<see cref="RoleDef.Set"/>). Each peer receives only its own.</summary>

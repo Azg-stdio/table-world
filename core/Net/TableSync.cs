@@ -210,8 +210,8 @@ namespace Core.Net
 
         /// <summary>
         /// One order per peer, with the command's result for its seat: a patch (or, when the change reaches further, the
-        /// whole seat view), the events, and the public hash to check. Another seat's secret choice arrives without its
-        /// parameters.
+        /// whole seat view), the events, and the public hash to check. Another seat's secret choice or vote arrives without
+        /// its parameters.
         /// </summary>
         private List<Outgoing> HostRunOrders(string origin, long clientSeq, Command command, CommandResult result)
         {
@@ -222,7 +222,7 @@ namespace Core.Net
                 var seat = ViewerSeat(peer);
                 var sent = command;
                 if (command is PerformActionCommand perform && perform.Params.Count > 0 && perform.Actor != seat
-                    && Game.State.Actions.FirstOrDefault(a => a.Id == perform.ActionId) is { Secret: true })
+                    && Game.State.Actions.FirstOrDefault(a => a.Id == perform.ActionId) is { } secret && (secret.Secret || secret.Vote != null))
                     sent = new PerformActionCommand { Actor = perform.Actor, ActionId = perform.ActionId };
                 var order = OrderMessage(origin, clientSeq, sent);
                 order["hash"] = hash;

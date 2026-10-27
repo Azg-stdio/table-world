@@ -14,6 +14,8 @@ namespace Core.Rules
     /// <item><c>$secrets</c>: how many secret choices wait for the reveal; <c>$secrets.&lt;action&gt;</c>: of that action.
     /// On a seat, <c>.chose.&lt;action&gt;</c> is its waiting secret choice (shown with <c>$viewer</c> in a panel only that
     /// player sees) and <c>.name</c> its name.</item>
+    /// <item><c>$vote.result</c>, <c>$vote.total</c>, <c>$vote.&lt;option&gt;</c> (its count), <c>$vote.of.&lt;seat&gt;</c> (a named
+    /// vote's choice): the vote counted last; <c>$vote.&lt;action&gt;.result</c> and so on for a given vote.</item>
     /// <item><c>$diceTotal.&lt;zone&gt;</c>: the total of the dice in a zone; <c>$diceTotal.&lt;zone&gt;.&lt;seat&gt;</c>: that seat's dice there
     /// (dice tagged <c>owner:&lt;seat&gt;</c>).</item>
     /// <item>On objects, decks and zones: <c>.count</c>, <c>.top</c>, <c>.bottom</c>, <c>.meta.&lt;key&gt;</c>, <c>.name</c>, <c>.id</c>,
@@ -24,7 +26,7 @@ namespace Core.Rules
     public static class References
     {
         /// <summary><c>$viewer</c> is the seat looking at a UI panel (only meaningful in <c>ui</c> texts and values).</summary>
-        public static readonly IReadOnlyList<string> Roots = new[] { "actor", "current", "player", "other", "it", "param", "var", "seat", "obj", "viewer", "diceTotal", "secrets" };
+        public static readonly IReadOnlyList<string> Roots = new[] { "actor", "current", "player", "other", "it", "param", "var", "seat", "obj", "viewer", "diceTotal", "secrets", "vote" };
 
         public static bool IsReference(string? text) => text != null && text.StartsWith("$");
 

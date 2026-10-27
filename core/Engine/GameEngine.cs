@@ -227,7 +227,7 @@ namespace Core.Engine
             if (CanAct(action, seat) is { } refusal)
                 throw refusal;
 
-            foreach (var param in action.Params)
+            foreach (var param in ParamsOf(action))
             {
                 if (!command.Params.TryGetValue(param.Name, out var value))
                     throw new RuleException($"params.{param.Name}", ErrorCodes.MissingParam, $"Action '{action.Id}' needs parameter '{param.Name}'.");
@@ -242,7 +242,9 @@ namespace Core.Engine
                     throw new RuleException($"preconditions[{i}]", ErrorCodes.PreconditionFailed,
                         $"Action '{action.Id}' is not possible now: precondition {i} ({action.Preconditions[i].Kind}) does not hold.");
 
-            if (action.Secret)
+            if (action.Vote != null)
+                CastVote(action, seat, command.Params);
+            else if (action.Secret)
             {
                 // Recorded, not run: a later choice of the same action replaces it until the reveal.
                 session.Secrets.RemoveAll(s => s.Seat == seat && s.Action == action.Id);
@@ -271,6 +273,8 @@ namespace Core.Engine
                     CurrentPhase() is { } p && p.Actions.Count > 0 ? $"Allowed now: {string.Join(", ", p.Actions)}." : null);
             if (action.Actor == ActorRule.Current && seat != session.CurrentSeat)
                 return new RuleException("actor", ErrorCodes.NotYourTurn, $"It is {session.CurrentSeat}'s turn, not {seat}'s.");
+            if (action.Vote != null && !WithContext(new Context { Actor = seat }, () => VotersOf(action)).Contains(seat))
+                return new RuleException("actor", ErrorCodes.NotYourSeat, $"{Names.Seat(State, seat)} does not vote in '{action.Name ?? action.Id}'.");
             if (action.LimitPerPhase is { } limit && session.ActionCounts.TryGetValue($"{seat}/{action.Id}", out var used) && used >= limit)
                 return new RuleException("actionId", ErrorCodes.LimitReached, $"{seat} already did '{action.Id}' {used} time(s) this phase.");
             return null;
@@ -473,6 +477,7 @@ namespace Core.Engine
                 case MessageEffect message when message.To != null: TellAudience(message.To, Template(message.Text)); break;
                 case MessageEffect message: Log(Template(message.Text)); break;
                 case RevealEffect reveal: Reveal(reveal.Action); break;
+                case CloseVoteEffect close: CloseVote(close.Action); break;
                 case RevealRoleEffect show:
                     RevealRole(ResolveSeat(show.Seat, "revealRole.seat"), Audience(show.To, "revealRole.to"), show.TeamOnly, show.Set);
                     break;
@@ -883,9 +888,12 @@ namespace Core.Engine
         /// <summary>What players read for a choice option: its label from the action's parameter, or the option itself.</summary>
         public string OptionLabel(string actionId, string param, string value)
         {
-            var def = State.Actions.FirstOrDefault(a => a.Id == actionId)?.Params.FirstOrDefault(p => p.Name == param);
+            var action = State.Actions.FirstOrDefault(a => a.Id == actionId);
+            var def = action == null ? null : ParamsOf(action).FirstOrDefault(p => p.Name == param);
             if (def?.Labels != null && def.Labels.TryGetValue(value, out var label) && !string.IsNullOrWhiteSpace(label))
                 return label;
+            if (def?.Type == ParamType.Seat)
+                return Names.Seat(State, value);
             return Table.Find(value) is { } obj ? Names.Of(obj) : value;
         }
 
@@ -1068,6 +1076,8 @@ namespace Core.Engine
                     break;
                 case "seat": i = 2; current = SeatById(parts[1]); break;
                 case "obj": i = 2; current = (object?)Table.Find(parts[1]) ?? State.Zones.FirstOrDefault(z => z.Id == parts[1]); break;
+                case "vote":
+                    return VoteReference(parts);
                 case "secrets":
                 {
                     // How many secret choices wait for the reveal: all, or one action's.
@@ -1231,7 +1241,7 @@ namespace Core.Engine
         private IEnumerable<Dictionary<string, string>> ParamCombinations(ActionDef action, string seat)
         {
             IEnumerable<Dictionary<string, string>> combos = new[] { new Dictionary<string, string>() };
-            foreach (var param in action.Params)
+            foreach (var param in ParamsOf(action))
             {
                 var values = param.Type switch
                 {

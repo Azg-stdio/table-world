@@ -2728,6 +2728,18 @@
         {
           "type": "object",
           "properties": {
+            "closeVote": {
+              "$ref": "#/$defs/CloseVoteEffect"
+            }
+          },
+          "required": [
+            "closeVote"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
             "lua": {
               "$ref": "#/$defs/LuaEffect"
             }
@@ -3281,6 +3293,15 @@
         },
         "tell": {
           "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CloseVoteEffect": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -4213,6 +4234,9 @@
         "secret": {
           "type": "boolean"
         },
+        "vote": {
+          "$ref": "#/$defs/VoteDef"
+        },
         "button": {
           "type": "boolean"
         }
@@ -4262,6 +4286,53 @@
         },
         "hasTag": {
           "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "VoteDef": {
+      "type": "object",
+      "properties": {
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "seats": {
+          "type": "boolean"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "who": {
+          "type": "string"
+        },
+        "reveal": {
+          "enum": [
+            "named",
+            "count",
+            "result"
+          ]
+        },
+        "decide": {
+          "enum": [
+            "most",
+            "majority",
+            "unanimous"
+          ]
+        },
+        "otherwise": {
+          "type": "string"
+        },
+        "onResult": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
         }
       },
       "additionalProperties": false
@@ -4557,6 +4628,15 @@
             "type": "string"
           }
         },
+        "votes": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/VoteTally"
+          }
+        },
+        "lastVote": {
+          "type": "string"
+        },
         "roles": {
           "type": "object",
           "additionalProperties": {
@@ -4626,6 +4706,33 @@
           "additionalProperties": {
             "type": "string"
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "VoteTally": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string"
+        },
+        "result": {
+          "type": "string"
+        },
+        "counts": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer"
+          }
+        },
+        "votes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "total": {
+          "type": "integer"
         }
       },
       "additionalProperties": false

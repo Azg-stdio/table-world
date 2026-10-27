@@ -155,6 +155,9 @@ namespace Core.Engine
                     return "started the game";
                 case PerformActionCommand c when engine.State.Actions.FirstOrDefault(a => a.Id == c.ActionId) is { Secret: true }:
                     return "chose in secret";
+                // The rules log "Red voted."; the choice stays secret until the count.
+                case PerformActionCommand c when engine.State.Actions.FirstOrDefault(a => a.Id == c.ActionId) is { Vote: { } }:
+                    return null;
                 case PerformActionCommand c:
                     return $"did {engine.State.Actions.FirstOrDefault(a => a.Id == c.ActionId)?.Name ?? c.ActionId}";
                 case BlindRoundCommand { On: true }:

@@ -182,6 +182,13 @@ know), `swapRoles` trades two players' roles, `setTeam` changes a player's side;
 `message` tells a whole team privately. Roles with a `set` (say `"set": "objective"`) deal a second secret beside the
 role, read as `$actor.role.objective`. The full format is in [the rules format](../rules-schema.md#roles).
 
+**Votes.** An action with a `vote` block is voted in secret by the players it names (`who`: everyone, a team, a role,
+or a list of seats), and counted when the last one votes. `reveal` says what everyone sees: who voted what (`named`),
+only how many chose each option (`count`, like face-down mission cards), or only the outcome (`result`). `decide` is
+`most`, `majority` or `unanimous`, and `otherwise` is the result when nothing wins. The vote's `onResult` effects read
+`$vote.result` and the counts (`$vote.fail`). A vote can be for a player (`"seats": true`), and `closeVote` ends one
+early. The format is in [the rules format](../rules-schema.md#votes).
+
 ## 4. Naming things: `$` references
 
 Rules rarely name one card. They say "the actor's deck" or "the top card of the discard pile". A `$` reference names

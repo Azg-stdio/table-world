@@ -184,6 +184,30 @@ Effects can only set declared variables and resources; the validator rejects und
 
 Param types: `object` (filter `inZone` — a zone, deck or reference —, `type`, `hasTag`), `seat`, `number`, `choice` (with `options`). The engine lists the legal actions of a seat with every parameter combination that passes the preconditions (`GameEngine.LegalActions`); the HUD, the MCP `get_table_state` tool and random test players all use that list.
 
+### Votes
+
+An action with a `vote` block is a vote (ADR 0012): each voter's choice is secret until the last voter votes, then
+the votes are counted, the count is logged, and `onResult` runs.
+
+```jsonc
+{ "id": "team_vote", "name": "Team vote", "actor": "any",
+  "vote": {
+    "options": [ "yes", "no" ], "labels": { "yes": "approve", "no": "reject" },   // or "seats": true to vote for a player
+    "who": "all",              // all (default), team:<id>, role:<id>, a seat, or a list of seats ($var.quest_team)
+    "reveal": "named",         // named (who voted what) | count (only how many chose each) | result (only the outcome)
+    "decide": "majority",      // most (default) | majority (more than half) | unanimous
+    "otherwise": "no",         // the result on a tie or when nothing reaches what decide needs; "tie" when left out
+    "onResult": [ { "if": { "condition": { "compare": { "left": "$vote.result", "right": "yes" } }, "then": [ /* ... */ ] } } ]
+  } }
+```
+
+- The choice is the action's `choice` parameter (`perform_action params {"choice": "yes"}`); the HUD shows one button
+  per option to the seats that vote, and "Team vote: 2 of 5 voted (you: approve)" while it runs.
+- A vote has no `secret` and no `effects`: it is secret by itself, and what follows goes in `onResult`.
+- `$vote.result`, `$vote.total`, `$vote.<option>` (how many chose it), `$vote.of.<seat>` (named votes only) read the
+  vote counted last; `$vote.<action>.result` and so on read a given one.
+- `closeVote { action }` counts a vote now with the votes cast so far (a timer, the host calling it).
+
 ## References
 
 Fields that name a thing accept a plain id (object, zone, or a card inside a deck by its id) or a `$` reference:

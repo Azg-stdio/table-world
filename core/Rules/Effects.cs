@@ -169,6 +169,12 @@ namespace Core.Rules
         public bool Tell { get; set; }
     }
 
+    /// <summary>Counts a vote now with the votes cast so far (a timer ran out, the host calls it).</summary>
+    public sealed class CloseVoteEffect : Effect
+    {
+        public string Action { get; set; } = "";
+    }
+
     /// <summary>Moves <see cref="Seat"/> to another team, keeping its role (an allegiance that changes).</summary>
     public sealed class SetTeamEffect : Effect
     {
@@ -244,6 +250,7 @@ namespace Core.Rules
             ["setRole"] = typeof(SetRoleEffect),
             ["swapRoles"] = typeof(SwapRolesEffect),
             ["setTeam"] = typeof(SetTeamEffect),
+            ["closeVote"] = typeof(CloseVoteEffect),
             ["lua"] = typeof(LuaEffect),
             ["refuse"] = typeof(RefuseEffect),
             ["blindRound"] = typeof(BlindRoundEffect),

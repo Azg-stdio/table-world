@@ -559,6 +559,29 @@ namespace TableWorld.View.Hud
             }
         }
 
+        /// <summary>
+        /// A vote in progress (ADR 0012): how many have voted, and this player's own vote, until the count shows the result.
+        /// </summary>
+        private List<string> VoteLines(GameEngine game)
+        {
+            var lines = new List<string>();
+            var session = game.Session;
+            if (session is not { Started: true, Over: false })
+                return lines;
+            foreach (var action in game.State.Actions.Where(a => a.Vote != null))
+            {
+                var cast = session.Secrets.Where(s => s.Action == action.Id).ToList();
+                if (cast.Count == 0)
+                    continue;
+                var voters = game.VotersOf(action).Count;
+                var line = $"{action.Name ?? Names.Humanize(action.Id)}: {cast.Count} of {voters} voted";
+                if (cast.FirstOrDefault(s => s.Seat == _table.LocalSeat) is { } mine && mine.Params.TryGetValue(GameEngine.VoteParam, out var choice))
+                    line += $" (you: {game.OptionLabel(action.Id, GameEngine.VoteParam, choice)})";
+                lines.Add(line);
+            }
+            return lines;
+        }
+
         /// <summary>What the role line shows changes with: this seat's role and how many seats it knows about.</summary>
         private string RoleKey(Session session) =>
             session == null || _table.LocalSeat == null || !session.Roles.TryGetValue(_table.LocalSeat, out var mine)
@@ -677,6 +700,9 @@ namespace TableWorld.View.Hud
         /// turn it is, or the one picked from its chip). An action with several choices opens the picker; actions marked
         /// <c>button: false</c> are done with the pieces, by scripts or by agents, and get none.
         /// </summary>
+        /// <summary>A vote with up to this many options shows one button per option.</summary>
+        private const int MaxVoteButtons = 4;
+
         private void RefreshGame()
         {
             var game = _table.Game;
@@ -690,7 +716,7 @@ namespace TableWorld.View.Hud
             var turns = state.FreeTurns;
             var key = $"{state.HasRules}|{session?.Turn}|{session?.Phase}|{session?.CurrentSeat}|{session?.Over}|{session?.Log.Count}|" +
                       $"{turns?.Current}|{turns?.Count}|{turns?.Reverse}|{_table.LocalSeat}|{string.Join(",", SeatedSeats())}|" +
-                      $"{RoleKey(session)}|{string.Join(",", _optionalRoles)}|" +
+                      $"{RoleKey(session)}|{string.Join(",", _optionalRoles)}|{session?.Secrets.Count}|" +
                       string.Join(",", legal.Select(l => $"{l.Seat}/{l.Action.ActionId}/{l.Action.Choices.Count}"));
             if (key == _shownGameKey)
                 return;
@@ -717,6 +743,7 @@ namespace TableWorld.View.Hud
             }
             _gamePanel.RemoveFromClassList(Hidden);
             var role = _table.LocalSeat == null ? new List<string>() : GameEngine.RoleLines(state, _table.LocalSeat);
+            role.AddRange(VoteLines(game));
             _gameRole.text = string.Join("\n", role);
             _gameRole.EnableInClassList(Hidden, role.Count == 0);
             _gameLog.text = LatestLogLines(session);
@@ -744,6 +771,16 @@ namespace TableWorld.View.Hud
                 {
                     var only = action.Choices[0];
                     AddGameButton(only.Count == 0 ? name : $"{name} · {ChoiceLabel(id, only)}", () => Perform(only));
+                    continue;
+                }
+                // A vote's few options are one click each (approve, reject), not a picker.
+                if (state.Actions.FirstOrDefault(a => a.Id == id)?.Vote != null && action.Choices.Count <= MaxVoteButtons)
+                {
+                    foreach (var option in action.Choices)
+                    {
+                        var picked = option;
+                        AddGameButton($"{name} · {ChoiceLabel(id, picked)}", () => Perform(picked));
+                    }
                     continue;
                 }
                 var choices = action.Choices;

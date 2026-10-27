@@ -8,7 +8,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 
 ## Types
 
-[TableState](#tablestate) · [Asset](#asset) · [TableObject](#tableobject) · [Card](#card) · [TableTransform](#tabletransform) · [JointDef](#jointdef) · [ButtonDef](#buttondef) · [InputDef](#inputdef) · [UiNode](#uinode) · [CardText](#cardtext) · [CardStyle](#cardstyle) · [Deck](#deck) · [DeckCard](#deckcard) · [Token](#token) · [Tile](#tile) · [Die](#die) · [Model](#model) · [Bag](#bag) · [InfiniteBag](#infinitebag) · [Board](#board) · [Figure](#figure) · [Counter](#counter) · [Clock](#clock) · [Notecard](#notecard) · [Pdf](#pdf) · [Calculator](#calculator) · [Zone](#zone) · [HandZone](#handzone) · [Effect](#effect) · [MoveEffect](#moveeffect) · [DealEffect](#dealeffect) · [ShuffleEffect](#shuffleeffect) · [FlipEffect](#flipeffect) · [SetVariableEffect](#setvariableeffect) · [SetResourceEffect](#setresourceeffect) · [IfEffect](#ifeffect) · [Condition](#condition) · [ZoneCountCondition](#zonecountcondition) · [CompareCondition](#comparecondition) · [VariableCondition](#variablecondition) · [ResourceCondition](#resourcecondition) · [IsCurrentPlayerCondition](#iscurrentplayercondition) · [ObjectInCondition](#objectincondition) · [HasTagCondition](#hastagcondition) · [ForEachEffect](#foreacheffect) · [MessageEffect](#messageeffect) · [EndTurnEffect](#endturneffect) · [EndPhaseEffect](#endphaseeffect) · [GotoPhaseEffect](#gotophaseeffect) · [WinEffect](#wineffect) · [LockEffect](#lockeffect) · [RollEffect](#rolleffect) · [RevealEffect](#revealeffect) · [RevealRoleEffect](#revealroleeffect) · [SetRoleEffect](#setroleeffect) · [SwapRolesEffect](#swaproleseffect) · [SetTeamEffect](#setteameffect) · [LuaEffect](#luaeffect) · [RefuseEffect](#refuseeffect) · [BlindRoundEffect](#blindroundeffect) · [ShowEffect](#showeffect) · [LightEffect](#lighteffect) · [HiddenZone](#hiddenzone) · [ScriptingZone](#scriptingzone) · [SnapPoint](#snappoint) · [LayoutZone](#layoutzone) · [RandomizeZone](#randomizezone) · [Players](#players) · [Seat](#seat) · [EnvironmentDef](#environmentdef) · [LightingDef](#lightingdef) · [TableLookDef](#tablelookdef) · [FreeTurns](#freeturns) · [BlindRound](#blindround) · [GridDef](#griddef) · [MusicState](#musicstate) · [MusicTrack](#musictrack) · [NoteTab](#notetab) · [DrawingDef](#drawingdef) · [GameInfo](#gameinfo) · [ResourceDef](#resourcedef) · [TurnDef](#turndef) · [PhaseDef](#phasedef) · [AdvanceRule](#advancerule) · [ActionDef](#actiondef) · [ParamDef](#paramdef) · [ParamFilter](#paramfilter) · [WinCondition](#wincondition) · [UiDef](#uidef) · [PanelDef](#paneldef) · [UiElementDef](#uielementdef) · [RolesDef](#rolesdef) · [TeamDef](#teamdef) · [RoleDef](#roledef) · [KnowsRule](#knowsrule) · [SeesDef](#seesdef) · [Session](#session) · [ZoneMove](#zonemove) · [SecretChoice](#secretchoice) · [RoleSight](#rolesight)
+[TableState](#tablestate) · [Asset](#asset) · [TableObject](#tableobject) · [Card](#card) · [TableTransform](#tabletransform) · [JointDef](#jointdef) · [ButtonDef](#buttondef) · [InputDef](#inputdef) · [UiNode](#uinode) · [CardText](#cardtext) · [CardStyle](#cardstyle) · [Deck](#deck) · [DeckCard](#deckcard) · [Token](#token) · [Tile](#tile) · [Die](#die) · [Model](#model) · [Bag](#bag) · [InfiniteBag](#infinitebag) · [Board](#board) · [Figure](#figure) · [Counter](#counter) · [Clock](#clock) · [Notecard](#notecard) · [Pdf](#pdf) · [Calculator](#calculator) · [Zone](#zone) · [HandZone](#handzone) · [Effect](#effect) · [MoveEffect](#moveeffect) · [DealEffect](#dealeffect) · [ShuffleEffect](#shuffleeffect) · [FlipEffect](#flipeffect) · [SetVariableEffect](#setvariableeffect) · [SetResourceEffect](#setresourceeffect) · [IfEffect](#ifeffect) · [Condition](#condition) · [ZoneCountCondition](#zonecountcondition) · [CompareCondition](#comparecondition) · [VariableCondition](#variablecondition) · [ResourceCondition](#resourcecondition) · [IsCurrentPlayerCondition](#iscurrentplayercondition) · [ObjectInCondition](#objectincondition) · [HasTagCondition](#hastagcondition) · [ForEachEffect](#foreacheffect) · [MessageEffect](#messageeffect) · [EndTurnEffect](#endturneffect) · [EndPhaseEffect](#endphaseeffect) · [GotoPhaseEffect](#gotophaseeffect) · [WinEffect](#wineffect) · [LockEffect](#lockeffect) · [RollEffect](#rolleffect) · [RevealEffect](#revealeffect) · [RevealRoleEffect](#revealroleeffect) · [SetRoleEffect](#setroleeffect) · [SwapRolesEffect](#swaproleseffect) · [SetTeamEffect](#setteameffect) · [CloseVoteEffect](#closevoteeffect) · [LuaEffect](#luaeffect) · [RefuseEffect](#refuseeffect) · [BlindRoundEffect](#blindroundeffect) · [ShowEffect](#showeffect) · [LightEffect](#lighteffect) · [HiddenZone](#hiddenzone) · [ScriptingZone](#scriptingzone) · [SnapPoint](#snappoint) · [LayoutZone](#layoutzone) · [RandomizeZone](#randomizezone) · [Players](#players) · [Seat](#seat) · [EnvironmentDef](#environmentdef) · [LightingDef](#lightingdef) · [TableLookDef](#tablelookdef) · [FreeTurns](#freeturns) · [BlindRound](#blindround) · [GridDef](#griddef) · [MusicState](#musicstate) · [MusicTrack](#musictrack) · [NoteTab](#notetab) · [DrawingDef](#drawingdef) · [GameInfo](#gameinfo) · [ResourceDef](#resourcedef) · [TurnDef](#turndef) · [PhaseDef](#phasedef) · [AdvanceRule](#advancerule) · [ActionDef](#actiondef) · [ParamDef](#paramdef) · [ParamFilter](#paramfilter) · [VoteDef](#votedef) · [WinCondition](#wincondition) · [UiDef](#uidef) · [PanelDef](#paneldef) · [UiElementDef](#uielementdef) · [RolesDef](#rolesdef) · [TeamDef](#teamdef) · [RoleDef](#roledef) · [KnowsRule](#knowsrule) · [SeesDef](#seesdef) · [Session](#session) · [ZoneMove](#zonemove) · [SecretChoice](#secretchoice) · [VoteTally](#votetally) · [RoleSight](#rolesight)
 
 ### TableState
 
@@ -712,7 +712,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 
 ### Effect
 
-object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object
+object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object or object
 
 ### MoveEffect
 
@@ -922,6 +922,12 @@ object or object or object or object or object or object or object or object or 
 | `seat` | string |  |
 | `team` | string |  |
 | `tell` | boolean |  |
+
+### CloseVoteEffect
+
+| Field | Type | Required |
+|---|---|---|
+| `action` | string |  |
 
 ### LuaEffect
 
@@ -1242,6 +1248,7 @@ object or object or object or object or object or object or object or object or 
 | `effects` | array of [Effect](#effect) |  |
 | `limitPerPhase` | integer |  |
 | `secret` | boolean |  |
+| `vote` | [VoteDef](#votedef) |  |
 | `button` | boolean |  |
 
 ### ParamDef
@@ -1261,6 +1268,19 @@ object or object or object or object or object or object or object or object or 
 | `inZone` | string |  |
 | `type` | string |  |
 | `hasTag` | string |  |
+
+### VoteDef
+
+| Field | Type | Required |
+|---|---|---|
+| `options` | array of string |  |
+| `seats` | boolean |  |
+| `labels` | map of string |  |
+| `who` | string |  |
+| `reveal` | one of `named`, `count`, `result` |  |
+| `decide` | one of `most`, `majority`, `unanimous` |  |
+| `otherwise` | string |  |
+| `onResult` | array of [Effect](#effect) |  |
 
 ### WinCondition
 
@@ -1362,6 +1382,8 @@ object or object or object or object or object or object or object or object or 
 | `heldZoneMoves` | array of [ZoneMove](#zonemove) |  |
 | `secrets` | array of [SecretChoice](#secretchoice) |  |
 | `log` | array of string |  |
+| `votes` | map of [VoteTally](#votetally) |  |
+| `lastVote` | string |  |
 | `roles` | map of string |  |
 | `traits` | map of map of string |  |
 | `teams` | map of string |  |
@@ -1384,6 +1406,16 @@ object or object or object or object or object or object or object or object or 
 | `seat` | string |  |
 | `action` | string |  |
 | `params` | map of string |  |
+
+### VoteTally
+
+| Field | Type | Required |
+|---|---|---|
+| `action` | string |  |
+| `result` | string |  |
+| `counts` | map of integer |  |
+| `votes` | map of string |  |
+| `total` | integer |  |
 
 ### RoleSight
 

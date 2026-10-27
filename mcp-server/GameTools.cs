@@ -412,7 +412,7 @@ namespace TableWorld.Mcp
                 doc["turn"] = turn;
             }), session));
 
-        [McpServerTool(Name = "add_action"), Description("Add or replace a player action: {\"id\":\"draw_card\",\"name\":\"Draw\",\"actor\":\"current\",\"params\":[...],\"preconditions\":[conditions],\"effects\":[effects],\"limitPerPhase\":1}. Remember to list it in a phase's actions. " + Format)]
+        [McpServerTool(Name = "add_action"), Description("Add or replace a player action: {\"id\":\"draw_card\",\"name\":\"Draw\",\"actor\":\"current\",\"params\":[...],\"preconditions\":[conditions],\"effects\":[effects],\"limitPerPhase\":1}. A vote is an action with \"vote\": {options or seats:true, labels, who (all, team:<id>, role:<id>, a seat or $var.<list>), reveal (named|count|result), decide (most|majority|unanimous), otherwise, onResult [effects reading $vote.result / $vote.<option>]} and no effects; players vote with params {\"choice\": ...}. Remember to list it in a phase's actions. " + Format)]
         public static string AddAction(GameSession session, [Description("The action as JSON.")] string actionJson) =>
             session.Locked(() => Reply(session.Edit(doc => Upsert(doc, "actions", GameSession.ParseObject(actionJson, "actionJson"))), session));
 

@@ -84,5 +84,31 @@ namespace TableWorld.Tests.PlayMode
             Assert.AreEqual(string.Join("\n", GameEngine.RoleLines(_table.Game.State, seat)), line.text);
             Assert.IsNull(Toggle("Percival"), "no toggles once the game runs");
         }
+
+        /// <summary>T11.5: a vote shows a button per option, then how many have voted and this player's own vote.</summary>
+        [UnityTest]
+        public IEnumerator AVote_ShowsItsOptions_ThenWhoHasVoted()
+        {
+            const string vote = @"{
+  ""players"": { ""seats"": [ { ""id"": ""s1"", ""color"": ""red"" }, { ""id"": ""s2"", ""color"": ""blue"" }, { ""id"": ""s3"", ""color"": ""green"" } ] },
+  ""turn"": { ""phases"": [ ""vote"" ] },
+  ""phases"": [ { ""id"": ""vote"", ""actions"": [ ""team"" ] } ],
+  ""actions"": [ { ""id"": ""team"", ""name"": ""Team vote"", ""actor"": ""any"",
+    ""vote"": { ""options"": [ ""yes"", ""no"" ], ""labels"": { ""yes"": ""approve"", ""no"": ""reject"" } } } ]
+}";
+            Assert.IsTrue(_table.Load(vote, null));
+            Assert.IsTrue(_table.Execute(new StartGameCommand()).Ok);
+            yield return new WaitForSeconds(0.4f);
+            Assert.IsNotNull(Toggle("Team vote · approve"), "one button per option");
+            Assert.IsNotNull(Toggle("Team vote · reject"));
+
+            var seat = _table.LocalSeat;
+            var cast = _table.Execute(new PerformActionCommand { Actor = seat, ActionId = "team", Params = { [GameEngine.VoteParam] = "yes" } });
+            Assert.IsTrue(cast.Ok, cast.Error?.ToString());
+            yield return new WaitForSeconds(0.4f);
+            var line = _root.Q<Label>("gameRole");
+            Assert.IsFalse(line.ClassListContains("hidden"));
+            Assert.AreEqual("Team vote: 1 of 3 voted (you: approve)", line.text);
+        }
     }
 }
