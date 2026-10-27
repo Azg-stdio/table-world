@@ -1,6 +1,7 @@
 # ADR 0013 — Karaoke: one singer in time for every listener, and where the songs come from
 
-Status: **proposed** (2026-10-27, M11; from Miguel's ideas: "just a couple of sofas and a big TV, you can play YouTube
+Status: **accepted in part** (2026-10-27: songs from YouTube, free exploration, queue, stage zone; see section 5),
+proposed in the rest (M11; from Miguel's ideas: "just a couple of sofas and a big TV, you can play YouTube
 videos, it takes account of ping so the song doesn't sound out of phase for everyone"). Needs Miguel's decisions,
 marked **Decision**.
 
@@ -72,6 +73,22 @@ speech.
 - **The singer's chalker** holds a microphone, and the stage light follows them (`SetLightCommand`).
 - **The queue** is a list variable of seats (the M10 lists), and rules can drive it like any game: whose turn, next
   song.
+
+### 5. Miguel's decisions after trying the first room (2026-10-27)
+
+The first room (sofas round a game table, the turn holder singing, "Pass the microphone") felt like a board game, not a
+karaoke night. Miguel decided:
+
+- **No table: free exploration.** People walk around the room in **first person** and sit on any sofa; others see their
+  chalker walk and sit. This is the first real piece of moving characters (M6); how characters feel physically (T7.1)
+  stays open, so walking is a plain character controller, no ragdoll.
+- **Songs from YouTube** (option B), through a **free, open-source embedded Chromium** (UnityWebBrowser's CEF engine is
+  the first candidate) running YouTube's official embed player. No paid plugin, no downloads. Checked on Unity 6.6 + URP
+  by an experiment before it is built on.
+- **A shared song queue**: while someone sings, the others find and add their next song.
+- **No mic passing: whoever stands near the screen sings.** The stage is a zone in front of the screen; walking into it
+  makes you the singer (microphone in hand, stage light, every listener's song delayed by your voice); walking out
+  ends it. Two people on the stage sing together, out of time as section 2 explains.
 
 ## Consequences
 
