@@ -11,7 +11,8 @@ namespace TableWorld.View.Hud
     /// </summary>
     public sealed class ControlsHelp
     {
-        public static readonly (string Group, (string Keys, string What)[] Rows)[] Sections =
+        /// <summary>The list in the interface's language (read again each time it opens).</summary>
+        public static (string Group, (string Keys, string What)[] Rows)[] Sections => new (string, (string, string)[])[]
         {
             (Ui.T("Camera"), new[]
             {
@@ -108,8 +109,8 @@ namespace TableWorld.View.Hud
         };
 
         private readonly VisualElement _panel;
-        /// <summary>Labels and their text with {Action} where a moved key goes (G31), filled in each time the list opens.</summary>
-        private readonly List<(Label Label, string Text)> _keyed = new List<(Label, string)>();
+        /// <summary>The list's labels in order (a group title, then each row's keys and what they do), filled each time it opens.</summary>
+        private readonly List<Label> _labels = new List<Label>();
 
         public ControlsHelp(VisualElement root)
         {
@@ -117,20 +118,21 @@ namespace TableWorld.View.Hud
             var list = root.Q<ScrollView>("helpList");
             root.Q<Button>("helpClose").clicked += Hide;
             root.Q<Button>("helpButton").clicked += Toggle;
-            foreach (var (group, rows) in Sections)
+            foreach (var (_, rows) in Sections)
             {
-                var title = new Label(group);
+                var title = new Label();
                 title.AddToClassList("help-group");
                 list.Add(title);
-                foreach (var (keys, what) in rows)
+                _labels.Add(title);
+                foreach (var _ in rows)
                 {
                     var row = new VisualElement();
                     row.AddToClassList("help-row");
-                    var k = new Label(keys);
+                    var k = new Label();
                     k.AddToClassList("help-keys");
-                    var w = new Label(what);
-                    _keyed.Add((k, keys));
-                    _keyed.Add((w, what));
+                    var w = new Label();
+                    _labels.Add(k);
+                    _labels.Add(w);
                     w.AddToClassList("help-what");
                     row.Add(k);
                     row.Add(w);
@@ -151,8 +153,17 @@ namespace TableWorld.View.Hud
 
         public void Show()
         {
-            foreach (var (label, text) in _keyed)
-                label.text = KeyBindings.Fill(text);
+            // In the interface's language, with {Action} where a moved key goes (G31).
+            var at = 0;
+            foreach (var (group, rows) in Sections)
+            {
+                _labels[at++].text = group;
+                foreach (var (keys, what) in rows)
+                {
+                    _labels[at++].text = KeyBindings.Fill(keys);
+                    _labels[at++].text = KeyBindings.Fill(what);
+                }
+            }
             _panel?.RemoveFromClassList("hidden");
         }
 

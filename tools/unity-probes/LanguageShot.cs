@@ -17,4 +17,11 @@ else if (PANEL == "hud")
     hud.Escape.CloseSettings();
     hud.Escape.Close();
 }
+else
+{
+    // controls, saves, agent: the HUD keeps them private; reached by name for the screenshot only.
+    var field = PANEL == "controls" ? "_help" : PANEL == "saves" ? "_savesPanel" : "_agent";
+    var panel = typeof(TableWorld.View.Hud.HudController).GetField(field, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(hud);
+    panel.GetType().GetMethod("Show", System.Type.EmptyTypes).Invoke(panel, null);
+}
 return "language " + TableWorld.View.Ui.Language + ", panel " + PANEL;
