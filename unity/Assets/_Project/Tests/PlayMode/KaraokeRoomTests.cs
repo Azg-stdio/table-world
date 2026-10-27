@@ -237,6 +237,34 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsNull(bar.Screen, "the screen goes with the room");
         }
 
+        /// <summary>
+        /// T12.12 (no YouTube needed): queued songs show under the bar; with the screen off the host starts the first one
+        /// for everyone; ✕ takes one out; Next skips to the following one.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator TheSongQueue_ShowsWaitingSongs_TheHostStartsTheNext()
+        {
+            var root = _hud.GetComponent<UIDocument>().rootVisualElement;
+            var bar = _hud.ScreenBar;
+            foreach (var (id, title) in new[] { ("M7lc1UVf-VE", "First song"), ("aqz-KE-bpKQ", "Second song"), ("dQw4w9WgXcQ", "Third song") })
+                Assert.IsTrue(_table.Execute(new Core.Engine.QueueSongCommand { Actor = _table.LocalSeat, VideoId = id, Title = title }).Ok);
+            yield return null;
+            // The screen was off: the host put the first song on at once.
+            Assert.AreEqual("M7lc1UVf-VE", _table.Engine.State.Screen?.VideoId);
+            var rows = root.Q("screenSongs").Query<Label>(className: "screen-bar__song-name").ToList();
+            Assert.AreEqual(2, rows.Count, "the two still waiting");
+            StringAssert.StartsWith("1. Second song", rows[0].text);
+            Assert.AreEqual(2, root.Q("screenSongs").Query<Button>().ToList().Count, "you may take out your own");
+
+            Assert.IsTrue(bar.Remove(0));
+            Assert.AreEqual("dQw4w9WgXcQ", _table.Engine.State.SongQueue.Single().VideoId);
+            Assert.IsTrue(bar.Next());
+            Assert.AreEqual("dQw4w9WgXcQ", _table.Engine.State.Screen.VideoId, "Next plays the following song");
+            Assert.IsEmpty(_table.Engine.State.SongQueue);
+            yield return null;
+            Assert.AreEqual(0, root.Q("screenSongs").childCount, "nothing waiting");
+        }
+
         [UnityTest]
         public IEnumerator AnotherRoom_BringsTheTableBack()
         {

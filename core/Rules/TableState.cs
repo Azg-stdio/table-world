@@ -162,6 +162,8 @@ namespace Core.Rules
         public MusicState? Music { get; set; }
         /// <summary>The karaoke room's big screen (ADR 0013, T12.11); null when nothing is on it.</summary>
         public ScreenState? Screen { get; set; }
+        /// <summary>The karaoke songs waiting their turn on the screen, next first (T12.12).</summary>
+        public System.Collections.Generic.List<QueuedSong> SongQueue { get; set; } = new System.Collections.Generic.List<QueuedSong>();
         /// <summary>The notebook's pages (G25).</summary>
         public List<NoteTab> Notebook { get; set; } = new List<NoteTab>();
         public bool ShouldSerializeNotebook() => Notebook.Count > 0;

@@ -20,6 +20,43 @@ namespace Core.Tests.Engine
             Assert.Equal(30, paused.PositionAt(99_000), 6);
         }
 
+        /// <summary>T12.12: the song queue: anyone adds, you or the host take out, the next plays from the start and leaves the queue.</summary>
+        [Fact]
+        public void TheSongQueue_AddsTakesOutAndPlaysNext()
+        {
+            var table = Table();
+            Assert.True(table.Execute(new QueueSongCommand { Actor = "red", VideoId = "M7lc1UVf-VE", Title = "  Bohemian\u0007 Rhapsody (karaoke)  " }).Ok);
+            Assert.True(table.Execute(new QueueSongCommand { Actor = "blue", VideoId = "aqz-KE-bpKQ", Title = new string('x', 300) }).Ok);
+            Assert.True(table.Execute(new QueueSongCommand { Actor = "blue", VideoId = "dQw4w9WgXcQ" }).Ok);
+            Assert.False(table.Execute(new QueueSongCommand { Actor = "blue", VideoId = "not a video" }).Ok);
+            var queue = table.State.SongQueue;
+            Assert.Equal(3, queue.Count);
+            Assert.Equal("Bohemian Rhapsody (karaoke)", queue[0].Title);
+            Assert.Equal(QueuedSong.MaxTitle, queue[1].Title!.Length);
+            Assert.Null(queue[2].Title);
+            Assert.Equal("red", queue[0].Seat);
+
+            var refused = table.Execute(new RemoveSongCommand { Actor = "red", Index = 2 });
+            Assert.False(refused.Ok, "only who added it");
+            Assert.Equal(ErrorCodes.NotYourSeat, refused.Error!.Code);
+            Assert.True(table.Execute(new RemoveSongCommand { Actor = "blue", Index = 2 }).Ok);
+            Assert.True(table.Execute(new RemoveSongCommand { Index = 1 }).Ok, "the host takes any out");
+            Assert.False(table.Execute(new RemoveSongCommand { Index = 5 }).Ok);
+
+            Assert.True(table.Execute(new PlayNextSongCommand { At = 5_000 }).Ok);
+            Assert.Equal("M7lc1UVf-VE", table.State.Screen!.VideoId);
+            Assert.True(table.State.Screen.Playing);
+            Assert.Equal(0, table.State.Screen.Position, 6);
+            Assert.Equal(5_000, table.State.Screen.At, 6);
+            Assert.Empty(table.State.SongQueue);
+            Assert.True(table.Execute(new PlayNextSongCommand { At = 9_000 }).Ok);
+            Assert.Null(table.State.Screen); // nothing queued: the screen goes off
+
+            for (var i = 0; i < TableEngine.MaxQueuedSongs; i++)
+                Assert.True(table.Execute(new QueueSongCommand { VideoId = "M7lc1UVf-VE" }).Ok);
+            Assert.False(table.Execute(new QueueSongCommand { VideoId = "M7lc1UVf-VE" }).Ok, "the queue has a limit");
+        }
+
         [Fact]
         public void SettingTheScreen_IsCheckedAndShared()
         {

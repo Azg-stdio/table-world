@@ -345,6 +345,28 @@ namespace Core.Engine
         public double At { get; set; }
     }
 
+    /// <summary>Adds a song to the end of the karaoke queue (T12.12), as <see cref="Command.Actor"/>'s.</summary>
+    public sealed class QueueSongCommand : Command
+    {
+        public string VideoId { get; set; } = "";
+        public string? Title { get; set; }
+    }
+
+    /// <summary>Takes the song at <see cref="Index"/> out of the queue: the seat that added it, or the host (no actor).</summary>
+    public sealed class RemoveSongCommand : Command
+    {
+        public int Index { get; set; }
+    }
+
+    /// <summary>
+    /// Puts the next queued song on the screen, playing from the start at <see cref="At"/> (host clock, ms), and takes it
+    /// out of the queue: the host when a song ends, or anyone skipping. Nothing queued turns the screen off.
+    /// </summary>
+    public sealed class PlayNextSongCommand : Command
+    {
+        public double At { get; set; }
+    }
+
     /// <summary>Sets the table grid (G28): lines, snapping, shape and size; null removes it. Host only.</summary>
     public sealed class SetGridCommand : Command, IHostCommand
     {

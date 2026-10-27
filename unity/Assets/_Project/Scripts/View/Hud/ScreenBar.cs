@@ -1,3 +1,4 @@
+using System.Linq;
 using Core.Engine;
 using Core.Rules;
 using TableWorld.View.Karaoke;
@@ -22,6 +23,10 @@ namespace TableWorld.View.Hud
         public const float SeekCooldown = 2f;
 
         private readonly VisualElement _bar;
+        private readonly VisualElement _songs;
+        private string _songsShown;
+        /// <summary>The screen the host already moved on from (its video and start), so an ended song advances once.</summary>
+        private string _advancedFrom;
         private readonly TextField _link;
         private readonly Label _status;
         private readonly TableView _table;
@@ -40,6 +45,9 @@ namespace TableWorld.View.Hud
             _status = root.Q<Label>("screenStatus");
             root.Q<Button>("screenPlay").clicked += () => PlayLink(_link.value);
             root.Q<Button>("screenPause").clicked += () => Pause();
+            root.Q<Button>("screenQueue").clicked += () => QueueLink(_link.value);
+            root.Q<Button>("screenNext").clicked += () => Next();
+            _songs = root.Q("screenSongs");
             _link.RegisterCallback<KeyDownEvent>(e =>
             {
                 if (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter)
@@ -106,7 +114,60 @@ namespace TableWorld.View.Hud
             return Send(new SetScreenCommand { VideoId = id, Playing = false, Position = state.PositionAt(now), At = now });
         }
 
-        private bool Send(SetScreenCommand command)
+        /// <summary>
+        /// Adds the video a YouTube link names to the end of the queue. Its title comes from YouTube's public oEmbed address
+        /// (no key needed), which also says whether the owner allows playing it elsewhere: a video that cannot play is
+        /// refused here instead of failing on everyone's screen later. Without an answer the song is queued untitled.
+        /// </summary>
+        public bool QueueLink(string link)
+        {
+            var id = YouTube.VideoId(link);
+            if (id == null)
+            {
+                Say(Ui.T("That is not a YouTube link."));
+                return false;
+            }
+            _link.SetValueWithoutNotify("");
+            Say(Ui.T("Checking the video…"));
+            var address = "https://www.youtube.com/oembed?format=json&url=" + System.Uri.EscapeDataString("https://www.youtube.com/watch?v=" + id);
+            var request = UnityEngine.Networking.UnityWebRequest.Get(address);
+            request.timeout = 10;
+            request.SendWebRequest().completed += _ =>
+            {
+                var code = request.responseCode;
+                string title = null;
+                if (request.result == UnityEngine.Networking.UnityWebRequest.Result.Success)
+                    try
+                    {
+                        title = (string)Newtonsoft.Json.Linq.JObject.Parse(request.downloadHandler.text)["title"];
+                    }
+                    catch (Newtonsoft.Json.JsonException)
+                    {
+                    }
+                request.Dispose();
+                if (code == 401 || code == 403)
+                {
+                    Say(ErrorText(150));
+                    return;
+                }
+                if (code == 404 || code == 400)
+                {
+                    Say(ErrorText(100));
+                    return;
+                }
+                var result = _table.Execute(new QueueSongCommand { VideoId = id, Title = title });
+                Say(result.Ok ? Ui.T("Queued: {song}", ("song", title ?? id)) : Ui.Refusal(result.Error));
+            };
+            return true;
+        }
+
+        /// <summary>Skips to the next queued song for everyone (the screen goes off when none is waiting).</summary>
+        public bool Next() => Send(new PlayNextSongCommand { At = HostNow });
+
+        /// <summary>Takes a queued song out (yours, or any when hosting).</summary>
+        public bool Remove(int index) => Send(new RemoveSongCommand { Index = index });
+
+        private bool Send(Command command)
         {
             var result = _table.Execute(command);
             if (!result.Ok)
@@ -122,6 +183,13 @@ namespace TableWorld.View.Hud
             var karaoke = _table.Engine?.State.Environment is { Room: RoomPreset.Karaoke };
             _bar.EnableInClassList("hidden", !karaoke);
             var state = karaoke ? _table.Engine.State.Screen : null;
+            if (karaoke)
+            {
+                // The host moves the queue on first, so the list never shows a song already playing.
+                Advance(state);
+                state = _table.Engine.State.Screen;
+                ShowSongs();
+            }
             // Off, another room, or the room rebuilt: the player goes (it was drawing on the old room's screen).
             if (_screen != null && state?.VideoId == null)
                 Object.Destroy(_screen.gameObject);
@@ -154,6 +222,56 @@ namespace TableWorld.View.Hud
                     0 => Ui.T("Finished"),
                     _ => Ui.T("Loading the video…"),
                 });
+        }
+
+        /// <summary>
+        /// The host moves the queue on: when nothing is on the screen, or the song on it has ended, the next queued song
+        /// starts for everyone. Only the host, so it happens once.
+        /// </summary>
+        private void Advance(ScreenState state)
+        {
+            if (!_table.HostsTable || _table.Engine.State.SongQueue.Count == 0)
+                return;
+            var ended = state?.VideoId != null && _screen != null && _screen.VideoId == state.VideoId && _screen.State == 0;
+            if (state?.VideoId != null && !ended)
+                return;
+            var key = state == null ? "off" : state.VideoId + "@" + state.At;
+            if (key == _advancedFrom)
+                return;
+            _advancedFrom = key;
+            Next();
+        }
+
+        /// <summary>The waiting songs under the bar: number, title (or the video id), who added it, and a ✕ for whoever may take it out.</summary>
+        private void ShowSongs()
+        {
+            if (_songs == null)
+                return;
+            var queue = _table.Engine.State.SongQueue;
+            var key = string.Join("|", queue.Select(s => s.VideoId + s.Seat + s.Title)) + "#" + _table.LocalSeat + _table.HostsTable + Ui.Language;
+            if (key == _songsShown)
+                return;
+            _songsShown = key;
+            _songs.Clear();
+            for (var i = 0; i < queue.Count; i++)
+            {
+                var song = queue[i];
+                var row = new VisualElement();
+                row.AddToClassList("screen-bar__song");
+                var who = song.Seat != null ? Names.Seat(_table.Engine.State, song.Seat) : Ui.T("the host");
+                var name = new Label(Ui.T("{n}. {song} · {who}", ("n", i + 1), ("song", song.Title ?? song.VideoId), ("who", who))) { enableRichText = false };
+                name.AddToClassList("screen-bar__song-name");
+                row.Add(name);
+                if (_table.HostsTable || song.Seat == null || song.Seat == _table.LocalSeat)
+                {
+                    var index = i;
+                    var remove = new Button(() => Remove(index)) { text = "✕", tooltip = Ui.T("Take it out of the queue") };
+                    remove.AddToClassList("hud-button");
+                    remove.AddToClassList("screen-bar__song-remove");
+                    row.Add(remove);
+                }
+                _songs.Add(row);
+            }
         }
 
         /// <summary>Plays or pauses this machine's player as the shared screen says, and moves it when it drifts.</summary>

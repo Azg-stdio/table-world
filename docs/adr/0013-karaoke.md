@@ -105,6 +105,9 @@ karaoke night. Miguel decided:
   download is refused); no saved logins or cookies between sessions; the Chromium version is kept current before each
   release; YouTube's terms: the official player, ads play (the room waits for everyone's player to be ready), no
   downloading. A video that will not embed, or is blocked in a player's country, is shown as such in the queue.
+- **Song titles** come from YouTube's public oEmbed address (`youtube.com/oembed`, no key), asked once by whoever adds
+  the song; its answer also says when the owner blocks embedding (401) or the video is gone (404), so the queue refuses
+  it before it reaches anyone's screen.
 
 ## Consequences
 

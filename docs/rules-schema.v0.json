@@ -56,6 +56,12 @@
         "screen": {
           "$ref": "#/$defs/ScreenState"
         },
+        "songQueue": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/QueuedSong"
+          }
+        },
         "notebook": {
           "type": "array",
           "items": {
@@ -4119,6 +4125,21 @@
         },
         "at": {
           "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "QueuedSong": {
+      "type": "object",
+      "properties": {
+        "videoId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "seat": {
+          "type": "string"
         }
       },
       "additionalProperties": false

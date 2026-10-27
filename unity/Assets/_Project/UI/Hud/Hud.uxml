@@ -157,11 +157,16 @@
             <ui:VisualElement name="gameActions" class="actions" />
         </ui:VisualElement>
         <ui:VisualElement name="screenBar" class="screen-bar hidden">
-            <ui:Label class="screen-bar__title" text="Big screen" />
-            <ui:TextField name="screenLink" class="net-address screen-bar__link" tooltip="Paste a YouTube link" />
-            <ui:Button name="screenPlay" class="hud-button" text="Play" />
-            <ui:Button name="screenPause" class="hud-button" text="Pause" />
-            <ui:Label name="screenStatus" class="screen-bar__status" />
+            <ui:VisualElement class="screen-bar__row">
+                <ui:Label class="screen-bar__title" text="Big screen" />
+                <ui:TextField name="screenLink" class="net-address screen-bar__link" tooltip="Paste a YouTube link" />
+                <ui:Button name="screenPlay" class="hud-button" text="Play" tooltip="Play this link now, or resume" />
+                <ui:Button name="screenQueue" class="hud-button" text="Add to queue" tooltip="Sing it next, after the songs already waiting" />
+                <ui:Button name="screenPause" class="hud-button" text="Pause" />
+                <ui:Button name="screenNext" class="hud-button" text="Next" tooltip="Skip to the next song in the queue" />
+                <ui:Label name="screenStatus" class="screen-bar__status" />
+            </ui:VisualElement>
+            <ui:VisualElement name="screenSongs" class="screen-bar__songs" />
         </ui:VisualElement>
         <ui:VisualElement name="handBar" class="hand-bar hidden" picking-mode="Ignore" />
         <ui:VisualElement name="blindfold" class="blindfold hidden" picking-mode="Ignore">

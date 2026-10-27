@@ -318,6 +318,9 @@ namespace Core.Engine
             MoveZoneCommand c => MoveZone(c),
             SetMusicCommand c => SetMusic(c),
             SetScreenCommand c => SetScreen(c),
+            QueueSongCommand c => QueueSong(c),
+            RemoveSongCommand c => RemoveSong(c),
+            PlayNextSongCommand c => PlayNextSong(c),
             AddDrawingCommand c => AddDrawing(c),
             SetNoteTabCommand c => SetNoteTab(c),
             DeleteNoteTabCommand c => DeleteNoteTab(c),
@@ -634,6 +637,54 @@ namespace Core.Engine
             if (!(c.Position >= 0 && c.Position < 86_400) || !(c.At >= 0) || double.IsInfinity(c.At))
                 return CommandResult.Fail("position", ErrorCodes.InvalidValue, "A position is 0 or more seconds, at a time on the host's clock.");
             State.Screen = new ScreenState { VideoId = c.VideoId, Playing = c.Playing, Position = c.Position, At = c.At };
+            return CommandResult.Success(new List<StateEvent> { new ScreenChanged() });
+        }
+
+        /// <summary>The most songs the karaoke queue holds.</summary>
+        public const int MaxQueuedSongs = 50;
+
+        private CommandResult QueueSong(QueueSongCommand c)
+        {
+            if (YouTube.VideoId(c.VideoId) != c.VideoId)
+                return CommandResult.Fail("videoId", ErrorCodes.InvalidValue, $"'{c.VideoId}' is not a YouTube video id.", "Use the 11 characters after v= in a YouTube link.");
+            if (State.SongQueue.Count >= MaxQueuedSongs)
+                return CommandResult.Fail("songQueue", ErrorCodes.LimitReached, $"The queue holds at most {MaxQueuedSongs} songs.");
+            var title = c.Title?.Trim();
+            if (title != null)
+            {
+                title = new string(title.Where(ch => !char.IsControl(ch)).ToArray());
+                if (title.Length > QueuedSong.MaxTitle)
+                    title = title.Substring(0, QueuedSong.MaxTitle);
+                if (title.Length == 0)
+                    title = null;
+            }
+            State.SongQueue.Add(new QueuedSong { VideoId = c.VideoId, Title = title, Seat = c.Actor });
+            return CommandResult.Success(new List<StateEvent> { new ScreenChanged() });
+        }
+
+        private CommandResult RemoveSong(RemoveSongCommand c)
+        {
+            if (c.Index < 0 || c.Index >= State.SongQueue.Count)
+                return CommandResult.Fail("index", ErrorCodes.IndexOutOfRange, $"There is no song {c.Index} in a queue of {State.SongQueue.Count}.");
+            var song = State.SongQueue[c.Index];
+            if (c.Actor != null && song.Seat != null && song.Seat != c.Actor)
+                return CommandResult.Fail("index", ErrorCodes.NotYourSeat, "Only who added a song, or the host, takes it out of the queue.");
+            State.SongQueue.RemoveAt(c.Index);
+            return CommandResult.Success(new List<StateEvent> { new ScreenChanged() });
+        }
+
+        private CommandResult PlayNextSong(PlayNextSongCommand c)
+        {
+            if (!(c.At >= 0) || double.IsInfinity(c.At))
+                return CommandResult.Fail("at", ErrorCodes.InvalidValue, "A time on the host's clock is 0 or more milliseconds.");
+            if (State.SongQueue.Count == 0)
+            {
+                State.Screen = null;
+                return CommandResult.Success(new List<StateEvent> { new ScreenChanged() });
+            }
+            var next = State.SongQueue[0];
+            State.SongQueue.RemoveAt(0);
+            State.Screen = new ScreenState { VideoId = next.VideoId, Playing = true, Position = 0, At = c.At };
             return CommandResult.Success(new List<StateEvent> { new ScreenChanged() });
         }
 
