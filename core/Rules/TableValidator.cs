@@ -600,8 +600,18 @@ namespace Core.Rules
                         for (var j = 0; j < hidden.VisibleTo.Count; j++)
                         {
                             var who = hidden.VisibleTo[j];
-                            if (who != "host" && !_seats.ContainsKey(who))
-                                Add($"{path}.visibleTo[{j}]", ErrorCodes.UnknownSeat, $"'{who}' is neither a seat nor 'host'.",
+                            if (who.StartsWith("role:") || who.StartsWith("team:"))
+                            {
+                                // A role or team the game's roles declare.
+                                var isTeam = who.StartsWith("team:");
+                                var id = who.Substring(5);
+                                var known = isTeam ? _state.Roles?.Teams.Select(t => t.Id) : _state.Roles?.List.Select(r => r.Id);
+                                if (known == null || !known.Contains(id))
+                                    Add($"{path}.visibleTo[{j}]", isTeam ? ErrorCodes.UnknownTeam : ErrorCodes.UnknownRole, $"'{id}' is not a {(isTeam ? "team" : "role")} of this game.",
+                                        known == null ? "Add roles (set_roles)." : Suggest.OneOf(id, known, isTeam ? "a team id" : "a role id"));
+                            }
+                            else if (who != "host" && !_seats.ContainsKey(who))
+                                Add($"{path}.visibleTo[{j}]", ErrorCodes.UnknownSeat, $"'{who}' is neither a seat, 'host', role:<id> nor team:<id>.",
                                     Suggest.OneOf(who, _seats.Keys.Append("host"), "a seat id or host"));
                         }
                         break;

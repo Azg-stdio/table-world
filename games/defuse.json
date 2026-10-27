@@ -1,0 +1,762 @@
+{
+  "schemaVersion": "0.1",
+  "assets": [
+    {
+      "id": "std_deck",
+      "path": "builtin:standard_deck",
+      "columns": 10,
+      "rows": 7
+    },
+    {
+      "id": "std_back",
+      "path": "builtin:standard_back",
+      "columns": 1,
+      "rows": 1
+    }
+  ],
+  "objects": [
+    {
+      "id": "wires",
+      "type": "Deck",
+      "name": "Wires",
+      "transform": {
+        "position": [
+          0.55,
+          0.0,
+          0.3
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          180.0
+        ]
+      },
+      "faceAsset": "",
+      "backAsset": "",
+      "cards": [
+        {
+          "id": "red",
+          "name": "Red wire",
+          "meta": {
+            "color": "red"
+          },
+          "text": {
+            "title": "Red wire"
+          },
+          "style": {
+            "paper": [
+              0.85,
+              0.18,
+              0.15
+            ],
+            "ink": [
+              0.95,
+              0.95,
+              0.95
+            ]
+          }
+        },
+        {
+          "id": "red_2",
+          "name": "Red wire",
+          "meta": {
+            "color": "red"
+          },
+          "text": {
+            "title": "Red wire"
+          },
+          "style": {
+            "paper": [
+              0.85,
+              0.18,
+              0.15
+            ],
+            "ink": [
+              0.95,
+              0.95,
+              0.95
+            ]
+          }
+        },
+        {
+          "id": "red_3",
+          "name": "Red wire",
+          "meta": {
+            "color": "red"
+          },
+          "text": {
+            "title": "Red wire"
+          },
+          "style": {
+            "paper": [
+              0.85,
+              0.18,
+              0.15
+            ],
+            "ink": [
+              0.95,
+              0.95,
+              0.95
+            ]
+          }
+        },
+        {
+          "id": "red_4",
+          "name": "Red wire",
+          "meta": {
+            "color": "red"
+          },
+          "text": {
+            "title": "Red wire"
+          },
+          "style": {
+            "paper": [
+              0.85,
+              0.18,
+              0.15
+            ],
+            "ink": [
+              0.95,
+              0.95,
+              0.95
+            ]
+          }
+        },
+        {
+          "id": "blue",
+          "name": "Blue wire",
+          "meta": {
+            "color": "blue"
+          },
+          "text": {
+            "title": "Blue wire"
+          },
+          "style": {
+            "paper": [
+              0.2,
+              0.4,
+              0.9
+            ],
+            "ink": [
+              0.95,
+              0.95,
+              0.95
+            ]
+          }
+        },
+        {
+          "id": "blue_2",
+          "name": "Blue wire",
+          "meta": {
+            "color": "blue"
+          },
+          "text": {
+            "title": "Blue wire"
+          },
+          "style": {
+            "paper": [
+              0.2,
+              0.4,
+              0.9
+            ],
+            "ink": [
+              0.95,
+              0.95,
+              0.95
+            ]
+          }
+        },
+        {
+          "id": "blue_3",
+          "name": "Blue wire",
+          "meta": {
+            "color": "blue"
+          },
+          "text": {
+            "title": "Blue wire"
+          },
+          "style": {
+            "paper": [
+              0.2,
+              0.4,
+              0.9
+            ],
+            "ink": [
+              0.95,
+              0.95,
+              0.95
+            ]
+          }
+        },
+        {
+          "id": "blue_4",
+          "name": "Blue wire",
+          "meta": {
+            "color": "blue"
+          },
+          "text": {
+            "title": "Blue wire"
+          },
+          "style": {
+            "paper": [
+              0.2,
+              0.4,
+              0.9
+            ],
+            "ink": [
+              0.95,
+              0.95,
+              0.95
+            ]
+          }
+        },
+        {
+          "id": "yellow",
+          "name": "Yellow wire",
+          "meta": {
+            "color": "yellow"
+          },
+          "text": {
+            "title": "Yellow wire"
+          },
+          "style": {
+            "paper": [
+              0.95,
+              0.8,
+              0.15
+            ],
+            "ink": [
+              0.05,
+              0.05,
+              0.05
+            ]
+          }
+        },
+        {
+          "id": "yellow_2",
+          "name": "Yellow wire",
+          "meta": {
+            "color": "yellow"
+          },
+          "text": {
+            "title": "Yellow wire"
+          },
+          "style": {
+            "paper": [
+              0.95,
+              0.8,
+              0.15
+            ],
+            "ink": [
+              0.05,
+              0.05,
+              0.05
+            ]
+          }
+        },
+        {
+          "id": "yellow_3",
+          "name": "Yellow wire",
+          "meta": {
+            "color": "yellow"
+          },
+          "text": {
+            "title": "Yellow wire"
+          },
+          "style": {
+            "paper": [
+              0.95,
+              0.8,
+              0.15
+            ],
+            "ink": [
+              0.05,
+              0.05,
+              0.05
+            ]
+          }
+        },
+        {
+          "id": "yellow_4",
+          "name": "Yellow wire",
+          "meta": {
+            "color": "yellow"
+          },
+          "text": {
+            "title": "Yellow wire"
+          },
+          "style": {
+            "paper": [
+              0.95,
+              0.8,
+              0.15
+            ],
+            "ink": [
+              0.05,
+              0.05,
+              0.05
+            ]
+          }
+        },
+        {
+          "id": "white",
+          "name": "White wire",
+          "meta": {
+            "color": "white"
+          },
+          "text": {
+            "title": "White wire"
+          },
+          "style": {
+            "paper": [
+              0.95,
+              0.95,
+              0.95
+            ],
+            "ink": [
+              0.05,
+              0.05,
+              0.05
+            ]
+          }
+        },
+        {
+          "id": "white_2",
+          "name": "White wire",
+          "meta": {
+            "color": "white"
+          },
+          "text": {
+            "title": "White wire"
+          },
+          "style": {
+            "paper": [
+              0.95,
+              0.95,
+              0.95
+            ],
+            "ink": [
+              0.05,
+              0.05,
+              0.05
+            ]
+          }
+        },
+        {
+          "id": "white_3",
+          "name": "White wire",
+          "meta": {
+            "color": "white"
+          },
+          "text": {
+            "title": "White wire"
+          },
+          "style": {
+            "paper": [
+              0.95,
+              0.95,
+              0.95
+            ],
+            "ink": [
+              0.05,
+              0.05,
+              0.05
+            ]
+          }
+        },
+        {
+          "id": "white_4",
+          "name": "White wire",
+          "meta": {
+            "color": "white"
+          },
+          "text": {
+            "title": "White wire"
+          },
+          "style": {
+            "paper": [
+              0.95,
+              0.95,
+              0.95
+            ],
+            "ink": [
+              0.05,
+              0.05,
+              0.05
+            ]
+          }
+        },
+        {
+          "id": "black",
+          "name": "Black wire",
+          "meta": {
+            "color": "black"
+          },
+          "text": {
+            "title": "Black wire"
+          },
+          "style": {
+            "paper": [
+              0.12,
+              0.12,
+              0.12
+            ],
+            "ink": [
+              0.95,
+              0.95,
+              0.95
+            ]
+          }
+        },
+        {
+          "id": "black_2",
+          "name": "Black wire",
+          "meta": {
+            "color": "black"
+          },
+          "text": {
+            "title": "Black wire"
+          },
+          "style": {
+            "paper": [
+              0.12,
+              0.12,
+              0.12
+            ],
+            "ink": [
+              0.95,
+              0.95,
+              0.95
+            ]
+          }
+        },
+        {
+          "id": "black_3",
+          "name": "Black wire",
+          "meta": {
+            "color": "black"
+          },
+          "text": {
+            "title": "Black wire"
+          },
+          "style": {
+            "paper": [
+              0.12,
+              0.12,
+              0.12
+            ],
+            "ink": [
+              0.95,
+              0.95,
+              0.95
+            ]
+          }
+        },
+        {
+          "id": "black_4",
+          "name": "Black wire",
+          "meta": {
+            "color": "black"
+          },
+          "text": {
+            "title": "Black wire"
+          },
+          "style": {
+            "paper": [
+              0.12,
+              0.12,
+              0.12
+            ],
+            "ink": [
+              0.95,
+              0.95,
+              0.95
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "zones": [
+    {
+      "id": "hand_1",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          0.275,
+          0.05,
+          -0.42
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_1"
+    },
+    {
+      "id": "hand_2",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          -0.275,
+          0.05,
+          -0.42
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_2"
+    },
+    {
+      "id": "hand_3",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          -0.68,
+          0.05,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          90.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_3"
+    },
+    {
+      "id": "hand_4",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          -0.275,
+          0.05,
+          0.42
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_4"
+    },
+    {
+      "id": "hand_5",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          0.275,
+          0.05,
+          0.42
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_5"
+    },
+    {
+      "id": "hand_6",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          0.68,
+          0.05,
+          -0.0
+        ],
+        "rotation": [
+          0.0,
+          270.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_6"
+    },
+    {
+      "id": "bomb",
+      "type": "HiddenZone",
+      "name": "The bomb",
+      "size": [
+        0.6,
+        0.2,
+        0.25
+      ],
+      "visibleTo": [
+        "role:defuser"
+      ]
+    }
+  ],
+  "players": {
+    "seats": [
+      {
+        "id": "seat_1",
+        "color": "red",
+        "handZone": "hand_1"
+      },
+      {
+        "id": "seat_2",
+        "color": "blue",
+        "handZone": "hand_2"
+      },
+      {
+        "id": "seat_3",
+        "color": "green",
+        "handZone": "hand_3"
+      },
+      {
+        "id": "seat_4",
+        "color": "yellow",
+        "handZone": "hand_4"
+      },
+      {
+        "id": "seat_5",
+        "color": "orange",
+        "handZone": "hand_5"
+      },
+      {
+        "id": "seat_6",
+        "color": "purple",
+        "handZone": "hand_6"
+      }
+    ]
+  },
+  "notebook": [
+    {
+      "id": "manual",
+      "title": "Bomb manual",
+      "body": "- 3 wires:\n  - If there is no red wire, cut the second wire.\n  - Otherwise, if the last wire is white, cut the last wire.\n  - Otherwise cut the first wire.\n- 4 wires:\n  - If there is more than one red wire, cut the last red wire.\n  - Otherwise, if there is no yellow wire, cut the third wire.\n  - Otherwise cut the first wire.\n- 5 wires:\n  - If the last wire is black, cut the fourth wire.\n  - Otherwise, if there is exactly one red wire, cut the first wire.\n  - Otherwise cut the second wire.\n- 6 wires:\n  - If there is no yellow wire, cut the third wire.\n  - Otherwise, if there is more than one white wire, cut the sixth wire.\n  - Otherwise cut the fifth wire.",
+      "for": "role:expert"
+    },
+    {
+      "id": "rules",
+      "title": "How to play",
+      "body": "Roles\n- One Defuser. Everyone else is an Expert.\n- Only the Defuser sees the bomb. Only the Experts can read the manual.\n- Nobody may show the other side what they see: they can only talk.\n\nThe bomb\n- At the start, 3 to 6 wires are laid out in a row on the bomb, left to right as the Defuser sees them.\n- Each wire is red, blue, yellow, white or black.\n- The bomb explodes after 5 minutes.\n\nPlaying\n- The Defuser describes the wires. The Experts find the rule in the manual and say which one to cut.\n- The Defuser cuts one wire.\n  - The right wire: the bomb is defused, and the players win.\n  - A wrong wire: a strike. The wire stays cut.\n- At 3 strikes the bomb explodes."
+    }
+  ],
+  "game": {
+    "id": "defuse",
+    "name": "Defuse",
+    "description": "One of you sees the bomb, the others read the manual. Talk it through before it explodes.",
+    "minPlayers": 2,
+    "maxPlayers": 6
+  },
+  "variables": {
+    "order": [],
+    "cut": [],
+    "strikes": 0
+  },
+  "secretVariables": [
+    "order"
+  ],
+  "turn": {
+    "startingPlayer": "first",
+    "phases": [
+      "defuse"
+    ]
+  },
+  "phases": [
+    {
+      "id": "defuse",
+      "name": "Defuse the bomb",
+      "actions": [
+        "cut"
+      ],
+      "onEnter": [
+        {
+          "lua": {
+            "call": "setupBomb"
+          }
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "id": "cut",
+      "name": "Cut",
+      "actor": "any",
+      "params": [
+        {
+          "name": "wire",
+          "filter": {
+            "inZone": "bomb"
+          }
+        }
+      ],
+      "preconditions": [
+        {
+          "compare": {
+            "left": "$actor.role",
+            "op": "==",
+            "right": "defuser"
+          }
+        }
+      ],
+      "effects": [
+        {
+          "lua": {
+            "call": "cut"
+          }
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "global": "\n-- Lays 3 to 6 random wires in a row on the bomb, left to right as the Defuser (facing the bomb from the south) sees them.\nfunction setupBomb(ctx)\n  local deck = getObjectFromGUID(\"wires\")\n  deck.shuffle()\n  local zone = getObjectFromGUID(\"bomb\")\n  local p = zone.getPosition()\n  local count = Game.roll(1, 4)[1] + 2\n  local order = {}\n  for i = 1, count do\n    local x = p.x + (i - (count + 1) / 2) * 2.6\n    local card = deck.takeObject({ position = { x, p.y + 0.2, p.z }, rotation = { 0, 180, 0 } })\n    order[#order + 1] = card.getGUID()\n  end\n  Game.setVariable(\"order\", order)\n  -- Five minutes: then it explodes (the game window keeps the time).\n  Wait.time(function() if not Game.isOver() then Game.log(\"The bomb explodes.\") Game.winTeam(\"bomb\") end end, 300)\nend\n\nlocal function colour(guid)\n  local name = string.lower(getObjectFromGUID(guid).getName())\n  for _, c in ipairs({ \"red\", \"blue\", \"yellow\", \"white\", \"black\" }) do\n    if string.find(name, c) then return c end\n  end\nend\n\n-- The wire the manual says to cut, by position from 1.\nfunction rightWire()\n  local order = Game.getVariable(\"order\")\n  local colours = {}\n  for i, guid in ipairs(order) do colours[i] = colour(guid) end\n  local n = #colours\n  local function count(c) local k = 0 for _, x in ipairs(colours) do if x == c then k = k + 1 end end return k end\n  local function last(c) for i = n, 1, -1 do if colours[i] == c then return i end end end\n  if n == 3 then\n    if count(\"red\") == 0 then return 2 elseif colours[n] == \"white\" then return n else return 1 end\n  elseif n == 4 then\n    if count(\"red\") > 1 then return last(\"red\") elseif count(\"yellow\") == 0 then return 3 else return 1 end\n  elseif n == 5 then\n    if colours[n] == \"black\" then return 4 elseif count(\"red\") == 1 then return 1 else return 2 end\n  else\n    if count(\"yellow\") == 0 then return 3 elseif count(\"white\") > 1 then return 6 else return 5 end\n  end\nend\n\nfunction cut(ctx)\n  local order = Game.getVariable(\"order\")\n  local wire = ctx.params.wire\n  local cuts = Game.getVariable(\"cut\")\n  for _, done in ipairs(cuts) do if done == wire then return \"That wire is already cut.\" end end\n  if wire == order[rightWire()] then\n    Game.log(\"The bomb is defused!\")\n    Game.winTeam(\"squad\")\n    return\n  end\n  cuts[#cuts + 1] = wire\n  Game.setVariable(\"cut\", cuts)\n  getObjectFromGUID(wire).flip()\n  local strikes = Game.getVariable(\"strikes\") + 1\n  Game.setVariable(\"strikes\", strikes)\n  Game.log(\"Strike \" .. strikes .. \".\")\n  if strikes >= 3 then Game.log(\"The bomb explodes.\") Game.winTeam(\"bomb\") end\nend\n"
+  },
+  "roles": {
+    "teams": [
+      {
+        "id": "squad",
+        "name": "The squad"
+      },
+      {
+        "id": "bomb",
+        "name": "The bomb"
+      }
+    ],
+    "list": [
+      {
+        "id": "defuser",
+        "name": "Defuser",
+        "team": "squad",
+        "description": "Only you see the bomb. Describe it; cut the wire the Experts tell you."
+      },
+      {
+        "id": "expert",
+        "name": "Expert",
+        "team": "squad",
+        "count": "fill",
+        "description": "Only you read the manual. Tell the Defuser which wire to cut."
+      }
+    ]
+  }
+}

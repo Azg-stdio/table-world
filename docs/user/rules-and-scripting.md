@@ -434,7 +434,7 @@ whole action is undone and the player sees the reason. The `Game` table reads an
 | `Game.win(seat)`, `Game.isStarted()`, `Game.isOver()`, `Game.getWinner()` | The end of the game |
 | `Game.perform(seat, action, params)` | Perform an action as a player, from a button or an event (not from inside another action) |
 | `Game.getLegalActions(seat)` | The actions a player may perform now |
-| `Game.getRole(seat, set)`, `Game.getTeam(seat)`, `Game.revealRole(seat, to, teamOnly)`, `Game.setRole(seat, role, tell)`, `Game.setTeam(seat, team, tell)` | Hidden roles: read one (or a trait of a `set`), show it to a seat, `team:<id>` or `role:<id>` (every seat when `to` is nil), change a role or a side |
+| `Game.getRole(seat, set)`, `Game.getTeam(seat)`, `Game.revealRole(seat, to, teamOnly)`, `Game.setRole(seat, role, tell)`, `Game.setTeam(seat, team, tell)`, `Game.winTeam(team)` | Hidden roles: read one (or a trait of a `set`), show it to a seat, `team:<id>` or `role:<id>` (every seat when `to` is nil), change a role or a side |
 | `Game.roll(count, sides)` | Dice for the script's own sums, as a list |
 | `Game.log(text)` | A line in the game log |
 

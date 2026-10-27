@@ -113,6 +113,10 @@ dedicated server. What matters is that no one sees a secret by accident or with 
   player's machine holds it, not even the one it is about. What one player alone may know about themselves belongs in a
   hidden trait (a role `set`, here `fate`: alive or winked at), which reaches that player only. The docs say so where
   they describe secret variables.
+- **A second sandbox check (Defuse, plays like Keep Talking and Nobody Explodes: asymmetric information)** needed
+  hidden zones and notebook pages shown to a role (`visibleTo` and `for` take `role:` and `team:`), Lua's
+  `Game.winTeam`, and found a bug any game could hit: a Lua `takeObject` inside a `lua` effect returned nil (the result
+  of a table command run inside a rules action lost what it created).
 - **Cards secret on the wire (T11.16, as built):** only on tables with rules or roles; free-play tables keep TTS's
   honest play, so big imports pay nothing. Hidden cards and face-down decks reach a machine as unknown cards, a drawn
   card gets a fresh id (its deck id would name it), and every command touching such a card is host-run. In card games

@@ -384,6 +384,8 @@ starts, and who knows whom:
 - **More hidden traits:** roles with a `set` (`{ "id": "spy", "set": "objective" }`) form another deck dealt one per
   seat beside the role, from its own counts and one `fill`. Rules read them as `$actor.role.objective`; the player
   reads "Objective: Spy."; `revealRole`, `setRole` and `swapRoles` take the `set`.
+- **Shown to a role:** a `HiddenZone`'s `visibleTo` and a notebook page's `for` take `role:<id>` and `team:<id>` as well
+  as seats (`"visibleTo": [ "role:defuser" ]`: only the defuser sees the bomb, whoever is dealt it).
 - **Secrecy:** `session.roles` (seat → role) and `session.knows` (seat → what it knows) reach each machine only for its
   own seat. A command that reads or changes a role runs on the host, which sends each player its result.
 

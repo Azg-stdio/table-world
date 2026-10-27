@@ -4,8 +4,9 @@ Table World plays games of talking, looking and voting: Avalon, Werewolf, Wink M
 Nothing in the game knows any of them by name. The same few pieces build all of them, and an agent can put them
 together from your rulebook (ADR 0012).
 
-Four examples ship in `games/`, each built through the MCP tools from a plain-text rulebook in `docs/rulebooks/`:
-`avalon.json`, `werewolf.json`, `wink-murder.json` and `secret-dictator.json` (plays like Secret Hitler).
+Five examples ship in `games/`, each built through the MCP tools from a plain-text rulebook in `docs/rulebooks/`:
+`avalon.json`, `werewolf.json`, `wink-murder.json`, `secret-dictator.json` (plays like Secret Hitler) and `defuse.json`
+(plays like Keep Talking and Nobody Explodes: one player sees the bomb, the others read the manual).
 
 ## Playing
 
@@ -43,6 +44,7 @@ The pieces, each in [the rules format](../rules-schema.md):
 | `eliminate`, `$alive` | Players out of the game, and how many of each team are left |
 | `win` with `team`, win conditions with `team` | A whole team wins |
 | [Secret variables](../rules-schema.md#secret-variables) | Values only the host's rules read (the wolves' victim until dawn) |
+| `visibleTo` / notebook `for` with `role:` | A hidden zone or a notebook page only one role or team sees (the bomb, the manual) |
 
 To have your agent build one, give it the rulebook and the brief (see [building a game with your agent](building-with-an-agent.md)).
 It uses `set_roles` for the roles, `add_action` with a `vote` block for votes, `add_phase` with `awake` for nights, and

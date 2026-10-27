@@ -164,6 +164,8 @@ namespace Core.Scripting
             t["endPhase"] = Fn(_ => Change("endPhase"));
             t["gotoPhase"] = Fn(args => Change("gotoPhase", null, Arg(args, 0)));
             t["win"] = Fn(args => Change("win", Arg(args, 0)));
+            // winTeam(team): hidden roles, the whole team wins.
+            t["winTeam"] = Fn(args => Change("winTeam", null, Arg(args, 0)));
             t["log"] = Fn(args => Change("log", null, null, new JValue(Arg(args, 0) ?? "")));
             // revealRole(seat, to, teamOnly): to a seat, "team:<id>", "role:<id>", or every seat when to is nil or "all".
             t["revealRole"] = Fn(args => Change("revealRole", Arg(args, 0), Arg(args, 1), new JValue(args.Count > 2 && args[2].CastToBool())));

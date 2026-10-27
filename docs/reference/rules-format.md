@@ -1196,6 +1196,7 @@ object or object or object or object or object or object or object or object or 
 | `title` | string |  |
 | `body` | string |  |
 | `color` | string |  |
+| `for` | string |  |
 
 ### DrawingDef
 

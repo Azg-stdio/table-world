@@ -57,7 +57,10 @@ namespace Core.Rules
         public string Owner { get; set; } = "";
     }
 
-    /// <summary>Contents are hidden from everyone except <see cref="VisibleTo"/> (seat ids, or the role <c>host</c>).</summary>
+    /// <summary>
+    /// Contents are hidden from everyone except <see cref="VisibleTo"/>: seat ids, the role <c>host</c>, or with hidden roles
+    /// <c>role:&lt;id&gt;</c> and <c>team:&lt;id&gt;</c> (the defuser's bomb, the game master's screen).
+    /// </summary>
     public sealed class HiddenZone : Zone
     {
         public List<string> VisibleTo { get; set; } = new List<string>();
@@ -65,6 +68,10 @@ namespace Core.Rules
         /// <summary>True when a viewer sitting at <paramref name="seat"/> (and hosting, if <paramref name="host"/>) sees inside.</summary>
         public bool Reveals(string? seat, bool host) =>
             (seat != null && VisibleTo.Contains(seat)) || (host && VisibleTo.Contains("host"));
+
+        /// <summary>As <see cref="Reveals(string, bool)"/>, with <c>role:</c> and <c>team:</c> entries read from <paramref name="state"/>.</summary>
+        public bool Reveals(string? seat, bool host, TableState state) =>
+            Reveals(seat, host) || state.Names(VisibleTo, seat);
     }
 
     /// <summary>Invisible trigger volume; fires enter/leave events for rules and scripts.</summary>

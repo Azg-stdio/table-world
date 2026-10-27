@@ -249,7 +249,7 @@ The game's own words for the lines the engine writes in the log, e.g. in the gam
 
 ### `set_notebook`
 
-Write a page of the table's notebook (Notes in the top bar), which every player can open while playing: put the rulebook there (one page per chapter reads best: Setup, Turn, Combat...), a quick reference, a scenario. seat makes the page private to that seat. Up to 64 pages of 50 000 characters. Empty text removes the page. For a PDF rulebook use add_asset (type pdf) and place_object {type: Pdf} instead: players click it to read.
+Write a page of the table's notebook (Notes in the top bar), which every player can open while playing: put the rulebook there (one page per chapter reads best: Setup, Turn, Combat...), a quick reference, a scenario. seat makes the page private to that seat, forRole to a role or team (role:expert). Up to 64 pages of 50 000 characters. Empty text removes the page. For a PDF rulebook use add_asset (type pdf) and place_object {type: Pdf} instead: players click it to read.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
@@ -257,6 +257,7 @@ Write a page of the table's notebook (Notes in the top bar), which every player 
 | `title` | string | required | Tab title, up to 64 characters. |
 | `text` | string | required | The page's text; empty removes the page. |
 | `seat` | string | none | Seat id to make the page private to; empty for everyone. |
+| `forRole` | string | none | With hidden roles: only that role or team reads the page, e.g. 'role:expert' or 'team:wolves'. |
 
 ### `set_roles`
 

@@ -4100,6 +4100,9 @@
         },
         "color": {
           "type": "string"
+        },
+        "for": {
+          "type": "string"
         }
       },
       "additionalProperties": false

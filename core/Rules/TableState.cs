@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 
 namespace Core.Rules
@@ -204,5 +205,38 @@ namespace Core.Rules
         /// </summary>
         [Newtonsoft.Json.JsonIgnore]
         public bool SecretCards => HasRules || Roles != null;
+
+        /// <summary>A seat's hidden role as this state holds it (on a peer, only its own); null without one.</summary>
+        public string? RoleOf(string seat) => Session != null && Session.Roles.TryGetValue(seat, out var role) ? role : null;
+
+        /// <summary>A seat's team: the one <c>setTeam</c> moved it to, else its role's; null when not known here.</summary>
+        public string? TeamOf(string seat)
+        {
+            if (Session == null)
+                return null;
+            if (Session.Teams.TryGetValue(seat, out var moved))
+                return moved;
+            return RoleOf(seat) is { } role ? Roles?.List.FirstOrDefault(r => r.Id == role)?.Team : null;
+        }
+
+        /// <summary>
+        /// Whether <paramref name="seat"/> is among <paramref name="who"/>: seat ids, <c>role:&lt;id&gt;</c>, <c>team:&lt;id&gt;</c>
+        /// (hidden zones' <c>visibleTo</c>, notebook pages' <c>for</c>). Roles are read as this state knows them.
+        /// </summary>
+        public bool Names(IEnumerable<string> who, string? seat)
+        {
+            if (seat == null)
+                return false;
+            foreach (var entry in who)
+            {
+                if (entry == seat)
+                    return true;
+                if (entry.StartsWith("role:") && RoleOf(seat) == entry.Substring(5))
+                    return true;
+                if (entry.StartsWith("team:") && TeamOf(seat) == entry.Substring(5))
+                    return true;
+            }
+            return false;
+        }
     }
 }

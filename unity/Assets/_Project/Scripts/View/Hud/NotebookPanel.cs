@@ -74,7 +74,7 @@ namespace TableWorld.View.Hud
 
         private string SeatColor => _table.Engine?.State.Players.Seats.FirstOrDefault(s => s.Id == _table.LocalSeat)?.Color;
 
-        private bool CanRead(NoteTab tab) => tab.VisibleTo(SeatColor, _table.SeesEverything);
+        private bool CanRead(NoteTab tab) => tab.VisibleTo(SeatColor, _table.SeesEverything, _table.Engine.State, _table.LocalSeat);
 
         /// <summary>Redraws the page list when the notebook changes (someone else's edit too).</summary>
         public void Update()

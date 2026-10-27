@@ -457,7 +457,10 @@ namespace Core.Engine
             session.WinnerTeam = team;
             _secretsRead = true;
             var members = Playing.Where(s => TeamOf(s.Id) == team).Select(s => Names.Of(s)).ToList();
-            Log(Names.Message(State, "teamWins", "{team} win: {seats}.", ("team", TeamName(roles, team)), ("seats", Join(members))));
+            // A team nobody plays (the bomb, the house) wins alone.
+            Log(members.Count == 0
+                ? Names.Message(State, "teamWinsAlone", "{team} wins.", ("team", TeamName(roles, team)))
+                : Names.Message(State, "teamWins", "{team} win: {seats}.", ("team", TeamName(roles, team)), ("seats", Join(members))));
         }
 
         // ---- effects ----------------------------------------------------------------------------------------------
@@ -585,7 +588,7 @@ namespace Core.Engine
                     {
                         Actor = _ctx.Actor, Params = _ctx.Params, Args = lua.Args,
                         It = _ctx.It switch { Seat seat => seat.Id, TableObject obj => obj.Id, string id => id, _ => null },
-                        Execute = command => command is ScriptRulesCommand or PerformActionCommand ? Execute(command) : Nested(() => TableCommand(command)),
+                        Execute = command => command is ScriptRulesCommand or PerformActionCommand ? Execute(command) : InRules(command),
                     };
                     if (Scripts.CallRule(lua.Call, call) is { } refusal)
                         throw new RuleException("lua", ErrorCodes.ScriptFailed, refusal);
@@ -601,6 +604,17 @@ namespace Core.Engine
         }
 
         /// <summary>Runs a change inside the rules command in progress: its events join the command's; a refusal is a result, not a throw.</summary>
+        /// <summary>
+        /// A script's table command inside a rules action: applied to the transaction, its own result kept (what it created:
+        /// a Lua takeObject inside a lua effect returned nil when only the events came back).
+        /// </summary>
+        private CommandResult InRules(Command command)
+        {
+            CommandResult? done = null;
+            var nested = Nested(() => done = TableCommand(command));
+            return done ?? nested;
+        }
+
         private CommandResult Nested(Action change)
         {
             var before = _events.Count;
@@ -650,6 +664,7 @@ namespace Core.Engine
                     _pendingGoto = c.Name;
                     break;
                 case "win": Win(SeatOf()); break;
+                case "winTeam": WinTeam(c.Name ?? ""); break;
                 case "log": Log((string?)c.Value ?? ""); break;
                 case "revealRole":
                     RevealRole(SeatOf(), Audience(c.Name, "to"), c.Value is JValue { Type: JTokenType.Boolean } only && (bool)only);

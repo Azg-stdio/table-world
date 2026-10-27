@@ -1,0 +1,38 @@
+DEFUSE (a second sandbox check: plays like Keep Talking and Nobody Explodes, with rules of our own)
+
+Players: 2 to 6, all on one side against the bomb.
+
+Roles
+- One Defuser. Everyone else is an Expert.
+- Only the Defuser sees the bomb. Only the Experts can read the manual.
+- Nobody may show the other side what they see: they can only talk.
+
+The bomb
+- At the start, 3 to 6 wires are laid out in a row on the bomb, left to right as the Defuser sees them.
+- Each wire is red, blue, yellow, white or black.
+- The bomb explodes after 5 minutes.
+
+Playing
+- The Defuser describes the wires. The Experts find the rule in the manual and say which one to cut.
+- The Defuser cuts one wire.
+  - The right wire: the bomb is defused, and the players win.
+  - A wrong wire: a strike. The wire stays cut.
+- At 3 strikes the bomb explodes.
+
+The manual (only the Experts read this)
+- 3 wires:
+  - If there is no red wire, cut the second wire.
+  - Otherwise, if the last wire is white, cut the last wire.
+  - Otherwise cut the first wire.
+- 4 wires:
+  - If there is more than one red wire, cut the last red wire.
+  - Otherwise, if there is no yellow wire, cut the third wire.
+  - Otherwise cut the first wire.
+- 5 wires:
+  - If the last wire is black, cut the fourth wire.
+  - Otherwise, if there is exactly one red wire, cut the first wire.
+  - Otherwise cut the second wire.
+- 6 wires:
+  - If there is no yellow wire, cut the third wire.
+  - Otherwise, if there is more than one white wire, cut the sixth wire.
+  - Otherwise cut the fifth wire.

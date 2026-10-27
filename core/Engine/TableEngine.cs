@@ -106,7 +106,7 @@ namespace Core.Engine
                 {
                     case HandZone hand when hand.Owner != seat:
                         return true;
-                    case HiddenZone hidden when !hidden.Reveals(seat, host: seat == null):
+                    case HiddenZone hidden when !hidden.Reveals(seat, host: seat == null, State):
                         return true;
                 }
             }
@@ -120,7 +120,7 @@ namespace Core.Engine
         public HiddenZone? HiddenZoneHiding(string objectId, string? seat, bool host)
         {
             foreach (var zoneId in ZonesOf(objectId))
-                if (State.Zones.FirstOrDefault(z => z.Id == zoneId) is HiddenZone hidden && !hidden.Reveals(seat, host))
+                if (State.Zones.FirstOrDefault(z => z.Id == zoneId) is HiddenZone hidden && !hidden.Reveals(seat, host, State))
                     return hidden;
             return null;
         }
