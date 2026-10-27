@@ -31,11 +31,11 @@ Add a file the table uses: an image (PNG, JPEG) for cards, tokens, tiles and boa
 
 ### `add_event`
 
-Set the effects run on an event: onGameStart (setup: shuffle, deal), onTurnStart, onTurnEnd, onReveal (after a blind round is revealed). Example effects: [{"shuffle":{"object":"deck"}},{"deal":{"from":"deck","count":7,"toZone":"$it.hand"}}].
+Set the effects run on an event: onGameStart (setup: shuffle, deal), onTurnStart, onTurnEnd, onReveal (after a blind round is revealed), onGesture (a player winked or emoted at the face they look at: $actor, $param.gesture such as "wink", $param.target the seat; only the host and those two learn the target). Example effects: [{"shuffle":{"object":"deck"}},{"deal":{"from":"deck","count":7,"toZone":"$it.hand"}}].
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `eventName` | string | required | onGameStart, onTurnStart, onTurnEnd or onReveal. |
+| `eventName` | string | required | onGameStart, onTurnStart, onTurnEnd, onReveal or onGesture. |
 | `effectsJson` | string | required | JSON array of effects. |
 | `append` | boolean | `false` | true to append to existing effects instead of replacing them. |
 

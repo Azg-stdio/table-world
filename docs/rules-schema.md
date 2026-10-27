@@ -247,6 +247,8 @@ the votes are counted, the count is logged, and `onResult` runs.
 
 `"secretVariables": [ "victim", "saved" ]` lists variables only the host's rules read: their values never reach the
 players' machines (the wolves' victim stays hidden until dawn), and a command that reads or sets one runs on the host.
+Because no player's machine holds them, they cannot decide a player's own buttons: what one player alone may know about
+themselves (winked at, poisoned) belongs in a hidden trait, a role `set` such as `fate`, which reaches that player only.
 `set_variables` takes them as `secret`.
 
 ## References

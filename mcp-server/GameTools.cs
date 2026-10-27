@@ -425,9 +425,9 @@ namespace TableWorld.Mcp
         public static string AddAction(GameSession session, [Description("The action as JSON.")] string actionJson) =>
             session.Locked(() => Reply(session.Edit(doc => Upsert(doc, "actions", GameSession.ParseObject(actionJson, "actionJson"))), session));
 
-        [McpServerTool(Name = "add_event"), Description("Set the effects run on an event: onGameStart (setup: shuffle, deal), onTurnStart, onTurnEnd, onReveal (after a blind round is revealed). Example effects: [{\"shuffle\":{\"object\":\"deck\"}},{\"deal\":{\"from\":\"deck\",\"count\":7,\"toZone\":\"$it.hand\"}}].")]
+        [McpServerTool(Name = "add_event"), Description("Set the effects run on an event: onGameStart (setup: shuffle, deal), onTurnStart, onTurnEnd, onReveal (after a blind round is revealed), onGesture (a player winked or emoted at the face they look at: $actor, $param.gesture such as \"wink\", $param.target the seat; only the host and those two learn the target). Example effects: [{\"shuffle\":{\"object\":\"deck\"}},{\"deal\":{\"from\":\"deck\",\"count\":7,\"toZone\":\"$it.hand\"}}].")]
         public static string AddEvent(GameSession session,
-            [Description("onGameStart, onTurnStart, onTurnEnd or onReveal.")] string eventName,
+            [Description("onGameStart, onTurnStart, onTurnEnd, onReveal or onGesture.")] string eventName,
             [Description("JSON array of effects.")] string effectsJson,
             [Description("true to append to existing effects instead of replacing them.")] bool append = false) =>
             session.Locked(() => Reply(session.Edit(doc =>

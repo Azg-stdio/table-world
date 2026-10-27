@@ -1,0 +1,591 @@
+{
+  "schemaVersion": "0.1",
+  "assets": [
+    {
+      "id": "std_deck",
+      "path": "builtin:standard_deck",
+      "columns": 10,
+      "rows": 7
+    },
+    {
+      "id": "std_back",
+      "path": "builtin:standard_back",
+      "columns": 1,
+      "rows": 1
+    }
+  ],
+  "zones": [
+    {
+      "id": "hand_1",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          0.825,
+          0.05,
+          -0.765
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_1"
+    },
+    {
+      "id": "hand_2",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          0.275,
+          0.05,
+          -0.765
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_2"
+    },
+    {
+      "id": "hand_3",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          -0.275,
+          0.05,
+          -0.765
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_3"
+    },
+    {
+      "id": "hand_4",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          -0.825,
+          0.05,
+          -0.765
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_4"
+    },
+    {
+      "id": "hand_5",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          -1.23,
+          0.05,
+          -0.275
+        ],
+        "rotation": [
+          0.0,
+          90.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_5"
+    },
+    {
+      "id": "hand_6",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          -1.23,
+          0.05,
+          0.275
+        ],
+        "rotation": [
+          0.0,
+          90.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_6"
+    },
+    {
+      "id": "hand_7",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          -0.825,
+          0.05,
+          0.765
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_7"
+    },
+    {
+      "id": "hand_8",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          -0.275,
+          0.05,
+          0.765
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_8"
+    },
+    {
+      "id": "hand_9",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          0.275,
+          0.05,
+          0.765
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_9"
+    },
+    {
+      "id": "hand_10",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          0.825,
+          0.05,
+          0.765
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_10"
+    },
+    {
+      "id": "hand_11",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          1.23,
+          0.05,
+          0.275
+        ],
+        "rotation": [
+          0.0,
+          270.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_11"
+    },
+    {
+      "id": "hand_12",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          1.23,
+          0.05,
+          -0.275
+        ],
+        "rotation": [
+          0.0,
+          270.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_12"
+    }
+  ],
+  "players": {
+    "seats": [
+      {
+        "id": "seat_1",
+        "color": "red",
+        "handZone": "hand_1"
+      },
+      {
+        "id": "seat_2",
+        "color": "blue",
+        "handZone": "hand_2"
+      },
+      {
+        "id": "seat_3",
+        "color": "green",
+        "handZone": "hand_3"
+      },
+      {
+        "id": "seat_4",
+        "color": "yellow",
+        "handZone": "hand_4"
+      },
+      {
+        "id": "seat_5",
+        "color": "orange",
+        "handZone": "hand_5"
+      },
+      {
+        "id": "seat_6",
+        "color": "purple",
+        "handZone": "hand_6"
+      },
+      {
+        "id": "seat_7",
+        "color": "pink",
+        "handZone": "hand_7"
+      },
+      {
+        "id": "seat_8",
+        "color": "teal",
+        "handZone": "hand_8"
+      },
+      {
+        "id": "seat_9",
+        "color": "white",
+        "handZone": "hand_9"
+      },
+      {
+        "id": "seat_10",
+        "color": "brown",
+        "handZone": "hand_10"
+      },
+      {
+        "id": "seat_11",
+        "color": "lime",
+        "handZone": "hand_11"
+      },
+      {
+        "id": "seat_12",
+        "color": "maroon",
+        "handZone": "hand_12"
+      }
+    ]
+  },
+  "environment": {
+    "lighting": {},
+    "table": {
+      "size": [
+        2.7,
+        1.69
+      ]
+    }
+  },
+  "game": {
+    "id": "wink-murder",
+    "name": "Wink Murder",
+    "description": "One of you is the Murderer and kills by winking. Watch the faces: catch the wink before everyone is gone. Look at someone and press K to wink.",
+    "minPlayers": 5,
+    "maxPlayers": 12
+  },
+  "turn": {
+    "startingPlayer": "first",
+    "phases": [
+      "party"
+    ]
+  },
+  "phases": [
+    {
+      "id": "party",
+      "name": "The party",
+      "actions": [
+        "fall",
+        "accuse"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "id": "fall",
+      "name": "Fall",
+      "actor": "any",
+      "preconditions": [
+        {
+          "compare": {
+            "left": "$actor.role.fate",
+            "op": "==",
+            "right": "winked"
+          }
+        }
+      ],
+      "effects": [
+        {
+          "message": {
+            "text": "{$actor.name} falls to the floor."
+          }
+        },
+        {
+          "eliminate": {
+            "seat": "$actor",
+            "revealRole": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "accuse",
+      "name": "Accuse",
+      "actor": "any",
+      "params": [
+        {
+          "name": "suspect",
+          "type": "seat"
+        }
+      ],
+      "preconditions": [
+        {
+          "not": {
+            "compare": {
+              "left": "$param.suspect",
+              "op": "==",
+              "right": "$actor.id"
+            }
+          }
+        },
+        {
+          "or": [
+            {
+              "compare": {
+                "left": "$actor.role",
+                "op": "==",
+                "right": "detective"
+              }
+            },
+            {
+              "compare": {
+                "left": "$alive.role.detective",
+                "op": "==",
+                "right": 0
+              }
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "message": {
+            "text": "{$actor.name} accuses {$param.suspect.name}!"
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "compare": {
+                "left": "$param.suspect.role",
+                "op": "==",
+                "right": "murderer"
+              }
+            },
+            "then": [
+              {
+                "revealRole": {
+                  "seat": "$param.suspect"
+                }
+              },
+              {
+                "win": {
+                  "player": "",
+                  "team": "town"
+                }
+              }
+            ],
+            "else": [
+              {
+                "message": {
+                  "text": "Wrong: {$param.suspect.name} is innocent."
+                }
+              },
+              {
+                "eliminate": {
+                  "seat": "$actor",
+                  "revealRole": true
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "events": {
+    "onGesture": [
+      {
+        "if": {
+          "condition": {
+            "and": [
+              {
+                "compare": {
+                  "left": "$param.gesture",
+                  "op": "==",
+                  "right": "wink"
+                }
+              },
+              {
+                "compare": {
+                  "left": "$actor.role",
+                  "op": "==",
+                  "right": "murderer"
+                }
+              },
+              {
+                "not": {
+                  "compare": {
+                    "left": "$param.target",
+                    "op": "==",
+                    "right": null
+                  }
+                }
+              },
+              {
+                "not": {
+                  "compare": {
+                    "left": "$param.target.out",
+                    "op": "==",
+                    "right": true
+                  }
+                }
+              }
+            ]
+          },
+          "then": [
+            {
+              "setRole": {
+                "seat": "$param.target",
+                "role": "winked",
+                "set": "fate"
+              }
+            },
+            {
+              "message": {
+                "text": "You have been winked at. Count to five, then fall.",
+                "to": "$param.target"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "winConditions": [
+    {
+      "team": "murderer",
+      "when": {
+        "compare": {
+          "left": "$alive.count",
+          "op": "<=",
+          "right": 2
+        }
+      },
+      "winner": "$player"
+    }
+  ],
+  "roles": {
+    "teams": [
+      {
+        "id": "town",
+        "name": "The town"
+      },
+      {
+        "id": "murderer",
+        "name": "The Murderer"
+      }
+    ],
+    "list": [
+      {
+        "id": "murderer",
+        "name": "Murderer",
+        "team": "murderer",
+        "description": "Wink (K) at a player looking at you to kill them."
+      },
+      {
+        "id": "detective",
+        "name": "Detective",
+        "team": "town",
+        "optional": true,
+        "description": "Accuse the Murderer; a wrong guess puts you out."
+      },
+      {
+        "id": "guest",
+        "name": "Guest",
+        "team": "town",
+        "count": "fill"
+      },
+      {
+        "id": "alive",
+        "name": "Alive",
+        "team": "",
+        "set": "fate",
+        "count": "fill"
+      },
+      {
+        "id": "winked",
+        "name": "Winked at",
+        "team": "",
+        "set": "fate",
+        "count": 0
+      }
+    ]
+  }
+}

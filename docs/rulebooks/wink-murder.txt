@@ -1,0 +1,19 @@
+WINK MURDER (a party game, summarised for Table World's tests)
+
+Players: 5 to 12.
+
+Roles
+- One Murderer. The host may add a Detective. Everyone else is a Guest.
+- Nobody knows anyone else's role.
+
+Playing
+- There are no turns. Everyone sits around the table, talks and looks at each other's faces.
+- The Murderer kills by winking at a player who is looking at them. Nobody else must notice.
+- A player who has been winked at waits a moment, then falls dramatically and is out. Their role is shown.
+- The Detective (or, with no Detective in the game or once they are dead, any player) may accuse someone at any time.
+  - If the accused is the Murderer, the town wins.
+  - If not, the accuser is out, and their role is shown.
+
+The end
+- The town wins when the Murderer is caught.
+- The Murderer wins when only one other player is left.

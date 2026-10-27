@@ -109,6 +109,10 @@ dedicated server. What matters is that no one sees a secret by accident or with 
   conditions by team; a seat id in a variable followed like the seat; private votes (the wolves' hunt left a public
   "Red voted." and its ballots in the session, naming the wolves); secret variables (the victim sat in a public
   variable until dawn). The protocol tests found both leaks before any player could.
+- **What building Wink Murder found (T11.15):** a secret variable cannot drive a player's own buttons, because no
+  player's machine holds it, not even the one it is about. What one player alone may know about themselves belongs in a
+  hidden trait (a role `set`, here `fate`: alive or winked at), which reaches that player only. The docs say so where
+  they describe secret variables.
 
 ### 3. Eyes-closed phases
 
