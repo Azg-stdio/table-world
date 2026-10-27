@@ -90,6 +90,16 @@ A game declares its base language and carries tables for the others:
   key); `set_translations` writes a batch; the guide shows the loop. "Translate my game to English" is one task.
 - Imported TTS games keep the language they were made in.
 
+### Addendum (T10.1, 2026-10-27): where the tables live
+
+Table World's own tables are `core/Text/strings/<language>.json`, built into Core.dll as resources (`Strings.BuiltIn`,
+`Strings.For`), not shipped in `StreamingAssets/Strings/`. The engine's log lines and refusals (T10.3) come from
+`core/`, which cannot read Unity's folders, and one place for every table keeps the check test simple. They stay text
+files anyone edits in the repo. A player can still add a language or fix a text without a rebuild: the game reads every
+`<language>.json` in a folder (`Strings.LoadFolder`, in Unity the player's `Strings` folder) on top of the built-in
+tables. Placeholders are `{name}`; `{{` and `}}` write a brace. The check also fails a translation that fills other
+placeholders than English does.
+
 ## Consequences
 
 - One lookup per text shown; a game without `translations` reads exactly as today.

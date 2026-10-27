@@ -27,6 +27,11 @@
     <InternalsVisibleTo Include="Core.Tests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- The interface's string tables (M9, ADR 0011), one per language, built into Core.dll so the engine and Unity read the same ones. -->
+    <EmbeddedResource Include="Text\strings\*.json" LogicalName="Core.Text.strings.%(Filename).json" />
+  </ItemGroup>
+
   <!--
     Unity consumes Core.dll from Assets/Plugins/Core/. Core.dll, MoonSharp.Interpreter.dll and Concentus.dll are copied; Newtonsoft comes from a Unity package.
     Debug only, so Release/CI builds never overwrite the committed dll.
