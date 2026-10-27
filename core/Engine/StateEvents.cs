@@ -283,5 +283,14 @@ namespace Core.Engine
 
         internal static CommandResult Fail(string field, string code, string message, string? suggestion = null) =>
             new CommandResult(new ValidationError(field, code, message, suggestion), new StateEvent[0]);
+
+        internal static CommandResult Fail(ValidationError error) => new CommandResult(error, new StateEvent[0]);
+
+        /// <summary>What a player reads for this refusal (<see cref="ValidationError.WithText"/>); returns this result.</summary>
+        internal CommandResult Text(string key, params (string Name, string Value)[] fills)
+        {
+            Error?.WithText(key, fills);
+            return this;
+        }
     }
 }

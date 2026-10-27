@@ -53,7 +53,7 @@ namespace Core.Engine
         }
 
         /// <summary>What a sleeping seat reads on its dark screen.</summary>
-        public string SleepText => CurrentPhase()?.SleepText is { Length: > 0 } text ? Template(text) : Names.Message(State, "eyesClosed", "Eyes closed.");
+        public string SleepText => CurrentPhase()?.SleepText is { Length: > 0 } text ? Template(text) : Names.Message(State, "eyesClosed");
 
         /// <summary>
         /// Whether <paramref name="listener"/> hears <paramref name="speaker"/> now (seats; null for a spectator or a host
@@ -97,7 +97,7 @@ namespace Core.Engine
                 return CommandResult.Success(new List<StateEvent>());
             var seat = command.Actor;
             if (seat == null || Playing.All(s => s.Id != seat))
-                return CommandResult.Fail("actor", ErrorCodes.NotPlaying, "Only a player in the game makes gestures that count.");
+                return CommandResult.Fail("actor", ErrorCodes.NotPlaying, "Only a player in the game makes gestures that count.").Text("refusal.notPlaying");
             if (command.Target != null && Playing.All(s => s.Id != command.Target))
                 return CommandResult.Fail("target", ErrorCodes.UnknownSeat, $"Seat '{command.Target}' is not playing.");
             var parameters = new Dictionary<string, string> { ["gesture"] = command.Gesture };
@@ -123,7 +123,7 @@ namespace Core.Engine
             if (session.Eliminated.Contains(seat))
                 return;
             session.Eliminated.Add(seat);
-            Log(Names.Message(State, "eliminated", "{seat} is out.", ("seat", Names.Seat(State, seat))));
+            Log(Names.Message(State, "eliminated", ("seat", Names.Seat(State, seat))));
             if (reveal && RoleOf(seat) != null)
                 RevealRole(seat, null, teamOnly: false);
         }

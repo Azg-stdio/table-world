@@ -156,7 +156,7 @@ namespace Core.Engine
             return CommandResult.Success(new List<StateEvent>
             {
                 new CardShown(obj.Id, card, c.Actor),
-                new GameMessage(Names.Message(State, "shows", "{seat} shows {card}.", ("seat", Names.Seat(State, c.Actor)), ("card", name))),
+                new GameMessage(Names.Message(State, "shows", ("seat", Names.Seat(State, c.Actor)), ("card", name))),
             });
         }
 
@@ -167,7 +167,7 @@ namespace Core.Engine
             {
                 // Starting again while one runs keeps what is hidden.
                 State.Blind ??= new BlindRound();
-                events.Add(new GameMessage(Names.Message(State, "blindRound", "{seat} started a blind round: what each player moves stays hidden until the reveal.", ("seat", Names.Seat(State, c.Actor)))));
+                events.Add(new GameMessage(Names.Message(State, "blindRound", ("seat", Names.Seat(State, c.Actor)))));
                 return CommandResult.Success(events);
             }
             if (State.Blind is { } blind)
@@ -178,7 +178,7 @@ namespace Core.Engine
                         obj.InvisibleTo = pair.Value;
                         events.Add(new ObjectUpdated(obj.Id));
                     }
-                events.Add(new GameMessage(Names.Message(State, "reveal", "{seat} revealed the blind round ({count} piece" + (blind.Before.Count == 1 ? "" : "s") + ").",
+                events.Add(new GameMessage(Names.Message(State, "reveal", blind.Before.Count,
                     ("seat", Names.Seat(State, c.Actor)), ("count", blind.Before.Count.ToString()))));
             }
             State.Blind = null;
@@ -936,7 +936,7 @@ namespace Core.Engine
             if (!(State.FreeTurns is { Enabled: true, Current: { } current } order))
                 return CommandResult.Fail("", ErrorCodes.InvalidValue, "Turns are off.", "The host can switch them on from the table menu.");
             if (c.Actor != null && c.Actor != current)
-                return CommandResult.Fail("actor", ErrorCodes.NotYourTurn, $"It is {current}'s turn.");
+                return CommandResult.Fail("actor", ErrorCodes.NotYourTurn, $"It is {current}'s turn.").Text("refusal.notYourTurn", ("seat", Names.Seat(State, current)));
             order.Current = NextTurnSeat(order, current);
             order.Count++;
             return CommandResult.Success(new List<StateEvent> { new TableSettingsChanged() });

@@ -169,6 +169,11 @@ namespace Core.Rules
     /// <summary>Game progress. Written by the engine, saved with the table; an authored game has none.</summary>
     public sealed class Session
     {
+        /// <summary>
+        /// The language this session's texts are in (ADR 0011): the engine's log lines and what it tells players. Null is
+        /// English. Chosen when the game starts (T10.5); every player reads the same one.
+        /// </summary>
+        public string? Language { get; set; }
         public bool Started { get; set; }
         public bool Over { get; set; }
         public string? Winner { get; set; }

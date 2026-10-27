@@ -1398,6 +1398,7 @@ object or object or object or object or object or object or object or object or 
 
 | Field | Type | Required |
 |---|---|---|
+| `language` | string |  |
 | `started` | boolean |  |
 | `over` | boolean |  |
 | `winner` | string |  |

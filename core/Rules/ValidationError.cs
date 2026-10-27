@@ -15,6 +15,25 @@ namespace Core.Rules
         public string Message { get; }
         public string? Suggestion { get; }
 
+        /// <summary>
+        /// What a player reads for this refusal, as a string table key (ADR 0011, <c>refusal.*</c>) with its fills, so the
+        /// game shows it in the player's language; <see cref="Message"/> stays the English for agents. Null: the game
+        /// reads <c>refusal.&lt;code&gt;</c> when its table has one, else the message.
+        /// </summary>
+        [Newtonsoft.Json.JsonIgnore]
+        public string? TextKey { get; private set; }
+
+        [Newtonsoft.Json.JsonIgnore]
+        public IReadOnlyList<(string Name, string Value)> TextFills { get; private set; } = Array.Empty<(string, string)>();
+
+        /// <summary>Sets what a player reads (<see cref="TextKey"/>); returns this error.</summary>
+        public ValidationError WithText(string key, params (string Name, string Value)[] fills)
+        {
+            TextKey = key;
+            TextFills = fills;
+            return this;
+        }
+
         public ValidationError(string path, string code, string message, string? suggestion = null)
         {
             Path = path;

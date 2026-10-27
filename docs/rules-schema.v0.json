@@ -4658,6 +4658,9 @@
     "Session": {
       "type": "object",
       "properties": {
+        "language": {
+          "type": "string"
+        },
         "started": {
           "type": "boolean"
         },

@@ -176,7 +176,7 @@ namespace Core.Engine
                 if (State.Environment != null)
                     State.Environment.Lighting = lightingJson == null ? new LightingDef() : Newtonsoft.Json.JsonConvert.DeserializeObject<LightingDef>(lightingJson)!;
                 Table.Random.State = random;
-                var fail = CommandResult.Fail(e.Error.Path, e.Error.Code, e.Error.Message, e.Error.Suggestion);
+                var fail = CommandResult.Fail(e.Error);
                 fail.StateRestored = mutated;
                 // A peer refusing because it lacks a secret is not the host refusing (SessionClient.Submit).
                 fail.ReadsSecrets = _secretsRead;
@@ -253,7 +253,8 @@ namespace Core.Engine
             for (var i = 0; i < action.Preconditions.Count; i++)
                 if (!Holds(action.Preconditions[i]))
                     throw new RuleException($"preconditions[{i}]", ErrorCodes.PreconditionFailed,
-                        $"Action '{action.Id}' is not possible now: precondition {i} ({action.Preconditions[i].Kind}) does not hold.");
+                        $"Action '{action.Id}' is not possible now: precondition {i} ({action.Preconditions[i].Kind}) does not hold.")
+                        .Text("refusal.notPossible", ("action", ActionName(action)));
 
             if (action.Vote != null)
                 CastVote(action, seat, command.Params);
@@ -262,7 +263,7 @@ namespace Core.Engine
                 // Recorded, not run: a later choice of the same action replaces it until the reveal.
                 session.Secrets.RemoveAll(s => s.Seat == seat && s.Action == action.Id);
                 session.Secrets.Add(new SecretChoice { Seat = seat, Action = action.Id, Params = new Dictionary<string, string>(command.Params) });
-                Log(Names.Message(State, "choseInSecret", "{seat} chose in secret.", ("seat", Names.Seat(State, seat))));
+                Log(Names.Message(State, "choseInSecret", ("seat", Names.Seat(State, seat))));
             }
             else
                 RunEffects(action.Effects);
@@ -283,17 +284,22 @@ namespace Core.Engine
                 return new RuleException("actor", ErrorCodes.NotPlaying, $"{seat} is not playing this game.", "Only the seats the game started with can act.");
             if (CurrentPhase() is not { } phase || !phase.Actions.Contains(action.Id))
                 return new RuleException("actionId", ErrorCodes.ActionNotAvailable, $"'{action.Id}' is not allowed in phase '{session.Phase}'.",
-                    CurrentPhase() is { } p && p.Actions.Count > 0 ? $"Allowed now: {string.Join(", ", p.Actions)}." : null);
+                    CurrentPhase() is { } p && p.Actions.Count > 0 ? $"Allowed now: {string.Join(", ", p.Actions)}." : null)
+                    .Text("refusal.notInPhase", ("action", ActionName(action)));
             if (IsOut(seat))
-                return new RuleException("actor", ErrorCodes.NotPlaying, $"{Names.Seat(State, seat)} is out of the game.");
+                return new RuleException("actor", ErrorCodes.NotPlaying, $"{Names.Seat(State, seat)} is out of the game.").Text("refusal.out");
             if (!IsAwake(seat))
-                return new RuleException("actor", ErrorCodes.ActionNotAvailable, $"{Names.Seat(State, seat)} has eyes closed in this phase.", "Wait for the phase where you are awake.");
+                return new RuleException("actor", ErrorCodes.ActionNotAvailable, $"{Names.Seat(State, seat)} has eyes closed in this phase.", "Wait for the phase where you are awake.")
+                    .Text("refusal.eyesClosed");
             if (action.Actor == ActorRule.Current && seat != session.CurrentSeat)
-                return new RuleException("actor", ErrorCodes.NotYourTurn, $"It is {session.CurrentSeat}'s turn, not {seat}'s.");
+                return new RuleException("actor", ErrorCodes.NotYourTurn, $"It is {session.CurrentSeat}'s turn, not {seat}'s.")
+                    .Text("refusal.notYourTurn", ("seat", Names.Seat(State, session.CurrentSeat)));
             if (action.Vote != null && !WithContext(new Context { Actor = seat }, () => VotersOf(action)).Contains(seat))
-                return new RuleException("actor", ErrorCodes.NotYourSeat, $"{Names.Seat(State, seat)} does not vote in '{action.Name ?? action.Id}'.");
+                return new RuleException("actor", ErrorCodes.NotYourSeat, $"{Names.Seat(State, seat)} does not vote in '{action.Name ?? action.Id}'.")
+                    .Text("refusal.noVote", ("action", ActionName(action)));
             if (action.LimitPerPhase is { } limit && session.ActionCounts.TryGetValue($"{seat}/{action.Id}", out var used) && used >= limit)
-                return new RuleException("actionId", ErrorCodes.LimitReached, $"{seat} already did '{action.Id}' {used} time(s) this phase.");
+                return new RuleException("actionId", ErrorCodes.LimitReached, $"{seat} already did '{action.Id}' {used} time(s) this phase.")
+                    .Text("refusal.limit", ("action", ActionName(action)));
             return null;
         }
 
@@ -442,7 +448,7 @@ namespace Core.Engine
             var session = Session!;
             session.Over = true;
             session.Winner = seat;
-            Log(Names.Message(State, "win", "{seat} wins.", ("seat", Names.Seat(State, seat))));
+            Log(Names.Message(State, "win", ("seat", Names.Seat(State, seat))));
         }
 
         /// <summary>A team wins (hidden roles): the game ends, and the log names the team and its players, now no secret.</summary>
@@ -456,11 +462,11 @@ namespace Core.Engine
             session.Winner = team;
             session.WinnerTeam = team;
             _secretsRead = true;
-            var members = Playing.Where(s => TeamOf(s.Id) == team).Select(s => Names.Of(s)).ToList();
+            var members = Playing.Where(s => TeamOf(s.Id) == team).Select(s => Names.Of(State, s)).ToList();
             // A team nobody plays (the bomb, the house) wins alone.
             Log(members.Count == 0
-                ? Names.Message(State, "teamWinsAlone", "{team} wins.", ("team", TeamName(roles, team)))
-                : Names.Message(State, "teamWins", "{team} win: {seats}.", ("team", TeamName(roles, team)), ("seats", Join(members))));
+                ? Names.Message(State, "teamWinsAlone", ("team", TeamName(roles, team)))
+                : Names.Message(State, "teamWins", ("team", TeamName(roles, team)), ("seats", Join(members))));
         }
 
         // ---- effects ----------------------------------------------------------------------------------------------
@@ -569,7 +575,9 @@ namespace Core.Engine
                     TableCommand(new SetLightCommand { Light = light.Part, Scale = light.Scale, Tint = light.Tint });
                     break;
                 case RefuseEffect refuse:
-                    throw new RuleException("refuse", ErrorCodes.Refused, string.IsNullOrWhiteSpace(refuse.Reason) ? "The rules do not allow that." : Template(refuse.Reason));
+                    throw string.IsNullOrWhiteSpace(refuse.Reason)
+                        ? new RuleException("refuse", ErrorCodes.Refused, "The rules do not allow that.").Text("refusal.refused")
+                        : new RuleException("refuse", ErrorCodes.Refused, Template(refuse.Reason));
                 case BlindRoundEffect blind:
                 {
                     var hadRound = State.Blind != null;
@@ -625,7 +633,7 @@ namespace Core.Engine
             }
             catch (RuleException e)
             {
-                return CommandResult.Fail(e.Error.Path, e.Error.Code, e.Error.Message, e.Error.Suggestion);
+                return CommandResult.Fail(e.Error);
             }
         }
 
@@ -749,7 +757,7 @@ namespace Core.Engine
                     continue;
                 // Players read the option's label ("Mazmorra"), not the id the rules use.
                 var picked = string.Join(", ", choice.Params.Select(p => OptionLabel(action.Id, p.Key, p.Value)));
-                Log(Names.Message(State, "chose", "{seat} chose {action}{choice}.",
+                Log(Names.Message(State, "chose",
                     ("seat", Names.Seat(State, choice.Seat)), ("action", action.Name ?? Names.Humanize(action.Id)),
                     ("choice", picked.Length == 0 ? "" : ": " + picked), ("option", picked)));
                 _ctx = new Context { Actor = choice.Seat, Params = choice.Params };
@@ -1093,7 +1101,7 @@ namespace Core.Engine
                 var resolved = TryResolve(reference);
                 var value = resolved switch
                 {
-                    Seat seat => Names.Of(seat),
+                    Seat seat => Names.Of(State, seat),
                     TableObject obj => Names.Of(obj),
                     _ => ToValue(resolved)?.ToString() ?? "",
                 };
@@ -1202,7 +1210,7 @@ namespace Core.Engine
                         case "id": return new JValue(seat.Id);
                         case "color": return new JValue(seat.Color);
                         case "hand": return State.Zones.FirstOrDefault(z => z.Id == seat.HandZone);
-                        case "name": return new JValue(Names.Of(seat));
+                        case "name": return new JValue(Names.Of(State, seat));
                         case "role":
                         case "team":
                             return RoleStep(seat, part, parts, ref i) is { } known ? new JValue(known) : null;
@@ -1402,6 +1410,9 @@ namespace Core.Engine
             }
         }
 
+        /// <summary>An action as players read it: its name, else its id as words.</summary>
+        private static string ActionName(ActionDef action) => !string.IsNullOrWhiteSpace(action.Name) ? action.Name! : Names.Humanize(action.Id);
+
         private sealed class RuleException : Exception
         {
             public readonly ValidationError Error;
@@ -1409,6 +1420,13 @@ namespace Core.Engine
             public RuleException(string path, string code, string message, string? suggestion = null) : base(message)
             {
                 Error = new ValidationError(path, code, message, suggestion);
+            }
+
+            /// <summary>What the player reads (<see cref="ValidationError.WithText"/>).</summary>
+            public RuleException Text(string key, params (string Name, string Value)[] fills)
+            {
+                Error.WithText(key, fills);
+                return this;
             }
         }
     }

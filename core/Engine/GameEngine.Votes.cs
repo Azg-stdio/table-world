@@ -57,7 +57,7 @@ namespace Core.Engine
             session.Secrets.RemoveAll(s => s.Seat == seat && s.Action == action.Id);
             session.Secrets.Add(new SecretChoice { Seat = seat, Action = action.Id, Params = new Dictionary<string, string>(choice) });
             if (!again)
-                Say(action, Names.Message(State, "voted", "{seat} voted.", ("seat", Names.Seat(State, seat))));
+                Say(action, Names.Message(State, "voted", ("seat", Names.Seat(State, seat))));
             if (VotersOf(action).All(v => session.Secrets.Any(s => s.Seat == v && s.Action == action.Id)))
                 CountVote(action);
         }
@@ -101,12 +101,12 @@ namespace Core.Engine
             string Label(string option) => vote.Seats ? Names.Seat(State, option) : VoteLabel(vote, option);
             var name = action.Name ?? Names.Humanize(action.Id);
             if (vote.Reveal == VoteReveal.Named)
-                Say(action, Names.Message(State, "voteNamed", "{vote}: {votes}.", ("vote", name),
-                    ("votes", string.Join(", ", Playing.Where(s => picks.ContainsKey(s.Id)).Select(s => $"{Names.Of(s)} {Label(picks[s.Id])}")))));
+                Say(action, Names.Message(State, "voteNamed", ("vote", name),
+                    ("votes", string.Join(", ", Playing.Where(s => picks.ContainsKey(s.Id)).Select(s => $"{Names.Of(State, s)} {Label(picks[s.Id])}")))));
             else if (vote.Reveal == VoteReveal.Count)
-                Say(action, Names.Message(State, "voteCount", "{vote}: {counts}.", ("vote", name),
+                Say(action, Names.Message(State, "voteCount", ("vote", name),
                     ("counts", string.Join(", ", counts.Where(c => c.Value > 0 || !vote.Seats).Select(c => $"{c.Value} {Label(c.Key)}")))));
-            Say(action, Names.Message(State, "voteResult", "{vote}: {result}.", ("vote", name),
+            Say(action, Names.Message(State, "voteResult", ("vote", name),
                 ("result", result == otherwise && !counts.ContainsKey(result) ? Names.Humanize(result) : Label(result))));
             RunEffects(vote.OnResult);
         }

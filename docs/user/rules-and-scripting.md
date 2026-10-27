@@ -318,9 +318,10 @@ A reminder of your own secret pick, seen by you alone:
 
 Players move each panel by its title bar and fold it to the bar; the game remembers where each player left it.
 
-**The game's own words.** The lines the engine writes in the log ("Red wins.", "Blue chose in secret.") can be
-written in the game's language under `game.messages`; `{seat}` and the other names in braces are filled in, and a line
-left out stays in English:
+**The game's own words.** The lines the engine writes in the log ("Red wins.", "Blue chose in secret.") come in the
+session's language (English and Spanish today; seats without a name are called by their colour in that language). A game
+can reword any of them under `game.messages`; `{seat}` and the other names in braces are filled in, and a line left out
+reads the engine's own:
 
 ```json
 "game": { "id": "tornaris", "name": "Tornaris",
@@ -328,7 +329,9 @@ left out stays in English:
 ```
 
 The keys are `win`, `choseInSecret`, `chose` (`{seat}`, `{action}`, `{option}`), `blindRound`, `reveal` (`{count}`) and
-`shows` (`{card}`).
+`shows` (`{card}`); social games add `eliminated`, `voted`, `eyesClosed`, `teamWins`, `teamWinsAlone` and the role lines
+(the full list, with the English and Spanish texts, is `core/Text/strings/en.json` and `es.json` under `engine.`). A line
+that counts has a singular of its own: `reveal.one` is read when one piece was revealed, `reveal` otherwise.
 
 **Light.** The room has two lights: the room's own (the lamp and its warm fill, on the walls, the floor and the table's
 frame) and the table light on the felt and the pieces. The `light` effect changes one of them while playing, so night
