@@ -11,6 +11,7 @@
 | [MCP tools by job](mcp-tools-guide.md) | Every tool of the server grouped by job, each with an example that a test runs against the server |
 | [Game brief template](game-brief-template.md) | Everything your agent needs about your game in one document, so it builds it with fewer questions |
 | [Importing Tabletop Simulator games](importing-tts.md) | Importing the TTS games on your computer, missing files, reading `import-notes.txt`, known limits, privacy, and a TTS → Table World glossary |
+| [Social games](social-games.md) | Hidden roles, votes, nights, winks: playing them, hosting fairly, and the pieces to build your own |
 | [Rules and scripting](rules-and-scripting.md) | The rules format in game terms, using War and UNO-lite, and Lua scripting: events, script UI, the sandbox, differences from TTS |
 | Example briefs: [War](examples/war-brief.md), [Match the Pile](examples/uno-lite-brief.md) | The template filled in for the two sample rulebooks |
 
