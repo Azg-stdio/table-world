@@ -490,7 +490,7 @@ namespace TableWorld.View.Hud
             _emoteWheel?.Update(TypingInUi() || (_interaction != null && _interaction.IgnoreDevices));
             UpdateTalking();
             if (_saves?.Tick(_escape.Settings.AutosaveMinutes) is { } autosaved)
-                ShowStatus($"Autosaved ({autosaved})", error: false);
+                ShowStatus(Ui.T("Autosaved ({autosaved})", ("autosaved", autosaved)), error: false);
             UpdatePresenceLabels();
             if (_netStatus != null && _session != null)
                 _netStatus.text = _session.Status == "offline" ? "" : _session.Status;
@@ -519,7 +519,7 @@ namespace TableWorld.View.Hud
             var running = _table.Engine.State.Blind != null;
             var result = _table.Execute(new Core.Engine.BlindRoundCommand { On = !running, Actor = _table.LocalSeat });
             if (!result.Ok)
-                ShowStatus(result.Error.Message, error: true);
+                ShowStatus(Ui.Refusal(result.Error), error: true);
         }
 
         private void RefreshBlindRound()
@@ -533,10 +533,10 @@ namespace TableWorld.View.Hud
             _shownBlind = key;
             _blindButton.EnableInClassList("hidden", _table.Spectating);
             _blindButton.EnableInClassList("hud-button--blind", blind != null);
-            _blindButton.text = blind == null ? "Blind round" : $"Reveal ({blind.MovedBy.Count})";
+            _blindButton.text = blind == null ? Ui.T("Blind round") : Ui.T("Reveal ({count})", ("count", blind.MovedBy.Count));
             _blindButton.tooltip = blind == null
-                ? "Start a blind round: until the reveal, what each player moves stays hidden from the others."
-                : "Reveal everything moved in this blind round.";
+                ? Ui.T("Start a blind round: until the reveal, what each player moves stays hidden from the others.")
+                : Ui.T("Reveal everything moved in this blind round.");
         }
 
         /// <summary>
@@ -556,14 +556,14 @@ namespace TableWorld.View.Hud
                 var roles = state.Roles?.List.Where(r => r.Optional && _optionalRoles.Contains(r.Id)).Select(r => r.Id).ToList() ?? new List<string>();
                 var result = _table.Execute(new StartGameCommand { Seats = seated, Roles = roles, Language = _startLanguage });
                 if (!result.Ok)
-                    ShowStatus(result.Error.Message, error: true);
-            }) { text = $"Start game ({players})" };
+                    ShowStatus(Ui.Refusal(result.Error), error: true);
+            }) { text = Ui.T("Start game ({players})", ("players", players)) };
             button.AddToClassList("hud-button");
             var fits = seated.Count >= min && seated.Count <= max;
             button.SetEnabled(fits);
-            var takes = min == max ? $"{min}" : $"{min} to {max}";
-            button.tooltip = fits ? "Sit at more seats with the + over each seat on the table"
-                : $"This game takes {takes} players: sit at the seats with the + over each one on the table";
+            var takes = min == max ? $"{min}" : Ui.T("{min} to {max}", ("min", min), ("max", max));
+            button.tooltip = fits ? Ui.T("Sit at more seats with the + over each seat on the table")
+                : Ui.T("This game takes {takes} players: sit at the seats with the + over each one on the table", ("takes", takes));
             _gameActions.Add(button);
         }
 
@@ -591,7 +591,7 @@ namespace TableWorld.View.Hud
                 }) { text = Strings.For(code).Raw("language.name") is { } own && Strings.BuiltIn().Contains(code) ? own : code };
                 toggle.AddToClassList("hud-button");
                 toggle.EnableInClassList("hud-button--picked", code == _startLanguage);
-                toggle.tooltip = "The language everyone reads this game in.";
+                toggle.tooltip = Ui.T("The language everyone reads this game in.");
                 _gameActions.Add(toggle);
             }
         }
@@ -618,7 +618,7 @@ namespace TableWorld.View.Hud
                 }) { text = GameEngine.RoleName(state, state.Roles, id) };
                 toggle.AddToClassList("hud-button");
                 toggle.EnableInClassList("hud-button--picked", on);
-                toggle.tooltip = (on ? "In the deal: click to leave it out." : "Left out: click to deal it too.") +
+                toggle.tooltip = (on ? Ui.T("In the deal: click to leave it out.") : Ui.T("Left out: click to deal it too.")) +
                                  (role.Description is { Length: > 0 } about ? "\n" + about : "");
                 _gameActions.Add(toggle);
             }
@@ -641,11 +641,11 @@ namespace TableWorld.View.Hud
                 var voters = game.VotersOf(action).Count;
                 // A private vote shows nobody how many have voted (this machine only ever sees its own ballot).
                 var actionName = Names.Action(_table.Engine.State, action);
-                var line = action.Vote.Private ? $"{actionName}: voted" : $"{actionName}: {cast.Count} of {voters} voted";
+                var line = action.Vote.Private ? Ui.T("{actionName}: voted", ("actionName", actionName)) : Ui.T("{actionName}: {count} of {voters} voted", ("actionName", actionName), ("count", cast.Count), ("voters", voters));
                 if (cast.FirstOrDefault(s => s.Seat == _table.LocalSeat) is { } mine && mine.Params.TryGetValue(GameEngine.VoteParam, out var choice))
-                    line += $" (you: {game.OptionLabel(action.Id, GameEngine.VoteParam, choice)})";
+                    line += Ui.T(" (you: {optionLabel})", ("optionLabel", game.OptionLabel(action.Id, GameEngine.VoteParam, choice)));
                 if (_voteLeft.TryGetValue(action.Id, out var left))
-                    line += $" · {left} s left";
+                    line += Ui.T(" · {left} s left", ("left", left));
                 lines.Add(line);
             }
             return lines;
@@ -715,7 +715,7 @@ namespace TableWorld.View.Hud
             if (_table.Networked && _session != null)
             {
                 if (seat.Id == _table.LocalSeat)
-                    return $"{name} (you)";
+                    return Ui.T("{name} (you)", ("name", name));
                 return _session.Occupants.TryGetValue(seat.Id, out var who) ? _session.NameOf(who) ?? name : null;
             }
             return SeatedSeats().Contains(seat.Id) ? name : null;
@@ -759,7 +759,7 @@ namespace TableWorld.View.Hud
             var at = hand != null ? SeatLayout.InFrontOf(place, along: 0.24f, inward: 0.2f) : new Vec3(0.3f, 0f, -0.15f);
             var result = _table.Execute(new AddCalculatorCommand { Position = at, Yaw = place.Yaw + CalculatorYawOffset, Actor = _table.LocalSeat });
             if (!result.Ok)
-                ShowStatus(result.Error.Message, error: true);
+                ShowStatus(Ui.Refusal(result.Error), error: true);
             else if (_table.ViewOf(result.CreatedId) is { } placed)
                 _interaction?.Select(placed);
         }
@@ -828,7 +828,7 @@ namespace TableWorld.View.Hud
             var target = chalkers != null ? chalkers.LookedAt(Camera.main) : null;
             var result = _table.Execute(new GestureCommand { Actor = _table.LocalSeat, Gesture = gesture.ToLowerInvariant(), Target = target });
             if (!result.Ok)
-                ShowStatus(result.Error.Message, error: true);
+                ShowStatus(Ui.Refusal(result.Error), error: true);
         }
 
         /// <summary>Who won, as players say it: a team's name, a seat's, or nobody.</summary>
@@ -860,10 +860,10 @@ namespace TableWorld.View.Hud
             _shownGameKey = key;
 
             AnnounceTurn();
-            _turnLabel.text = !state.HasRules ? (turns is { Enabled: true } ? FreeTurnText(turns) : "Free play")
-                : session == null ? $"{(state.Game != null ? Names.Game(state) : "Game")}: not started"
-                : session.Over ? $"Game over: {WinnerName(state, session)} {(session.WinnerTeam != null ? "win" : "wins")}"
-                : $"Turn {session.Turn} · {PhaseName(state, session.Phase)} · {Names.Seat(state, session.CurrentSeat)}";
+            _turnLabel.text = !state.HasRules ? (turns is { Enabled: true } ? FreeTurnText(turns) : Ui.T("Free play"))
+                : session == null ? Ui.T("{game}: not started", ("game", state.Game != null ? Names.Game(state) : Ui.T("Game")))
+                : session.Over ? (session.WinnerTeam != null ? Ui.T("Game over: {winner} win", ("winner", WinnerName(state, session))) : Ui.T("Game over: {winner} wins", ("winner", WinnerName(state, session))))
+                : Ui.T("Turn {turn} · {phaseName} · {currentSeat}", ("turn", session.Turn), ("phaseName", PhaseName(state, session.Phase)), ("currentSeat", Names.Seat(state, session.CurrentSeat)));
             // A long turn line is cut short in the bar; the whole of it is on hover.
             _turnLabel.tooltip = _turnLabel.text;
 
@@ -875,7 +875,7 @@ namespace TableWorld.View.Hud
                 _gamePanel.EnableInClassList(Hidden, !canEnd);
                 _gameLog.AddToClassList(Hidden);
                 if (canEnd)
-                    AddGameButton($"End turn ({turns.Current})", () => _table.Execute(new EndTurnCommand { Actor = _table.Networked ? _table.LocalSeat : null }));
+                    AddGameButton(Ui.T("End turn ({current})", ("current", turns.Current)), () => _table.Execute(new EndTurnCommand { Actor = _table.Networked ? _table.LocalSeat : null }));
                 return;
             }
             _gamePanel.RemoveFromClassList(Hidden);
@@ -902,7 +902,7 @@ namespace TableWorld.View.Hud
                 {
                     var result = _table.Execute(new PerformActionCommand { Actor = actor, ActionId = id, Params = new Dictionary<string, string>(parameters) });
                     if (!result.Ok)
-                        ShowStatus(result.Error.Message, error: true);
+                        ShowStatus(Ui.Refusal(result.Error), error: true);
                 }
                 if (action.Choices.Count == 1)
                 {
@@ -951,13 +951,14 @@ namespace TableWorld.View.Hud
                 SetClockCommand c => _table.Engine.Find(c.ObjectId) is Clock clock
                     ? $"{NameOf(c.ObjectId)}: {(clock.Mode == ClockMode.Clock ? "clock" : clock.Running ? "running" : clock.Mode == ClockMode.Timer && clock.Seconds <= 0f ? "time's up" : "stopped")}"
                     : null,
-                SetGridCommand { Grid: null } => "Grid: none",
-                SetGridCommand c => $"Grid: {(c.Grid.Shape == GridShape.Hex ? "hexes" : "squares")} of {c.Grid.SizeX * 100f:0.#} cm" +
-                                     (c.Grid.Snapping != GridSnapping.Off ? $", snapping to {c.Grid.Snapping.ToString().ToLowerInvariant()}" : "") +
-                                     (c.Grid.Lines ? "" : ", lines hidden"),
-                SetTurnOrderCommand { Enabled: false } => "Turns: off",
-                SetTurnOrderCommand c => $"Turns: on{(c.Reverse ? ", reversed" : "")}{(c.SkipEmptyHands ? ", skipping empty hands" : "")} · {turns?.Current}'s turn",
-                EndTurnCommand _ => $"{turns?.Current}'s turn",
+                SetGridCommand { Grid: null } => Ui.T("Grid: none"),
+                SetGridCommand c => Ui.T(c.Grid.Shape == GridShape.Hex ? "Grid: hexes of {size} cm" : "Grid: squares of {size} cm", ("size", string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:0.#}", c.Grid.SizeX * 100f))) +
+                                     (c.Grid.Snapping != GridSnapping.Off ? Ui.T(", snapping to {snap}", ("snap", Ui.T(c.Grid.Snapping.ToString().ToLowerInvariant()))) : "") +
+                                     (c.Grid.Lines ? "" : Ui.T(", lines hidden")),
+                SetTurnOrderCommand { Enabled: false } => Ui.T("Turns: off"),
+                SetTurnOrderCommand c => Ui.T("Turns: on") + (c.Reverse ? Ui.T(", reversed") : "") + (c.SkipEmptyHands ? Ui.T(", skipping empty hands") : "")
+                                         + " · " + Ui.T("{seat}'s turn", ("seat", Names.Seat(_table.Engine.State, turns?.Current))),
+                EndTurnCommand _ => Ui.T("{seat}'s turn", ("seat", Names.Seat(_table.Engine.State, turns?.Current))),
                 _ => null,
             };
         }
@@ -974,8 +975,8 @@ namespace TableWorld.View.Hud
         }
 
         private string FreeTurnText(FreeTurns turns) =>
-            (turns.Current == _table.LocalSeat && _table.Networked ? "Your turn" : $"{turns.Current}'s turn") +
-            $" · turn {turns.Count + 1}" + (turns.Reverse ? " · reversed" : "");
+            (turns.Current == _table.LocalSeat && _table.Networked ? Ui.T("Your turn") : Ui.T("{current}'s turn", ("current", turns.Current))) +
+            Ui.T(" · turn {value}", ("value", turns.Count + 1)) + (turns.Reverse ? Ui.T(" · reversed") : "");
 
         /// <summary>Online, a player whose turn just came is told so (TTS flashes "your turn").</summary>
         private void AnnounceTurn()
@@ -985,7 +986,7 @@ namespace TableWorld.View.Hud
                 return;
             _announcedTurn = current;
             if (current != null && _table.Networked && current == _table.LocalSeat)
-                ShowStatus("Your turn", error: false);
+                ShowStatus(Ui.T("Your turn"), error: false);
         }
 
         private static string PhaseName(TableState state, string phase) => Names.Phase(state, phase);
@@ -1058,13 +1059,13 @@ namespace TableWorld.View.Hud
                 swatch.AddToClassList("seat-swatch--" + seat.Color.ToLowerInvariant());
                 // Online, a seat shows who sits there by name (G23); free seats show the seat.
                 var who = sitter != null ? _session.NameOf(sitter) : null;
-                var suffix = seat.Id == local ? " (you)" : sitter == TableWorld.View.Net.NetworkTableSession.HostIdForUi ? " (host)" : takenByOther && who == null ? " (taken)" : "";
+                var suffix = seat.Id == local ? " " + Ui.T("(you)") : sitter == TableWorld.View.Net.NetworkTableSession.HostIdForUi ? " " + Ui.T("(host)") : takenByOther && who == null ? " " + Ui.T("(taken)") : "";
                 var name = new Label((who ?? Names.Of(_table.Engine.State, seat)) + suffix) { pickingMode = PickingMode.Ignore, enableRichText = false };
                 name.AddToClassList("seat-name");
                 chip.Add(swatch);
                 chip.Add(name);
                 var seatName = Names.Of(_table.Engine.State, seat);
-                chip.tooltip = takenByOther ? $"{who ?? "Someone"} sits at {seatName}" : seat.Id == local ? $"Your seat ({seatName})" : $"Click to sit at {seatName}";
+                chip.tooltip = takenByOther ? Ui.T("{value} sits at {seatName}", ("value", who ?? Ui.T("Someone")), ("seatName", seatName)) : seat.Id == local ? Ui.T("Your seat ({seatName})", ("seatName", seatName)) : Ui.T("Click to sit at {seatName}", ("seatName", seatName));
                 var id = seat.Id;
                 if (!takenByOther && seat.Id != local)
                     chip.RegisterCallback<ClickEvent>(_ => SitAt(id));
@@ -1072,10 +1073,10 @@ namespace TableWorld.View.Hud
             }
             if (online)
             {
-                var watch = new VisualElement { tooltip = "Leave your seat and watch" };
+                var watch = new VisualElement { tooltip = Ui.T("Leave your seat and watch") };
                 watch.AddToClassList("seat-chip");
                 watch.AddToClassList(_table.Spectating ? "seat-chip--local" : "seat-chip--free");
-                var label = new Label(_table.Spectating ? "Watching (you)" : "Watch") { pickingMode = PickingMode.Ignore };
+                var label = new Label(_table.Spectating ? Ui.T("Watching (you)") : Ui.T("Watch")) { pickingMode = PickingMode.Ignore };
                 label.AddToClassList("seat-name");
                 watch.Add(label);
                 if (!_table.Spectating)
@@ -1108,29 +1109,29 @@ namespace TableWorld.View.Hud
                 return;
 
             var model = selected.Model;
-            _selectionTitle.text = selected.HideFace ? "A card in another player's hand" : TableOverlay.DisplayName(model);
+            _selectionTitle.text = selected.HideFace ? Ui.T("A card in another player's hand") : TableOverlay.DisplayName(model);
             _selectionDetail.text = selected.HideFace ? "" : Describe(model);
 
-            AddAction(model.Locked ? "Unlock (L)" : "Lock (L)", () => _interaction.ToggleLock(selected));
+            AddAction(model.Locked ? Ui.T("Unlock (L)") : Ui.T("Lock (L)"), () => _interaction.ToggleLock(selected));
             if (model.Locked)
             {
                 AddReadoutActions(selected);
                 return;
             }
-            AddAction("Flip (F)", () => _interaction.Flip(selected));
+            AddAction(Ui.T("Flip (F)"), () => _interaction.Flip(selected));
             switch (model)
             {
                 case Die _:
-                    AddAction("Roll (R)", () => _interaction.RollOrShuffle(selected));
+                    AddAction(Ui.T("Roll (R)"), () => _interaction.RollOrShuffle(selected));
                     break;
                 case Deck deck when deck.Cards.Count > 0:
-                    AddAction("Shuffle (R)", () => _interaction.RollOrShuffle(selected));
-                    AddAction("Deal 1 to me", () => _interaction.DealToLocalSeat(selected, 1));
-                    AddAction("Deal 5 to me", () => _interaction.DealToLocalSeat(selected, 5));
-                    AddAction("Deal 1 to all", () => _table.Execute(new DealCommand { DeckId = selected.Id, Count = 1, Actor = _table.LocalSeat }));
+                    AddAction(Ui.T("Shuffle (R)"), () => _interaction.RollOrShuffle(selected));
+                    AddAction(Ui.T("Deal 1 to me"), () => _interaction.DealToLocalSeat(selected, 1));
+                    AddAction(Ui.T("Deal 5 to me"), () => _interaction.DealToLocalSeat(selected, 5));
+                    AddAction(Ui.T("Deal 1 to all"), () => _table.Execute(new DealCommand { DeckId = selected.Id, Count = 1, Actor = _table.LocalSeat }));
                     break;
                 case Bag bag when !(bag is InfiniteBag):
-                    AddAction("Shuffle (R)", () => _interaction.RollOrShuffle(selected));
+                    AddAction(Ui.T("Shuffle (R)"), () => _interaction.RollOrShuffle(selected));
                     break;
             }
             AddReadoutActions(selected);
@@ -1144,11 +1145,11 @@ namespace TableWorld.View.Hud
                 case Counter _:
                     AddAction("−1", () => _interaction.AddToCounter(selected, -1));
                     AddAction("+1", () => _interaction.AddToCounter(selected, 1));
-                    AddAction("Reset", () => _table.Execute(new SetCounterCommand { ObjectId = selected.Id, Value = 0, Actor = _table.LocalSeat }));
+                    AddAction(Ui.T("Reset"), () => _table.Execute(new SetCounterCommand { ObjectId = selected.Id, Value = 0, Actor = _table.LocalSeat }));
                     break;
                 case Clock { Mode: not ClockMode.Clock } clock:
-                    AddAction(clock.Running ? "Pause" : "Start", () => _interaction.StartOrPause(selected));
-                    AddAction("Reset", () => _interaction.ResetClock(selected));
+                    AddAction(clock.Running ? Ui.T("Pause") : Ui.T("Start"), () => _interaction.StartOrPause(selected));
+                    AddAction(Ui.T("Reset"), () => _interaction.ResetClock(selected));
                     break;
             }
         }
@@ -1164,12 +1165,12 @@ namespace TableWorld.View.Hud
 
         private string Describe(TableObject model) => model switch
         {
-            Deck deck => $"Deck · {deck.Cards.Count} cards · {(deck.IsFaceUp ? "face up" : "face down")}",
-            Card card => $"Card · {(card.IsFaceUp ? "face up" : "face down")}",
-            Die die => $"d{die.Faces} · {(die.Value is { } value ? $"shows {die.Face(value)}" : "not rolled")}",
-            Bag bag => $"{model.Type} · {_table.Engine.ContentsOf(bag.Id).Count()} inside",
+            Deck deck => Ui.T("Deck · {count} cards · {facing}", ("count", deck.Cards.Count), ("facing", deck.IsFaceUp ? Ui.T("face up") : Ui.T("face down"))),
+            Card card => Ui.T("Card · {facing}", ("facing", card.IsFaceUp ? Ui.T("face up") : Ui.T("face down"))),
+            Die die => Ui.T("d{faces} · {shown}", ("faces", die.Faces), ("shown", die.Value is { } value ? Ui.T("shows {face}", ("face", die.Face(value))) : Ui.T("not rolled"))),
+            Bag bag => Ui.T("{type} · {contentsOf} inside", ("type", model.Type), ("contentsOf", _table.Engine.ContentsOf(bag.Id).Count())),
             _ => model.Type,
-        } + (model.Locked ? " · locked" : "");
+        } + (model.Locked ? Ui.T(" · locked") : "");
 
         private void AddAction(string text, Action action)
         {
@@ -1196,8 +1197,8 @@ namespace TableWorld.View.Hud
             // In words, never the type's name: "SetLightCommand" reads "Set light".
             var words = System.Text.RegularExpressions.Regex.Replace(command.GetType().Name.Replace("Command", ""), "(?<=[a-z])(?=[A-Z])", " ").ToLowerInvariant();
             var name = char.ToUpperInvariant(words[0]) + words.Substring(1);
-            _status.text = result.Ok ? (command is RollCommand ? RollText(result) : command is SetPhysicsCommand physics ? $"Physics: {PhysicsName(physics.Mode)}" : TurnText(command) ?? $"{name}: done")
-                : $"{name} rejected: {result.Error.Message} {result.Error.Suggestion}";
+            _status.text = result.Ok ? (command is RollCommand ? RollText(result) : command is SetPhysicsCommand physics ? Ui.T("Physics: {physicsName}", ("physicsName", PhysicsName(physics.Mode))) : TurnText(command) ?? Ui.T("{name}: done", ("name", name)))
+                : Ui.T("{name} rejected: {message} {suggestion}", ("name", name), ("message", result.Error.Message), ("suggestion", result.Error.Suggestion));
             _status.EnableInClassList("status-label--error", !result.Ok);
             _status.RemoveFromClassList(Hidden);
             _shownSelectionHash = null;
@@ -1205,8 +1206,8 @@ namespace TableWorld.View.Hud
 
         public static string PhysicsName(PhysicsMode mode) => mode switch
         {
-            PhysicsMode.SemiLock => "semi-lock (nothing tips over)",
-            PhysicsMode.Locked => "locked (objects stay where they are put)",
+            PhysicsMode.SemiLock => Ui.T("semi-lock (nothing tips over)"),
+            PhysicsMode.Locked => Ui.T("locked (objects stay where they are put)"),
             _ => "full",
         };
 
@@ -1225,12 +1226,12 @@ namespace TableWorld.View.Hud
                 if (_table.Engine.Find(rolled.ObjectId) is Die die)
                     _rolls.Add((die.Faces, rolled.Value, die.Face(rolled.Value), die.Numeric));
             if (_rolls.Count == 0)
-                return "Rolled";
+                return Ui.T("Rolled");
             if (_rolls.Count == 1)
-                return $"Rolled {_rolls[0].Face} (d{_rolls[0].Faces})";
-            var list = $"Rolled {string.Join(", ", _rolls.Select(r => $"{r.Face} (d{r.Faces})"))}";
+                return Ui.T("Rolled {value} (d{value2})", ("value", _rolls[0].Face), ("value2", _rolls[0].Faces));
+            var list = Ui.T("Rolled {faces}", ("faces", string.Join(", ", _rolls.Select(r => $"{r.Face} (d{r.Faces})"))));
             // Labelled faces (G21) do not add up.
-            return _rolls.All(r => r.Numeric) ? $"{list} · total {_rolls.Sum(r => r.Value)}" : list;
+            return _rolls.All(r => r.Numeric) ? Ui.T("{list} · total {value}", ("list", list), ("value", _rolls.Sum(r => r.Value))) : list;
         }
 
         private async void HostOnline(TextField address)
@@ -1266,7 +1267,7 @@ namespace TableWorld.View.Hud
                 ImportActions(list, entry);
             }
             ListTtsSaves(list);
-            _gamesPanel.Q<Label>("gamesHint").text = $"Your own games: put a .json file, or a folder with table.json and its images, in {GameLibrary.UserFolder}";
+            _gamesPanel.Q<Label>("gamesHint").text = Ui.T("Your own games: put a .json file, or a folder with table.json and its images, in {folder}", ("folder", GameLibrary.UserFolder));
             _gamesPanel.RemoveFromClassList(Hidden);
         }
 
@@ -1283,9 +1284,9 @@ namespace TableWorld.View.Hud
                 return;
             var missing = Core.Tts.TtsPackage.ReadInfo(folder)?.MissingNow(folder);
             if (missing != null && missing.Count > 0)
-                list.Add(ImportAction($"Download its {missing.Count} missing files", () => DownloadMissing(entry.Name, folder, missing)));
+                list.Add(ImportAction(Ui.T("Download its {count} missing files", ("count", missing.Count)), () => DownloadMissing(entry.Name, folder, missing)));
             if (Core.Tts.TtsPackage.Outdated(folder) && Core.Tts.TtsPackage.SourceOf(folder, Core.Tts.TtsPackage.DefaultFolder) is { } source)
-                list.Add(ImportAction("Re-import it (made by an older importer)", () => Reimport(entry.Name, source, folder)));
+                list.Add(ImportAction(Ui.T("Re-import it (made by an older importer)"), () => Reimport(entry.Name, source, folder)));
         }
 
         private static Button ImportAction(string text, System.Action clicked)
@@ -1307,18 +1308,18 @@ namespace TableWorld.View.Hud
             _importing = true;
             CloseGamesPanel();
             var files = missing.Select(m => (m.Url, System.IO.Path.Combine(folder, m.Path))).ToList();
-            var progress = new System.Progress<(int Done, int Total)>(p => ShowStatus($"Downloading {name}: {p.Done} of {p.Total} files", error: false));
+            var progress = new System.Progress<(int Done, int Total)>(p => ShowStatus(Ui.T("Downloading {name}: {done} of {total} files", ("name", name), ("done", p.Done), ("total", p.Total)), error: false));
             try
             {
                 var result = await new Core.Tts.AssetDownloader().Download(files, progress);
-                var failed = result.Failed.Count > 0 ? $"; {result.Failed.Count} could not be fetched (listed in the log)" : "";
+                var failed = result.Failed.Count > 0 ? Ui.T("; {count} could not be fetched (listed in the log)", ("count", result.Failed.Count)) : "";
                 foreach (var (url, reason) in result.Failed.Take(50))
                     Debug.LogWarning($"[Import] {url}: {reason}");
-                ShowStatus($"{name}: {result.Downloaded} files downloaded ({result.Bytes / (1024 * 1024)} MB){failed}. Open it from Games to see them.", error: false);
+                ShowStatus(Ui.T("{name}: {downloaded} files downloaded ({value} MB){failed}. Open it from Games to see them.", ("name", name), ("downloaded", result.Downloaded), ("value", result.Bytes / (1024 * 1024)), ("failed", failed)), error: false);
             }
             catch (System.Exception e)
             {
-                ShowStatus($"Downloading {name} stopped: {e.Message}", error: true);
+                ShowStatus(Ui.T("Downloading {name} stopped: {message}", ("name", name), ("message", e.Message)), error: true);
             }
             finally
             {
@@ -1338,7 +1339,7 @@ namespace TableWorld.View.Hud
             var saves = Core.Tts.TtsPackage.Find(folder);
             if (saves.Count == 0)
                 return;
-            var title = new Label("Import from Tabletop Simulator");
+            var title = new Label(Ui.T("Import from Tabletop Simulator"));
             title.AddToClassList("selection-title");
             list.Add(title);
             foreach (var save in saves)
@@ -1354,15 +1355,15 @@ namespace TableWorld.View.Hud
             if (_importing)
                 return;
             _importing = true;
-            ShowStatus($"Importing {save.Name}…", error: false);
+            ShowStatus(Ui.T("Importing {name}…", ("name", save.Name)), error: false);
             var target = System.IO.Path.Combine(GameLibrary.UserFolder, save.FolderName);
             try
             {
                 // Big saves and their files take seconds: off the main thread, back here to report.
                 var report = await System.Threading.Tasks.Task.Run(() => Core.Tts.TtsPackage.Write(save.File, ttsFolder, target));
 
-                var missing = report.Missing.Count > 0 ? $"; {report.Missing.Count} files not in the TTS cache (they show as placeholders)" : "";
-                ShowStatus($"Imported {save.Name}: {report.Objects} objects, {report.Copied} files{missing}. It is in Games.", error: false);
+                var missing = report.Missing.Count > 0 ? Ui.T("; {count} files not in the TTS cache (they show as placeholders)", ("count", report.Missing.Count)) : "";
+                ShowStatus(Ui.T("Imported {name}: {objects} objects, {copied} files{missing}. It is in Games.", ("name", save.Name), ("objects", report.Objects), ("copied", report.Copied), ("missing", missing)), error: false);
                 if (!_gamesPanel.ClassListContains(Hidden))
                 {
                     _gamesPanel.AddToClassList(Hidden);
@@ -1371,7 +1372,7 @@ namespace TableWorld.View.Hud
             }
             catch (System.Exception e)
             {
-                ShowStatus($"Could not import {save.Name}: {e.Message}", error: true);
+                ShowStatus(Ui.T("Could not import {name}: {message}", ("name", save.Name), ("message", e.Message)), error: true);
                 Debug.LogException(e);
             }
             finally
@@ -1387,16 +1388,16 @@ namespace TableWorld.View.Hud
                 return;
             _importing = true;
             CloseGamesPanel();
-            ShowStatus($"Re-importing {name}…", error: false);
+            ShowStatus(Ui.T("Re-importing {name}…", ("name", name)), error: false);
             try
             {
                 var report = await System.Threading.Tasks.Task.Run(() => Core.Tts.TtsPackage.Write(source, Core.Tts.TtsPackage.DefaultFolder, folder));
-                var missing = report.Missing.Count > 0 ? $"; {report.Missing.Count} files still missing (Games offers to download them)" : "";
-                ShowStatus($"Re-imported {name}: {report.Objects} objects{missing}.", error: false);
+                var missing = report.Missing.Count > 0 ? Ui.T("; {count} files still missing (Games offers to download them)", ("count", report.Missing.Count)) : "";
+                ShowStatus(Ui.T("Re-imported {name}: {objects} objects{missing}.", ("name", name), ("objects", report.Objects), ("missing", missing)), error: false);
             }
             catch (System.Exception e)
             {
-                ShowStatus($"Could not re-import {name}: {e.Message}", error: true);
+                ShowStatus(Ui.T("Could not re-import {name}: {message}", ("name", name), ("message", e.Message)), error: true);
                 Debug.LogException(e);
             }
             finally
@@ -1416,7 +1417,7 @@ namespace TableWorld.View.Hud
             // The host's table is the shared one; a client opening a file would leave the session's table.
             if (_session != null && _session.IsClient)
             {
-                ShowStatus("Only the host can open a game", error: true);
+                ShowStatus(Ui.T("Only the host can open a game"), error: true);
                 return;
             }
             string json;
@@ -1426,7 +1427,7 @@ namespace TableWorld.View.Hud
             }
             catch (System.IO.IOException e)
             {
-                ShowStatus($"Could not read {entry.File}: {e.Message}", error: true);
+                ShowStatus(Ui.T("Could not read {file}: {message}", ("file", entry.File), ("message", e.Message)), error: true);
                 return;
             }
             _gamesPanel.AddToClassList(Hidden);
@@ -1436,7 +1437,7 @@ namespace TableWorld.View.Hud
             {
                 yield return _table.LoadInSteps(json, entry.PackageRoot, entry.Name);
                 var ok = _table.LastLoadOk;
-                ShowStatus(ok ? $"Opened {entry.Name}" : $"{entry.Name} is not a valid game (details in the log)", error: !ok);
+                ShowStatus(ok ? Ui.T("Opened {name}", ("name", entry.Name)) : Ui.T("{name} is not a valid game (details in the log)", ("name", entry.Name)), error: !ok);
                 if (!ok)
                     _gamesPanel.RemoveFromClassList(Hidden);
             }
@@ -1445,12 +1446,12 @@ namespace TableWorld.View.Hud
         private void Save()
         {
             var hash = _table.Save(TableView.SavePath(TableView.QuickSaveName));
-            ShowStatus($"Saved quicksave ({hash.Substring(7, 8)})", error: false);
+            ShowStatus(Ui.T("Saved quicksave ({substring})", ("substring", hash.Substring(7, 8))), error: false);
         }
 
         private void Load() =>
-            _table.LoadFileInSteps(TableView.SavePath(TableView.QuickSaveName), "Quicksave",
-                ok => ShowStatus(ok ? "Loaded quicksave" : "No quicksave yet", error: !ok));
+            _table.LoadFileInSteps(TableView.SavePath(TableView.QuickSaveName), Ui.T("Quicksave"),
+                ok => ShowStatus(ok ? Ui.T("Loaded quicksave") : Ui.T("No quicksave yet"), error: !ok));
 
         private void ShowStatus(string text, bool error)
         {

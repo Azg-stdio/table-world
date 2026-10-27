@@ -117,7 +117,7 @@ namespace TableWorld.View.Hud
             Hovered = emote;
             foreach (var (e, label) in _items)
                 label.EnableInClassList("emote-wheel__item--hover", e == emote);
-            _center.text = emote?.ToString() ?? "Emote";
+            _center.text = emote?.ToString() ?? Ui.T("Emote");
         }
     }
 }

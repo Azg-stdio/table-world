@@ -100,6 +100,23 @@ files anyone edits in the repo. A player can still add a language or fix a text 
 tables. Placeholders are `{name}`; `{{` and `}}` write a brace. The check also fails a translation that fills other
 placeholders than English does.
 
+### Addendum (T10.2, T10.8, 2026-10-27): texts keyed by their own words
+
+Table World's interface looks its texts up by their English words, gettext-style: the code writes
+`Ui.T("Start game ({count} players)", ("count", n))` and a table translates `ui:Start game ({count} players)`. English
+needs no table entry, a key cannot drift from its text, and converting the HUD's ~500 texts was mechanical. A test
+scans the code and the UXML so every text has its Spanish entry, Spanish keeps none nothing uses, placeholders match,
+and the HUD assigns no bare English to a text or tooltip. The UXML's own texts are translated by `UiLocalizer`, which
+rewrites only those the code has not since replaced.
+
+The same idea serves a game's Lua: measuring Tornaris (T10.8) found 403 sentences in its script that no path key
+reaches, so a script wraps a sentence in `Game.tr("...")` and a translation holds `tr:<sentence>`; `translate_game`
+finds them by scanning the scripts for literal `tr(...)` calls. Zone names became translatable too
+(`zones.<id>.name`).
+
+The interface language is the player's (Settings → Language, else the system's), while a game's language is the
+session's; a refusal reads in the player's interface language with the game's names in the session's.
+
 ## Consequences
 
 - One lookup per text shown; a game without `translations` reads exactly as today.

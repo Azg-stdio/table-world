@@ -173,40 +173,40 @@ namespace TableWorld.View.Hud
 
         private void BuildGlobalMenu()
         {
-            Title("Table");
-            Item(_camera.IsTopDown ? "Camera: back to 3rd person (P)" : "Camera: top-down (P)", () => _camera.ToggleTopDown());
-            Item("Reset camera (Space)", () => _camera.ResetView());
-            Item("Save camera 1 (Ctrl+1)", () => _camera.Save(1));
-            Item("Load camera 1 (Shift+1)", () => _camera.Load(1));
-            Item("Paste (Ctrl+V)", () => _interaction.Paste(_menuWorldPoint));
+            Title(Ui.T("Table"));
+            Item(_camera.IsTopDown ? Ui.T("Camera: back to 3rd person (P)") : Ui.T("Camera: top-down (P)"), () => _camera.ToggleTopDown());
+            Item(Ui.T("Reset camera (Space)"), () => _camera.ResetView());
+            Item(Ui.T("Save camera 1 (Ctrl+1)"), () => _camera.Save(1));
+            Item(Ui.T("Load camera 1 (Shift+1)"), () => _camera.Load(1));
+            Item(Ui.T("Paste (Ctrl+V)"), () => _interaction.Paste(_menuWorldPoint));
             ZoneEntries(_menuWorldPoint);
             // Drawings (G28): your own, or (host) everyone's.
             var drawings = _table.Engine.State.Drawings;
             if (!_table.Spectating && drawings.Any(d => d.Seat == _table.LocalSeat))
-                Item("Clear my drawings", () => Run(new ClearDrawingsCommand { Seat = _table.LocalSeat }));
+                Item(Ui.T("Clear my drawings"), () => Run(new ClearDrawingsCommand { Seat = _table.LocalSeat }));
             if (_table.MayChangeTable && drawings.Count > 0)
-                Item("Clear all drawings", () => Run(new ClearDrawingsCommand()));
-            Item("Undo (Ctrl+Z)", () => _table.Undo());
-            Item("Redo (Ctrl+Y)", () => _table.Redo());
+                Item(Ui.T("Clear all drawings"), () => Run(new ClearDrawingsCommand()));
+            Item(Ui.T("Undo (Ctrl+Z)"), () => _table.Undo());
+            Item(Ui.T("Redo (Ctrl+Y)"), () => _table.Redo());
             if (_table.MayChangeTable && !_table.Engine.State.HasRules)
             {
                 // Free-play turns (G22). A rules game runs its own turns.
                 var turns = _table.Engine.State.FreeTurns;
                 var on = turns is { Enabled: true };
                 var skip = turns?.SkipEmptyHands ?? false;
-                Row("Turns", new[]
+                Row(Ui.T("Turns"), new[]
                 {
-                    ((on ? "" : "● ") + "Off", (Action)(() => Run(new SetTurnOrderCommand { Enabled = false }))),
-                    ((on && !turns.Reverse ? "● " : "") + "In order", (Action)(() => Run(new SetTurnOrderCommand { SkipEmptyHands = skip }))),
-                    ((on && turns.Reverse ? "● " : "") + "Reversed", (Action)(() => Run(new SetTurnOrderCommand { Reverse = true, SkipEmptyHands = skip }))),
+                    ((on ? "" : "● ") + Ui.T("Off"), (Action)(() => Run(new SetTurnOrderCommand { Enabled = false }))),
+                    ((on && !turns.Reverse ? "● " : "") + Ui.T("In order"), (Action)(() => Run(new SetTurnOrderCommand { SkipEmptyHands = skip }))),
+                    ((on && turns.Reverse ? "● " : "") + Ui.T("Reversed"), (Action)(() => Run(new SetTurnOrderCommand { Reverse = true, SkipEmptyHands = skip }))),
                 });
                 if (on)
-                    Item(skip ? "● Skip empty hands" : "Skip empty hands", () => Run(new SetTurnOrderCommand { Reverse = turns.Reverse, SkipEmptyHands = !skip }));
+                    Item(skip ? Ui.T("● Skip empty hands") : Ui.T("Skip empty hands"), () => Run(new SetTurnOrderCommand { Reverse = turns.Reverse, SkipEmptyHands = !skip }));
             }
             if (_table.MayChangeTable)
                 GridEntries();
             if (_table.MayChangeTable)
-                Row("Physics", new[] { (PhysicsMode.Full, "Full"), (PhysicsMode.SemiLock, "Semi-lock"), (PhysicsMode.Locked, "Locked") }
+                Row(Ui.T("Physics"), new[] { (PhysicsMode.Full, Ui.T("Full")), (PhysicsMode.SemiLock, Ui.T("Semi-lock")), (PhysicsMode.Locked, Ui.T("Locked")) }
                     .Select(m => ((_table.PhysicsMode == m.Item1 ? "● " : "") + m.Item2, (Action)(() => Run(new SetPhysicsCommand { Mode = m.Item1 })))));
             if (_table.CanRewind)
             {
@@ -216,12 +216,12 @@ namespace TableWorld.View.Hud
                 if (back.HasValue)
                     entries.Add(($"◀ {Ago(back.Value)}", () => _table.Rewind()));
                 if (_table.Timeline.CanGoForward)
-                    entries.Add(("Forward ▶", () => _table.Forward()));
+                    entries.Add((Ui.T("Forward ▶"), () => _table.Forward()));
                 if (entries.Count > 0)
-                    Row("Rewind", entries);
+                    Row(Ui.T("Rewind"), entries);
             }
-            Item($"Save table ({KeyBindings.Label(GameAction.QuickSave)})", () => _table.Save(TableView.SavePath(TableView.QuickSaveName)));
-            Item($"Load table ({KeyBindings.Label(GameAction.QuickLoad)})", () => _table.LoadFileInSteps(TableView.SavePath(TableView.QuickSaveName), "Quicksave"));
+            Item(Ui.T("Save table ({label})", ("label", KeyBindings.Label(GameAction.QuickSave))), () => _table.Save(TableView.SavePath(TableView.QuickSaveName)));
+            Item(Ui.T("Load table ({label})", ("label", KeyBindings.Label(GameAction.QuickLoad))), () => _table.LoadFileInSteps(TableView.SavePath(TableView.QuickSaveName), Ui.T("Quicksave")));
         }
 
         /// <summary>Grid rows (G28): shape (or none), snapping, cell size, lines. Each choice keeps the other settings.</summary>
@@ -235,19 +235,19 @@ namespace TableWorld.View.Hud
                 return copy;
             }
             string Mark(bool on) => on ? "● " : "";
-            Row("Grid", new[]
+            Row(Ui.T("Grid"), new[]
             {
-                (Mark(grid == null) + "None", (Action)(() => Run(new SetGridCommand { Grid = null }))),
-                (Mark(grid?.Shape == GridShape.Square) + "Squares", (Action)(() => Run(new SetGridCommand { Grid = With(g => g.Shape = GridShape.Square) }))),
-                (Mark(grid?.Shape == GridShape.Hex) + "Hexes", (Action)(() => Run(new SetGridCommand { Grid = With(g => { g.Shape = GridShape.Hex; g.SizeZ = g.SizeX * 1.1547f; }) }))),
+                (Mark(grid == null) + Ui.T("None"), (Action)(() => Run(new SetGridCommand { Grid = null }))),
+                (Mark(grid?.Shape == GridShape.Square) + Ui.T("Squares"), (Action)(() => Run(new SetGridCommand { Grid = With(g => g.Shape = GridShape.Square) }))),
+                (Mark(grid?.Shape == GridShape.Hex) + Ui.T("Hexes"), (Action)(() => Run(new SetGridCommand { Grid = With(g => { g.Shape = GridShape.Hex; g.SizeZ = g.SizeX * 1.1547f; }) }))),
             });
             if (grid == null)
                 return;
-            Row("Snap", new[] { GridSnapping.Off, GridSnapping.Centers, GridSnapping.Corners, GridSnapping.Both }
+            Row(Ui.T("Snap"), new[] { GridSnapping.Off, GridSnapping.Centers, GridSnapping.Corners, GridSnapping.Both }
                 .Select(s => (Mark(grid.Snapping == s) + s, (Action)(() => Run(new SetGridCommand { Grid = With(g => g.Snapping = s) })))));
-            Row("Cell", new[] { 0.025f, 0.04f, 0.05f, 0.075f }.Select(size => (Mark(Mathf.Abs(grid.SizeX - size) < 0.0005f) + $"{size * 100f:0.#} cm",
+            Row(Ui.T("Cell"), new[] { 0.025f, 0.04f, 0.05f, 0.075f }.Select(size => (Mark(Mathf.Abs(grid.SizeX - size) < 0.0005f) + $"{size * 100f:0.#} cm",
                 (Action)(() => Run(new SetGridCommand { Grid = With(g => { g.SizeX = size; g.SizeZ = g.Shape == GridShape.Hex ? size * 1.1547f : size; }) })))));
-            Item(grid.Lines ? "Grid lines: hide" : "Grid lines: show", () => Run(new SetGridCommand { Grid = With(g => g.Lines = !g.Lines) }));
+            Item(grid.Lines ? Ui.T("Grid lines: hide") : Ui.T("Grid lines: show"), () => Run(new SetGridCommand { Grid = With(g => g.Lines = !g.Lines) }));
         }
 
         private static GridDef Copy(GridDef g) => new GridDef
@@ -260,7 +260,7 @@ namespace TableWorld.View.Hud
         public static string Ago(double seconds)
         {
             var s = Mathf.Max(0, Mathf.RoundToInt((float)seconds));
-            return $"{s / 60}:{s % 60:00} ago";
+            return Ui.T("{value}:{value2} ago", ("value", s / 60), ("value2", string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:00}", s % 60)));
         }
 
         /// <summary>The per-object toggles (G16, TTS's Toggles submenu): ● marks the ones on.</summary>
@@ -268,13 +268,13 @@ namespace TableWorld.View.Hud
         {
             var m = view.Model;
             string Mark(bool on, string text) => (on ? "● " : "○ ") + text;
-            Section("Toggles");
-            Item(Mark(m.Snap, "Snap to points"), () => Run(new SetPropertiesCommand { ObjectId = m.Id, Snap = !m.Snap }));
-            Item(Mark(m.Grid, "Snap to grid"), () => Run(new SetPropertiesCommand { ObjectId = m.Id, Grid = !m.Grid }));
-            Item(Mark(m.Tooltip, "Tooltip"), () => Run(new SetPropertiesCommand { ObjectId = m.Id, Tooltip = !m.Tooltip }));
-            Item(Mark(m.Hands, "Can go in hands"), () => Run(new SetPropertiesCommand { ObjectId = m.Id, Hands = !m.Hands }));
+            Section(Ui.T("Toggles"));
+            Item(Mark(m.Snap, Ui.T("Snap to points")), () => Run(new SetPropertiesCommand { ObjectId = m.Id, Snap = !m.Snap }));
+            Item(Mark(m.Grid, Ui.T("Snap to grid")), () => Run(new SetPropertiesCommand { ObjectId = m.Id, Grid = !m.Grid }));
+            Item(Mark(m.Tooltip, Ui.T("Tooltip")), () => Run(new SetPropertiesCommand { ObjectId = m.Id, Tooltip = !m.Tooltip }));
+            Item(Mark(m.Hands, Ui.T("Can go in hands")), () => Run(new SetPropertiesCommand { ObjectId = m.Id, Hands = !m.Hands }));
             var hides = m.HideWhenFaceDown ?? m is Card;
-            Item(Mark(hides, "Hide name when face down"), () => Run(new SetPropertiesCommand { ObjectId = m.Id, HideWhenFaceDown = !hides }));
+            Item(Mark(hides, Ui.T("Hide name when face down")), () => Run(new SetPropertiesCommand { ObjectId = m.Id, HideWhenFaceDown = !hides }));
         }
 
         /// <summary>Takes <paramref name="count"/> pieces off a stack and sets them down beside it (G14).</summary>
@@ -292,38 +292,38 @@ namespace TableWorld.View.Hud
             switch (model)
             {
                 case Deck deck:
-                    Section($"Deck · {deck.Cards.Count} cards");
-                    Item("Draw 1 to hand", () => _interaction.DrawOrSwitch(view, 1));
-                    Item("Draw 5 to hand", () => _interaction.DrawOrSwitch(view, 5));
-                    Item("Deal 1 to everyone", () => Run(new DealCommand { DeckId = deck.Id, Count = 1 }));
-                    Item($"Shuffle ({KeyBindings.Label(GameAction.Roll)})", () => _interaction.RollOrShuffle(view));
-                    Item("Search", () => OpenSearch(view));
-                    Item("Cut", () => Run(new CutCommand { DeckId = deck.Id }));
-                    Row("Split into", new[] { 2, 3, 4 }.Where(n => n <= deck.Cards.Count).Select(n => ($"{n}", (Action)(() => Run(new SplitCommand { DeckId = deck.Id, Piles = n })))));
-                    Item("Spread", () => Run(new SpreadCommand { DeckId = deck.Id }));
+                    Section(Ui.T("Deck · {count} cards", ("count", deck.Cards.Count)));
+                    Item(Ui.T("Draw 1 to hand"), () => _interaction.DrawOrSwitch(view, 1));
+                    Item(Ui.T("Draw 5 to hand"), () => _interaction.DrawOrSwitch(view, 5));
+                    Item(Ui.T("Deal 1 to everyone"), () => Run(new DealCommand { DeckId = deck.Id, Count = 1 }));
+                    Item(Ui.T("Shuffle ({label})", ("label", KeyBindings.Label(GameAction.Roll))), () => _interaction.RollOrShuffle(view));
+                    Item(Ui.T("Search"), () => OpenSearch(view));
+                    Item(Ui.T("Cut"), () => Run(new CutCommand { DeckId = deck.Id }));
+                    Row(Ui.T("Split into"), new[] { 2, 3, 4 }.Where(n => n <= deck.Cards.Count).Select(n => ($"{n}", (Action)(() => Run(new SplitCommand { DeckId = deck.Id, Piles = n })))));
+                    Item(Ui.T("Spread"), () => Run(new SpreadCommand { DeckId = deck.Id }));
                     break;
                 case var stack when Stacks.CountOf(stack) > 1:
                 {
                     var count = Stacks.CountOf(stack);
-                    Section($"Stack · {count}");
-                    Row("Take", new[] { 1, 2, 5, 10 }.Where(n => n < count).Select(n => ($"{n}", (Action)(() => TakeFromStack(view, n)))));
-                    Item("Split in half", () => TakeFromStack(view, count / 2));
+                    Section(Ui.T("Stack · {count}", ("count", count)));
+                    Row(Ui.T("Take"), new[] { 1, 2, 5, 10 }.Where(n => n < count).Select(n => ($"{n}", (Action)(() => TakeFromStack(view, n)))));
+                    Item(Ui.T("Split in half"), () => TakeFromStack(view, count / 2));
                     break;
                 }
                 case Die die:
-                    Section($"d{die.Faces}{(die.Value is { } shown ? $" · shows {die.Face(shown)}" : "")}");
+                    Section($"d{die.Faces}" + (die.Value is { } shown ? " · " + Ui.T("shows {face}", ("face", die.Face(shown))) : ""));
                     var selectedDice = _interaction.Selection.Contains(view) ? _interaction.Selection.Where(v => v.Model is Die).ToList() : null;
                     if (selectedDice != null && selectedDice.Count > 1)
-                        Item($"Roll {selectedDice.Count} selected dice ({KeyBindings.Label(GameAction.Roll)})", () => _interaction.RollDice(selectedDice));
+                        Item(Ui.T("Roll {count} selected dice ({label})", ("count", selectedDice.Count), ("label", KeyBindings.Label(GameAction.Roll))), () => _interaction.RollDice(selectedDice));
                     else
-                        Item($"Roll ({KeyBindings.Label(GameAction.Roll)})", () => _interaction.RollOrShuffle(view));
+                        Item(Ui.T("Roll ({label})", ("label", KeyBindings.Label(GameAction.Roll))), () => _interaction.RollOrShuffle(view));
                     // Labelled faces (G21) are listed one per line; numbers fit on one row.
                     var setValue = Enumerable.Range(1, die.Faces).Select(v => (die.Face(v), (Action)(() => Run(new SetDieValueCommand { ObjectId = die.Id, Value = v }))));
                     if (die.Numeric)
-                        Row("Set value", setValue);
+                        Row(Ui.T("Set value"), setValue);
                     else
                     {
-                        Section("Set face");
+                        Section(Ui.T("Set face"));
                         foreach (var (label, set) in setValue)
                             Item(label, set);
                     }
@@ -331,59 +331,59 @@ namespace TableWorld.View.Hud
                 case Pdf pdf:
                 {
                     var pages = _table.Assets?.PdfDocument(pdf.Asset)?.PageCount ?? 0;
-                    Section(pages == 0 ? "PDF · not here yet" : $"PDF · page {Mathf.Min(pdf.Page, pages - 1) + 1 + pdf.PageOffset} ({Mathf.Min(pdf.Page, pages - 1) + 1} of {pages})");
+                    Section(pages == 0 ? Ui.T("PDF · not here yet") : Ui.T("PDF · page {pageOffset} ({pages} of {pages2})", ("pageOffset", Mathf.Min(pdf.Page, pages - 1) + 1 + pdf.PageOffset), ("pages", Mathf.Min(pdf.Page, pages - 1) + 1), ("pages2", pages)));
                     if (pages > 0)
-                        Row("Page", new[] { ("◀ Previous", -1), ("Next ▶", 1) }.Select(t => (t.Item1, (Action)(() =>
+                        Row(Ui.T("Page"), new[] { (Ui.T("◀ Previous"), -1), (Ui.T("Next ▶"), 1) }.Select(t => (t.Item1, (Action)(() =>
                             Run(new SetPageCommand { ObjectId = pdf.Id, Page = Mathf.Clamp(Mathf.Min(pdf.Page, pages - 1) + t.Item2, 0, pages - 1) })))));
-                    Item("Read…", () => ReadRequested?.Invoke(view));
+                    Item(Ui.T("Read…"), () => ReadRequested?.Invoke(view));
                     break;
                 }
                 case Counter counter:
-                    Section($"Counter · {counter.Value}");
-                    Row("Add", new[] { -10, -1, 1, 10 }.Select(n => (n > 0 ? $"+{n}" : $"−{-n}", (Action)(() => _interaction.AddToCounter(view, n)))));
-                    Item("Reset to 0", () => Run(new SetCounterCommand { ObjectId = counter.Id, Value = 0 }));
+                    Section(Ui.T("Counter · {value}", ("value", counter.Value)));
+                    Row(Ui.T("Add"), new[] { -10, -1, 1, 10 }.Select(n => (n > 0 ? $"+{n}" : $"−{-n}", (Action)(() => _interaction.AddToCounter(view, n)))));
+                    Item(Ui.T("Reset to 0"), () => Run(new SetCounterCommand { ObjectId = counter.Id, Value = 0 }));
                     break;
                 case Clock clock:
-                    Section(clock.Mode == ClockMode.Clock ? "Clock" : $"{clock.Mode} · {view.GetComponent<Readout>()?.Text}");
+                    Section(clock.Mode == ClockMode.Clock ? Ui.T("Clock") : $"{clock.Mode} · {view.GetComponent<Readout>()?.Text}");
                     if (clock.Mode != ClockMode.Clock)
                     {
-                        Item(clock.Running ? "Pause" : "Start", () => _interaction.StartOrPause(view));
-                        Item("Reset", () => _interaction.ResetClock(view));
+                        Item(clock.Running ? Ui.T("Pause") : Ui.T("Start"), () => _interaction.StartOrPause(view));
+                        Item(Ui.T("Reset"), () => _interaction.ResetClock(view));
                     }
-                    Row("Timer", new[] { (60f, "1 min"), (300f, "5 min"), (600f, "10 min") }.Select(t => (t.Item2, (Action)(() => _interaction.SetTimer(view, t.Item1)))));
-                    Row("Mode", new[] { ClockMode.Clock, ClockMode.Stopwatch, ClockMode.Timer }.Select(m => ((clock.Mode == m ? "● " : "") + m,
+                    Row(Ui.T("Timer"), new[] { (60f, Ui.T("1 min")), (300f, Ui.T("5 min")), (600f, Ui.T("10 min")) }.Select(t => (t.Item2, (Action)(() => _interaction.SetTimer(view, t.Item1)))));
+                    Row(Ui.T("Mode"), new[] { ClockMode.Clock, ClockMode.Stopwatch, ClockMode.Timer }.Select(m => ((clock.Mode == m ? "● " : "") + m,
                         (Action)(() => Run(new SetClockCommand { ObjectId = clock.Id, Mode = m, Seconds = m == ClockMode.Timer ? clock.Duration : 0f, Running = false })))));
                     break;
                 case Bag bag:
-                    Section($"{bag.Type} · {_table.Engine.ContentsOf(bag.Id).Count()} inside");
-                    Item("Take 1 to hand", () => _interaction.DrawOrSwitch(view, 1));
-                    Item("Search", () => OpenSearch(view));
+                    Section(Ui.T("{type} · {contentsOf} inside", ("type", bag.Type), ("contentsOf", _table.Engine.ContentsOf(bag.Id).Count())));
+                    Item(Ui.T("Take 1 to hand"), () => _interaction.DrawOrSwitch(view, 1));
+                    Item(Ui.T("Search"), () => OpenSearch(view));
                     if (!(bag is InfiniteBag))
-                        Item($"Shuffle ({KeyBindings.Label(GameAction.Roll)})", () => _interaction.RollOrShuffle(view));
+                        Item(Ui.T("Shuffle ({label})", ("label", KeyBindings.Label(GameAction.Roll))), () => _interaction.RollOrShuffle(view));
                     break;
             }
 
             ZoneEntries(view.transform.position);
 
             if (model.States.Count > 0)
-                Row("States", model.States.Keys.OrderBy(k => k).Select(k => ($"{k} {model.States[k].Name}".Trim(), (Action)(() => Run(new SetStateCommand { ObjectId = model.Id, State = k })))));
+                Row(Ui.T("States"), model.States.Keys.OrderBy(k => k).Select(k => ($"{k} {model.States[k].Name}".Trim(), (Action)(() => Run(new SetStateCommand { ObjectId = model.Id, State = k })))));
 
-            Section("Object");
-            Item($"Flip ({KeyBindings.Label(GameAction.Flip)})", () => _interaction.Flip(view));
+            Section(Ui.T("Object"));
+            Item(Ui.T("Flip ({label})", ("label", KeyBindings.Label(GameAction.Flip))), () => _interaction.Flip(view));
             if (GizmoRequested != null)
-                Item("Exact position…", () => GizmoRequested(view));
-            Item("Rotate 90° (E ×6)", () => _interaction.Rotate(view, 90f));
-            Item(model.Locked ? "Unlock" : "Lock", () => _interaction.ToggleLock(view));
+                Item(Ui.T("Exact position…"), () => GizmoRequested(view));
+            Item(Ui.T("Rotate 90° (E ×6)"), () => _interaction.Rotate(view, 90f));
+            Item(model.Locked ? Ui.T("Unlock") : Ui.T("Lock"), () => _interaction.ToggleLock(view));
             if ((model is Card || model is Deck { Cards: { Count: > 0 } }) && !view.HideFace && !_table.Spectating)
-                Item(model is Deck ? "Show top card to everyone" : "Show to everyone", () => Run(new ShowCommand { ObjectId = model.Id }));
+                Item(model is Deck ? Ui.T("Show top card to everyone") : Ui.T("Show to everyone"), () => Run(new ShowCommand { ObjectId = model.Id }));
             HideEntry(model);
-            Item("Copy (Ctrl+C)", () => _interaction.Copy(new[] { view }));
-            Item("Duplicate", () => Run(new CloneCommand { ObjectId = model.Id }));
-            Row("Scale", new[] { ("−", (Action)(() => _interaction.Scale(new[] { view }, 1f / TableInteraction.ScaleStep))), ("+", (Action)(() => _interaction.Scale(new[] { view }, TableInteraction.ScaleStep))) });
+            Item(Ui.T("Copy (Ctrl+C)"), () => _interaction.Copy(new[] { view }));
+            Item(Ui.T("Duplicate"), () => Run(new CloneCommand { ObjectId = model.Id }));
+            Row(Ui.T("Scale"), new[] { ("−", (Action)(() => _interaction.Scale(new[] { view }, 1f / TableInteraction.ScaleStep))), ("+", (Action)(() => _interaction.Scale(new[] { view }, TableInteraction.ScaleStep))) });
             Swatches(view);
             Toggles(view);
             Rename(view);
-            Item("Delete (Del)", () => _interaction.Delete(new[] { view }));
+            Item(Ui.T("Delete (Del)"), () => _interaction.Delete(new[] { view }));
         }
 
         /// <summary>
@@ -398,9 +398,9 @@ namespace TableWorld.View.Hud
             var mine = seats.FirstOrDefault(s => s.Id == _table.LocalSeat)?.Color?.ToLowerInvariant();
             var others = seats.Select(s => s.Color.ToLowerInvariant()).Where(c => c != mine).Distinct().ToList();
             if (model.InvisibleTo.Count == 0)
-                Item("Hide from others", () => Run(new SetPropertiesCommand { ObjectId = model.Id, InvisibleTo = others }));
+                Item(Ui.T("Hide from others"), () => Run(new SetPropertiesCommand { ObjectId = model.Id, InvisibleTo = others }));
             else
-                Item("Show to everyone", () => Run(new SetPropertiesCommand { ObjectId = model.Id, InvisibleTo = new List<string>() }));
+                Item(Ui.T("Show to everyone"), () => Run(new SetPropertiesCommand { ObjectId = model.Id, InvisibleTo = new List<string>() }));
         }
 
         /// <summary>Layout and randomize zones under <paramref name="point"/> (G18): Lay out / Randomize.</summary>
@@ -413,14 +413,14 @@ namespace TableWorld.View.Hud
                 if (!(zone is LayoutZone || zone is RandomizeZone) ||
                     !Geometry.Contains(zone, new Vec3(point.x, zone.Transform.Position.Y, point.z)))
                     continue;
-                var name = string.IsNullOrEmpty(zone.Name) ? (zone is LayoutZone ? "Layout zone" : "Randomize zone")
+                var name = string.IsNullOrEmpty(zone.Name) ? (zone is LayoutZone ? Ui.T("Layout zone") : Ui.T("Randomize zone"))
                     : Core.Text.Translations.Text(_table.Engine.State, $"zones.{zone.Id}.name", zone.Name);
                 Section(name);
                 var id = zone.Id;
                 if (zone is LayoutZone)
-                    Item("Lay out", () => Run(new ArrangeZoneCommand { ZoneId = id }));
+                    Item(Ui.T("Lay out"), () => Run(new ArrangeZoneCommand { ZoneId = id }));
                 else
-                    Item("Randomize", () => Run(new RandomizeZoneCommand { ZoneId = id }));
+                    Item(Ui.T("Randomize"), () => Run(new RandomizeZoneCommand { ZoneId = id }));
             }
         }
 
@@ -481,7 +481,7 @@ namespace TableWorld.View.Hud
 
         private void Swatches(ObjectView view)
         {
-            Section("Tint");
+            Section(Ui.T("Tint"));
             var row = new VisualElement();
             row.AddToClassList("menu-row");
             _menu.Add(row);
@@ -492,7 +492,7 @@ namespace TableWorld.View.Hud
             };
             foreach (var (name, rgb) in colors)
             {
-                var label = $"Tint: {name}";
+                var label = Ui.T("Tint: {name}", ("name", name));
                 void Run()
                 {
                     CloseMenu();
@@ -510,14 +510,14 @@ namespace TableWorld.View.Hud
 
         private void Rename(ObjectView view)
         {
-            Section("Name and description");
+            Section(Ui.T("Name and description"));
             var name = new TextField { value = view.Model.Name ?? "" };
             name.AddToClassList("menu-field");
             var description = new TextField { value = view.Model.Description ?? "", multiline = true };
             description.AddToClassList("menu-field");
             _menu.Add(name);
             _menu.Add(description);
-            Item("Apply name and description", () => _table.Execute(new SetPropertiesCommand
+            Item(Ui.T("Apply name and description"), () => _table.Execute(new SetPropertiesCommand
             {
                 ObjectId = view.Id, Name = name.value, Description = description.value, Actor = _table.LocalSeat,
             }));
@@ -540,7 +540,7 @@ namespace TableWorld.View.Hud
                 FillDeck(grid, container, (Deck)container.Model, result.DeckContents);
             else
             {
-                _searchTitle.text = $"Search: {container.Model.Name ?? "Bag"} ({result.BagContents.Count} items)";
+                _searchTitle.text = Ui.T("Search: {value} ({count} items)", ("value", container.Model.Name != null ? Names.Of(_table.Engine.State, container.Model) : Ui.T("Bag")), ("count", result.BagContents.Count));
                 foreach (var id in result.BagContents)
                     grid.Add(SearchCell(container, _table.Engine.Find(id)?.Name ?? _table.Engine.Find(id)?.Type ?? id, id, -1, null));
             }
@@ -553,7 +553,7 @@ namespace TableWorld.View.Hud
         /// </summary>
         private void FillDeck(VisualElement grid, ObjectView container, Deck deck, IReadOnlyList<DeckCard> cards)
         {
-            _searchTitle.text = $"Search: {deck.Name ?? "Deck"} ({cards.Count} cards, top first)";
+            _searchTitle.text = Ui.T("Search: {value} ({count} cards, top first)", ("value", deck.Name != null ? Names.Of(_table.Engine.State, deck) : Ui.T("Deck")), ("count", cards.Count));
             _searchWaiting = cards.Any(c => c.Unknown);
             for (var i = 0; i < cards.Count; i++)
             {
@@ -646,7 +646,7 @@ namespace TableWorld.View.Hud
 
         /// <summary>The name a player may see: a face-down card (or anything hiding when face down, G39) shows its kind only.</summary>
         public static string DisplayName(TableObject model, TableState state = null) =>
-            model.NameHidden ? (model is Card ? "Face-down card" : model.Type)
+            model.NameHidden ? (model is Card ? Ui.T("Face-down card") : model.Type)
             : state != null ? Names.Of(state, model) : Names.Of(model);
 
         private void OnLook(ObjectView view, bool peek)
@@ -658,8 +658,8 @@ namespace TableWorld.View.Hud
             // A render texture is created at runtime, so it can only be set from code.
             _lookImage.style.backgroundImage = Background.FromRenderTexture(_look.Texture);
             // Peeking shows the face, so its name; a plain look at a face-down card shows only its back (G39).
-            _lookCaption.text = view.HideFace ? "A card in another player's hand"
-                : peek ? "Peek: " + Names.Of(_table.Engine.State, view.Model) : DisplayName(view.Model, _table.Engine.State);
+            _lookCaption.text = view.HideFace ? Ui.T("A card in another player's hand")
+                : peek ? Ui.T("Peek: ") + Names.Of(_table.Engine.State, view.Model) : DisplayName(view.Model, _table.Engine.State);
         }
 
         /// <summary>
@@ -675,20 +675,20 @@ namespace TableWorld.View.Hud
             switch (model)
             {
                 case Core.Rules.Deck deck:
-                    count = deck.Cards.Count == 1 ? "1 card" : $"{deck.Cards.Count} cards";
+                    count = deck.Cards.Count == 1 ? Ui.T("1 card") : Ui.T("{count} cards", ("count", deck.Cards.Count));
                     break;
                 case Core.Rules.InfiniteBag _:
-                    count = "endless";
+                    count = Ui.T("endless");
                     break;
                 case Core.Rules.Pdf _:
-                    count = "Click to read";
+                    count = Ui.T("Click to read");
                     break;
                 case var stack when Core.Rules.Stacks.CountOf(stack) > 1:
-                    count = $"stack of {Core.Rules.Stacks.CountOf(stack)}";
+                    count = Ui.T("stack of {countOf}", ("countOf", Core.Rules.Stacks.CountOf(stack)));
                     break;
                 case Core.Rules.Bag bag:
                     var items = engine.ContentsOf(bag.Id).Count();
-                    count = items == 1 ? "1 item" : $"{items} items";
+                    count = items == 1 ? Ui.T("1 item") : Ui.T("{count} items", ("count", items));
                     break;
             }
             // A face-down card keeps its name secret (G39): its tooltip says nothing.
@@ -721,7 +721,7 @@ namespace TableWorld.View.Hud
             _measure.EnableInClassList(Hidden, distance == null);
             if (distance is { } d)
             {
-                _measure.text = $"{d * 100f:F1} cm  ·  {d / Core.Tts.TtsUnits.TtsUnitsToMeters:F1} in (TTS)";
+                _measure.text = Ui.T("{value} cm  ·  {value2} in (TTS)", ("value", string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:F1}", d * 100f)), ("value2", string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:F1}", d / Core.Tts.TtsUnits.TtsUnitsToMeters)));
                 FollowPointer(_measure, new Vector2(16, -28));
             }
         }

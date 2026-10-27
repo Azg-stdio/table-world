@@ -66,11 +66,11 @@ namespace TableWorld.View.Hud
         /// </summary>
         private VisualElement TitleBar(VisualElement root, VisualElement body, PanelDef panel)
         {
-            var bar = new VisualElement { tooltip = "Drag to move" };
+            var bar = new VisualElement { tooltip = Ui.T("Drag to move") };
             bar.AddToClassList("game-ui-titlebar");
             var title = new Label(panel.Title ?? Names.Humanize(panel.Id));
             title.AddToClassList("game-ui-title");
-            var fold = new Button { text = "\u2013", tooltip = "Fold or open" };
+            var fold = new Button { text = "\u2013", tooltip = Ui.T("Fold or open") };
             fold.AddToClassList("game-ui-fold");
             fold.clicked += () =>
             {

@@ -34,13 +34,13 @@ namespace TableWorld.View.Hud
             _panel = root.Q("gizmoPanel");
             _title = root.Q<Label>("gizmoTitle");
             var fields = root.Q("gizmoFields");
-            _x = Field(fields, "Across (cm)");
-            _z = Field(fields, "Forward (cm)");
-            _height = Field(fields, "Height (cm)");
-            _turn = Field(fields, "Turn (°)");
-            _tiltX = Field(fields, "Tilt forward (°)");
-            _tiltZ = Field(fields, "Tilt sideways (°)");
-            _scale = Field(fields, "Scale (×)");
+            _x = Field(fields, Ui.T("Across (cm)"));
+            _z = Field(fields, Ui.T("Forward (cm)"));
+            _height = Field(fields, Ui.T("Height (cm)"));
+            _turn = Field(fields, Ui.T("Turn (°)"));
+            _tiltX = Field(fields, Ui.T("Tilt forward (°)"));
+            _tiltZ = Field(fields, Ui.T("Tilt sideways (°)"));
+            _scale = Field(fields, Ui.T("Scale (×)"));
             root.Q<Button>("gizmoApply").clicked += () => Apply();
             root.Q<Button>("gizmoClose").clicked += Hide;
         }
@@ -109,7 +109,7 @@ namespace TableWorld.View.Hud
             if (!(Parse(_x.value) is { } x && Parse(_z.value) is { } z && Parse(_height.value) is { } h && Parse(_turn.value) is { } turn &&
                   Parse(_tiltX.value) is { } tiltX && Parse(_tiltZ.value) is { } tiltZ && Parse(_scale.value) is { } scale))
             {
-                _tell("Type numbers (for example 12.5).", true);
+                _tell(Ui.T("Type numbers (for example 12.5)."), true);
                 return false;
             }
             var position = new Vec3(Mathf.Clamp(x / 100f, -5f, 5f), Mathf.Clamp(h / 100f, 0f, 3f), Mathf.Clamp(z / 100f, -5f, 5f));

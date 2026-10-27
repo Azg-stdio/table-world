@@ -26,8 +26,8 @@ namespace TableWorld.View.Hud
             Block(root, "agentClaudeDesktop", "agentCopyClaudeDesktop", AgentSetup.ClaudeDesktopConfig);
             Block(root, "agentCodex", "agentCopyCodex", AgentSetup.CodexConfig);
             root.Q<Label>("agentGames").text =
-                $"Games your agent builds are saved in {AgentSetup.GamesFolder} and listed under Games. " +
-                "Keep this window open while it works to watch the table being built.";
+                Ui.T("Games your agent builds are saved in {gamesFolder} and listed under Games. ", ("gamesFolder", AgentSetup.GamesFolder)) +
+                Ui.T("Keep this window open while it works to watch the table being built.");
         }
 
         public bool Visible => !_panel.ClassListContains(Hidden);
@@ -48,10 +48,10 @@ namespace TableWorld.View.Hud
             if (connected == _connectedShown)
                 return;
             _connectedShown = connected;
-            _status.text = connected ? "An agent is connected to this window now."
-                : AgentSetup.ServerFound ? "No agent connected yet. After setting it up, start your agent and ask it to build a game."
-                : $"The server was not found at {AgentSetup.ServerPath}. " +
-                  (Application.isEditor ? "Build it with: dotnet build mcp-server -c Release" : "Reinstall the game to restore it.");
+            _status.text = connected ? Ui.T("An agent is connected to this window now.")
+                : AgentSetup.ServerFound ? Ui.T("No agent connected yet. After setting it up, start your agent and ask it to build a game.")
+                : Ui.T("The server was not found at {serverPath}. ", ("serverPath", AgentSetup.ServerPath)) +
+                  (Application.isEditor ? Ui.T("Build it with: dotnet build mcp-server -c Release") : Ui.T("Reinstall the game to restore it."));
             _status.EnableInClassList("agent-status--ok", connected);
         }
 
@@ -66,8 +66,8 @@ namespace TableWorld.View.Hud
             copy.clicked += () =>
             {
                 GUIUtility.systemCopyBuffer = text;
-                copy.text = "Copied";
-                copy.schedule.Execute(() => copy.text = "Copy").StartingIn(1500);
+                copy.text = Ui.T("Copied");
+                copy.schedule.Execute(() => copy.text = Ui.T("Copy")).StartingIn(1500);
             };
         }
     }

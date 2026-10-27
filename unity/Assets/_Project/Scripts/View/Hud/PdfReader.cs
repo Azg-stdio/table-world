@@ -42,8 +42,8 @@ namespace TableWorld.View.Hud
             _number.AddToClassList("pdf-reader__number");
             bar.Add(_number);
             bar.Add(Button("▶", () => Turn(1)));
-            bar.Add(Button("Show on the table", ShowOnTable));
-            bar.Add(Button("Close", Hide));
+            bar.Add(Button(Ui.T("Show on the table"), ShowOnTable));
+            bar.Add(Button(Ui.T("Close"), Hide));
             _panel.Add(bar);
             root.Add(_panel);
         }
@@ -105,7 +105,7 @@ namespace TableWorld.View.Hud
             // The page drawn is a texture made at runtime: a value, not a style.
             _page.style.backgroundImage = texture != null ? new StyleBackground(texture) : StyleKeyword.None;
             var title = string.IsNullOrEmpty(pdf.Name) ? "" : pdf.Name + "  ·  ";
-            _number.text = pages == 0 ? "The PDF is not here yet" : $"{title}page {_shown + 1 + pdf.PageOffset}  ({_shown + 1} of {pages})";
+            _number.text = pages == 0 ? Ui.T("The PDF is not here yet") : Ui.T("{title}page {value}  ({value2} of {pages})", ("title", title), ("value", _shown + 1 + pdf.PageOffset), ("value2", _shown + 1), ("pages", pages));
         }
 
         /// <summary>Arrow and Page keys turn pages while it is open (the table does not get them then); Escape closes it.</summary>

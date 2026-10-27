@@ -34,7 +34,7 @@ namespace TableWorld.View.Hud
             _name = root.Q<TextField>("saveName");
             _hint = root.Q<Label>("savesHint");
             _name.maxLength = Core.Rules.SaveNames.MaxLength;
-            _name.textEdition.placeholder = "Name this save";
+            _name.textEdition.placeholder = Ui.T("Name this save");
             root.Q<Button>("saveNamed").clicked += SaveNamed;
             root.Q<Button>("savesBack").clicked += back;
         }
@@ -53,7 +53,7 @@ namespace TableWorld.View.Hud
         public void SaveNamed()
         {
             var entry = _library.Save(_name.value, out var error);
-            _tell(entry != null ? $"Saved {entry.Name}" : error, entry == null);
+            _tell(entry != null ? Ui.T("Saved {name}", ("name", entry.Name)) : error, entry == null);
             if (entry != null)
                 _name.value = "";
             Rebuild();
@@ -66,9 +66,9 @@ namespace TableWorld.View.Hud
             foreach (var entry in entries)
                 _list.Add(Row(entry));
             var minutes = _autosaveMinutes();
-            _hint.text = (_library.CanSave ? "" : "Only the host saves and loads. ") +
-                         (minutes > 0 ? $"Autosave every {minutes} minutes while the table changes (Settings)." : "Autosave is off (Settings).") +
-                         (entries.Count == 0 ? " No saves yet." : "");
+            _hint.text = (_library.CanSave ? "" : Ui.T("Only the host saves and loads. ")) +
+                         (minutes > 0 ? Ui.T("Autosave every {minutes} minutes while the table changes (Settings).", ("minutes", minutes)) : Ui.T("Autosave is off (Settings).")) +
+                         (entries.Count == 0 ? Ui.T(" No saves yet.") : "");
         }
 
         private VisualElement Row(SaveLibrary.Entry entry)
@@ -79,15 +79,15 @@ namespace TableWorld.View.Hud
             text.AddToClassList("saves-text");
             var name = new Label(entry.Name) { enableRichText = false };
             name.AddToClassList("saves-name");
-            var detail = new Label(string.Join(" · ", new[] { entry.Game, entry.SavedAt.ToString("d MMM HH:mm"), entry.Autosave ? "autosave" : null }
+            var detail = new Label(string.Join(" · ", new[] { entry.Game, entry.SavedAt.ToString("d MMM HH:mm"), entry.Autosave ? Ui.T("autosave") : null }
                 .Where(s => !string.IsNullOrEmpty(s)))) { enableRichText = false };
             detail.AddToClassList("saves-detail");
             text.Add(name);
             text.Add(detail);
             row.Add(text);
 
-            var load = new Button(() => _library.LoadInSteps(entry, (ok, error) => _tell(ok ? $"Loaded {entry.Name}" : error, !ok)))
-                { text = "Load" };
+            var load = new Button(() => _library.LoadInSteps(entry, (ok, error) => _tell(ok ? Ui.T("Loaded {name}", ("name", entry.Name)) : error, !ok)))
+                { text = Ui.T("Load") };
             load.AddToClassList("hud-button");
             load.SetEnabled(_library.CanSave);
             row.Add(load);
@@ -99,12 +99,12 @@ namespace TableWorld.View.Hud
                 {
                     _library.Delete(entry);
                     _confirmDelete = null;
-                    _tell($"Deleted {entry.Name}", false);
+                    _tell(Ui.T("Deleted {name}", ("name", entry.Name)), false);
                 }
                 else
                     _confirmDelete = entry.File;
                 Rebuild();
-            }) { text = confirming ? "Really delete?" : "Delete" };
+            }) { text = confirming ? Ui.T("Really delete?") : Ui.T("Delete") };
             delete.AddToClassList("hud-button");
             if (confirming)
                 delete.AddToClassList("escape-danger");

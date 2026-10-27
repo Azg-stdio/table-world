@@ -74,8 +74,8 @@ namespace TableWorld.View.Hud
             foreach (var (participant, info) in players.OrderBy(p => p.Key == SessionHost.HostId ? 0 : 1).ThenBy(p => p.Value.Name))
                 _list.Add(Row(participant, info, occupants.FirstOrDefault(o => o.Value == participant).Key, hosting));
             _hint.text = hosting
-                ? "Promoted players may change table settings. The Game Master sees every hand and hidden area. Teams chat with /t."
-                : "Only the host changes these. Teams chat with /t.";
+                ? Ui.T("Promoted players may change table settings. The Game Master sees every hand and hidden area. Teams chat with /t.")
+                : Ui.T("Only the host changes these. Teams chat with /t.");
         }
 
         private VisualElement Row(string participant, PlayerInfo info, string seat, bool hosting)
@@ -92,7 +92,7 @@ namespace TableWorld.View.Hud
             row.Add(swatch);
 
             var you = participant == _session.LocalParticipant;
-            var name = new Label(info.Name + (you ? " (you)" : "")) { enableRichText = false };
+            var name = new Label(info.Name + (you ? " " + Ui.T("(you)") : "")) { enableRichText = false };
             name.AddToClassList("player-name");
             row.Add(name);
             var badges = new[]
@@ -100,7 +100,7 @@ namespace TableWorld.View.Hud
                 participant == SessionHost.HostId ? "host" : null,
                 seat ?? "watching",
                 info.Promoted ? "promoted" : null,
-                info.GameMaster ? "Game Master" : null,
+                info.GameMaster ? Ui.T("Game Master") : null,
                 info.Team != Team.None ? info.Team.ToString() : null,
                 info.Muted ? "muted" : null,
             }.Where(b => b != null);
@@ -114,14 +114,14 @@ namespace TableWorld.View.Hud
                 actions.AddToClassList("player-actions");
                 var isHost = participant == SessionHost.HostId;
                 if (!isHost)
-                    Action(actions, info.Promoted ? "Demote" : "Promote", () => _session.SetPromoted(participant, !info.Promoted));
-                Action(actions, info.GameMaster ? "Not GM" : "Make GM", () => _session.SetGameMaster(participant, !info.GameMaster));
+                    Action(actions, info.Promoted ? Ui.T("Demote") : Ui.T("Promote"), () => _session.SetPromoted(participant, !info.Promoted));
+                Action(actions, info.GameMaster ? Ui.T("Not GM") : Ui.T("Make GM"), () => _session.SetGameMaster(participant, !info.GameMaster));
                 var next = Teams[(Array.IndexOf(Teams, info.Team) + 1) % Teams.Length];
-                Action(actions, info.Team == Team.None ? "Team" : $"Team: {info.Team}", () => _session.SetTeam(participant, next));
+                Action(actions, info.Team == Team.None ? Ui.T("Team") : Ui.T("Team: {team}", ("team", info.Team)), () => _session.SetTeam(participant, next));
                 if (!isHost)
                 {
-                    Action(actions, info.Muted ? "Unmute" : "Mute", () => _session.SetMuted(participant, !info.Muted));
-                    Action(actions, "Remove", () => _session.Kick(participant), "player-danger");
+                    Action(actions, info.Muted ? Ui.T("Unmute") : Ui.T("Mute"), () => _session.SetMuted(participant, !info.Muted));
+                    Action(actions, Ui.T("Remove"), () => _session.Kick(participant), "player-danger");
                 }
                 row.Add(actions);
             }

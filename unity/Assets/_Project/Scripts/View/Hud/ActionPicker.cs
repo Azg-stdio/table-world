@@ -32,7 +32,7 @@ namespace TableWorld.View.Hud
             header.AddToClassList("action-picker-header");
             _title = new Label();
             _title.AddToClassList("action-picker-title");
-            var close = new Button(Hide) { text = "Cancel" };
+            var close = new Button(Hide) { text = Ui.T("Cancel") };
             close.AddToClassList("hud-button");
             header.Add(_title);
             header.Add(close);

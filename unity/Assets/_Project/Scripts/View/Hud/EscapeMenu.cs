@@ -102,7 +102,7 @@ namespace TableWorld.View.Hud
         {
             var online = _session != null && (_session.IsHost || _session.IsClient);
             _leave.EnableInClassList(Hidden, !online);
-            _leave.text = _session != null && _session.IsHost ? "Stop hosting" : "Leave session";
+            _leave.text = _session != null && _session.IsHost ? Ui.T("Stop hosting") : Ui.T("Leave session");
             _quitConfirm.AddToClassList(Hidden);
             _menu.RemoveFromClassList(Hidden);
         }
@@ -142,8 +142,8 @@ namespace TableWorld.View.Hud
         private void AskQuit()
         {
             _quitQuestion.text = _session != null && _session.IsHost && _session.JoinedCount > 0
-                ? $"Quit Table World? The {_session.JoinedCount} player(s) at your table will be disconnected."
-                : "Quit Table World?";
+                ? Ui.T("Quit Table World? The {joinedCount} player(s) at your table will be disconnected.", ("joinedCount", _session.JoinedCount))
+                : Ui.T("Quit Table World?");
             _quitConfirm.RemoveFromClassList(Hidden);
         }
 
@@ -179,69 +179,69 @@ namespace TableWorld.View.Hud
         {
             _settingsList.Clear();
             var s = Settings;
-            Group("You");
-            Choice("Language", new[] { "" }.Concat(Ui.Languages).ToArray(), s.Language, v => s.Language = v,
+            Group(Ui.T("You"));
+            Choice(Ui.T("Language"), new[] { "" }.Concat(Ui.Languages).ToArray(), s.Language, v => s.Language = v,
                 v => v == "" ? Ui.T("System ({language})", ("language", Ui.NameOf(Ui.SystemLanguage()))) : Ui.NameOf(v));
-            Text("Your name", s.PlayerName, "Player", v => s.PlayerName = v);
-            Choice("Chalker face", Enum.GetNames(typeof(TableWorld.View.Chalkers.ChalkerPersonality)), s.Personality, v => s.Personality = v, v => v);
+            Text(Ui.T("Your name"), s.PlayerName, Ui.T("Player"), v => s.PlayerName = v);
+            Choice(Ui.T("Chalker face"), Enum.GetNames(typeof(TableWorld.View.Chalkers.ChalkerPersonality)), s.Personality, v => s.Personality = v, v => Ui.T(v));
 
-            Group("Saving");
-            Choice("Autosave", GameSettings.AutosaveChoices, s.AutosaveMinutes, v => s.AutosaveMinutes = v, v => v == 0 ? "Off" : $"Every {v} minutes");
+            Group(Ui.T("Saving"));
+            Choice(Ui.T("Autosave"), GameSettings.AutosaveChoices, s.AutosaveMinutes, v => s.AutosaveMinutes = v, v => v == 0 ? Ui.T("Off") : Ui.T("Every {v} minutes", ("v", v)));
 
-            Group("Sound");
-            Slider("Master volume", 0f, 1f, s.MasterVolume, v => s.MasterVolume = v, Percent);
-            Slider("Table sounds", 0f, 1f, s.TableVolume, v => s.TableVolume = v, Percent);
-            Slider("Music", 0f, 1f, s.MusicVolume, v => s.MusicVolume = v, Percent);
+            Group(Ui.T("Sound"));
+            Slider(Ui.T("Master volume"), 0f, 1f, s.MasterVolume, v => s.MasterVolume = v, Percent);
+            Slider(Ui.T("Table sounds"), 0f, 1f, s.TableVolume, v => s.TableVolume = v, Percent);
+            Slider(Ui.T("Music"), 0f, 1f, s.MusicVolume, v => s.MusicVolume = v, Percent);
 
-            Group("Voice");
-            Choice("Microphone", (VoiceMode[])Enum.GetValues(typeof(VoiceMode)), s.VoiceMode, v => s.VoiceMode = v,
-                v => v == VoiceMode.PushToTalk ? $"Push to talk (hold {KeyBindings.Label(GameAction.Talk)})" : v == VoiceMode.VoiceActivation ? "Open when I speak" : "Off");
+            Group(Ui.T("Voice"));
+            Choice(Ui.T("Microphone"), (VoiceMode[])Enum.GetValues(typeof(VoiceMode)), s.VoiceMode, v => s.VoiceMode = v,
+                v => v == VoiceMode.PushToTalk ? Ui.T("Push to talk (hold {label})", ("label", KeyBindings.Label(GameAction.Talk))) : v == VoiceMode.VoiceActivation ? Ui.T("Open when I speak") : Ui.T("Off"));
             var devices = new List<string> { "" };
             devices.AddRange(UnityEngine.Microphone.devices);
             if (!devices.Contains(s.Microphone))
                 devices.Add(s.Microphone);
-            Choice("Device", devices.ToArray(), s.Microphone, v => s.Microphone = v, v => v == "" ? "System default" : v);
-            Slider("Voice activation level", GameSettings.MinVoiceThresholdDb, GameSettings.MaxVoiceThresholdDb, s.VoiceThresholdDb, v => s.VoiceThresholdDb = v, v => $"{Mathf.RoundToInt(v)} dB");
-            Slider("Other players' voices", 0f, 1f, s.VoiceVolume, v => s.VoiceVolume = v, Percent);
-            Choice("Hear myself (test)", new[] { false, true }, s.HearMyself, v => s.HearMyself = v, v => v ? "On" : "Off");
+            Choice(Ui.T("Device"), devices.ToArray(), s.Microphone, v => s.Microphone = v, v => v == "" ? Ui.T("System default") : v);
+            Slider(Ui.T("Voice activation level"), GameSettings.MinVoiceThresholdDb, GameSettings.MaxVoiceThresholdDb, s.VoiceThresholdDb, v => s.VoiceThresholdDb = v, v => $"{Mathf.RoundToInt(v)} dB");
+            Slider(Ui.T("Other players' voices"), 0f, 1f, s.VoiceVolume, v => s.VoiceVolume = v, Percent);
+            Choice(Ui.T("Hear myself (test)"), new[] { false, true }, s.HearMyself, v => s.HearMyself = v, v => v ? Ui.T("On") : Ui.T("Off"));
 
-            Group("Camera and mouse");
-            Slider("Orbit sensitivity", GameSettings.MinScale, GameSettings.MaxScale, s.OrbitSensitivity, v => s.OrbitSensitivity = v, Times);
-            Slider("Zoom speed", GameSettings.MinScale, GameSettings.MaxScale, s.ZoomSpeed, v => s.ZoomSpeed = v, Times);
-            Slider("Keyboard pan speed", GameSettings.MinScale, GameSettings.MaxScale, s.PanSpeed, v => s.PanSpeed = v, Times);
-            Choice("Invert vertical orbit", new[] { false, true }, s.InvertOrbitY, v => s.InvertOrbitY = v, v => v ? "On" : "Off");
+            Group(Ui.T("Camera and mouse"));
+            Slider(Ui.T("Orbit sensitivity"), GameSettings.MinScale, GameSettings.MaxScale, s.OrbitSensitivity, v => s.OrbitSensitivity = v, Times);
+            Slider(Ui.T("Zoom speed"), GameSettings.MinScale, GameSettings.MaxScale, s.ZoomSpeed, v => s.ZoomSpeed = v, Times);
+            Slider(Ui.T("Keyboard pan speed"), GameSettings.MinScale, GameSettings.MaxScale, s.PanSpeed, v => s.PanSpeed = v, Times);
+            Choice(Ui.T("Invert vertical orbit"), new[] { false, true }, s.InvertOrbitY, v => s.InvertOrbitY = v, v => v ? Ui.T("On") : Ui.T("Off"));
 
-            Group("Keys");
+            Group(Ui.T("Keys"));
             foreach (GameAction action in Enum.GetValues(typeof(GameAction)))
                 KeyRow(action);
             var reset = new Button(() =>
             {
                 Change(settings => settings.Keys = new Dictionary<string, string>());
                 Rebuild();
-            }) { text = "Back to TTS keys" };
+            }) { text = Ui.T("Back to TTS keys") };
             reset.AddToClassList("hud-button");
             Row("").Add(reset);
-            Note("Click an action, then press its new key (Escape cancels). A key another action had goes to that action's old key.");
+            Note(Ui.T("Click an action, then press its new key (Escape cancels). A key another action had goes to that action's old key."));
 
-            Group("Display");
-            Choice("Window", (DisplayMode[])Enum.GetValues(typeof(DisplayMode)), s.DisplayMode, v => s.DisplayMode = v,
-                v => v == DisplayMode.Borderless ? "Borderless full screen" : v == DisplayMode.Fullscreen ? "Exclusive full screen" : "Windowed");
+            Group(Ui.T("Display"));
+            Choice(Ui.T("Window"), (DisplayMode[])Enum.GetValues(typeof(DisplayMode)), s.DisplayMode, v => s.DisplayMode = v,
+                v => v == DisplayMode.Borderless ? Ui.T("Borderless full screen") : v == DisplayMode.Fullscreen ? Ui.T("Exclusive full screen") : Ui.T("Windowed"));
             var sizes = new List<(int W, int H)> { (0, 0) };
             sizes.AddRange(Screen.resolutions.Select(r => (r.width, r.height)).Distinct().OrderBy(r => r.width * r.height));
             if (!sizes.Contains((s.Width, s.Height)))
                 sizes.Add((s.Width, s.Height));
-            Choice<(int W, int H)>("Resolution", sizes.ToArray(), (s.Width, s.Height), v => { s.Width = v.W; s.Height = v.H; },
-                v => v.W == 0 ? "Monitor's own" : $"{v.W} × {v.H}");
-            Choice("VSync", new[] { true, false }, s.VSync, v => s.VSync = v, v => v ? "On" : "Off");
-            Choice("Frame limit (VSync off)", GameSettings.FrameLimits, s.FrameLimit, v => s.FrameLimit = v, v => v == 0 ? "None" : $"{v} fps");
-            Choice("Antialiasing", (Antialiasing[])Enum.GetValues(typeof(Antialiasing)), s.Antialiasing, v => s.Antialiasing = v,
-                v => v == Antialiasing.Off ? "Off" : v == Antialiasing.Fxaa ? "FXAA (fast)" : "SMAA (sharper)");
-            Choice("Graphics quality", (GraphicsQuality[])Enum.GetValues(typeof(GraphicsQuality)), s.Graphics, v => s.Graphics = v,
-                v => v == GraphicsQuality.Auto ? $"Auto ({GraphicsPresets.Detect()} on this computer)" : v == GraphicsQuality.Low
-                    ? "Low (no shadows, 75% resolution, smaller images)" : v == GraphicsQuality.Medium ? "Medium (fewer shadows)" : "High");
-            Slider("Interface size", GameSettings.MinUiScale, GameSettings.MaxUiScale, s.UiScale, v => s.UiScale = v, Percent);
+            Choice<(int W, int H)>(Ui.T("Resolution"), sizes.ToArray(), (s.Width, s.Height), v => { s.Width = v.W; s.Height = v.H; },
+                v => v.W == 0 ? Ui.T("Monitor's own") : $"{v.W} × {v.H}");
+            Choice(Ui.T("VSync"), new[] { true, false }, s.VSync, v => s.VSync = v, v => v ? Ui.T("On") : Ui.T("Off"));
+            Choice(Ui.T("Frame limit (VSync off)"), GameSettings.FrameLimits, s.FrameLimit, v => s.FrameLimit = v, v => v == 0 ? Ui.T("None") : $"{v} fps");
+            Choice(Ui.T("Antialiasing"), (Antialiasing[])Enum.GetValues(typeof(Antialiasing)), s.Antialiasing, v => s.Antialiasing = v,
+                v => v == Antialiasing.Off ? Ui.T("Off") : v == Antialiasing.Fxaa ? Ui.T("FXAA (fast)") : Ui.T("SMAA (sharper)"));
+            Choice(Ui.T("Graphics quality"), (GraphicsQuality[])Enum.GetValues(typeof(GraphicsQuality)), s.Graphics, v => s.Graphics = v,
+                v => v == GraphicsQuality.Auto ? Ui.T("Auto ({detect} on this computer)", ("detect", GraphicsPresets.Detect())) : v == GraphicsQuality.Low
+                    ? Ui.T("Low (no shadows, 75% resolution, smaller images)") : v == GraphicsQuality.Medium ? Ui.T("Medium (fewer shadows)") : Ui.T("High"));
+            Slider(Ui.T("Interface size"), GameSettings.MinUiScale, GameSettings.MaxUiScale, s.UiScale, v => s.UiScale = v, Percent);
             if (Application.isEditor)
-                Note("Window and resolution apply in the built game, not in the Editor.");
+                Note(Ui.T("Window and resolution apply in the built game, not in the Editor."));
         }
 
         private static string Percent(float v) => $"{Mathf.RoundToInt(v * 100f)}%";
@@ -332,7 +332,7 @@ namespace TableWorld.View.Hud
                     _captureButton.text = KeyBindings.Label(KeyBindings.Resolve(Settings.Keys)[_capturing!.Value]);
                 _capturing = action;
                 _captureButton = key;
-                key.text = "Press a key…";
+                key.text = Ui.T("Press a key…");
             }) { text = KeyBindings.Label(KeyBindings.Resolve(Settings.Keys)[action]) };
             key.AddToClassList("hud-button");
             key.AddToClassList("settings-key");

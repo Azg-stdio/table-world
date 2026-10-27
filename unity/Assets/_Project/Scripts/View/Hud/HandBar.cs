@@ -54,7 +54,7 @@ namespace TableWorld.View.Hud
         public HandBar(VisualElement root, TableView table, TableInteraction interaction)
         {
             _bar = root.Q("handBar");
-            _grip = new VisualElement { name = "handGrip", tooltip = "Drag up or down: how much of your hand shows" };
+            _grip = new VisualElement { name = "handGrip", tooltip = Ui.T("Drag up or down: how much of your hand shows") };
             _grip.AddToClassList("hand-grip");
             _grip.AddToClassList("hidden");
             var line = new VisualElement { pickingMode = PickingMode.Ignore };

@@ -61,7 +61,7 @@ namespace TableWorld.View.Hud
             _placing = true;
             _step.text = step;
             // The blocking steps take roughly these shares of a heavy table's opening.
-            _bar.value = Mathf.Max(_bar.value, step.StartsWith("Reading") ? 0.05f : step.StartsWith("Placing") ? 0.15f : 0.35f);
+            _bar.value = Mathf.Max(_bar.value, step == Ui.T("Reading the table") ? 0.05f : step == Ui.T("Starting the game's scripts") ? 0.35f : 0.15f);
         }
 
         public void Update()
@@ -76,8 +76,8 @@ namespace TableWorld.View.Hud
                 Hide();
                 return;
             }
-            _step.text = downloadsLeft > 0 ? "Downloading files" : "Preparing images";
-            _detail.text = $"Images {images - imagesLeft:N0} of {images:N0}" + (downloads > 0 ? $", downloads {downloads - downloadsLeft:N0} of {downloads:N0}" : "");
+            _step.text = downloadsLeft > 0 ? Ui.T("Downloading files") : Ui.T("Preparing images");
+            _detail.text = Ui.T("Images {value} of {images}", ("value", string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:N0}", images - imagesLeft)), ("images", string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:N0}", images))) + (downloads > 0 ? Ui.T(", downloads {value} of {downloads}", ("value", string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:N0}", downloads - downloadsLeft)), ("downloads", string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:N0}", downloads))) : "");
             _bar.value = Mathf.Max(_bar.value, 0.4f + 0.6f * (total - left) / Mathf.Max(1, total));
             if (Time.unscaledTime - _shownAt > SkipAfterSeconds)
                 _skip.RemoveFromClassList(Hidden);

@@ -74,6 +74,14 @@ namespace TableWorld.View
             Changed?.Invoke();
         }
 
+        /// <summary>A refused move as the player reads it, in the interface's language (the English message is for agents).</summary>
+        public static string Refusal(Core.Rules.ValidationError error)
+        {
+            if (_strings == null)
+                SetLanguage("");
+            return Refusals.Text(_strings, error);
+        }
+
         /// <summary>
         /// <paramref name="english"/> in the interface's language with its <c>{name}</c> placeholders filled; the English
         /// when the language has no text for it.

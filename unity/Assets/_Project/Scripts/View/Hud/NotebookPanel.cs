@@ -95,7 +95,7 @@ namespace TableWorld.View.Hud
             {
                 var id = page.Id;
                 var title = TitleOf(state, page);
-                var button = new Button(() => OpenPage_(id)) { text = string.IsNullOrWhiteSpace(title) ? "(untitled)" : title };
+                var button = new Button(() => OpenPage_(id)) { text = string.IsNullOrWhiteSpace(title) ? Ui.T("(untitled)") : title };
                 button.AddToClassList("notes-tab");
                 if (page.Color != null)
                     button.AddToClassList("notes-tab--private");
@@ -117,9 +117,9 @@ namespace TableWorld.View.Hud
                 _title.SetValueWithoutNotify(TitleOf(state, open));
             if (_text.focusController?.focusedElement != _text || translated)
                 _text.SetValueWithoutNotify(BodyOf(state, open));
-            _who.text = open.Color == null ? "For everyone" : "Only for you";
+            _who.text = open.Color == null ? Ui.T("For everyone") : Ui.T("Only for you");
             _who.SetEnabled(SeatColor != null);
-            _delete.text = _confirmDelete ? "Really delete?" : "Delete page";
+            _delete.text = _confirmDelete ? Ui.T("Really delete?") : Ui.T("Delete page");
             _delete.EnableInClassList("escape-danger", _confirmDelete);
         }
 
@@ -164,7 +164,7 @@ namespace TableWorld.View.Hud
         private void NewPage()
         {
             Commit();
-            var result = Send(new NoteTab { Title = "New page", Body = "" });
+            var result = Send(new NoteTab { Title = Ui.T("New page"), Body = "" });
             if (result != null && result.Ok)
                 _open = result.CreatedId;
             _shownKey = null;

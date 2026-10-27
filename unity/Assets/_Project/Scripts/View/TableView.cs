@@ -118,7 +118,7 @@ namespace TableWorld.View
             LastLoadOk = false;
             if (title != null)
             {
-                LoadStepped?.Invoke(title, "Reading the table");
+                LoadStepped?.Invoke(title, Ui.T("Reading the table"));
                 yield return null;
             }
             var parsed = TableJson.Parse(json);
@@ -132,7 +132,7 @@ namespace TableWorld.View
             if (title != null)
             {
                 var pieces = parsed.State.Objects.Count(o => o.Container == null);
-                LoadStepped?.Invoke(title, $"Placing {pieces:N0} {(pieces == 1 ? "object" : "objects")}");
+                LoadStepped?.Invoke(title, pieces == 1 ? Ui.T("Placing 1 object") : Ui.T("Placing {count} objects", ("count", pieces.ToString("N0"))));
                 yield return null;
             }
 
@@ -144,7 +144,7 @@ namespace TableWorld.View
             var placed = watch.ElapsedMilliseconds;
             if (title != null && Engine.State.Scripts.Count > 0)
             {
-                LoadStepped?.Invoke(title, "Starting the game's scripts");
+                LoadStepped?.Invoke(title, Ui.T("Starting the game's scripts"));
                 yield return null;
             }
             _undo.Clear();

@@ -66,7 +66,10 @@ namespace Core.Tests.Text
             Assert.NotEmpty(en);
             foreach (var language in languages.Where(l => l != "en"))
             {
-                var (missing, extra, placeholders) = Strings.Check(en, Strings.BuiltInTexts(language)!);
+                // Interface texts (ui:<English>) are keyed by their English words, which English needs no entry for:
+                // InterfaceStringsTests checks them against the game's code.
+                var table = Strings.BuiltInTexts(language)!.Where(p => !p.Key.StartsWith("ui:", StringComparison.Ordinal)).ToDictionary(p => p.Key, p => p.Value);
+                var (missing, extra, placeholders) = Strings.Check(en, table);
                 Assert.True(missing.Count == 0, $"{language}.json lacks: {string.Join(", ", missing)}");
                 Assert.True(extra.Count == 0, $"{language}.json has keys English does not: {string.Join(", ", extra)}");
                 Assert.True(placeholders.Count == 0, $"{language}.json fills other placeholders in: {string.Join(", ", placeholders)}");
