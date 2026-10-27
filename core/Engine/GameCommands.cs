@@ -28,6 +28,15 @@ namespace Core.Engine
         public string? Target { get; set; }
     }
 
+    /// <summary>
+    /// Counts a vote now with the ballots cast so far: the host's game window sends it when a vote's time is up
+    /// (<c>VoteDef.Seconds</c>). Nothing happens if the vote has no ballot waiting.
+    /// </summary>
+    public sealed class CloseVoteCommand : Command, IHostCommand
+    {
+        public string Action { get; set; } = "";
+    }
+
     /// <summary>Performs a rules action (docs/rules-schema.md, "Actions") as <see cref="Command.Actor"/>.</summary>
     public sealed class PerformActionCommand : Command
     {

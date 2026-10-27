@@ -1306,6 +1306,7 @@ object or object or object or object or object or object or object or object or 
 | `otherwise` | string |  |
 | `onResult` | array of [Effect](#effect) |  |
 | `private` | boolean |  |
+| `seconds` | integer |  |
 
 ### WinCondition
 

@@ -110,5 +110,25 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsFalse(line.ClassListContains("hidden"));
             Assert.AreEqual("Team vote: 1 of 3 voted (you: approve)", line.text);
         }
+
+        /// <summary>A vote with a time limit shows the time left and is closed by the host when it runs out.</summary>
+        [UnityTest]
+        public IEnumerator ATimedVote_ClosesWhenItsTimeIsUp()
+        {
+            const string vote = @"{
+  ""players"": { ""seats"": [ { ""id"": ""s1"", ""color"": ""red"" }, { ""id"": ""s2"", ""color"": ""blue"" }, { ""id"": ""s3"", ""color"": ""green"" } ] },
+  ""turn"": { ""phases"": [ ""vote"" ] },
+  ""phases"": [ { ""id"": ""vote"", ""actions"": [ ""team"" ] } ],
+  ""actions"": [ { ""id"": ""team"", ""name"": ""Team vote"", ""actor"": ""any"", ""vote"": { ""options"": [ ""yes"", ""no"" ], ""seconds"": 2 } } ]
+}";
+            Assert.IsTrue(_table.Load(vote, null));
+            Assert.IsTrue(_table.Execute(new StartGameCommand()).Ok);
+            Assert.IsTrue(_table.Execute(new PerformActionCommand { Actor = _table.LocalSeat, ActionId = "team", Params = { [GameEngine.VoteParam] = "no" } }).Ok);
+            yield return new WaitForSeconds(0.6f);
+            StringAssert.Contains("s left", _root.Q<Label>("gameRole").text);
+            yield return new WaitForSeconds(2.2f);
+            Assert.IsTrue(_table.Game.Session.Votes.ContainsKey("team"), "counted when the time ran out");
+            Assert.AreEqual("no", _table.Game.Session.Votes["team"].Result);
+        }
     }
 }

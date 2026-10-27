@@ -35,6 +35,12 @@ namespace Core.Rules
         /// alone, never logged, and no other machine learns that anyone cast a ballot.
         /// </summary>
         public bool Private { get; set; }
+
+        /// <summary>
+        /// The vote closes this many seconds after its first ballot, counting the votes cast by then. The host's game
+        /// window keeps the time (the rules have no clock) and closes it with a <c>CloseVoteCommand</c>.
+        /// </summary>
+        public int? Seconds { get; set; }
     }
 
     /// <summary>

@@ -121,6 +121,23 @@ namespace Core.Tests.Engine
             Assert.Contains("Accusation: Yellow.", game.Session.Log);
         }
 
+        /// <summary>The host's window closes a vote whose time is up: the ballots cast are counted; with none it is a no-op.</summary>
+        [Fact]
+        public void CloseVoteCommand_CountsTheBallotsCast()
+        {
+            var game = Start();
+            Assert.True(game.Execute(new CloseVoteCommand { Action = "approve" }).Ok);
+            Assert.False(game.Session!.Votes.ContainsKey("approve"));
+            Vote(game, "a", "approve", "yes");
+            Vote(game, "b", "approve", "yes");
+            Vote(game, "c", "approve", "no");
+            var closed = game.Execute(new CloseVoteCommand { Action = "approve" });
+            Assert.True(closed.Ok, closed.Error?.ToString());
+            Assert.Equal("yes", game.Session.Votes["approve"].Result);
+            Assert.Equal(3, game.Session.Votes["approve"].Total);
+            Assert.Empty(game.Session.Secrets);
+        }
+
         [Fact]
         public void OverTheProtocol_NobodySeesAVoteBeforeTheCount()
         {

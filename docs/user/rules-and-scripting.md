@@ -186,8 +186,8 @@ role, read as `$actor.role.objective`. The full format is in [the rules format](
 or a list of seats), and counted when the last one votes. `reveal` says what everyone sees: who voted what (`named`),
 only how many chose each option (`count`, like face-down mission cards), or only the outcome (`result`). `decide` is
 `most`, `majority` or `unanimous`, and `otherwise` is the result when nothing wins. The vote's `onResult` effects read
-`$vote.result` and the counts (`$vote.fail`). A vote can be for a player (`"seats": true`), and `closeVote` ends one
-early. The format is in [the rules format](../rules-schema.md#votes).
+`$vote.result` and the counts (`$vote.fail`). A vote can be for a player (`"seats": true`), `"seconds"` gives it a time limit from its first ballot,
+and `closeVote` ends one early. The format is in [the rules format](../rules-schema.md#votes).
 
 **Nights: eyes closed, voices low.** A phase with `"awake": "team:wolves"` (or `role:seer`, `nobody`, a seat, a list)
 keeps everyone else asleep: their screen goes dark with the phase's `sleepText`, they cannot act, and they neither see

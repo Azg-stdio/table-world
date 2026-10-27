@@ -486,6 +486,7 @@ namespace TableWorld.View.Hud
             {
                 _nextGameRefresh = Time.unscaledTime + 0.25f;
                 RefreshSleep();
+                TickVotes();
                 RefreshGame();
                 _gameUi.Refresh();
             }
@@ -594,9 +595,43 @@ namespace TableWorld.View.Hud
                 var line = action.Vote.Private ? $"{action.Name ?? Names.Humanize(action.Id)}: voted" : $"{action.Name ?? Names.Humanize(action.Id)}: {cast.Count} of {voters} voted";
                 if (cast.FirstOrDefault(s => s.Seat == _table.LocalSeat) is { } mine && mine.Params.TryGetValue(GameEngine.VoteParam, out var choice))
                     line += $" (you: {game.OptionLabel(action.Id, GameEngine.VoteParam, choice)})";
+                if (_voteLeft.TryGetValue(action.Id, out var left))
+                    line += $" · {left} s left";
                 lines.Add(line);
             }
             return lines;
+        }
+
+        /// <summary>When each vote with a time limit got its first ballot here (unscaled seconds), and its whole seconds left.</summary>
+        private readonly Dictionary<string, float> _voteOpened = new Dictionary<string, float>();
+        private readonly Dictionary<string, int> _voteLeft = new Dictionary<string, int>();
+        private readonly HashSet<string> _voteClosing = new HashSet<string>();
+
+        /// <summary>
+        /// Votes with a time limit (<c>vote.seconds</c>): the clock starts at the first ballot this machine sees. The host
+        /// (or a table played alone) closes the vote when it runs out; everyone else only shows the time left.
+        /// </summary>
+        private void TickVotes()
+        {
+            var game = _table.Game;
+            var session = game?.Session;
+            foreach (var action in game?.State.Actions.Where(a => a.Vote?.Seconds != null) ?? Enumerable.Empty<ActionDef>())
+            {
+                var open = session is { Started: true, Over: false } && session.Secrets.Any(s => s.Action == action.Id);
+                if (!open)
+                {
+                    _voteOpened.Remove(action.Id);
+                    _voteLeft.Remove(action.Id);
+                    _voteClosing.Remove(action.Id);
+                    continue;
+                }
+                if (!_voteOpened.TryGetValue(action.Id, out var opened))
+                    _voteOpened[action.Id] = opened = Time.unscaledTime;
+                var left = Mathf.Max(0, Mathf.CeilToInt(action.Vote.Seconds.Value - (Time.unscaledTime - opened)));
+                _voteLeft[action.Id] = left;
+                if (left == 0 && _table.HostsTable && _voteClosing.Add(action.Id))
+                    _table.Execute(new CloseVoteCommand { Action = action.Id });
+            }
         }
 
         /// <summary>What the role line shows changes with: this seat's role and how many seats it knows about.</summary>
@@ -768,7 +803,7 @@ namespace TableWorld.View.Hud
             var turns = state.FreeTurns;
             var key = $"{state.HasRules}|{session?.Turn}|{session?.Phase}|{session?.CurrentSeat}|{session?.Over}|{session?.Log.Count}|" +
                       $"{turns?.Current}|{turns?.Count}|{turns?.Reverse}|{_table.LocalSeat}|{string.Join(",", SeatedSeats())}|" +
-                      $"{RoleKey(session)}|{string.Join(",", _optionalRoles)}|{session?.Secrets.Count}|" +
+                      $"{RoleKey(session)}|{string.Join(",", _optionalRoles)}|{session?.Secrets.Count}|{string.Join(",", _voteLeft.Values)}|" +
                       string.Join(",", legal.Select(l => $"{l.Seat}/{l.Action.ActionId}/{l.Action.Choices.Count}"));
             if (key == _shownGameKey)
                 return;

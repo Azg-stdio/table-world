@@ -59,5 +59,4 @@ that player receives. Wink Murder does it that way.
   free-play table (an imported TTS game) every machine holds everything and the game only hides it, as in TTS.
 - Whoever searches a face-down deck sees its cards, and the others see that they searched. What is inside a bag is not
   secret.
-- A vote has no timer of its own; a rule can close it with `closeVote`.
 - Voice channels are tested on one machine; the playtest with friends checks them over the internet.

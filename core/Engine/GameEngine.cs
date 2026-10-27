@@ -49,6 +49,17 @@ namespace Core.Engine
                     return Transaction(() => StartGame(start));
                 case GestureCommand gesture:
                     return Gesture(gesture);
+                case CloseVoteCommand close:
+                    return Transaction(() =>
+                    {
+                        var session = RequireRunning();
+                        // Already counted (the last voter beat the clock): nothing to close.
+                        if (session.Secrets.All(s => s.Action != close.Action))
+                            return;
+                        CloseVote(close.Action);
+                        AdvanceLoop();
+                        CheckWins(WinCheck.AnyCommand);
+                    });
                 case PerformActionCommand perform:
                     if (_inRules)
                         return CommandResult.Fail("", ErrorCodes.ScriptFailed, "A rules action cannot start another one from inside its own Lua.",

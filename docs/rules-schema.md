@@ -239,7 +239,9 @@ the votes are counted, the count is logged, and `onResult` runs.
 - A vote has no `secret` and no `effects`: it is secret by itself, and what follows goes in `onResult`.
 - `$vote.result`, `$vote.total`, `$vote.<option>` (how many chose it), `$vote.of.<seat>` (named votes only) read the
   vote counted last; `$vote.<action>.result` and so on read a given one.
-- `closeVote { action }` counts a vote now with the votes cast so far (a timer, the host calling it).
+- `closeVote { action }` counts a vote now with the votes cast so far (a rule calling it).
+- `"seconds": 30` closes the vote that long after its first ballot, counting what was cast; everyone reads the time
+  left, and the host's game window keeps the clock.
 - `"private": true` keeps a vote among its voters (the wolves choosing a victim): "voted" and the count are told to
   them alone, and no other machine learns that a ballot was cast.
 

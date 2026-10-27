@@ -123,6 +123,8 @@ namespace Core.Rules
                     if (vote.Otherwise != null && !vote.Seats && !vote.Options.Contains(vote.Otherwise) && vote.Otherwise != "tie")
                         Add($"{path}.vote.otherwise", ErrorCodes.InvalidValue, $"'{vote.Otherwise}' is not one of the vote's options.",
                             Suggest.OneOf(vote.Otherwise, vote.Options.Append("tie"), "an option or tie"));
+                    if (vote.Seconds is < 1)
+                        Add($"{path}.vote.seconds", ErrorCodes.InvalidValue, "A vote's time is at least 1 second.");
                     if (action.Secret || action.Effects.Count > 0)
                         Add($"{path}.vote", ErrorCodes.InvalidValue, "A vote is secret by itself and runs its onResult once counted.",
                             "Drop secret, and move the effects to vote.onResult.");
