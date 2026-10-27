@@ -192,6 +192,7 @@ namespace Core.Rules
                         Add($"drawings[{i}].id", ErrorCodes.DuplicateId, $"Two drawings are called '{_state.Drawings[i].Id}'.");
                 }
                 RulesValidator.Validate(_state, Errors);
+                Errors.AddRange(Core.Text.Translations.Validate(_state));
             }
 
             private void CollectIds()

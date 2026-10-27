@@ -33,6 +33,12 @@ namespace Core.Rules
         /// </summary>
         public string? Url { get; set; }
 
+        /// <summary>
+        /// The file to use in another language (ADR 0011): images with words in them, e.g. <c>{ "en": "cards_en.png" }</c>.
+        /// <see cref="Path"/> is the game's own language and the fallback.
+        /// </summary>
+        public Dictionary<string, string> Localized { get; set; } = new Dictionary<string, string>();
+
         public static bool IsWebAddress(string? url) =>
             url != null && System.Uri.TryCreate(url, System.UriKind.Absolute, out var uri) && (uri.Scheme == System.Uri.UriSchemeHttp || uri.Scheme == System.Uri.UriSchemeHttps);
 
@@ -192,6 +198,14 @@ namespace Core.Rules
 
         /// <summary>Hidden roles dealt at the start (ADR 0012).</summary>
         public RolesDef? Roles { get; set; }
+
+        /// <summary>
+        /// The game in other languages (ADR 0011): language → path key → text, e.g.
+        /// <c>{ "en": { "actions.elegir.name": "Choose a space", "strings.noche": "It is night." } }</c>. Path keys name the
+        /// text they replace (<see cref="Core.Text.Translations.Texts"/>); <c>strings.&lt;key&gt;</c> is the game's own free
+        /// text, read where a text says <c>@key</c>, and the game's own language holds those too.
+        /// </summary>
+        public Dictionary<string, Dictionary<string, string>> Translations { get; set; } = new Dictionary<string, Dictionary<string, string>>();
 
         /// <summary>Progress of a game in play. Written by the engine.</summary>
         public Session? Session { get; set; }

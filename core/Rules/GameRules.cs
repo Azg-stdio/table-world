@@ -19,6 +19,13 @@ namespace Core.Rules
         /// braces are filled in; a missing key keeps the English line.
         /// </summary>
         public Dictionary<string, string>? Messages { get; set; }
+        /// <summary>
+        /// The language the game is written in (ADR 0011), e.g. <c>es</c>: its texts as they stand are in it, and
+        /// <see cref="TableState.Translations"/> carries the others. Null: a game in one language.
+        /// </summary>
+        public string? Language { get; set; }
+        /// <summary>The languages the game can be played in, its own first; empty means its own plus every translation.</summary>
+        public List<string> Languages { get; set; } = new List<string>();
         [System.ComponentModel.DefaultValue(1)]
         public int MinPlayers { get; set; } = 1;
         public int MaxPlayers { get; set; } = 8;

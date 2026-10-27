@@ -41,6 +41,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `globalScriptState` | string |  |
 | `scripts` | map of string |  |
 | `roles` | [RolesDef](#rolesdef) |  |
+| `translations` | map of map of string |  |
 | `session` | [Session](#session) |  |
 
 ### Asset
@@ -55,6 +56,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `rows` | integer |  |
 | `meshScale` | number |  |
 | `url` | string |  |
+| `localized` | map of string |  |
 
 ### TableObject
 
@@ -1217,6 +1219,8 @@ object or object or object or object or object or object or object or object or 
 | `name` | string |  |
 | `description` | string |  |
 | `messages` | map of string |  |
+| `language` | string |  |
+| `languages` | array of string |  |
 | `minPlayers` | integer |  |
 | `maxPlayers` | integer |  |
 

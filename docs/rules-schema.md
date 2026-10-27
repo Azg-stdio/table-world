@@ -29,6 +29,7 @@ Status: **v0, implemented by `core/`** (table model T2.1, commands T2.2, rules f
   "ui":       { "panels": [ /* Panel */ ] },
   "scripts":  { "global": "-- optional Lua (M5)" },
   "roles":    { /* hidden roles, dealt at the start (see Roles) */ },
+  "translations": { /* the game in other languages (see Languages) */ },
   "session":  { /* written by the engine once a game starts */ }
 }
 ```
@@ -391,7 +392,7 @@ starts, and who knows whom:
 
 ## Session (written by the engine)
 
-`StartGameCommand` adds a `session` object: `started`, `over`, `winner`, `turn`, `currentSeat`, `phase`, `acted`, `actionCounts`, `variables`, `resources`, `log` (last 50 messages), `secrets` (secret choices waiting for a reveal), `roles`, `traits`, `teams` and `knows` (see Roles) and `randomState`. It is saved with the table, so a saved game resumes exactly, including the shuffle sequence. An authored game file has no session.
+`StartGameCommand` adds a `session` object: `language` (what players read, see Languages; English when unset), `started`, `over`, `winner`, `turn`, `currentSeat`, `phase`, `acted`, `actionCounts`, `variables`, `resources`, `log` (last 50 messages), `secrets` (secret choices waiting for a reveal), `roles`, `traits`, `teams` and `knows` (see Roles) and `randomState`. It is saved with the table, so a saved game resumes exactly, including the shuffle sequence. An authored game file has no session.
 
 ## UI
 
@@ -408,6 +409,34 @@ starts, and who knows whom:
 ```
 
 Panels are rendered with UI Toolkit (T4.6) on top of the table. `anchor`: `topLeft`, `top`, `topRight`, `left`, `center`, `right`, `bottomLeft`, `bottom`, `bottomRight`. `visibleTo`: seat ids (empty: everyone). Texts are templates: `{$reference}` is replaced by its value as the viewing seat sees it; `$viewer` is that seat. A `counter` shows `text` and the value of its `value` reference. A `button` performs `action` as `seat` (default `$viewer`) with `params`, and is disabled when that action is not legal right now. The validator checks button actions, references in texts and values, and image assets.
+
+## Languages
+
+A game is written in one language and can carry others (ADR 0011). `game.language` says which one it is written in;
+`game.languages` lists those it can be played in, its own first (empty: its own plus every translation); `translations`
+holds the others, language → path key → text:
+
+```jsonc
+"game": { "id": "tornaris", "name": "Tornaris", "language": "es", "languages": ["es", "en"] },
+"translations": {
+  "es": { "strings.noche": "Es de noche." },
+  "en": { "objects.ficha.name": "Nyra's token", "params.elegir.casilla.mazmorra": "Dungeon", "strings.noche": "It is night." }
+}
+```
+
+Path keys name the text they replace: `game.name`, `game.description`, `objects.<id>.name`, `.description`, a text
+card's `objects.<id>.text.<title|kind|body|footer|corner>`, deck cards `cards.<id>...` the same way, `seats.<id>.name`,
+`resources.<id>.name`, `actions.<id>.name`, choice options `params.<action>.<param>.<option>` (the label, else the
+option), vote options `votes.<action>.<option>`, `phases.<id>.name`, `.sleepText`, panels `ui.<panel>.title` and
+`ui.<panel>.<index>.text`, `messages.<key>`, `notebook.<tab>.title`, `.body`, `teams.<id>.name`, `roles.<id>.name`,
+`.description`. `strings.<key>` is the game's own free text: a text that is exactly `@key` reads it (`@@` writes a
+literal `@`); the game's own language holds its strings too. An image asset can name a file per language with
+`"localized": { "en": "cards_en.png" }`; `path` is the fallback.
+
+What players read is the session's language when the game has it, else the game's own; a text a translation lacks reads
+as written. Validation: translations without `game.language`, a language the game does not list, a key that names no
+text, the game's own language holding anything but strings, an `@key` with no string, are errors. Texts a language
+lacks are not errors: `Translations.Missing` lists them, so an unfinished translation still plays.
 
 ## Validation errors (format for an LLM reader)
 
