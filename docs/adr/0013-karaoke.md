@@ -112,7 +112,11 @@ karaoke night. Miguel decided:
   "karaoke") in a second browser, open only while the search panel is. It is the one exception to "only our page": it
   may show YouTube's results and its cookie consent pages, nothing else. A click on a video is caught on the page and
   never opens it: the video goes through the same oEmbed check as a pasted link and joins the queue; a video page
-  reached any other way counts as that pick and the browser goes back to the results; any other page (a channel,
+  reached any other way counts as that pick and the browser goes back to the results; every result is checked with
+  oEmbed as it appears (answers remembered for the session, four questions at a time) and those whose owner blocks
+  playing outside YouTube, or that are gone, are hidden from the page, the panel saying how many (Miguel, 2026-10-27:
+  many karaoke uploads, Sing King's among them, block it). Ads are left as YouTube shows them (hiding them would be ad
+  blocking); any other page (a channel,
   sign-in, another site) is refused back to the results; ads open in a new window, which is ignored. It is muted (a
   hovered result plays a preview). Rejected: YouTube's Data API (needs a key that would ship inside the game, with a
   shared quota of about 100 searches a day) and unofficial search (scraping, mirrors such as Invidious: against

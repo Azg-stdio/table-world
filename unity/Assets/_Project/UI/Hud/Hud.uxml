@@ -207,7 +207,7 @@
                     <ui:Button name="songSearchGo" class="hud-button" text="Search" />
                     <ui:Button name="songSearchClose" class="hud-button" text="Close" />
                 </ui:VisualElement>
-                <ui:Label class="song-search__hint" text="Click a video to add it to the queue. Scroll with the mouse wheel." />
+                <ui:Label name="songSearchHint" class="song-search__hint" text="Click a video to add it to the queue. Scroll with the mouse wheel." />
                 <ui:Label name="songSearchStatus" class="song-search__status" />
                 <ui:Image name="songSearchView" class="song-search__view" />
             </ui:VisualElement>

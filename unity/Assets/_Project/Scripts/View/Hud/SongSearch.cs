@@ -9,8 +9,9 @@ namespace TableWorld.View.Hud
     /// The karaoke room's song search (T12.15): Search on the screen bar opens YouTube's own results in a panel
     /// (<see cref="SearchBrowser"/>, a second Chromium that runs only while the panel is open). The mouse and wheel go to
     /// the page; clicking a video adds it to the queue (as Add to queue does, title and embedding checked) and closes the
-    /// panel. A video whose owner does not allow playing it elsewhere is refused with the panel still open, to choose
-    /// another. Escape or Close closes it.
+    /// panel. Every result is checked the same way as it appears, and those whose owner does not allow playing them outside
+    /// YouTube (or that are gone) are hidden; one clicked before its check is refused with the panel still open. Escape or
+    /// Close closes it.
     /// </summary>
     public sealed class SongSearch
     {
@@ -21,6 +22,11 @@ namespace TableWorld.View.Hud
         private readonly TextField _query;
         private readonly Image _view;
         private readonly Label _status;
+        private readonly Label _hint;
+        /// <summary>Results of this search hidden because they cannot play here.</summary>
+        private readonly System.Collections.Generic.HashSet<string> _hidden = new();
+        private readonly System.Collections.Generic.List<string> _toBlock = new();
+        private string _hintShown;
         private readonly ScreenBar _bar;
         private SearchBrowser _browser;
         private string _picked;
@@ -34,6 +40,7 @@ namespace TableWorld.View.Hud
             _query.textEdition.hidePlaceholderOnFocus = true;
             _view = root.Q<Image>("songSearchView");
             _status = root.Q<Label>("songSearchStatus");
+            _hint = root.Q<Label>("songSearchHint");
             // The engine sends its frames upside down.
             _view.uv = new Rect(0f, 1f, 1f, -1f);
             _view.scaleMode = ScaleMode.StretchToFill;
@@ -80,11 +87,13 @@ namespace TableWorld.View.Hud
             _panel.RemoveFromClassList("hidden");
             _picked = null;
             _status.text = "";
+            _hidden.Clear();
             var search = (query ?? "").Trim() + Suffix;
             if (_browser == null)
             {
                 _browser = SearchBrowser.Create(null, search.Trim());
                 _browser.Picked += OnPicked;
+                _browser.Found += OnFound;
             }
             else
                 _browser.Search(search.Trim());
@@ -97,7 +106,10 @@ namespace TableWorld.View.Hud
             if (_browser == null)
                 Open(query);
             else
+            {
+                _hidden.Clear();
                 _browser.Search(((query ?? "").Trim() + Suffix).Trim());
+            }
         }
 
         public void Close()
@@ -121,8 +133,42 @@ namespace TableWorld.View.Hud
             }
             if (_browser != null && _view.image != _browser.Texture)
                 _view.image = _browser.Texture;
+            if (_browser != null && _toBlock.Count > 0)
+            {
+                _browser.Block(_toBlock);
+                _toBlock.Clear();
+            }
+            ShowHint();
             if (Keyboard.current is { } keyboard && keyboard.escapeKey.wasPressedThisFrame)
                 Close();
+        }
+
+        /// <summary>The results show these videos: each is checked (answers are remembered), and those that cannot play here are hidden.</summary>
+        private void OnFound(string[] videoIds)
+        {
+            var browser = _browser;
+            foreach (var id in videoIds)
+                _bar.Videos.Ask(id, (answer, _) =>
+                {
+                    if (browser != _browser || (answer != VideoCheck.Answer.Blocked && answer != VideoCheck.Answer.Gone))
+                        return;
+                    if (_hidden.Add(id))
+                        _toBlock.Add(id);
+                });
+        }
+
+        /// <summary>How to choose, and how many results were hidden.</summary>
+        private void ShowHint()
+        {
+            var text = Ui.T("Click a video to add it to the queue. Scroll with the mouse wheel.");
+            if (_hidden.Count == 1)
+                text += " " + Ui.T("1 video that cannot play here is hidden.");
+            else if (_hidden.Count > 1)
+                text += " " + Ui.T("{count} videos that cannot play here are hidden.", ("count", _hidden.Count));
+            if (text == _hintShown)
+                return;
+            _hintShown = text;
+            _hint.text = text;
         }
 
         private void OnPicked(string videoId)

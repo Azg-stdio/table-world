@@ -57,6 +57,9 @@ namespace TableWorld.View.Hud
             });
         }
 
+        /// <summary>What YouTube said about videos this session (titles, which cannot play here): Add to queue and the song search share it.</summary>
+        public VideoCheck Videos { get; } = new VideoCheck();
+
         /// <summary>This machine's player (null while the screen is off).</summary>
         public BrowserScreen Screen => _screen != null ? _screen : null;
 
@@ -132,32 +135,18 @@ namespace TableWorld.View.Hud
             }
             _link.SetValueWithoutNotify("");
             Tell(Ui.T("Checking the video…"));
-            var address = "https://www.youtube.com/oembed?format=json&url=" + System.Uri.EscapeDataString("https://www.youtube.com/watch?v=" + id);
-            var request = UnityEngine.Networking.UnityWebRequest.Get(address);
-            request.timeout = 10;
-            request.SendWebRequest().completed += _ =>
+            Videos.Ask(id, (answer, title) =>
             {
-                var code = request.responseCode;
-                string title = null;
-                if (request.result == UnityEngine.Networking.UnityWebRequest.Result.Success)
-                    try
-                    {
-                        title = (string)Newtonsoft.Json.Linq.JObject.Parse(request.downloadHandler.text)["title"];
-                    }
-                    catch (Newtonsoft.Json.JsonException)
-                    {
-                    }
-                request.Dispose();
                 string refused = null;
-                if (code == 401 || code == 403)
+                if (answer == VideoCheck.Answer.Blocked)
                     refused = ErrorText(150);
-                else if (code == 404 || code == 400)
+                else if (answer == VideoCheck.Answer.Gone)
                     refused = ErrorText(100);
                 else if (_table.Execute(new QueueSongCommand { VideoId = id, Title = title }) is { Ok: false } result)
                     refused = Ui.Refusal(result.Error);
                 Tell(refused ?? Ui.T("Queued: {song}", ("song", title ?? id)));
                 done?.Invoke(refused);
-            };
+            });
             return true;
         }
 

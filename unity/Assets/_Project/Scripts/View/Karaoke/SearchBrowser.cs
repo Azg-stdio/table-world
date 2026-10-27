@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 using VoltstroStudios.UnityWebBrowser.Core;
 using VoltstroStudios.UnityWebBrowser.Shared.Events;
@@ -14,20 +15,41 @@ namespace TableWorld.View.Karaoke
     public sealed class SearchBrowser : BaseUwbClientManager
     {
         /// <summary>
-        /// Run on every page the search loads: a click on a link to a video is caught before YouTube's own handler, and
-        /// reported through the page's title (the channel <see cref="BrowserScreen"/> uses too).
+        /// Run on every page the search loads, reporting through the page's title (the channel <see cref="BrowserScreen"/>
+        /// uses too): a click on a link to a video is caught before YouTube's own handler (<c>twpick|n|link</c>); every
+        /// video the results show is reported once (<c>twids|n|id,id,…</c>, a few at a time); <c>twBlock([ids])</c>
+        /// hides the results of those videos, and keeps them hidden as YouTube redraws its list.
         /// </summary>
-        private const string PickerJs =
-            "if(!window.__twPick){window.__twPick=1;var n=0;document.addEventListener('click',function(e){" +
+        private static readonly string PageJs =
+            "if(!window.__tw){window.__tw=1;var n=0,seen={},blocked={};" +
+            "var vid=function(h){try{var u=new URL(h,location.href);if(u.pathname=='/watch')return u.searchParams.get('v');" +
+            "var m=u.pathname.match(/^\\/shorts\\/([\\w-]{11})/);return m?m[1]:null;}catch(e){return null;}};" +
+            "var box=function(a){return a.closest('ytd-video-renderer,ytd-rich-item-renderer,ytd-reel-item-renderer,ytd-radio-renderer," +
+            "ytd-playlist-renderer,yt-lockup-view-model,ytm-shorts-lockup-view-model-v2,ytm-shorts-lockup-view-model,ytd-compact-video-renderer');};" +
+            "var scan=function(){var fresh=[],done=new Set();" +
+            "document.querySelectorAll('a[href*=\"/watch?v=\"],a[href*=\"/shorts/\"]').forEach(function(a){var i=vid(a.href);if(!i)return;" +
+            "var b=box(a);if(b&&!done.has(b)){done.add(b);if(blocked[i]){b.style.display='none';b.dataset.twHidden='1';}" +
+            "else if(b.dataset.twHidden){b.style.display='';delete b.dataset.twHidden;}}" +
+            "if(!seen[i]&&fresh.length<" + IdsPerReport + "){seen[i]=1;fresh.push(i);}});" +
+            "if(fresh.length)document.title='twids|'+(++n)+'|'+fresh.join(',');};" +
+            "window.twBlock=function(ids){ids.forEach(function(i){blocked[i]=1;});scan();};" +
+            "document.addEventListener('click',function(e){" +
             "var a=e.target&&e.target.closest?e.target.closest('a[href]'):null;if(!a)return;var h=a.href||'';" +
             "if(h.indexOf('/watch')<0&&h.indexOf('/shorts/')<0)return;" +
-            "e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();document.title='twpick|'+(++n)+'|'+h;},true);}";
+            "e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();document.title='twpick|'+(++n)+'|'+h;},true);" +
+            "setInterval(scan,500);}";
+
+        /// <summary>Videos reported in one go (the rest follow half a second later).</summary>
+        public const int IdsPerReport = 30;
 
         private string _search;
         private bool _muted;
 
         /// <summary>A video was chosen: its id.</summary>
         public event Action<string> Picked;
+
+        /// <summary>Videos the results show, each reported once a page.</summary>
+        public event Action<string[]> Found;
 
         /// <summary>The page's size in pixels.</summary>
         public Vector2Int Size { get; private set; }
@@ -116,13 +138,25 @@ namespace TableWorld.View.Karaoke
                 browserClient.SendMouseScroll(Pixel(at), amount);
         }
 
+        /// <summary>Hides the results of these videos (they cannot play here).</summary>
+        public void Block(System.Collections.Generic.IEnumerable<string> videoIds)
+        {
+            var ids = string.Join(",", System.Linq.Enumerable.Select(videoIds, id => "'" + id + "'"));
+            if (Ready && ids.Length > 0)
+                browserClient.ExecuteJs("window.twBlock&&twBlock([" + ids + "])");
+        }
+
+        /// <summary>The shape of a YouTube video id (what the page reports goes back into its script).</summary>
+        private static bool IsVideoId(string id) =>
+            id.Length == 11 && id.All(c => (char.IsLetterOrDigit(c) && c < 128) || c == '-' || c == '_');
+
         private Vector2 Pixel(Vector2 at) =>
             new Vector2(Mathf.Clamp01(at.x) * Size.x, Mathf.Clamp01(at.y) * Size.y);
 
         protected override void OnStart()
         {
             browserClient.OnUrlChanged += OnUrlChanged;
-            browserClient.OnLoadFinish += _ => browserClient.ExecuteJs(PickerJs);
+            browserClient.OnLoadFinish += _ => browserClient.ExecuteJs(PageJs);
             browserClient.OnTitleChange += OnTitle;
         }
 
@@ -133,16 +167,18 @@ namespace TableWorld.View.Karaoke
                 return;
             _muted = true;
             browserClient.AudioMute(true);
-            browserClient.ExecuteJs(PickerJs);
+            browserClient.ExecuteJs(PageJs);
         }
 
         private void OnTitle(string title)
         {
-            if (!title.StartsWith("twpick|", StringComparison.Ordinal))
-                return;
             var parts = title.Split(new[] { '|' }, 3);
-            if (parts.Length == 3 && Judge(parts[2], out var id) == Verdict.Pick)
+            if (parts.Length != 3)
+                return;
+            if (parts[0] == "twpick" && Judge(parts[2], out var id) == Verdict.Pick)
                 Picked?.Invoke(id);
+            else if (parts[0] == "twids")
+                Found?.Invoke(System.Array.FindAll(parts[2].Split(','), IsVideoId));
         }
 
         /// <summary>A video page is a pick; a page that is not the search goes back to it.</summary>
