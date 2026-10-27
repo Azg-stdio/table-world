@@ -590,7 +590,8 @@ namespace TableWorld.View.Hud
                 if (cast.Count == 0)
                     continue;
                 var voters = game.VotersOf(action).Count;
-                var line = $"{action.Name ?? Names.Humanize(action.Id)}: {cast.Count} of {voters} voted";
+                // A private vote shows nobody how many have voted (this machine only ever sees its own ballot).
+                var line = action.Vote.Private ? $"{action.Name ?? Names.Humanize(action.Id)}: voted" : $"{action.Name ?? Names.Humanize(action.Id)}: {cast.Count} of {voters} voted";
                 if (cast.FirstOrDefault(s => s.Seat == _table.LocalSeat) is { } mine && mine.Params.TryGetValue(GameEngine.VoteParam, out var choice))
                     line += $" (you: {game.OptionLabel(action.Id, GameEngine.VoteParam, choice)})";
                 lines.Add(line);

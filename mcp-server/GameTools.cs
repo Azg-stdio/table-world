@@ -373,14 +373,23 @@ namespace TableWorld.Mcp
         public static string DefineZone(GameSession session, [Description("The zone as JSON.")] string zoneJson) =>
             session.Locked(() => Reply(session.Edit(doc => Upsert(doc, "zones", GameSession.ParseObject(zoneJson, "zoneJson"))), session));
 
-        [McpServerTool(Name = "set_variables"), Description("Declare game variables with their initial values, as a JSON object, e.g. {\"round\":0,\"trump\":\"\"}. Merges with existing variables.")]
-        public static string SetVariables(GameSession session, [Description("JSON object name → initial value.")] string variablesJson) =>
+        [McpServerTool(Name = "set_variables"), Description("Declare game variables with their initial values, as a JSON object, e.g. {\"round\":0,\"trump\":\"\"}. Merges with existing variables. secret lists variables only the host's rules read (a hidden victim, a shuffled order): players' machines never receive them.")]
+        public static string SetVariables(GameSession session, [Description("JSON object name → initial value.")] string variablesJson,
+            [Description("Comma-separated variable names kept secret on the host (hidden roles' games), e.g. 'victim,saved'.")] string? secret = null) =>
             session.Locked(() => Reply(session.Edit(doc =>
             {
                 var vars = doc["variables"] as JObject ?? new JObject();
                 foreach (var p in GameSession.ParseObject(variablesJson, "variablesJson").Properties())
                     vars[p.Name] = p.Value;
                 doc["variables"] = vars;
+                var names = (secret ?? "").Split(',').Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
+                if (names.Count > 0)
+                {
+                    var list = doc["secretVariables"] as JArray ?? new JArray();
+                    foreach (var name in names.Where(n => list.All(t => (string?)t != n)))
+                        list.Add(name);
+                    doc["secretVariables"] = list;
+                }
             }), session));
 
         [McpServerTool(Name = "add_resource"), Description("Add a per-player resource such as score or coins: {\"id\":\"score\",\"name\":\"Score\",\"initial\":0,\"min\":0}.")]

@@ -240,6 +240,14 @@ the votes are counted, the count is logged, and `onResult` runs.
 - `$vote.result`, `$vote.total`, `$vote.<option>` (how many chose it), `$vote.of.<seat>` (named votes only) read the
   vote counted last; `$vote.<action>.result` and so on read a given one.
 - `closeVote { action }` counts a vote now with the votes cast so far (a timer, the host calling it).
+- `"private": true` keeps a vote among its voters (the wolves choosing a victim): "voted" and the count are told to
+  them alone, and no other machine learns that a ballot was cast.
+
+### Secret variables
+
+`"secretVariables": [ "victim", "saved" ]` lists variables only the host's rules read: their values never reach the
+players' machines (the wolves' victim stays hidden until dawn), and a command that reads or sets one runs on the host.
+`set_variables` takes them as `secret`.
 
 ## References
 
@@ -255,7 +263,7 @@ Fields that name a thing accept a plain id (object, zone, or a card inside a dec
 | `$seat.<id>`, `$obj.<id>` | a seat; an object, zone or deck by id |
 | `$param.<name>`, `$var.<name>` | an action parameter; a variable's current value |
 
-Lists (a variable holding `[...]`) have `.count` and items by position (`$var.team.0`). Properties: on a seat `.role` and `.team` (its hidden role and team, where this machine knows them; see Roles), `.hand` (its HandZone), `.<tag>` (the object or zone tagged `<tag>:<seatId>`, e.g. `$actor.deck` → tag `deck:seat_1`), `.id`, `.color`, `.res.<resource>`. On decks `.top`, `.bottom`, `.count`; on zones `.top`/`.bottom` (highest/lowest object in the zone), `.count`; on cards and objects `.meta.<key>`, `.name`, `.id`, `.faceUp`, `.value` (die). A reference to something that does not exist right now (the top of an empty deck) is null: comparisons with null are false except `!=`.
+Lists (a variable holding `[...]`) have `.count` and items by position (`$var.team.0`). A seat id held in a variable or a vote result is followed like the seat (`$var.victim.team`, `$vote.result.name`). `$alive.count`, `$alive.team.<id>`, `$alive.role.<id>` count the seats still in the game; a seat's `.out` is true once eliminated. Properties: on a seat `.role` and `.team` (its hidden role and team, where this machine knows them; see Roles), `.hand` (its HandZone), `.<tag>` (the object or zone tagged `<tag>:<seatId>`, e.g. `$actor.deck` → tag `deck:seat_1`), `.id`, `.color`, `.res.<resource>`. On decks `.top`, `.bottom`, `.count`; on zones `.top`/`.bottom` (highest/lowest object in the zone), `.count`; on cards and objects `.meta.<key>`, `.name`, `.id`, `.faceUp`, `.value` (die). A reference to something that does not exist right now (the top of an empty deck) is null: comparisons with null are false except `!=`.
 
 ## Effects (v0)
 
@@ -276,6 +284,7 @@ Each effect is a single-key object, e.g. `{ "shuffle": { "object": "deck_main" }
 | `endTurn` / `endPhase` | `{}` — take effect after the current effect list |
 | `gotoPhase` | `phase` |
 | `win` | `player`, or `team` (hidden roles: every seat of that team wins; the log names them) |
+| `eliminate` | `seat`, `revealRole` (show its role to all): the seat is out — no actions or votes, asleep at night, not heard, skipped by turns and seat choices |
 | `revealRole` | `seat`; `to` (a seat, `team:<id>`, `role:<id>`; every seat when left out or `all`); `teamOnly` (show only the team); `set` (show a trait of an extra role set) |
 | `setRole` | `seat`, `role` (an id or a reference), `set`, `tell` (let the player know); the new role brings its team |
 | `swapRoles` | `a`, `b`, `set`, `tell`; each seat's team goes with its role |
@@ -323,6 +332,9 @@ v0 events: `onGameStart`, `onTurnStart`, `onTurnEnd`. Zone and physical events (
 ```
 
 `when` is checked once per seat with `$player` bound to it; the first that holds ends the game with `winner` (a reference or seat id). `checkAfter`: `anyCommand` (after every action, and after physical commands while a game runs) or `turnEnd`. A `win` effect ends the game directly.
+
+With hidden roles a win condition can name a team instead of a winner: `{ "when": { "compare": { "left":
+"$alive.team.wolves", "right": 0 } }, "team": "village", "checkAfter": "anyCommand" }` is checked once, not per seat.
 
 ## Roles
 

@@ -25,6 +25,8 @@ namespace Core.Engine
         /// </summary>
         public bool IsAwake(string seat, string? viewer = null)
         {
+            if (IsOut(seat) && Session is { Started: true, Over: false })
+                return false;
             if (!EyesClosedPhase)
                 return true;
             var awake = CurrentPhase()!.Awake!;
@@ -61,6 +63,9 @@ namespace Core.Engine
         {
             if (listener == null || speaker == listener || !(Session is { Started: true, Over: false }))
                 return true;
+            // The eliminated are silent at the table.
+            if (speaker != null && IsOut(speaker))
+                return false;
             var phase = CurrentPhase();
             var voice = phase?.Voice ?? (phase?.Awake != null ? PhaseVoice.Awake : PhaseVoice.All);
             switch (voice)
@@ -106,6 +111,38 @@ namespace Core.Engine
             });
             result.ReadsSecrets = true;
             return result;
+        }
+
+        /// <summary>True once <paramref name="seat"/> is out of the game (<c>eliminate</c>).</summary>
+        public bool IsOut(string seat) => Session != null && Session.Eliminated.Contains(seat);
+
+        /// <summary>Puts a seat out of the game; with <paramref name="reveal"/> its role is shown to all.</summary>
+        private void Eliminate(string seat, bool reveal)
+        {
+            var session = Session!;
+            if (session.Eliminated.Contains(seat))
+                return;
+            session.Eliminated.Add(seat);
+            Log(Names.Message(State, "eliminated", "{seat} is out.", ("seat", Names.Seat(State, seat))));
+            if (reveal && RoleOf(seat) != null)
+                RevealRole(seat, null, teamOnly: false);
+        }
+
+        /// <summary><c>$alive.count</c>, <c>$alive.team.&lt;id&gt;</c>, <c>$alive.role.&lt;id&gt;</c>: seats still in the game.</summary>
+        private object? AliveReference(string[] parts)
+        {
+            var alive = Playing.Where(s => !IsOut(s.Id)).Select(s => s.Id).ToList();
+            if (parts.Length < 2 || parts[1] == "count")
+                return new JValue(alive.Count);
+            if (parts.Length < 3)
+                return null;
+            _secretsRead = true;
+            return parts[1] switch
+            {
+                "team" => new JValue(alive.Count(s => TeamOf(s) == parts[2])),
+                "role" => new JValue(alive.Count(s => RoleOf(s) == parts[2])),
+                _ => null,
+            };
         }
 
         private string? KnownTeam(string seat, string? viewer)

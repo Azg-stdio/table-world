@@ -177,6 +177,16 @@ namespace Core.Rules
         public bool Tell { get; set; }
     }
 
+    /// <summary>
+    /// Puts <see cref="Seat"/> out of the game (lynched, executed, eaten): it takes no more actions or votes, and turns
+    /// and seat choices pass it by. <see cref="RevealRole"/> shows its role to everyone.
+    /// </summary>
+    public sealed class EliminateEffect : Effect
+    {
+        public string Seat { get; set; } = "";
+        public bool RevealRole { get; set; }
+    }
+
     /// <summary>Counts a vote now with the votes cast so far (a timer ran out, the host calls it).</summary>
     public sealed class CloseVoteEffect : Effect
     {
@@ -259,6 +269,7 @@ namespace Core.Rules
             ["swapRoles"] = typeof(SwapRolesEffect),
             ["setTeam"] = typeof(SetTeamEffect),
             ["closeVote"] = typeof(CloseVoteEffect),
+            ["eliminate"] = typeof(EliminateEffect),
             ["lua"] = typeof(LuaEffect),
             ["refuse"] = typeof(RefuseEffect),
             ["blindRound"] = typeof(BlindRoundEffect),

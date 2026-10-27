@@ -194,6 +194,12 @@ keeps everyone else asleep: their screen goes dark with the phase's `sleepText`,
 nor hear the awake players. `"voice"` sets who hears whom: `all`, `awake` (the default at night), `team` (each team
 among itself, by day too) or `none`. The format is in [the rules format](../rules-schema.md#eyes-closed-and-voice).
 
+**Players out, secrets kept.** `{ "eliminate": { "seat": "$vote.result", "revealRole": true } }` puts a player out of the
+game (lynched, executed): no more actions or votes, skipped by turns. `$alive.team.wolves` counts who is left, so a win
+condition with `"team": "village"` can say "no wolf left". A vote with `"private": true` stays among its voters, and
+variables listed in `secretVariables` never reach the players' machines (the wolves' victim until dawn).
+`games/werewolf.json` uses all of it.
+
 **Gestures.** `events.onGesture` reacts to a player's wink (K) or emote aimed at the face they look at: `$param.gesture`
 and `$param.target` say which and at whom. Only the host and the two players involved know the target. See
 [the rules format](../rules-schema.md#gestures).

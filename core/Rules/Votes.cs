@@ -29,6 +29,12 @@ namespace Core.Rules
         public string? Otherwise { get; set; }
 
         public List<Effect> OnResult { get; set; } = new List<Effect>();
+
+        /// <summary>
+        /// Only the voters know about it (the wolves' choice of a victim at night): "voted" and the count are told to them
+        /// alone, never logged, and no other machine learns that anyone cast a ballot.
+        /// </summary>
+        public bool Private { get; set; }
     }
 
     /// <summary>

@@ -104,6 +104,11 @@ dedicated server. What matters is that no one sees a secret by accident or with 
   `team`; a vote's `who` taking a list. The quest table (size by player count and quest) went to Lua, the format's
   own escape hatch. A bug any game would have hit: Lua's `Game.getSeats()` and `getLegalActions()` returned their ids
   as object handles, so every entry was nil; they return plain strings now.
+- **What building Werewolf found (T11.14)**, fixed in general: players out of the game (`eliminate`, `$alive`
+  counts, `.out`; out seats cannot act or vote, sleep, are not heard, are passed by turns and seat choices); win
+  conditions by team; a seat id in a variable followed like the seat; private votes (the wolves' hunt left a public
+  "Red voted." and its ballots in the session, naming the wolves); secret variables (the victim sat in a public
+  variable until dawn). The protocol tests found both leaks before any player could.
 
 ### 3. Eyes-closed phases
 

@@ -295,11 +295,12 @@ Set the turn structure: order ('clockwise'/'counterclockwise'), startingPlayer (
 
 ### `set_variables`
 
-Declare game variables with their initial values, as a JSON object, e.g. {"round":0,"trump":""}. Merges with existing variables.
+Declare game variables with their initial values, as a JSON object, e.g. {"round":0,"trump":""}. Merges with existing variables. secret lists variables only the host's rules read (a hidden victim, a shuffled order): players' machines never receive them.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `variablesJson` | string | required | JSON object name → initial value. |
+| `secret` | string | none | Comma-separated variable names kept secret on the host (hidden roles' games), e.g. 'victim,saved'. |
 
 ### `set_win_condition`
 

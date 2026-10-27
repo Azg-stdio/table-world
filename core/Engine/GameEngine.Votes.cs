@@ -29,12 +29,12 @@ namespace Core.Engine
         /// <summary>The seats that vote in <paramref name="action"/>'s vote now, in seat order.</summary>
         public List<string> VotersOf(ActionDef action)
         {
-            var playing = Playing.Select(s => s.Id).ToList();
+            var playing = Playing.Select(s => s.Id).Where(s => !IsOut(s)).ToList();
             var who = action.Vote?.Who;
             if (who == null || who == "all")
                 return playing;
             if (who.StartsWith("team:") || who.StartsWith("role:"))
-                return Audience(who, "vote.who") ?? playing;
+                return (Audience(who, "vote.who") ?? playing).Where(playing.Contains).ToList();
             if (!References.IsReference(who))
                 return playing.Where(s => s == who).ToList();
             var named = Resolve(who, "vote.who") switch
@@ -57,7 +57,7 @@ namespace Core.Engine
             session.Secrets.RemoveAll(s => s.Seat == seat && s.Action == action.Id);
             session.Secrets.Add(new SecretChoice { Seat = seat, Action = action.Id, Params = new Dictionary<string, string>(choice) });
             if (!again)
-                Log(Names.Message(State, "voted", "{seat} voted.", ("seat", Names.Seat(State, seat))));
+                Say(action, Names.Message(State, "voted", "{seat} voted.", ("seat", Names.Seat(State, seat))));
             if (VotersOf(action).All(v => session.Secrets.Any(s => s.Seat == v && s.Action == action.Id)))
                 CountVote(action);
         }
@@ -101,14 +101,24 @@ namespace Core.Engine
             string Label(string option) => vote.Seats ? Names.Seat(State, option) : VoteLabel(vote, option);
             var name = action.Name ?? Names.Humanize(action.Id);
             if (vote.Reveal == VoteReveal.Named)
-                Log(Names.Message(State, "voteNamed", "{vote}: {votes}.", ("vote", name),
+                Say(action, Names.Message(State, "voteNamed", "{vote}: {votes}.", ("vote", name),
                     ("votes", string.Join(", ", Playing.Where(s => picks.ContainsKey(s.Id)).Select(s => $"{Names.Of(s)} {Label(picks[s.Id])}")))));
             else if (vote.Reveal == VoteReveal.Count)
-                Log(Names.Message(State, "voteCount", "{vote}: {counts}.", ("vote", name),
+                Say(action, Names.Message(State, "voteCount", "{vote}: {counts}.", ("vote", name),
                     ("counts", string.Join(", ", counts.Where(c => c.Value > 0 || !vote.Seats).Select(c => $"{c.Value} {Label(c.Key)}")))));
-            Log(Names.Message(State, "voteResult", "{vote}: {result}.", ("vote", name),
+            Say(action, Names.Message(State, "voteResult", "{vote}: {result}.", ("vote", name),
                 ("result", result == otherwise && !counts.ContainsKey(result) ? Names.Humanize(result) : Label(result))));
             RunEffects(vote.OnResult);
+        }
+
+        /// <summary>A vote's line: in the shared log, or for a private vote to its voters alone.</summary>
+        private void Say(ActionDef action, string line)
+        {
+            if (action.Vote is { Private: true })
+                foreach (var voter in VotersOf(action))
+                    Tell(voter, line);
+            else
+                Log(line);
         }
 
         private static string VoteLabel(VoteDef vote, string option) =>

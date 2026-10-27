@@ -1,0 +1,28 @@
+WEREWOLF (a common folk version, summarised for Table World's tests)
+
+Players: 6 to 12. A narrator runs it at a real table; in Table World the rules do, and the host may sit out as narrator.
+
+Teams and roles
+- Two teams: the Villagers and the Werewolves.
+- Werewolves: 2 with 6 to 8 players, 3 with 9 to 12.
+- One Seer among the villagers. The host may add a Doctor. Everyone else is a Villager.
+- The werewolves know each other. Nobody else knows anything.
+
+The night (everyone else's eyes closed)
+- 1. The werewolves wake and agree on one player to kill. Only they know whom they chose.
+- 2. The Seer wakes and looks at one player's card. The Seer learns only that player's side.
+- 3. The Doctor, if in the game, wakes and protects one player for the night. They may protect themselves.
+- A dead Seer or Doctor no longer wakes.
+
+Dawn
+- If the werewolves' victim was not protected, that player dies. Their card is shown to everyone.
+- Otherwise nobody died.
+
+The day
+- Everyone alive talks, then votes openly for a player to lynch.
+- The player with the most votes dies, and their card is shown. On a tie, nobody dies.
+- The dead no longer speak or vote.
+
+The end
+- The villagers win when every werewolf is dead.
+- The werewolves win when they are as many as the villagers left alive.

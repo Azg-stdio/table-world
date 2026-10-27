@@ -84,6 +84,12 @@
           "type": "object",
           "additionalProperties": {}
         },
+        "secretVariables": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "turn": {
           "$ref": "#/$defs/TurnDef"
         },
@@ -2740,6 +2746,18 @@
         {
           "type": "object",
           "properties": {
+            "eliminate": {
+              "$ref": "#/$defs/EliminateEffect"
+            }
+          },
+          "required": [
+            "eliminate"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
             "lua": {
               "$ref": "#/$defs/LuaEffect"
             }
@@ -3327,6 +3345,18 @@
       "properties": {
         "action": {
           "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EliminateEffect": {
+      "type": "object",
+      "properties": {
+        "seat": {
+          "type": "string"
+        },
+        "revealRole": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false
@@ -4372,6 +4402,9 @@
           "items": {
             "$ref": "#/$defs/Effect"
           }
+        },
+        "private": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false
@@ -4379,6 +4412,9 @@
     "WinCondition": {
       "type": "object",
       "properties": {
+        "team": {
+          "type": "string"
+        },
         "when": {
           "$ref": "#/$defs/Condition"
         },
@@ -4665,6 +4701,12 @@
           }
         },
         "log": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "eliminated": {
           "type": "array",
           "items": {
             "type": "string"

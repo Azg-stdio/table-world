@@ -273,6 +273,8 @@ namespace Core.Engine
             if (CurrentPhase() is not { } phase || !phase.Actions.Contains(action.Id))
                 return new RuleException("actionId", ErrorCodes.ActionNotAvailable, $"'{action.Id}' is not allowed in phase '{session.Phase}'.",
                     CurrentPhase() is { } p && p.Actions.Count > 0 ? $"Allowed now: {string.Join(", ", p.Actions)}." : null);
+            if (IsOut(seat))
+                return new RuleException("actor", ErrorCodes.NotPlaying, $"{Names.Seat(State, seat)} is out of the game.");
             if (!IsAwake(seat))
                 return new RuleException("actor", ErrorCodes.ActionNotAvailable, $"{Names.Seat(State, seat)} has eyes closed in this phase.", "Wait for the phase where you are awake.");
             if (action.Actor == ActorRule.Current && seat != session.CurrentSeat)
@@ -380,7 +382,14 @@ namespace Core.Engine
             var seats = Playing;
             var i = seats.FindIndex(s => s.Id == seat);
             var step = State.Turn?.Order == TurnOrder.Counterclockwise ? seats.Count - 1 : 1;
-            return seats[(i + step) % seats.Count].Id;
+            // Eliminated seats are passed by (all out: the turn stays put).
+            for (var n = 1; n <= seats.Count; n++)
+            {
+                var next = seats[(i + step * n) % seats.Count].Id;
+                if (!IsOut(next))
+                    return next;
+            }
+            return seat;
         }
 
         private void RunEvent(string name)
@@ -396,6 +405,15 @@ namespace Core.Engine
                 return;
             foreach (var win in State.WinConditions.Where(w => w.CheckAfter == when && w.When != null))
             {
+                if (win.Team != null)
+                {
+                    if (WithContext(new Context { Actor = session.CurrentSeat }, () => Holds(win.When!)))
+                    {
+                        WinTeam(win.Team);
+                        return;
+                    }
+                    continue;
+                }
                 foreach (var seat in Playing)
                 {
                     var holds = WithContext(new Context { Actor = session.CurrentSeat, Player = seat.Id }, () => Holds(win.When!));
@@ -464,6 +482,8 @@ namespace Core.Engine
                 }
                 case SetVariableEffect set:
                 {
+                    if (State.SecretVariables.Contains(set.Name))
+                        _secretsRead = true;
                     var vars = Session!.Variables;
                     if (set.Add != null || set.Remove != null)
                     {
@@ -509,6 +529,7 @@ namespace Core.Engine
                 case MessageEffect message: Log(Template(message.Text)); break;
                 case RevealEffect reveal: Reveal(reveal.Action); break;
                 case CloseVoteEffect close: CloseVote(close.Action); break;
+                case EliminateEffect gone: Eliminate(ResolveSeat(gone.Seat, "eliminate.seat"), gone.RevealRole); break;
                 case RevealRoleEffect show:
                     RevealRole(ResolveSeat(show.Seat, "revealRole.seat"), Audience(show.To, "revealRole.to"), show.TeamOnly, show.Set);
                     break;
@@ -889,13 +910,21 @@ namespace Core.Engine
                 Session.RandomState = Table.Random.State;
         }
 
+        /// <summary>A variable's value for a rule; a secret one marks the command as the host's.</summary>
+        private JToken? ReadVariable(string name)
+        {
+            if (State.SecretVariables.Contains(name))
+                _secretsRead = true;
+            return Session!.Variables.TryGetValue(name, out var x) ? x : null;
+        }
+
         // ---- conditions -------------------------------------------------------------------------------------------
 
         private bool Holds(Condition condition) => condition switch
         {
             ZoneCountCondition zc => Compare(new JValue(CountOf(ResolveTarget(zc.Zone, "zoneCount.zone"))), zc.Op, Value(zc.Value)),
             CompareCondition cmp => Compare(Value(cmp.Left), cmp.Op, Value(cmp.Right)),
-            VariableCondition v => Compare(Session!.Variables.TryGetValue(v.Name, out var x) ? x : null, v.Op, Value(v.Value)),
+            VariableCondition v => Compare(ReadVariable(v.Name), v.Op, Value(v.Value)),
             ResourceCondition r => Compare(new JValue(Session!.Resources[ResolveSeat(r.Player, "resource.player")][r.Resource]), r.Op, Value(r.Value)),
             IsCurrentPlayerCondition p => ResolveSeat(p.Player, "isCurrentPlayer.player") == Session!.CurrentSeat,
             ObjectInCondition oi => Contains(ResolveTarget(oi.Zone, "objectIn.zone"), ResolveTarget(oi.Object, "objectIn.object")),
@@ -1105,12 +1134,16 @@ namespace Core.Engine
                 }
                 case "var":
                     i = 2;
+                    if (State.SecretVariables.Contains(parts[1]))
+                        _secretsRead = true;
                     current = Session != null && Session.Variables.TryGetValue(parts[1], out var v) ? v : State.Variables.TryGetValue(parts[1], out var d) ? d : null;
                     break;
                 case "seat": i = 2; current = SeatById(parts[1]); break;
                 case "obj": i = 2; current = (object?)Table.Find(parts[1]) ?? State.Zones.FirstOrDefault(z => z.Id == parts[1]); break;
                 case "vote":
                     return VoteReference(parts);
+                case "alive":
+                    return AliveReference(parts);
                 case "secrets":
                 {
                     // How many secret choices wait for the reveal: all, or one action's.
@@ -1147,6 +1180,8 @@ namespace Core.Engine
                         case "role":
                         case "team":
                             return RoleStep(seat, part, parts, ref i) is { } known ? new JValue(known) : null;
+                        case "out":
+                            return new JValue(IsOut(seat.Id));
                         case "chose":
                         {
                             // $viewer.chose.<action>: that seat's secret choice, waiting for the reveal (its first parameter, or "yes").
@@ -1200,6 +1235,9 @@ namespace Core.Engine
                     };
                 case JObject jo:
                     return jo[part];
+                // A seat id held in a variable or a vote's result is followed like the seat ($var.victim.team).
+                case JValue { Type: JTokenType.String } held when SeatById((string?)held) is { } heldSeat:
+                    return Step(heldSeat, part, parts, ref i);
                 case JArray list:
                     // A list's size, or an item by its position from 0.
                     return part == "count" ? new JValue(list.Count) : int.TryParse(part, out var at) && at >= 0 && at < list.Count ? list[at] : null;
@@ -1245,7 +1283,7 @@ namespace Core.Engine
         {
             switch (param.Type)
             {
-                case ParamType.Seat: return Playing.Any(s => s.Id == value);
+                case ParamType.Seat: return Playing.Any(s => s.Id == value && !IsOut(s.Id));
                 case ParamType.Number: return double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out _);
                 case ParamType.Choice: return param.Options.Contains(value);
                 default: return Candidates(param, seat).Contains(value);
@@ -1282,7 +1320,7 @@ namespace Core.Engine
                 var values = param.Type switch
                 {
                     ParamType.Object => Candidates(param, seat),
-                    ParamType.Seat => Playing.Select(s => s.Id).ToList(),
+                    ParamType.Seat => Playing.Where(s => !IsOut(s.Id)).Select(s => s.Id).ToList(),
                     ParamType.Choice => param.Options,
                     _ => new List<string>(),   // free numbers cannot be enumerated
                 };

@@ -170,6 +170,12 @@ namespace Core.Rules
         public List<ResourceDef> Resources { get; set; } = new List<ResourceDef>();
         /// <summary>Declared variables and their initial values.</summary>
         public Dictionary<string, JToken> Variables { get; set; } = new Dictionary<string, JToken>();
+        /// <summary>
+        /// Variables only the host's rules read (ADR 0012): the werewolves' victim before dawn. Their values never reach the
+        /// players' machines, and a command that reads or sets one runs on the host.
+        /// </summary>
+        public List<string> SecretVariables { get; set; } = new List<string>();
+        public bool ShouldSerializeSecretVariables() => SecretVariables.Count > 0;
         public TurnDef? Turn { get; set; }
         public List<PhaseDef> Phases { get; set; } = new List<PhaseDef>();
         public List<ActionDef> Actions { get; set; } = new List<ActionDef>();

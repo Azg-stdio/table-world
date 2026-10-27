@@ -157,6 +157,8 @@ namespace Core.Rules
 
     public sealed class WinCondition
     {
+        /// <summary>With hidden roles, the team that wins when <see cref="When"/> holds (checked once, not per seat).</summary>
+        public string? Team { get; set; }
         /// <summary>Evaluated once per seat with <c>$player</c> bound to it.</summary>
         public Condition? When { get; set; }
         /// <summary>Who wins when it holds: usually <c>$player</c> or <c>$other</c>.</summary>
@@ -190,6 +192,11 @@ namespace Core.Rules
         public List<SecretChoice> Secrets { get; set; } = new List<SecretChoice>();
         /// <summary>Messages from <c>message</c> effects, oldest first (last 50).</summary>
         public List<string> Log { get; set; } = new List<string>();
+        /// <summary>
+        /// Seats out of the game (<c>eliminate</c>: a lynch, an execution): they take no actions and cast no votes, sleep
+        /// through eyes-closed phases, are not heard, and turns and seat choices pass them by.
+        /// </summary>
+        public List<string> Eliminated { get; set; } = new List<string>();
         /// <summary>Each vote action's last count (ADR 0012), read through <c>$vote.&lt;action&gt;</c>.</summary>
         public Dictionary<string, VoteTally> Votes { get; set; } = new Dictionary<string, VoteTally>();
         /// <summary>The vote counted last, which <c>$vote</c> reads.</summary>

@@ -149,6 +149,9 @@ namespace Core.Rules
             for (var i = 0; i < _state.WinConditions.Count; i++)
             {
                 var win = _state.WinConditions[i];
+                if (win.Team != null && (_state.Roles == null || _state.Roles.Teams.All(t => t.Id != win.Team)))
+                    Add($"winConditions[{i}].team", ErrorCodes.UnknownTeam, $"Team '{win.Team}' does not exist.",
+                        _state.Roles == null ? "Teams come with roles (set_roles)." : Suggest.OneOf(win.Team, _state.Roles.Teams.Select(t => t.Id), "a team id"));
                 if (win.When == null)
                     Add($"winConditions[{i}].when", ErrorCodes.MissingField, "A win condition needs 'when'.");
                 else
@@ -158,6 +161,10 @@ namespace Core.Rules
 
             CheckUi(actionIds);
             CheckRoles();
+            for (var i = 0; i < _state.SecretVariables.Count; i++)
+                if (!_state.Variables.ContainsKey(_state.SecretVariables[i]))
+                    Add($"secretVariables[{i}]", ErrorCodes.UnknownVariable, $"Variable '{_state.SecretVariables[i]}' is not declared.",
+                        Suggest.OneOf(_state.SecretVariables[i], _state.Variables.Keys, "a declared variable") ?? "Declare it under 'variables'.");
 
             for (var i = 0; i < _state.Resources.Count; i++)
                 if (_state.Resources.Take(i).Any(r => r.Id == _state.Resources[i].Id))
@@ -427,6 +434,9 @@ namespace Core.Rules
                     Seat(team.Seat, $"{path}.seat");
                     if (NeedsRoles(path, null) && !References.IsReference(team.Team) && _state.Roles!.Teams.All(t => t.Id != team.Team))
                         Add($"{path}.team", ErrorCodes.UnknownTeam, $"Team '{team.Team}' does not exist.", Suggest.OneOf(team.Team, _state.Roles.Teams.Select(t => t.Id), "a team id"));
+                    break;
+                case EliminateEffect gone:
+                    Seat(gone.Seat, $"{path}.seat");
                     break;
                 case CloseVoteEffect close when _state.Actions.All(a => a.Id != close.Action || a.Vote == null):
                     Add($"{path}.action", ErrorCodes.UnknownAction, $"'{close.Action}' is not a vote.",

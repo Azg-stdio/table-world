@@ -38,6 +38,11 @@ namespace Core.Net
             mine.Knows = full.Knows.ToDictionary(p => p.Key, p => p.Value.ToList());
             mine.Traits = full.Traits.ToDictionary(p => p.Key, p => new Dictionary<string, string>(p.Value));
             mine.Teams = new Dictionary<string, string>(full.Teams);
+            foreach (var name in live.SecretVariables.Where(full.Variables.ContainsKey))
+                mine.Variables[name] = full.Variables[name].DeepClone();
+            foreach (var pair in full.Votes.Where(p => !mine.Votes.ContainsKey(p.Key)))
+                mine.Votes[pair.Key] = pair.Value;
+            mine.LastVote ??= full.LastVote;
             if (mine.Secrets.Select(c => c.Seat + "/" + c.Action).SequenceEqual(full.Secrets.Select(c => c.Seat + "/" + c.Action)))
                 mine.Secrets = full.Secrets.Select(c => new SecretChoice { Seat = c.Seat, Action = c.Action, Params = new Dictionary<string, string>(c.Params) }).ToList();
             mine.RandomState = full.RandomState;
@@ -68,12 +73,23 @@ namespace Core.Net
             var knows = session.Knows;
             var traits = session.Traits;
             var teams = session.Teams;
+            var votes = session.Votes;
+            var lastVote = session.LastVote;
+            var variables = session.Variables;
+            if (state.SecretVariables.Count > 0)
+                session.Variables = variables.Where(p => !state.SecretVariables.Contains(p.Key)).ToDictionary(p => p.Key, p => p.Value);
             session.RandomState = 0;
             session.Roles = roles.Where(p => p.Key == seat).ToDictionary(p => p.Key, p => p.Value);
             session.Knows = knows.Where(p => p.Key == seat).ToDictionary(p => p.Key, p => p.Value);
             session.Traits = traits.Where(p => p.Key == seat).ToDictionary(p => p.Key, p => p.Value);
             session.Teams = teams.Where(p => p.Key == seat).ToDictionary(p => p.Key, p => p.Value);
-            session.Secrets = secrets.Select(s => s.Seat == seat
+            // A private vote's ballots are not even seen to exist by anyone but the one who cast it.
+            var privateVotes = new HashSet<string>(state.Actions.Where(a => a.Vote is { Private: true }).Select(a => a.Id));
+            // Its count too: the rules read it on the host; a peer would learn the wolves' victim before dawn.
+            session.Votes = votes.Where(p => !privateVotes.Contains(p.Key)).ToDictionary(p => p.Key, p => p.Value);
+            if (lastVote != null && privateVotes.Contains(lastVote))
+                session.LastVote = null;
+            session.Secrets = secrets.Where(s => s.Seat == seat || !privateVotes.Contains(s.Action)).Select(s => s.Seat == seat
                 ? s
                 : new SecretChoice { Seat = s.Seat, Action = s.Action, Params = new Dictionary<string, string>() }).ToList();
             try
@@ -88,6 +104,9 @@ namespace Core.Net
                 session.Knows = knows;
                 session.Traits = traits;
                 session.Teams = teams;
+                session.Votes = votes;
+                session.LastVote = lastVote;
+                session.Variables = variables;
             }
         }
     }
