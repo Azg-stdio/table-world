@@ -74,6 +74,20 @@ namespace TableWorld.View
             Changed?.Invoke();
         }
 
+        /// <summary>
+        /// A seat as this player reads it: in a game, as the game's language names it; before one, a seat without a name
+        /// by its colour in the interface's language.
+        /// </summary>
+        public static string SeatName(Core.Rules.TableState state, Core.Rules.Seat seat)
+        {
+            if (state.Session?.Language != null || Translations.BaseLanguage(state) != null || !string.IsNullOrWhiteSpace(seat.Name)
+                || string.IsNullOrWhiteSpace(seat.Color) || seat.Color.StartsWith("#"))
+                return Core.Rules.Names.Of(state, seat);
+            if (_strings == null)
+                SetLanguage("");
+            return _strings.Raw("color." + seat.Color.ToLowerInvariant()) ?? Core.Rules.Names.Of(state, seat);
+        }
+
         /// <summary>A refused move as the player reads it, in the interface's language (the English message is for agents).</summary>
         public static string Refusal(Core.Rules.ValidationError error)
         {

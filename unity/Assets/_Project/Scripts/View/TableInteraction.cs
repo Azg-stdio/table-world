@@ -775,12 +775,12 @@ namespace TableWorld.View
             _playFromHand = null;
             if (view.HideFace)
             {
-                _table.Tell("That card is in another player's hand.");
+                _table.Tell(Ui.T("That card is in another player's hand."));
                 return false;
             }
             if (view.RemoteHolder != null)
             {
-                _table.Tell($"{view.RemoteHolder} is holding that.");
+                _table.Tell(Ui.T("{player} is holding that.", ("player", view.RemoteHolder)));
                 return false;
             }
             if (isFullContainer && !moveContainer && RulesTake(view))
@@ -1144,8 +1144,8 @@ namespace TableWorld.View
             if (!Gestures.RulesTakeFrom(game, seat, pile.Id))
                 return false;
             _table.Tell(game.Session.CurrentSeat != seat
-                ? $"It is {game.Session.CurrentSeat}'s turn."
-                : $"The rules do not let you take from {Names.Of(pile.Model)} now.");
+                ? Ui.T("It is {seat}'s turn.", ("seat", Names.Seat(game.State, game.Session.CurrentSeat)))
+                : Ui.T("The rules do not let you take from {pile} now.", ("pile", Names.Of(game.State, pile.Model))));
             return true;
         }
 

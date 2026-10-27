@@ -152,7 +152,7 @@ namespace TableWorld.View.Voice
             {
                 if (MicProblem == null)
                     Debug.LogWarning("[Voice] No microphone found.");
-                MicProblem = "No microphone found";
+                MicProblem = Ui.T("No microphone found");
                 return;
             }
             _device = DeviceName();
@@ -161,7 +161,7 @@ namespace TableWorld.View.Voice
             _clip = UnityEngine.Microphone.Start(_device, true, 1, _rate);
             if (_clip == null)
             {
-                MicProblem = "The microphone could not start";
+                MicProblem = Ui.T("The microphone could not start");
                 Debug.LogWarning($"[Voice] Microphone '{_device ?? "default"}' could not start.");
                 return;
             }

@@ -105,7 +105,7 @@ namespace TableWorld.View.Net
         {
             Stop();
             EnsureNetwork().SetConnectionData("127.0.0.1", port, "0.0.0.0");
-            return LaunchHost($"hosting on port {port}");
+            return LaunchHost(Ui.T("hosting on port {port}", ("port", port)));
         }
 
         /// <summary>Joins a host at <paramref name="address"/>:<paramref name="port"/>; the table appears when the snapshot arrives.</summary>
@@ -113,7 +113,7 @@ namespace TableWorld.View.Net
         {
             Stop();
             EnsureNetwork().SetConnectionData(address, port);
-            return LaunchClient($"connecting to {address}:{port}");
+            return LaunchClient(Ui.T("connecting to {address}", ("address", $"{address}:{port}")));
         }
 
         // ---- join codes over Relay (T3.3) -------------------------------------------------------------------------
@@ -131,7 +131,7 @@ namespace TableWorld.View.Net
         public async Task<bool> HostWithCodeAsync()
         {
             Stop();
-            Status = "creating a join code…";
+            Status = Ui.T("creating a join code…");
             var handler = NewRelayHandler(host: true);
             try
             {
@@ -146,7 +146,7 @@ namespace TableWorld.View.Net
                 Debug.LogException(e);
                 handler.Detached = true;
                 ShutdownNetwork();
-                Status = "could not host online: " + RelayLobby.Explain(e);
+                Status = Ui.T("could not host online: {reason}", ("reason", RelayLobby.Explain(e)));
                 return false;
             }
         }
@@ -155,7 +155,7 @@ namespace TableWorld.View.Net
         public async Task<bool> JoinWithCodeAsync(string code)
         {
             Stop();
-            Status = $"joining {code.Trim().ToUpperInvariant()}…";
+            Status = Ui.T("joining {code}…", ("code", code.Trim().ToUpperInvariant()));
             var handler = NewRelayHandler(host: false);
             try
             {
@@ -167,7 +167,7 @@ namespace TableWorld.View.Net
                 Debug.LogException(e);
                 handler.Detached = true;
                 ShutdownNetwork();
-                Status = "could not join: " + RelayLobby.Explain(e);
+                Status = Ui.T("could not join: {reason}", ("reason", RelayLobby.Explain(e)));
                 return false;
             }
         }
@@ -177,13 +177,14 @@ namespace TableWorld.View.Net
             _relayHandler = new RelayLobby.Handler(configuration =>
             {
                 EnsureNetwork().SetRelayServerData(configuration.RelayServerData);
-                return host ? LaunchHost("hosting online") : LaunchClient("connecting through Relay");
+                return host ? LaunchHost(Ui.T("hosting online")) : LaunchClient(Ui.T("connecting through Relay"));
             }, ShutdownNetwork);
             return _relayHandler;
         }
 
         private string HostStatus() =>
-            (JoinCode != null ? $"code {JoinCode}, " : "hosting, ") + $"{_seatOf.Count} player(s) joined";
+            JoinCode != null ? Ui.T("code {code}, {count} player(s) joined", ("code", JoinCode), ("count", _seatOf.Count))
+                : Ui.T("hosting, {count} player(s) joined", ("count", _seatOf.Count));
 
         // ---- start / stop -----------------------------------------------------------------------------------------
 
@@ -290,7 +291,7 @@ namespace TableWorld.View.Net
                 _table.ReportsPoseOf = null;
                 _table.HostsTable = true;
             }
-            Status = "offline";
+            Status = Ui.T("offline");
         }
 
         /// <summary>Called by the interaction when the local player touches an object: a client reports its physics for a while.</summary>
@@ -519,14 +520,14 @@ namespace TableWorld.View.Net
             _table.Router = ClientRoute;
             _table.HostsTable = false;
             _table.ReportsPoseOf = view => _touched.TryGetValue(view.Id, out var at) && Time.unscaledTime - at < TouchSeconds && !RemoteHeldRecently(view.Id);
-            Status = "connected, waiting for the table";
+            Status = Ui.T("connected, waiting for the table");
         }
 
         private void OnClientDisconnected(ulong clientId)
         {
             if (clientId == _network.LocalClientId || clientId == NetworkManager.ServerClientId)
             {
-                Status = "disconnected";
+                Status = Ui.T("disconnected");
                 _table.Router = null;
             }
         }
@@ -590,7 +591,11 @@ namespace TableWorld.View.Net
             if (reply != null)
                 SendTo(NetworkManager.ServerClientId, reply);
             if (_client.Synced)
-                Status = _assets.Complete ? (_table.Spectating ? "watching" : $"playing as {_table.SeatOverride}") : (_table.Spectating ? "watching" : $"playing as {_table.SeatOverride}") + $", receiving {_assets.Pending} image(s)";
+            {
+                var seat = _table.SeatOverride != null ? Names.Seat(_table.Engine.State, _table.SeatOverride) : null;
+                var playing = _table.Spectating ? Ui.T("watching") : Ui.T("playing as {seat}", ("seat", seat));
+                Status = _assets.Complete ? playing : playing + Ui.T(", receiving {count} image(s)", ("count", _assets.Pending));
+            }
         }
 
         // ---- transport --------------------------------------------------------------------------------------------

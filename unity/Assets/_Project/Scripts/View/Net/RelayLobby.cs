@@ -55,7 +55,7 @@ namespace TableWorld.View.Net
         {
             var text = (e.InnerException ?? e).Message;
             if (text.IndexOf("project", StringComparison.OrdinalIgnoreCase) >= 0 && text.IndexOf("id", StringComparison.OrdinalIgnoreCase) >= 0)
-                return "online play needs the project linked to Unity Gaming Services";
+                return Ui.T("online play needs the project linked to Unity Gaming Services");
             return text.Length > 120 ? text.Substring(0, 120) + "…" : text;
         }
 

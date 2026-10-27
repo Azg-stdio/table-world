@@ -82,7 +82,7 @@ namespace TableWorld.View.Hud
                     marker.Marker.EnableInClassList("seat-join--seated", sitter != null);
                     marker.Marker.EnableInClassList("seat-join--fixed", !clickable);
                     marker.Marker.pickingMode = clickable ? PickingMode.Position : PickingMode.Ignore;
-                    var name = Names.Of(engine.State, seat);
+                    var name = Ui.SeatName(engine.State, seat);
                     marker.Marker.tooltip = sitter == null ? Ui.T("Sit at {name}", ("name", name)) : clickable ? Ui.T("Leave {name}", ("name", name)) : "";
                 }
                 var hand = engine.State.Zones.FirstOrDefault(z => z.Id == seat.HandZone);

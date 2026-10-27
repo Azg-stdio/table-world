@@ -79,8 +79,8 @@ namespace TableWorld.View.Net
             {
                 _removedByHost = false;
                 Stop();
-                Status = "the host removed you from the table";
-                _table.Tell("The host removed you from the table.");
+                Status = Ui.T("the host removed you from the table");
+                _table.Tell(Ui.T("The host removed you from the table."));
                 return;
             }
             DisconnectKicked();

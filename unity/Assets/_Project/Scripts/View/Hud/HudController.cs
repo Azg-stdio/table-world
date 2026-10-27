@@ -554,7 +554,7 @@ namespace TableWorld.View.Hud
             var button = new Button(() =>
             {
                 var roles = state.Roles?.List.Where(r => r.Optional && _optionalRoles.Contains(r.Id)).Select(r => r.Id).ToList() ?? new List<string>();
-                var result = _table.Execute(new StartGameCommand { Seats = seated, Roles = roles, Language = _startLanguage });
+                var result = _table.Execute(new StartGameCommand { Seats = seated, Roles = roles, Language = _startLanguage ?? (Translations.Languages(state).Count == 0 ? Ui.Language : null) });
                 if (!result.Ok)
                     ShowStatus(Ui.Refusal(result.Error), error: true);
             }) { text = Ui.T("Start game ({players})", ("players", players)) };
@@ -711,7 +711,7 @@ namespace TableWorld.View.Hud
         /// <summary>Who sits at a seat as its marker says it ("Red (you)", a player's name), or null when it is free.</summary>
         private string SitterLabel(Seat seat)
         {
-            var name = Names.Of(_table.Engine.State, seat);
+            var name = Ui.SeatName(_table.Engine.State, seat);
             if (_table.Networked && _session != null)
             {
                 if (seat.Id == _table.LocalSeat)
@@ -1060,11 +1060,11 @@ namespace TableWorld.View.Hud
                 // Online, a seat shows who sits there by name (G23); free seats show the seat.
                 var who = sitter != null ? _session.NameOf(sitter) : null;
                 var suffix = seat.Id == local ? " " + Ui.T("(you)") : sitter == TableWorld.View.Net.NetworkTableSession.HostIdForUi ? " " + Ui.T("(host)") : takenByOther && who == null ? " " + Ui.T("(taken)") : "";
-                var name = new Label((who ?? Names.Of(_table.Engine.State, seat)) + suffix) { pickingMode = PickingMode.Ignore, enableRichText = false };
+                var name = new Label((who ?? Ui.SeatName(_table.Engine.State, seat)) + suffix) { pickingMode = PickingMode.Ignore, enableRichText = false };
                 name.AddToClassList("seat-name");
                 chip.Add(swatch);
                 chip.Add(name);
-                var seatName = Names.Of(_table.Engine.State, seat);
+                var seatName = Ui.SeatName(_table.Engine.State, seat);
                 chip.tooltip = takenByOther ? Ui.T("{value} sits at {seatName}", ("value", who ?? Ui.T("Someone")), ("seatName", seatName)) : seat.Id == local ? Ui.T("Your seat ({seatName})", ("seatName", seatName)) : Ui.T("Click to sit at {seatName}", ("seatName", seatName));
                 var id = seat.Id;
                 if (!takenByOther && seat.Id != local)
