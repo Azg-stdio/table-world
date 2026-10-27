@@ -18,6 +18,9 @@ namespace TableWorld.View.Hud
         /// <summary>Added to what the player types, so the results are versions to sing over.</summary>
         public const string Suffix = " karaoke";
 
+        /// <summary>The page's picture turned right way up (the engine sends its frames upside down).</summary>
+        public static readonly Rect Flipped = new Rect(0f, 1f, 1f, -1f);
+
         private readonly VisualElement _panel;
         private readonly TextField _query;
         private readonly Image _view;
@@ -31,7 +34,11 @@ namespace TableWorld.View.Hud
         private SearchBrowser _browser;
         private string _picked;
         /// <summary>The hidden browser that tries every result in the embedded player, and the results waiting for it.</summary>
-        private SearchBrowser _tester;
+        private readonly System.Collections.Generic.List<SearchBrowser> _testers = new();
+        private readonly System.Collections.Generic.List<string> _toConfirm = new();
+
+        /// <summary>Hidden players trying results at once.</summary>
+        public const int Testers = 2;
         private readonly System.Collections.Generic.Queue<string> _toTry = new();
         private readonly System.Collections.Generic.HashSet<string> _waitingToTry = new();
 
@@ -45,8 +52,7 @@ namespace TableWorld.View.Hud
             _view = root.Q<Image>("songSearchView");
             _status = root.Q<Label>("songSearchStatus");
             _hint = root.Q<Label>("songSearchHint");
-            // The engine sends its frames upside down.
-            _view.uv = new Rect(0f, 1f, 1f, -1f);
+            _view.uv = Flipped;
             _view.scaleMode = ScaleMode.StretchToFill;
             root.Q<Button>("screenSearch").clicked += () => Open(_query.value);
             root.Q<Button>("songSearchGo").clicked += () => Search(_query.value);
@@ -130,9 +136,11 @@ namespace TableWorld.View.Hud
             if (_browser != null)
                 Object.Destroy(_browser.gameObject);
             _browser = null;
-            if (_tester != null)
-                Object.Destroy(_tester.gameObject);
-            _tester = null;
+            foreach (var tester in _testers)
+                if (tester != null)
+                    Object.Destroy(tester.gameObject);
+            _testers.Clear();
+            _toConfirm.Clear();
             _toTry.Clear();
             _waitingToTry.Clear();
         }
@@ -148,8 +156,17 @@ namespace TableWorld.View.Hud
                 return;
             }
             if (_browser != null && _view.image != _browser.Texture)
+            {
                 _view.image = _browser.Texture;
+                // The engine sends its frames upside down; changing the picture resets the flip.
+                _view.uv = Flipped;
+            }
             TryNext();
+            if (_browser != null && _toConfirm.Count > 0)
+            {
+                _browser.Confirm(_toConfirm);
+                _toConfirm.Clear();
+            }
             if (_browser != null && _toBlock.Count > 0)
             {
                 _browser.Block(_toBlock);
@@ -174,7 +191,9 @@ namespace TableWorld.View.Hud
                         if (_hidden.Add(id))
                             _toBlock.Add(id);
                     }
-                    else if (!_bar.Videos.Played(id) && _waitingToTry.Add(id))
+                    else if (_bar.Videos.Played(id))
+                        _toConfirm.Add(id);
+                    else if (_waitingToTry.Add(id))
                         _toTry.Enqueue(id);
                 });
         }
@@ -187,28 +206,40 @@ namespace TableWorld.View.Hud
         {
             if (_browser == null || _toTry.Count == 0)
                 return;
-            if (_tester == null)
-                _tester = SearchBrowser.CreateTester(null);
-            if (!_tester.Ready || _tester.Probing)
-                return;
-            var id = _toTry.Dequeue();
-            _waitingToTry.Remove(id);
-            if (_bar.Videos.Played(id) || (_bar.Videos.TryGet(id, out var known, out _) && known != VideoCheck.Answer.Playable))
-                return;
-            var tester = _tester;
-            tester.Probe(id, error =>
+            while (_testers.Count < Testers)
+                _testers.Add(SearchBrowser.CreateTester(null));
+            foreach (var tester in _testers)
             {
-                if (tester != _tester)
+                if (_toTry.Count == 0)
                     return;
-                if (error is { } code)
+                if (tester == null || !tester.Ready || tester.Probing)
+                    continue;
+                var id = _toTry.Dequeue();
+                _waitingToTry.Remove(id);
+                if (_bar.Videos.Played(id))
                 {
-                    _bar.Videos.Mark(id, code == 100 ? VideoCheck.Answer.Gone : VideoCheck.Answer.Blocked);
-                    if (_hidden.Add(id))
-                        _toBlock.Add(id);
+                    _toConfirm.Add(id);
+                    continue;
                 }
-                else
-                    _bar.Videos.MarkPlayed(id);
-            });
+                if (_bar.Videos.TryGet(id, out var known, out _) && known != VideoCheck.Answer.Playable)
+                    continue;
+                tester.Probe(id, error =>
+                {
+                    if (!_testers.Contains(tester))
+                        return;
+                    if (error is { } code)
+                    {
+                        _bar.Videos.Mark(id, code == 100 ? VideoCheck.Answer.Gone : VideoCheck.Answer.Blocked);
+                        if (_hidden.Add(id))
+                            _toBlock.Add(id);
+                    }
+                    else
+                    {
+                        _bar.Videos.MarkPlayed(id);
+                        _toConfirm.Add(id);
+                    }
+                });
+            }
         }
 
         /// <summary>How to choose, and how many results were hidden.</summary>

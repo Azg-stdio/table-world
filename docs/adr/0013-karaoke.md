@@ -119,7 +119,8 @@ karaoke night. Miguel decided:
   music mostly) pass it and still refuse every embedded player with error 150 ("Video unavailable"). So a picked video
   is first tried in the official player on our own page, muted, inside the search browser, before it is queued; one the
   player refuses is hidden and the panel says why. Then every result is tried that way as it appears, in a third,
-  hidden and muted browser that runs only while the panel is open, so what can be clicked plays (measured on one
+  hidden and muted browsers (two) that run only while the panel is open, each switching videos inside the loaded
+  player page (about 7–16 s for a page of results); results not yet confirmed show faint, so what can be clicked plays (measured on one
   Spanish search: 37 of 50 results played, 13 were refused with error 150). Sponsored results are neither tried nor
   queued (an ad's video is not a song); they stay on the page as YouTube placed them. Whatever still fails on the screen (a pasted link, a country block) is
   skipped by the host, so "Video unavailable" does not stay up for everyone. Ads are left as YouTube shows them (hiding them would be ad

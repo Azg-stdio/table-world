@@ -88,22 +88,22 @@ namespace TableWorld.View.Karaoke
         /// <summary>
         /// The page: one YouTube IFrame player filling it, black around it. <c>window.tw</c> takes the game's commands
         /// (load, play, pause, seek); the title reports <c>state|time|duration|video</c> every tenth of a second, with
-        /// <c>error|code</c> when the player fails (a video that will not embed, or is blocked here).
+        /// <c>error|code|video</c> when the player fails (a video that will not embed, or is blocked here).
         /// </summary>
         private static string Html(int port) => @"<!doctype html>
 <html><head><meta charset=""utf-8""><meta name=""referrer"" content=""strict-origin-when-cross-origin"">
 <style>html,body{margin:0;height:100%;background:#000;overflow:hidden}#p{width:100%;height:100%}</style></head>
 <body><div id=""p""></div>
 <script>
-var params=new URLSearchParams(location.search);var player=null;var lastError='';
+var params=new URLSearchParams(location.search);var player=null;var lastError='';var current=params.get('v')||'';
 var tag=document.createElement('script');tag.src='https://www.youtube.com/iframe_api';document.head.appendChild(tag);
 function onYouTubeIframeAPIReady(){
   player=new YT.Player('p',{width:'100%',height:'100%',videoId:params.get('v')||'',
     playerVars:{autoplay:1,playsinline:1,rel:0,mute:params.get('mute')?1:0,origin:'http://127.0.0.1:" + port + @"'},
-    events:{onError:function(e){lastError='error|'+e.data;}}});
+    events:{onError:function(e){lastError='error|'+e.data+'|'+current;}}});
 }
 window.tw={
-  load:function(id,at){lastError='';if(player)player.loadVideoById({videoId:id,startSeconds:at||0});},
+  load:function(id,at){lastError='';current=id;if(player)player.loadVideoById({videoId:id,startSeconds:at||0});},
   play:function(){if(player)player.playVideo();},
   pause:function(){if(player)player.pauseVideo();},
   seek:function(t){if(player)player.seekTo(t,true);}

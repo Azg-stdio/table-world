@@ -250,12 +250,12 @@ namespace TableWorld.View.Karaoke
             browserClient.OnTitleChange += OnTitle;
         }
 
-        /// <summary>Reads the page's report: <c>state|time|duration|video</c>, or <c>error|code</c>.</summary>
+        /// <summary>Reads the page's report: <c>state|time|duration|video</c>, or <c>error|code|video</c>.</summary>
         private void OnTitle(string title)
         {
             Title = title;
             var parts = title.Split('|');
-            if (parts.Length == 2 && parts[0] == "error" && int.TryParse(parts[1], out var code))
+            if (parts.Length >= 2 && parts[0] == "error" && int.TryParse(parts[1], out var code))
             {
                 Error = code;
                 return;

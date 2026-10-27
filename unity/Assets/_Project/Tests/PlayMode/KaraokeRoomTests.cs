@@ -352,6 +352,16 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsNull(_hud.SongSearch.Browser);
             Assert.IsNull(Object.FindAnyObjectByType<SearchBrowser>(), "its browser is gone");
             Assert.IsFalse(Walker.Paused);
+
+            // Miguel: the second search showed YouTube upside down (clearing the picture reset its flip).
+            _hud.SongSearch.Open("queen");
+            var view = root.Q<Image>("songSearchView");
+            for (var wait = 0f; view.image == null && wait < 5f; wait += Time.unscaledDeltaTime)
+                yield return null;
+            Assert.IsNotNull(view.image, "the page's picture arrives");
+            Assert.AreEqual(SongSearch.Flipped, view.uv, "the picture is turned right way up again");
+            _hud.SongSearch.Close();
+            yield return null;
         }
 
         /// <summary>Clicks a button the way the mouse does (a click, not a keyboard submit).</summary>

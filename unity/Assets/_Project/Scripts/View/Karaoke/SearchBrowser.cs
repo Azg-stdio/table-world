@@ -18,10 +18,11 @@ namespace TableWorld.View.Karaoke
         /// Run on every page the search loads, reporting through the page's title (the channel <see cref="BrowserScreen"/>
         /// uses too): a click on a link to a video is caught before YouTube's own handler (<c>twpick|n|link</c>); every
         /// video the results show is reported once (<c>twids|n|id,id,…</c>, a few at a time); <c>twBlock([ids])</c>
-        /// hides the results of those videos, and keeps them hidden as YouTube redraws its list.
+        /// hides the results of those videos, and keeps them hidden as YouTube redraws its list; results not yet known to
+        /// play show faint until <c>twOk([ids])</c> confirms them.
         /// </summary>
         private static readonly string PageJs =
-            "if(!window.__tw){window.__tw=1;var n=0,seen={},blocked={};" +
+            "if(!window.__tw){window.__tw=1;var n=0,seen={},blocked={},ok={};" +
             "var vid=function(h){try{var u=new URL(h,location.href);if(u.pathname=='/watch')return u.searchParams.get('v');" +
             "var m=u.pathname.match(/^\\/shorts\\/([\\w-]{11})/);return m?m[1]:null;}catch(e){return null;}};" +
             "var box=function(a){return a.closest('ytd-video-renderer,ytd-rich-item-renderer,ytd-reel-item-renderer,ytd-radio-renderer," +
@@ -31,10 +32,11 @@ namespace TableWorld.View.Karaoke
             "var scan=function(){var fresh=[],done=new Set();" +
             "document.querySelectorAll('a[href*=\"/watch?v=\"],a[href*=\"/shorts/\"]').forEach(function(a){var i=vid(a.href);if(!i||ad(a))return;" +
             "var b=box(a);if(b&&!done.has(b)){done.add(b);if(blocked[i]){b.style.display='none';b.dataset.twHidden='1';}" +
-            "else if(b.dataset.twHidden){b.style.display='';delete b.dataset.twHidden;}}" +
+            "else{if(b.dataset.twHidden){b.style.display='';delete b.dataset.twHidden;}b.style.opacity=ok[i]?'':'0.35';}}" +
             "if(!seen[i]&&fresh.length<" + IdsPerReport + "){seen[i]=1;fresh.push(i);}});" +
             "if(fresh.length)document.title='twids|'+(++n)+'|'+fresh.join(',');};" +
             "window.twBlock=function(ids){ids.forEach(function(i){blocked[i]=1;});scan();};" +
+            "window.twOk=function(ids){ids.forEach(function(i){ok[i]=1;});scan();};" +
             "document.addEventListener('click',function(e){" +
             "var a=e.target&&e.target.closest?e.target.closest('a[href]'):null;if(!a)return;var h=a.href||'';" +
             // An ad's video is not a song: clicking it does nothing here (ads still show, as YouTube places them).
@@ -49,6 +51,10 @@ namespace TableWorld.View.Karaoke
         private string _search;
         private bool _muted;
         private PlayerPage _page;
+        /// <summary>A tester stays on our player page between tries (only a search goes back to its results).</summary>
+        private bool _isTester;
+        /// <summary>Our player page is loaded and answering: the next try switches the video in it, no reload.</summary>
+        private bool _onPlayer;
         /// <summary>The video being tried in the official player, and who hears how it went.</summary>
         private string _probing;
         private Action<int?> _probed;
@@ -149,7 +155,10 @@ namespace TableWorld.View.Karaoke
             _probing = videoId;
             _probed = done;
             _probeUntil = Time.realtimeSinceStartup + ProbeSeconds;
-            browserClient.LoadUrl(_page.PageFor(videoId, muted: true));
+            if (_onPlayer)
+                browserClient.ExecuteJs($"tw.load('{videoId}',0)");
+            else
+                browserClient.LoadUrl(_page.PageFor(videoId, muted: true));
         }
 
         private void EndProbe(int? error)
@@ -157,8 +166,10 @@ namespace TableWorld.View.Karaoke
             var done = _probed;
             _probing = null;
             _probed = null;
-            if (error != null && Ready)
+            if (error != null && Ready && !_isTester)
                 browserClient.LoadUrl(_search);
+            else if (_isTester && Ready)
+                browserClient.ExecuteJs("tw.pause()");
             done?.Invoke(error);
         }
 
@@ -194,10 +205,19 @@ namespace TableWorld.View.Karaoke
             go.transform.SetParent(parent, false);
             var tester = go.AddComponent<SearchBrowser>();
             tester._search = "about:blank";
+            tester._isTester = true;
             tester.Size = new Vector2Int(width, height);
             BrowserScreen.Configure(tester.browserClient, "about:blank", width, height);
             go.SetActive(true);
             return tester;
+        }
+
+        /// <summary>Shows the results of these videos at full strength: they were tried and play.</summary>
+        public void Confirm(System.Collections.Generic.IEnumerable<string> videoIds)
+        {
+            var ids = string.Join(",", System.Linq.Enumerable.Select(videoIds, id => "'" + id + "'"));
+            if (Ready && ids.Length > 0)
+                browserClient.ExecuteJs("window.twOk&&twOk([" + ids + "])");
         }
 
         /// <summary>Hides the results of these videos (they cannot play here).</summary>
@@ -240,12 +260,18 @@ namespace TableWorld.View.Karaoke
         {
             if (_probing != null)
             {
-                // Our page reports state|time|duration|video, or error|code.
+                // Our page reports state|time|duration|video, or error|code|video.
                 var report = title.Split('|');
-                if (report.Length == 2 && report[0] == "error" && int.TryParse(report[1], out var code))
+                if (report.Length == 3 && report[0] == "error" && report[2] == _probing && int.TryParse(report[1], out var code))
+                {
+                    _onPlayer = true;
                     EndProbe(code);
+                }
                 else if (report.Length >= 4 && report[0] == "1" && report[3] == _probing)
+                {
+                    _onPlayer = true;
                     EndProbe(null);
+                }
                 return;
             }
             var parts = title.Split(new[] { '|' }, 3);
@@ -263,6 +289,7 @@ namespace TableWorld.View.Karaoke
             // Our own player page, while a video is tried.
             if (_page != null && url.StartsWith(_page.Url, StringComparison.Ordinal))
                 return;
+            _onPlayer = false;
             var verdict = Judge(url, out var id);
             if (verdict == Verdict.Show)
                 return;
