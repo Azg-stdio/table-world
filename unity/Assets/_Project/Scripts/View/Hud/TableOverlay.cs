@@ -413,7 +413,8 @@ namespace TableWorld.View.Hud
                 if (!(zone is LayoutZone || zone is RandomizeZone) ||
                     !Geometry.Contains(zone, new Vec3(point.x, zone.Transform.Position.Y, point.z)))
                     continue;
-                var name = string.IsNullOrEmpty(zone.Name) ? (zone is LayoutZone ? "Layout zone" : "Randomize zone") : zone.Name;
+                var name = string.IsNullOrEmpty(zone.Name) ? (zone is LayoutZone ? "Layout zone" : "Randomize zone")
+                    : Core.Text.Translations.Text(_table.Engine.State, $"zones.{zone.Id}.name", zone.Name);
                 Section(name);
                 var id = zone.Id;
                 if (zone is LayoutZone)

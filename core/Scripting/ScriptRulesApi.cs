@@ -155,6 +155,8 @@ namespace Core.Scripting
             t["getTeam"] = Fn(args => Game() is { } game && Arg(args, 0) is { } seat && game.TeamOf(seat) is { } team ? DynValue.NewString(team) : DynValue.Nil);
             // Languages (ADR 0011): the session's language, and the game's own strings in it (text("noche", { space = "A1" })).
             t["getLanguage"] = Fn(_ => DynValue.NewString(Core.Rules.Names.Language(Engine.State)));
+            // tr("Evento de noche"): a sentence the script writes, in the session's language (keyed by its own words).
+            t["tr"] = Fn(args => Arg(args, 0) is { } written ? DynValue.NewString(Core.Text.Translations.Script(Engine.State, written)) : DynValue.Nil);
             t["text"] = Fn(args =>
             {
                 if (Arg(args, 0) is not { } key)

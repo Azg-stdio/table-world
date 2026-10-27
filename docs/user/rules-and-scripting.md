@@ -353,6 +353,9 @@ The keys name the text: `objects.<id>.name`, `cards.<id>.name`, a text card's `.
 becomes translatable when it is `@va` and `strings.va` holds it, first in your own language. Images with words on
 them can name a file per language (`"localized": { "en": "cards_en.png" }` on the asset).
 
+Sentences your Lua writes translate too: wrap each in `Game.tr("...")` (or `local tr = Game.tr` and `tr("...")`),
+and the translation lists it under `tr:` and its own words. A sentence built from pieces needs its fixed pieces wrapped.
+
 Before the start the host picks the language beside **Start**; everyone reads the game in it, the engine's own lines
 included. Lua reads it with `Game.getLanguage()` and a game's string with `Game.text("va", { ... })`. Your agent does the
 translating for you: ask it to "translate the game to English" (it uses `translate_game` and `set_translations`). A

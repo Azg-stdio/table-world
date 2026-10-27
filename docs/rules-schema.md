@@ -429,7 +429,9 @@ card's `objects.<id>.text.<title|kind|body|footer|corner>`, deck cards `cards.<i
 `resources.<id>.name`, `actions.<id>.name`, choice options `params.<action>.<param>.<option>` (the label, else the
 option), vote options `votes.<action>.<option>`, `phases.<id>.name`, `.sleepText`, panels `ui.<panel>.title` and
 `ui.<panel>.<index>.text`, `messages.<key>`, `notebook.<tab>.title`, `.body`, `teams.<id>.name`, `roles.<id>.name`,
-`.description`. `strings.<key>` is the game's own free text: a text that is exactly `@key` reads it (`@@` writes a
+`.description`, `zones.<id>.name`. A sentence a Lua script writes is translated by its own words: the script wraps
+it in `Game.tr("Evento de noche")` and the key is `tr:Evento de noche` (the scan finds literal `tr(...)` calls in every
+script). `strings.<key>` is the game's own free text: a text that is exactly `@key` reads it (`@@` writes a
 literal `@`); the game's own language holds its strings too. An image asset can name a file per language with
 `"localized": { "en": "cards_en.png" }`; `path` is the fallback.
 

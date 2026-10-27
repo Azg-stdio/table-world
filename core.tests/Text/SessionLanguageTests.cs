@@ -105,6 +105,38 @@ namespace Core.Tests.Text
             Assert.Contains("Rojo gana.", spanish.Session!.Log);
         }
 
+        /// <summary>T10.8 gap: a script's own sentences translate by their words (Game.tr), and translate_game finds them.</summary>
+        [Fact]
+        public void AScriptsSentences_TranslateByTheirWords()
+        {
+            var json = Json
+                .Replace(@"Game.log(Game.text('lleva', { n = 3 }) .. ' ' .. Game.getLanguage())",
+                    @"local tr = Game.tr; Game.log(tr('Lleva el oro.')); Game.log(Game.tr(\""Dice \\\""hola\\\"".\""))")
+                .Replace(@"""strings.lleva"": ""Carries {n}.""", @"""strings.lleva"": ""Carries {n}."", ""tr:Lleva el oro."": ""Carries the gold.""");
+            var texts = Translations.Texts(TableJson.Parse(json).State!);
+            Assert.Equal("Lleva el oro.", texts["tr:Lleva el oro."]);
+            Assert.Equal("Dice \"hola\".", texts["tr:Dice \"hola\"."]);
+
+            var english = Start("en", json);
+            english.Session!.CurrentSeat = "a";
+            Assert.True(Go(english).Ok);
+            Assert.Contains("Carries the gold.", english.Session.Log);
+            Assert.Contains("Dice \"hola\".", english.Session.Log);
+
+            var spanish = Start("es", json);
+            spanish.Session!.CurrentSeat = "a";
+            Assert.True(Go(spanish).Ok);
+            Assert.Contains("Lleva el oro.", spanish.Session.Log);
+        }
+
+        [Fact]
+        public void ZoneNames_AreTranslatable()
+        {
+            var state = TableJson.Parse(Json.Replace(@"""objects"": [", @"""zones"": [ { ""type"": ""HandZone"", ""id"": ""mano"", ""name"": ""Mano"", ""owner"": ""a"" } ],
+  ""objects"": [")).State!;
+            Assert.Equal("Mano", Translations.Texts(state)["zones.mano.name"]);
+        }
+
         [Fact]
         public void TheActionLog_ReadsTheSessionsLanguage()
         {

@@ -66,7 +66,9 @@ And **resources** an agent can read on its own: the rules reference, the game br
    language lacks, by path key, with the text as written), and `set_translations` with the translated batch; repeat
    until `left` is 0. Keep `{placeholders}`, `$references` and `@strings` as they are. A free text the rules write (a
    `message`, a `refuse` reason) becomes translatable as `@key` with `strings.<key>` set in the game's own language
-   first. Players pick the language when the game starts.
+   first. Sentences the game's Lua writes (card effects, event names, panel texts built in variables) translate only
+   when wrapped in `Game.tr("...")`: wrap them, then `translate_game` lists them as `tr:<text>`. Players pick the
+   language when the game starts.
 10. When the rulebook does not say something (tie rules, what happens when the draw pile runs out, aces high or low), call `ask_host` and ask the human. Record the answer in the rules, e.g. as a `message` at game start or in `game.description`.
 
 ## 4. Things that trip agents up

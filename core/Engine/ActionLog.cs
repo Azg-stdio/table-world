@@ -200,7 +200,7 @@ namespace Core.Engine
         }
 
         private static string ZoneName(TableEngine engine, string id) =>
-            engine.State.Zones.FirstOrDefault(z => z.Id == id)?.Name is { Length: > 0 } name ? name : Text(engine.State, "aZone");
+            engine.State.Zones.FirstOrDefault(z => z.Id == id)?.Name is { Length: > 0 } name ? Core.Text.Translations.Text(engine.State, $"zones.{id}.name", name)! : Text(engine.State, "aZone");
 
         /// <summary>A log phrase (<c>log.&lt;key&gt;</c>) in the session's language; <c>.one</c> first when <paramref name="count"/> is one.</summary>
         private static string Text(TableState state, string key, int? count = null, params (string Name, object? Value)[] fills)

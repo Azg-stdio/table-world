@@ -16,6 +16,12 @@ namespace Core.Text
     {
         public const string StringsPrefix = "strings.";
 
+        /// <summary>
+        /// A sentence a script writes, translated by its own words (<c>Game.tr("Evento de noche")</c>): the key is this
+        /// prefix and the text as written, so wrapping a literal is all a script needs.
+        /// </summary>
+        public const string ScriptPrefix = "tr:";
+
         /// <summary>The fields a text card prints, as their path keys name them (<c>.text.body</c>).</summary>
         public static readonly string[] CardTextFields = { "title", "kind", "body", "footer", "corner" };
 
@@ -92,6 +98,8 @@ namespace Core.Text
             }
             foreach (var seat in state.Players.Seats)
                 Add($"seats.{seat.Id}.name", seat.Name);
+            foreach (var zone in state.Zones)
+                Add($"zones.{zone.Id}.name", zone.Name);
             foreach (var resource in state.Resources)
                 Add($"resources.{resource.Id}.name", resource.Name);
             foreach (var action in state.Actions)
@@ -133,8 +141,33 @@ namespace Core.Text
             if (BaseLanguage(state) is { } own && state.Translations.TryGetValue(own, out var mine))
                 foreach (var (key, text) in mine.Where(p => p.Key.StartsWith(StringsPrefix, StringComparison.Ordinal)))
                     Add(key, text);
+            foreach (var script in state.Scripts.Values)
+                foreach (var text in ScriptTexts(script))
+                    Add(ScriptPrefix + text, text);
+            foreach (var obj in state.Objects.Where(o => !string.IsNullOrEmpty(o.Script)))
+                foreach (var text in ScriptTexts(obj.Script!))
+                    Add(ScriptPrefix + text, text);
             return texts;
         }
+
+        /// <summary>
+        /// The literal texts a Lua script wraps in <c>tr(...)</c> (<c>Game.tr("...")</c>, or a local <c>tr</c>): what
+        /// translate_game lists for it. Texts built at run time are not found; wrap their fixed parts.
+        /// </summary>
+        public static IEnumerable<string> ScriptTexts(string script)
+        {
+            foreach (System.Text.RegularExpressions.Match match in ScriptCall.Matches(script))
+            {
+                var raw = match.Groups[2].Value;
+                yield return raw.Replace("\\" + match.Groups[1].Value, match.Groups[1].Value).Replace("\\n", "\n").Replace("\\\\", "\\");
+            }
+        }
+
+        private static readonly System.Text.RegularExpressions.Regex ScriptCall = new System.Text.RegularExpressions.Regex(
+            @"\btr\s*\(\s*([""'])((?:\\.|(?!\1).)*)\1", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+        /// <summary>A sentence a script wrote with <c>Game.tr</c>, in the session's language.</summary>
+        public static string Script(TableState state, string text) => Text(state, ScriptPrefix + text, text) ?? text;
 
         /// <summary>
         /// What players read for the text at <paramref name="key"/>, written as <paramref name="written"/>: the translation in
@@ -201,7 +234,10 @@ namespace Core.Text
                                 $"'{key}' is not one of the game's strings in its own language ({own}).", $"Add it to translations.{own} first."));
                         continue;
                     }
-                    if (language == own)
+                    if (language == own && key.StartsWith(ScriptPrefix, StringComparison.Ordinal))
+                        errors.Add(new ValidationError($"translations.{language}.{key}", ErrorCodes.UnknownKey,
+                            "A script's own words are written in the script; they need no entry in the game's own language.", "Remove it."));
+                    else if (language == own)
                         errors.Add(new ValidationError($"translations.{language}.{key}", ErrorCodes.UnknownKey,
                             $"The game's own language holds only its strings; '{key}' is written in the game itself.", "Change the text where it is, or use a strings.<key>."));
                     else if (!texts.ContainsKey(key))
