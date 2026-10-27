@@ -1,0 +1,222 @@
+{
+  "schemaVersion": "0.1",
+  "assets": [
+    {
+      "id": "std_deck",
+      "path": "builtin:standard_deck",
+      "columns": 10,
+      "rows": 7
+    },
+    {
+      "id": "std_back",
+      "path": "builtin:standard_back",
+      "columns": 1,
+      "rows": 1
+    }
+  ],
+  "zones": [
+    {
+      "id": "hand_1",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          0.275,
+          0.05,
+          -0.42
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_1"
+    },
+    {
+      "id": "hand_2",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          -0.275,
+          0.05,
+          -0.42
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_2"
+    },
+    {
+      "id": "hand_3",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          -0.68,
+          0.05,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          90.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_3"
+    },
+    {
+      "id": "hand_4",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          -0.275,
+          0.05,
+          0.42
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_4"
+    },
+    {
+      "id": "hand_5",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          0.275,
+          0.05,
+          0.42
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_5"
+    },
+    {
+      "id": "hand_6",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          0.68,
+          0.05,
+          -0.0
+        ],
+        "rotation": [
+          0.0,
+          270.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.5,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_6"
+    }
+  ],
+  "players": {
+    "seats": [
+      {
+        "id": "seat_1",
+        "color": "red",
+        "handZone": "hand_1"
+      },
+      {
+        "id": "seat_2",
+        "color": "blue",
+        "handZone": "hand_2"
+      },
+      {
+        "id": "seat_3",
+        "color": "green",
+        "handZone": "hand_3"
+      },
+      {
+        "id": "seat_4",
+        "color": "yellow",
+        "handZone": "hand_4"
+      },
+      {
+        "id": "seat_5",
+        "color": "orange",
+        "handZone": "hand_5"
+      },
+      {
+        "id": "seat_6",
+        "color": "purple",
+        "handZone": "hand_6"
+      }
+    ]
+  },
+  "environment": {
+    "room": "karaoke",
+    "lighting": {},
+    "table": {}
+  },
+  "notebook": [
+    {
+      "id": "how",
+      "title": "How it works",
+      "body": "Karaoke night is a room for singing together: sofas round the table, a big screen on the far wall.\n\nSit down with the + over a seat, then Start. Whoever's turn it is sings: they hold the microphone and the stage light is on them. When the song is done, press \"Pass the microphone\" and the next seat sings.\n\nVoice: hold T to talk (Settings, Voice can open the microphone when you speak). Songs on the screen are not there yet."
+    }
+  ],
+  "game": {
+    "id": "karaoke-night",
+    "name": "Karaoke night",
+    "description": "Take turns at the microphone in the karaoke room: whoever's turn it is sings, then passes the microphone.",
+    "maxPlayers": 6
+  },
+  "turn": {
+    "startingPlayer": "first",
+    "phases": [
+      "sing"
+    ]
+  },
+  "phases": [
+    {
+      "id": "sing",
+      "name": "Singing",
+      "actions": [
+        "pass_mic"
+      ],
+      "advanceWhen": {
+        "currentPlayerEnds": true
+      }
+    }
+  ],
+  "actions": [
+    {
+      "id": "pass_mic",
+      "name": "Pass the microphone",
+      "effects": [
+        {
+          "endTurn": {}
+        }
+      ]
+    }
+  ]
+}

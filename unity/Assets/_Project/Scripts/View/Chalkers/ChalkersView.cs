@@ -43,8 +43,17 @@ namespace TableWorld.View.Chalkers
         private Dictionary<string, (Vector3 Position, Vector3 Facing)> _sofaPlaces;
         private int _sofaFrame = -1;
 
-        /// <summary>The seat singing (karaoke): its chalker holds the microphone and the stage light is on it. Null: nobody.</summary>
-        public string Singer { get; set; }
+        /// <summary>
+        /// The seat singing (karaoke): its chalker holds the microphone and the stage light is on it. Set, it wins; unset, a
+        /// game running in the karaoke room makes whoever's turn it is the singer (until sing mode, T12.5). Null: nobody.
+        /// </summary>
+        public string Singer
+        {
+            get => _singer ?? (Karaoke && _table.Game?.Session is { Started: true, Over: false } session ? session.CurrentSeat : null);
+            set => _singer = value;
+        }
+
+        private string _singer;
 
         /// <summary>The karaoke room is up: sofas instead of chairs.</summary>
         public bool Karaoke => _table != null && _table.Engine?.State.Environment is { Room: RoomPreset.Karaoke, RoomAsset: null } && !TableGeometry.Hidden;

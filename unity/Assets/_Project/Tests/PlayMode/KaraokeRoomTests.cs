@@ -120,6 +120,25 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsFalse(stage.enabled);
         }
 
+        /// <summary>The sample game: in a game in the karaoke room, whoever's turn it is sings, and passing the microphone moves it.</summary>
+        [UnityTest]
+        public IEnumerator InAGame_TheTurnHolderSings()
+        {
+            var entry = GameLibrary.List().FirstOrDefault(e => e.File.EndsWith("karaoke-night.json"));
+            Assert.IsNotNull(entry, "Karaoke night is in Games");
+            Assert.IsTrue(_table.Load(System.IO.File.ReadAllText(entry.File), entry.PackageRoot));
+            yield return null;
+            Assert.IsTrue(_chalkers.Karaoke);
+            Assert.IsNull(_chalkers.Singer, "nobody sings before the start");
+            Assert.IsTrue(_table.Execute(new Core.Engine.StartGameCommand()).Ok);
+            var first = _table.Game.Session.CurrentSeat;
+            Assert.AreEqual(first, _chalkers.Singer);
+            yield return null;
+            Assert.IsTrue(_environment.StageLight.enabled, "the stage light is on the singer");
+            Assert.IsTrue(_table.Execute(new Core.Engine.PerformActionCommand { Actor = first, ActionId = "pass_mic" }).Ok);
+            Assert.AreNotEqual(first, _chalkers.Singer, "the microphone passed");
+        }
+
         [UnityTest]
         public IEnumerator AnotherRoom_PutsTheChairsBack()
         {
