@@ -96,12 +96,18 @@ def run(filter_text, timeout):
         status = result(cli("command", "test", "status"))
         state = status.get("status")
         elapsed = time.time() - started
-        # Play mode alone is no proof: the status can still show the previous run as completed while ours starts.
+        # Play mode alone is no proof: the status can still show the previous run as completed while ours starts, and
+        # after a recompile it can come back with the old results although the snapshot taken before starting was empty.
+        # A completed status is ours once the run was seen running, or once Play mode started and every result belongs
+        # to our filter.
         active = active or state not in ("completed", None)
-        if state == "completed" and (active or json.dumps(status, sort_keys=True) != previous):
-            return status
         if not played:
             played = is_playing()
+        names = [r.get("FullName", "") for r in status.get("results") or []]
+        ours = bool(names) and all(re.search(filter_text or "TableWorld.Tests", n) for n in names)
+        if state == "completed" and (active or (played and ours and json.dumps(status, sort_keys=True) != previous)):
+            return status
+        if not played:
             if not played and elapsed > PLAY_MODE_START_SECONDS:
                 cli("command", "test", "cancel")
                 truth = console_truth()
