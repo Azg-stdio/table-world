@@ -85,6 +85,7 @@ namespace TableWorld.View.Net
             }
             DisconnectKicked();
             TickScripts();
+            TickClock();
             if (_network == null || !_network.IsListening || !Synced)
                 return;
             SendPresence();

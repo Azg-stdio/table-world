@@ -22,17 +22,23 @@ namespace Core.Net
         public string Seat { get; set; } = "";
         /// <summary>Counts frames per speaker and wraps at 65 536; the listener orders and spots gaps with it.</summary>
         public ushort Sequence { get; set; }
+        /// <summary>
+        /// When the speaker sent it, in milliseconds on the host's clock (wraps after 49 days): a listener measures the
+        /// voice's delay with it (karaoke, ADR 0013). Null from a version 1 sender.
+        /// </summary>
+        public uint? SentAt { get; set; }
         public byte[] Payload { get; set; } = Array.Empty<byte>();
     }
 
     /// <summary>
     /// Voice packets on the wire. Unlike every other message they are binary, not JSON: 50 a second per speaker would
-    /// spend more on base64 and keys than on the sound. Layout: version (1), sequence (2, little endian), seat length (1),
-    /// seat (UTF-8), payload length (2), payload.
+    /// spend more on base64 and keys than on the sound. Layout: version (1), sequence (2, little endian), in version 2 the
+    /// send time on the host's clock (4, little endian, ms), seat length (1), seat (UTF-8), payload length (2), payload.
+    /// Version 1 packets (no send time) still decode.
     /// </summary>
     public static class VoiceCodec
     {
-        public const byte Version = 1;
+        public const byte Version = 2;
         /// <summary>An Opus frame at our bitrate is about 60 bytes; anything this big is not ours.</summary>
         public const int MaxPayload = 1000;
         public const int MaxSeat = 64;
@@ -42,13 +48,18 @@ namespace Core.Net
             var seat = Encoding.UTF8.GetBytes(packet.Seat);
             if (seat.Length > MaxSeat || packet.Payload.Length > MaxPayload)
                 throw new ArgumentException("Voice packet too big.");
-            var bytes = new byte[6 + seat.Length + packet.Payload.Length];
+            var bytes = new byte[10 + seat.Length + packet.Payload.Length];
             bytes[0] = Version;
             bytes[1] = (byte)packet.Sequence;
             bytes[2] = (byte)(packet.Sequence >> 8);
-            bytes[3] = (byte)seat.Length;
-            seat.CopyTo(bytes, 4);
-            var at = 4 + seat.Length;
+            var sent = packet.SentAt ?? 0;
+            bytes[3] = (byte)sent;
+            bytes[4] = (byte)(sent >> 8);
+            bytes[5] = (byte)(sent >> 16);
+            bytes[6] = (byte)(sent >> 24);
+            bytes[7] = (byte)seat.Length;
+            seat.CopyTo(bytes, 8);
+            var at = 8 + seat.Length;
             bytes[at] = (byte)packet.Payload.Length;
             bytes[at + 1] = (byte)(packet.Payload.Length >> 8);
             packet.Payload.CopyTo(bytes, at + 2);
@@ -58,12 +69,16 @@ namespace Core.Net
         /// <summary>The packet in <paramref name="bytes"/>, or null when it is not a well-formed voice packet.</summary>
         public static VoicePacket? Decode(byte[] bytes)
         {
-            if (bytes == null || bytes.Length < 6 || bytes[0] != Version)
+            if (bytes == null || bytes.Length < 6 || bytes[0] != 1 && bytes[0] != Version)
                 return null;
-            var seatLength = bytes[3];
-            if (seatLength > MaxSeat || bytes.Length < 6 + seatLength)
+            // Version 1 had no send time: the seat started right after the sequence.
+            var head = bytes[0] == 1 ? 3 : 7;
+            if (bytes.Length < head + 3)
                 return null;
-            var at = 4 + seatLength;
+            var seatLength = bytes[head];
+            if (seatLength > MaxSeat || bytes.Length < head + 3 + seatLength)
+                return null;
+            var at = head + 1 + seatLength;
             var payloadLength = bytes[at] | (bytes[at + 1] << 8);
             if (payloadLength > MaxPayload || bytes.Length != at + 2 + payloadLength)
                 return null;
@@ -72,7 +87,8 @@ namespace Core.Net
             return new VoicePacket
             {
                 Sequence = (ushort)(bytes[1] | (bytes[2] << 8)),
-                Seat = Encoding.UTF8.GetString(bytes, 4, seatLength),
+                SentAt = bytes[0] == 1 ? (uint?)null : (uint)(bytes[3] | (bytes[4] << 8) | (bytes[5] << 16) | (bytes[6] << 24)),
+                Seat = Encoding.UTF8.GetString(bytes, head + 1, seatLength),
                 Payload = payload,
             };
         }

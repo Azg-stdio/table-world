@@ -76,6 +76,46 @@ namespace Core.Tests.Net
             return (values[values.Count / 2], values[values.Count * 95 / 100], values[^1]);
         }
 
+        /// <summary>T12.3: voice frames carry their send time on the host's clock; version 1 frames still decode.</summary>
+        [Fact]
+        public void VoiceFrames_CarryTheirSendTime()
+        {
+            var packet = new VoicePacket { Seat = "seat_2", Sequence = 65000, SentAt = 4_000_000_123u, Payload = new byte[] { 1, 2, 3 } };
+            var back = VoiceCodec.Decode(VoiceCodec.Encode(packet))!;
+            Assert.Equal(packet.SentAt, back.SentAt);
+            Assert.Equal("seat_2", back.Seat);
+            Assert.Equal(new byte[] { 1, 2, 3 }, back.Payload);
+            // A version 1 frame: version, sequence, seat length, seat, payload length, payload.
+            var old = new byte[] { 1, 7, 0, 1, (byte)'a', 2, 0, 9, 9 };
+            var decoded = VoiceCodec.Decode(old)!;
+            Assert.Null(decoded.SentAt);
+            Assert.Equal("a", decoded.Seat);
+            Assert.Equal(7, decoded.Sequence);
+            // Across the 32-bit wrap: sent 10 ms before it, read 30 ms after.
+            Assert.Equal(40, SingAlong.Delay(uint.MaxValue - 9, (double)uint.MaxValue + 31));
+        }
+
+        /// <summary>T12.3: a client's clock offset from pings over a jittery, lopsided path lands within the simulation's error.</summary>
+        [Fact]
+        public void HostClock_FindsTheOffset_FromPings()
+        {
+            var r = new Random(3);
+            var clock = new HostClock();
+            const double offset = 123_456;
+            for (var i = 0; i < 30; i++)
+            {
+                var hostNow = 2000.0 * i;
+                var ping = HostClock.Ping(hostNow + offset);
+                var atHost = hostNow + 40 + Jitter(r);
+                var answer = HostClock.Answer(ping, atHost);
+                Assert.True(clock.Receive(answer, atHost + 30 + Jitter(r) + offset));
+            }
+            Assert.Equal(HostClock.Samples, clock.Count);
+            // A 40/30 ms lopsided path: the true offset is out by half the difference, 5 ms, plus what jitter leaves.
+            Assert.InRange(clock.Offset - offset, -10, 2);
+            Assert.False(clock.Receive(new Newtonsoft.Json.Linq.JObject { ["kind"] = "say" }, 0));
+        }
+
         [Fact]
         public void OneSinger_EveryListenerLinesUp_TwoSingersDoNot()
         {

@@ -12,6 +12,9 @@ namespace Core.Net
     /// </summary>
     public static class SingAlong
     {
+        /// <summary>A voice packet's delay from its send time to now, both on the host's clock (ms), across the 32-bit wrap.</summary>
+        public static double Delay(uint sentAtHost, double nowHost) => unchecked((uint)(long)nowHost - sentAtHost);
+
         /// <summary>
         /// This machine's clock minus the host's, from ping samples (<c>sent</c>, <c>hostTime</c>, <c>received</c> on this
         /// clock, ms): the fastest round trips are the least queued, so their midpoint is the best guess.

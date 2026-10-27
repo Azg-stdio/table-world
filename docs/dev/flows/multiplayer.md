@@ -62,6 +62,9 @@ sequenceDiagram
   concealment for a lost frame, and a cut back to 60 ms when more than 200 ms piles up. Playback pulls the stream in
   `OnAudioFilterRead` (a streamed `AudioClip` reads about a second ahead, too late for talking). The microphone runs
   only online or with Settings → Voice → Hear myself, which loops your voice through the same path to a mirror chalker.
+  Frames carry their send time on the host's clock (version 2), and every client keeps the host's clock by ping
+  ([HostClock.cs](../../../core/Net/HostClock.cs), [NetworkTableSession.Clock.cs](../../../unity/Assets/_Project/Scripts/View/Net/NetworkTableSession.Clock.cs)),
+  so each machine knows how late every speaker's voice arrives: karaoke delays the song by it (ADR 0013).
   Every seat but your own has a chair at the table's edge, played or not (M10 T11.10): level with the seat's hand zone
   on the nearest edge, or, for seats without one, spread evenly round the table in seat order. A player's chalker sits
   on its seat's chair, hands on the table.

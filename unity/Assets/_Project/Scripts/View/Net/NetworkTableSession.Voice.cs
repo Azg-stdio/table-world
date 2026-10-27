@@ -47,6 +47,7 @@ namespace TableWorld.View.Net
         {
             if (_network == null || !_network.IsListening)
                 return;
+            Stamp(packet);
             var bytes = VoiceCodec.Encode(packet);
             if (IsHost)
             {
@@ -66,6 +67,7 @@ namespace TableWorld.View.Net
             if (packet == null || !_seatOf.TryGetValue(sender, out var seat))
                 return;
             packet.Seat = seat ?? SpectatorVoice(sender.ToString());
+            Measure(packet);
             if (Hears(packet.Seat, _table.Spectating ? null : _table.LocalSeat))
                 _voice?.Receive(packet);
             var relayed = VoiceCodec.Encode(packet);
@@ -87,7 +89,10 @@ namespace TableWorld.View.Net
         {
             reader.ReadValueSafe(out byte[] bytes);
             if (VoiceCodec.Decode(bytes) is { } packet && packet.Seat != SpeakerKey())
+            {
+                Measure(packet);
                 _voice?.Receive(packet);
+            }
         }
 
         private void SendVoiceTo(ulong client, byte[] bytes)

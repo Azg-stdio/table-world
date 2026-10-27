@@ -465,6 +465,8 @@ namespace TableWorld.View.Net
                 OnHostSay(sender, parsed);
                 return;
             }
+            if (OnHostClock(sender, parsed))
+                return;
             if ((string)parsed["kind"] == "hello")
             {
                 OnHostHello(sender, parsed);
@@ -550,6 +552,8 @@ namespace TableWorld.View.Net
             var kind = (string)message["kind"];
             if (_sentAt.Count > 0 && kind == "order" && (string)message["origin"] == _network.LocalClientId.ToString())
                 RoundTrips.Add((Time.realtimeSinceStartup - _sentAt.Dequeue(), !_assets.Complete));
+            if (OnClientClock(message))
+                return;
             if (kind == "seat")
             {
                 _table.SeatOverride = (string)message["seat"];
