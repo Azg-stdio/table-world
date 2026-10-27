@@ -172,8 +172,13 @@ namespace Core.Net
             _byHash.Clear();
             Warnings.Clear();
             var entries = new List<ManifestEntry>();
-            // Images, model meshes, asset bundles and PDFs travel.
-            foreach (var asset in state.Assets.Where(a => (a.Type == AssetType.Image || a.Type == AssetType.Model || a.Type == AssetType.AssetBundle || a.Type == AssetType.Pdf) && !a.IsBuiltin))
+            // Images, model meshes, asset bundles and PDFs travel, and each language's file of an image with words in it
+            // (ADR 0011) as its own entry, <id>@<language>.
+            var travelling = state.Assets.Where(a => (a.Type == AssetType.Image || a.Type == AssetType.Model || a.Type == AssetType.AssetBundle || a.Type == AssetType.Pdf) && !a.IsBuiltin).ToList();
+            foreach (var asset in travelling.ToList())
+                foreach (var (language, path) in asset.Localized)
+                    travelling.Add(LocalizedAsset(asset, language, path));
+            foreach (var asset in travelling)
             {
                 byte[]? data;
                 try
@@ -203,6 +208,13 @@ namespace Core.Net
             }
             _entries = entries;
         }
+
+        /// <summary>
+        /// The stand-in for <paramref name="asset"/>'s file in <paramref name="language"/>: id <c>&lt;id&gt;@&lt;language&gt;</c>,
+        /// the localized path. The host sends it and a client asks for it under that id.
+        /// </summary>
+        public static Asset LocalizedAsset(Asset asset, string language, string path) =>
+            new Asset { Id = asset.Id + "@" + language, Type = asset.Type, Path = path, Columns = asset.Columns, Rows = asset.Rows, MeshScale = asset.MeshScale };
 
         public JArray Manifest() => new JArray(_entries.Select(e => new JObject { ["id"] = e.Id, ["hash"] = e.Hash, ["size"] = e.Size }));
 

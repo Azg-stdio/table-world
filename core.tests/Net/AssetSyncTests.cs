@@ -84,6 +84,21 @@ namespace Core.Tests.Net
             return maxRequested;
         }
 
+        /// <summary>T10.6: an image's file in another language travels as its own entry, so a client shows the session's file.</summary>
+        [Fact]
+        public void EachLanguagesFile_Travels()
+        {
+            var files = new Dictionary<string, byte[]> { ["img/cartel.png"] = Bytes(900, 3), ["img/sign_en.png"] = Bytes(800, 4) };
+            var state = new TableState();
+            state.Assets.Add(new Asset { Id = "cartel", Type = AssetType.Image, Path = "img/cartel.png", Localized = { ["en"] = "img/sign_en.png" } });
+            var host = Host(state, files);
+            Assert.Contains(host.Assets!.Entries, e => e.Id == "cartel@en");
+            var assets = new AssetClient(new MemoryAssetStore());
+            Run(host, "c1", assets);
+            Assert.Equal(files["img/cartel.png"], assets.Read("cartel"));
+            Assert.Equal(files["img/sign_en.png"], assets.Read(AssetHost.LocalizedAsset(state.Assets[0], "en", "img/sign_en.png").Id));
+        }
+
         [Fact]
         public void EmptyCacheReceivesEveryImage()
         {

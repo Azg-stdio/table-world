@@ -108,8 +108,11 @@ namespace TableWorld.View
             if (asset == null || asset.Localized.Count == 0 || !(State?.Invoke() is { } state))
                 return asset;
             var path = Core.Text.Translations.AssetPath(state, asset);
-            return path == asset.Path ? asset
-                : new Asset { Id = asset.Id, Type = asset.Type, Path = path, Columns = asset.Columns, Rows = asset.Rows, MeshScale = asset.MeshScale };
+            if (path == asset.Path)
+                return asset;
+            // Its id says the language, so a network client fetches that file (the host lists it under the same id).
+            var language = asset.Localized.First(p => p.Value == path).Key;
+            return Core.Net.AssetHost.LocalizedAsset(asset, language, path);
         }
 
         /// <summary>A card's words in the session's language (<c>&lt;prefix&gt;.text.&lt;field&gt;</c>); the text itself when nothing is translated.</summary>
@@ -724,7 +727,8 @@ namespace TableWorld.View
             if (texture != null)
                 RedrawTextWithArt(path);
             if (texture != null)
-                foreach (var id in _assets.Values.Where(a => a.Path == path).Select(a => a.Id).ToList())
+                // A localized file redraws the asset it belongs to.
+                foreach (var id in _assets.Values.Where(a => a.Path == path || a.Localized.ContainsValue(path)).Select(a => a.Id).ToList())
                     Decoded?.Invoke(id);
         }
 
