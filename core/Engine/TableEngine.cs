@@ -1125,9 +1125,12 @@ namespace Core.Engine
 
         private Card CardFromEntry(Deck deck, DeckCard entry)
         {
+            // A card's own id would name it to every machine on a table with secret cards: it travels as EntryId instead.
+            var opaque = State.SecretCards && entry.Id != null;
             var card = new Card
             {
-                Id = entry.Id ?? Mint(deck.Id),
+                Id = entry.Id == null || opaque ? Mint(deck.Id) : entry.Id,
+                EntryId = opaque ? entry.Id : null,
                 Name = entry.Name,
                 Description = entry.Description,
                 GmNotes = entry.GmNotes,
@@ -1151,7 +1154,7 @@ namespace Core.Engine
         /// <summary>Card → deck entry. Asset fields equal to the deck's defaults are left null so they keep following the deck.</summary>
         private static DeckCard EntryFromCard(Deck deck, Card card) => new DeckCard
         {
-            Id = card.Id,
+            Id = card.EntryId ?? card.Id,
             Name = card.Name,
             Description = card.Description,
             GmNotes = card.GmNotes,

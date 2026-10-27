@@ -118,7 +118,7 @@ namespace Core.Net
             {
                 ["kind"] = "snapshot",
                 ["order"] = _order,
-                ["state"] = SeatView.Serialize(Game.State, ViewerSeat(clientId)),
+                ["state"] = SeatView.Serialize(Game.State, ViewerSeat(clientId), Game.Table),
             };
             if (Assets != null)
                 message["assets"] = Assets.Manifest();
@@ -184,18 +184,40 @@ namespace Core.Net
                 }
             var randomBefore = Game.Table.Random.State;
             var secretsBefore = SeatView.SecretKey(Game.State);
+            var unknownBefore = Unknown();
             var result = Game.Execute(command);
             if (!result.Ok)
                 return (result, new List<Outgoing> { new Outgoing(origin == HostId ? null : origin, Rejection(origin, clientSeq, result.Error!)) });
             _order++;
             Executed?.Invoke(origin, command, result);
-            var hostRun = result.ScriptsRan || result.ReadsSecrets || Game.Table.Random.State != randomBefore || SeatView.SecretKey(Game.State) != secretsBefore;
+            var hostRun = result.ScriptsRan || result.ReadsSecrets || Game.Table.Random.State != randomBefore || SeatView.SecretKey(Game.State) != secretsBefore
+                          || TouchesUnknown(result, unknownBefore);
             if (hostRun)
                 return (result, HostRunOrders(origin, clientSeq, command, result));
             var order = OrderMessage(origin, clientSeq, command);
             if (HashEvery <= 1 || _order % HashEvery == 0)
-                order["hash"] = SeatView.Hash(Game.State);
+                order["hash"] = SeatView.Hash(Game.State, Game.Table);
             return (result, new List<Outgoing> { new Outgoing(null, order) });
+        }
+
+        /// <summary>The cards and decks someone may not know (strict tables only; empty otherwise).</summary>
+        private HashSet<string> Unknown()
+        {
+            var (cards, decks) = SeatView.Hidden(Game.State, null, Game.Table);
+            cards.UnionWith(decks);
+            return cards;
+        }
+
+        /// <summary>
+        /// A command that moved, flipped or dealt a card someone may not know, before or after it ran (a draw from a
+        /// face-down deck, a card played from a hand): peers cannot replay it from what they hold (ADR 0012, T11.16).
+        /// </summary>
+        private bool TouchesUnknown(CommandResult result, HashSet<string> before)
+        {
+            if (!SeatView.Strict(Game.State) || result.Events.Count == 0)
+                return false;
+            var after = Unknown();
+            return result.Events.Any(e => e.ObjectId.Length > 0 && (before.Contains(e.ObjectId) || after.Contains(e.ObjectId)));
         }
 
         private JObject OrderMessage(string origin, long clientSeq, Command command) => new JObject
@@ -215,7 +237,7 @@ namespace Core.Net
         /// </summary>
         private List<Outgoing> HostRunOrders(string origin, long clientSeq, Command command, CommandResult result)
         {
-            var hash = SeatView.Hash(Game.State);
+            var hash = SeatView.Hash(Game.State, Game.Table);
             var messages = new List<Outgoing>();
             foreach (var peer in _peers)
             {
@@ -231,10 +253,10 @@ namespace Core.Net
                 order["hash"] = hash;
                 // A private line goes to its seat only.
                 order["events"] = EventCodec.EncodeAll(result.Events.Where(e => !(e is PrivateMessage p) || p.Seat == seat));
-                if (TablePatch.Build(Game.State, result, seat) is { } patch)
+                if (TablePatch.Build(Game.State, result, seat, Game.Table) is { } patch)
                     order["patch"] = patch;
                 else
-                    order["state"] = SeatView.Serialize(Game.State, seat);
+                    order["state"] = SeatView.Serialize(Game.State, seat, Game.Table);
                 messages.Add(new Outgoing(peer, order));
             }
             return messages;

@@ -98,6 +98,8 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `meta` | object |  |
 | `text` | [CardText](#cardtext) |  |
 | `style` | [CardStyle](#cardstyle) |  |
+| `unknown` | boolean |  |
+| `entryId` | string |  |
 
 ### TableTransform
 
@@ -240,6 +242,7 @@ behind it (phases, actions, effects, conditions) read [rules-schema.md](../rules
 | `ttsExtra` | object |  |
 | `text` | [CardText](#cardtext) |  |
 | `style` | [CardStyle](#cardstyle) |  |
+| `unknown` | boolean |  |
 
 ### Token
 

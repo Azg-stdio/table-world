@@ -55,7 +55,8 @@ that player receives. Wink Murder does it that way.
 
 ## Limits today
 
-- Hand cards and face-down decks still reach every machine: the game hides them, but a modified game could read them.
-  Roles, votes, secret choices and secret variables do not (M10 T11.16).
+- In a game with rules, other players' hand cards and face-down cards reach your machine only as backs. On a
+  free-play table (an imported TTS game) every machine holds everything and the game only hides it, as in TTS.
+- Searching a face-down deck shows backs to a player who is not the host, and what is inside a bag is not secret.
 - A vote has no timer of its own; a rule can close it with `closeVote`.
 - Voice channels are tested on one machine; the playtest with friends checks them over the internet.

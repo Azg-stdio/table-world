@@ -113,6 +113,11 @@ dedicated server. What matters is that no one sees a secret by accident or with 
   player's machine holds it, not even the one it is about. What one player alone may know about themselves belongs in a
   hidden trait (a role `set`, here `fate`: alive or winked at), which reaches that player only. The docs say so where
   they describe secret variables.
+- **Cards secret on the wire (T11.16, as built):** only on tables with rules or roles; free-play tables keep TTS's
+  honest play, so big imports pay nothing. Hidden cards and face-down decks reach a machine as unknown cards, a drawn
+  card gets a fresh id (its deck id would name it), and every command touching such a card is host-run. In card games
+  that is every order: about 3.5 kB per client each, roughly 8 ms of work, no resyncs. Searching a face-down deck from
+  a client shows backs, and bag contents stay public: both are left for later.
 - **The sandbox check (T11.15b, Secret Dictator: plays like Secret Hitler, a game the milestone does not name)**
   needed one more general piece: `knows` rules that hold only for some player counts (`minPlayers`, `maxPlayers`: the
   Dictator knows the fascists only at 5–6). Everything else (a policy deck passed hand to hand, chained phases, term

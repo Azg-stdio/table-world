@@ -217,7 +217,8 @@ namespace TableWorld.View.Bridge
                     {
                         // The agent only saw this seat's view: what it could not see stays as it is (ADR 0012).
                         var text = document.ToString();
-                        if (_table.Engine?.State.Session is { Started: true } && TableJson.Parse(text) is { State: { } incoming, Structural: false })
+                        // Unknown cards (a seat's view of a table with secret cards) too, before the game starts as well.
+                        if (_table.Engine != null && TableJson.Parse(text) is { State: { } incoming, Structural: false })
                         {
                             SeatView.Restore(incoming, _table.Engine.State);
                             text = TableJson.Serialize(incoming, indented: false);

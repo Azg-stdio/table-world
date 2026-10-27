@@ -65,10 +65,13 @@ namespace Core.Tests.Net
             _output.WriteLine($"{name}: {games} games, {report.Orders} orders ({report.HostRun} host-run, {report.WholeTables} as whole tables), {report.Snapshots} snapshots, {report.Resyncs} resyncs");
             _output.WriteLine($"  bytes: replayed orders {Spread(report.OrderBytes)}; host-run orders per client {Spread(report.HostRunBytes)} (events {Spread(report.EventBytes)}, patch {Spread(report.PatchBytes)}); snapshots {Spread(report.SnapshotBytes)}");
             _output.WriteLine($"  messages carrying the host's generator: {report.GeneratorLeaks}");
-            _output.WriteLine($"  still visible until T11.16: other hands' cards per order {Spread(report.OtherHandCards)}, deck cards in order {Spread(report.DeckCardsKnown)}");
+            _output.WriteLine($"  other hands' cards a client could name per order {Spread(report.OtherHandCards)}; face-down deck cards it could name {Spread(report.DeckCardsKnown)}");
 
             Assert.Equal(0, report.GeneratorLeaks);
             Assert.Equal(0, report.Resyncs);
+            // T11.16: a rules game's cards are secret on the wire too.
+            Assert.Equal(0, report.OtherHandCards.Max());
+            Assert.Equal(0, report.DeckCardsKnown.Max());
             Assert.True(report.HostRun > 0, "shuffles and deals ran on the host");
         }
 
@@ -124,8 +127,9 @@ namespace Core.Tests.Net
                 foreach (var (id, client) in clients)
                 {
                     var view = client.Confirmed!;
-                    report.OtherHandCards.Add(view.State.Objects.Count(o => o is Card && view.Table.IsHiddenFrom(o.Id, host.Seats[id])));
-                    report.DeckCardsKnown.Add(view.State.Objects.OfType<Deck>().Sum(d => d.Cards.Count));
+                    // What actually arrived: hidden cards whose face this machine holds, face-down decks whose order it holds.
+                    report.OtherHandCards.Add(view.State.Objects.Count(o => o is Card { Unknown: false } && view.Table.IsHiddenFrom(o.Id, host.Seats[id])));
+                    report.DeckCardsKnown.Add(view.State.Objects.OfType<Deck>().Where(d => !d.IsFaceUp).Sum(d => d.Cards.Count(c => !c.Unknown)));
                 }
             }
 

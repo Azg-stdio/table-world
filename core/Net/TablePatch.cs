@@ -14,7 +14,7 @@ namespace Core.Net
     public static class TablePatch
     {
         /// <summary>The patch for one seat, or null when only the whole table will do.</summary>
-        public static JObject? Build(TableState state, CommandResult result, string? seat)
+        public static JObject? Build(TableState state, CommandResult result, string? seat, TableEngine? table = null)
         {
             if (result.ScriptsRan || result.StateRestored)
                 return null;
@@ -40,13 +40,14 @@ namespace Core.Net
                         ids.Add(e.ObjectId);
                         break;
                 }
-            // A container's contents come along: a bag's shuffle reorders them.
+            // A container's contents come along: a bag's shuffle reorders them. Each object as this seat may know it.
+            var hidden = SeatView.Hidden(state, seat, table);
             var objects = new JArray();
             for (var i = 0; i < state.Objects.Count; i++)
             {
                 var obj = state.Objects[i];
                 if (ids.Contains(obj.Id) || obj.Container != null && ids.Contains(obj.Container))
-                    objects.Add(new JObject { ["index"] = i, ["object"] = TableJson.ToToken(obj) });
+                    objects.Add(new JObject { ["index"] = i, ["object"] = SeatView.Object(obj, hidden) });
             }
             var present = new HashSet<string>(state.Objects.Select(o => o.Id));
             return new JObject

@@ -160,6 +160,19 @@ namespace Core.Rules
         [JsonIgnore] public bool TextFace => Text != null && string.IsNullOrEmpty(FaceAsset);
         /// <summary>The back is drawn from <see cref="Style"/> (or the default style), not an image.</summary>
         [JsonIgnore] public bool TextBack => string.IsNullOrEmpty(BackAsset) && (Text != null || Style != null);
+
+        /// <summary>
+        /// A card this machine may not know (another seat's hand, face down on the table; ADR 0012): its face, name and data
+        /// never arrived. The view always shows its back.
+        /// </summary>
+        public bool Unknown { get; set; }
+
+        /// <summary>
+        /// The id this card had in its deck, on a table with secret cards: there a card taken out of a deck is named by a
+        /// fresh id ("draw-3"), since an id like "ace_clubs" would tell everyone what it is. It is the deck id again once the
+        /// card goes back in.
+        /// </summary>
+        public string? EntryId { get; set; }
     }
 
     /// <summary>One card inside a <see cref="Deck"/>. Unset asset fields fall back to the deck's defaults.</summary>
@@ -184,6 +197,8 @@ namespace Core.Rules
         public CardText? Text { get; set; }
         /// <summary>This card's own look; null follows the deck's <see cref="Deck.Style"/>.</summary>
         public CardStyle? Style { get; set; }
+        /// <summary>A card of a face-down deck: this machine does not know which (ADR 0012).</summary>
+        public bool Unknown { get; set; }
     }
 
     /// <summary>An ordered stack of cards. <c>Cards[0]</c> is the top (the card a draw takes), same as TTS <c>DeckIDs[0]</c>.</summary>

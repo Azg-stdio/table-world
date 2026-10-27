@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Engine;
 using Core.Rules;
 using Newtonsoft.Json.Linq;
 
@@ -16,10 +17,99 @@ namespace Core.Net
     public static class SeatView
     {
         /// <summary>The seat's view of <paramref name="state"/> as compact JSON (a snapshot).</summary>
-        public static string Serialize(TableState state, string? seat) => Redacted(state, seat, () => TableJson.Serialize(state, indented: false));
+        public static string Serialize(TableState state, string? seat, TableEngine? table = null) =>
+            Redacted(state, seat, () => Unknowns(state, TableJson.Serialize(state, indented: false), seat, table));
 
         /// <summary>Hash of the public view: what every peer can check, whatever its own secrets.</summary>
-        public static string Hash(TableState state) => Redacted(state, null, () => TableJson.Hash(state));
+        public static string Hash(TableState state, TableEngine? table = null) => Redacted(state, null, () =>
+        {
+            if (!Strict(state))
+                return TableJson.Hash(state);
+            using var sha = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(Unknowns(state, TableJson.Serialize(state, indented: false), null, table)));
+            return "sha256:" + string.Concat(bytes.Select(b => b.ToString("x2")));
+        });
+
+        /// <summary>
+        /// Tables whose cards are secret on the wire too (ADR 0012, T11.16): those with rules or roles. A free-play table
+        /// (a TTS import, a sandbox) keeps TTS's honest play: everything reaches every machine and the view hides it.
+        /// </summary>
+        public static bool Strict(TableState state) => state.SecretCards;
+
+        /// <summary>
+        /// The cards <paramref name="seat"/> may not know (null: what is hidden from anyone): in another seat's hand, in a
+        /// hidden zone that does not show it to them, face down on the table; and the face-down decks, whose order nobody
+        /// knows. Empty on a free-play table. <paramref name="table"/> is the live engine over <paramref name="state"/>, when
+        /// there is one (its zone index saves rebuilding it).
+        /// </summary>
+        public static (HashSet<string> Cards, HashSet<string> Decks) Hidden(TableState state, string? seat, TableEngine? table = null)
+        {
+            var cards = new HashSet<string>();
+            var decks = new HashSet<string>();
+            if (!Strict(state))
+                return (cards, decks);
+            table ??= new TableEngine(state, 1);
+            var seats = state.Players.Seats.Select(s => s.Id).ToList();
+            foreach (var obj in state.Objects)
+            {
+                switch (obj)
+                {
+                    case Card card when card.Container == null:
+                        var hidden = seat == null ? seats.Any(s => table.IsHiddenFrom(card.Id, s)) : table.IsHiddenFrom(card.Id, seat);
+                        var inHand = table.ZonesOf(card.Id).Any(z => state.Zones.FirstOrDefault(x => x.Id == z) is HandZone);
+                        if (hidden || !card.IsFaceUp && !inHand)
+                            cards.Add(card.Id);
+                        break;
+                    case Deck deck when deck.Container == null && !deck.IsFaceUp && deck.Cards.Count > 0:
+                        decks.Add(deck.Id);
+                        break;
+                }
+            }
+            return (cards, decks);
+        }
+
+        /// <summary>What may not be known of a card: everything but where it is, its kind and its back.</summary>
+        private static readonly string[] Identity =
+            { "name", "description", "gmNotes", "tags", "faceAsset", "faceIndex", "meta", "text", "script", "scriptState", "states", "ttsExtra", "buttons", "inputs", "scriptUi", "entryId" };
+
+        /// <summary>One object as <paramref name="seat"/> receives it: unknown cards keep only their place and back.</summary>
+        public static JToken Object(TableObject obj, (HashSet<string> Cards, HashSet<string> Decks) hidden)
+        {
+            var token = TableJson.ToToken(obj);
+            if (!(token is JObject json) || !hidden.Cards.Contains(obj.Id) && !hidden.Decks.Contains(obj.Id))
+                return token;
+            if (hidden.Cards.Contains(obj.Id))
+                Blank(json, keepId: true);
+            else if (json["cards"] is JArray entries)
+                // A deck card's id would name it (uno_red_5): it goes too.
+                foreach (var entry in entries.OfType<JObject>())
+                    Blank(entry, keepId: false);
+            // Back through the model, so the order of the fields is the one every machine writes.
+            return TableJson.ToToken((TableObject)TableJson.FromToken(json, typeof(TableObject))!);
+        }
+
+        private static void Blank(JObject card, bool keepId)
+        {
+            foreach (var key in Identity)
+                card.Remove(key);
+            if (!keepId)
+                card.Remove("id");
+            card["unknown"] = true;
+        }
+
+        /// <summary>The table's JSON with every object <paramref name="seat"/> may not know made unknown.</summary>
+        private static string Unknowns(TableState state, string text, string? seat, TableEngine? table)
+        {
+            var hidden = Hidden(state, seat, table);
+            if (hidden.Cards.Count == 0 && hidden.Decks.Count == 0)
+                return text;
+            var json = JObject.Parse(text);
+            if (json["objects"] is JArray objects)
+                for (var i = 0; i < objects.Count && i < state.Objects.Count; i++)
+                    if (hidden.Cards.Contains(state.Objects[i].Id) || hidden.Decks.Contains(state.Objects[i].Id))
+                        objects[i] = Object(state.Objects[i], hidden);
+            return json.ToString(Newtonsoft.Json.Formatting.None);
+        }
 
         /// <summary>The seat's view of the session (null without one), for a patch.</summary>
         public static JToken? Session(TableState state, string? seat) =>
@@ -27,11 +117,19 @@ namespace Core.Net
 
         /// <summary>
         /// Puts back into <paramref name="incoming"/>, a seat's view sent back as a whole table (an agent's edit while
-        /// playing), the secrets it could not hold, from <paramref name="live"/>: roles, what each seat knows, secret
-        /// choices and the random generator. Nothing changes when the two are not the same game in play.
+        /// playing), the secrets it could not hold, from <paramref name="live"/>: unknown cards, roles, what each seat
+        /// knows, secret choices and the random generator. Nothing changes when the two are not the same game in play.
         /// </summary>
         public static void Restore(TableState incoming, TableState live)
         {
+            // Cards this seat could not know come back as they really are (T11.16).
+            for (var i = 0; i < incoming.Objects.Count; i++)
+            {
+                var obj = incoming.Objects[i];
+                var unknown = obj is Card { Unknown: true } || obj is Deck deck && deck.Cards.Any(c => c.Unknown);
+                if (unknown && live.Objects.FirstOrDefault(o => o.Id == obj.Id) is { } real)
+                    incoming.Objects[i] = (TableObject)TableJson.FromToken(TableJson.ToToken(real), typeof(TableObject))!;
+            }
             if (!(incoming.Session is { Started: true } mine) || !(live.Session is { Started: true } full) || mine.Turn != full.Turn)
                 return;
             mine.Roles = full.Roles.ToDictionary(p => p.Key, p => p.Value);

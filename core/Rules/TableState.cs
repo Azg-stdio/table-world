@@ -197,5 +197,12 @@ namespace Core.Rules
 
         [Newtonsoft.Json.JsonIgnore]
         public bool HasRules => Turn != null && Phases.Count > 0;
+
+        /// <summary>
+        /// Cards are secret on the wire too (ADR 0012, T11.16): a table with rules or roles. A free-play table (a TTS
+        /// import, a sandbox) keeps TTS's honest play, where every machine holds everything and the view hides it.
+        /// </summary>
+        [Newtonsoft.Json.JsonIgnore]
+        public bool SecretCards => HasRules || Roles != null;
     }
 }

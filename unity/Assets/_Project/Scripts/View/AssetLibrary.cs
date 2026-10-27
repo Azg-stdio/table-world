@@ -236,15 +236,20 @@ namespace TableWorld.View
         private readonly Dictionary<string, TextCardPainter.Request> _textCards = new Dictionary<string, TextCardPainter.Request>();
         private readonly HashSet<string> _painting = new HashSet<string>();
 
-        /// <summary>The image a card's face shows and its cell: its face image, or the drawing of its words.</summary>
+        /// <summary>
+        /// The image a card's face shows and its cell: its face image, or the drawing of its words. A card this machine
+        /// may not know (ADR 0012) shows its back on both sides.
+        /// </summary>
         public (string AssetId, int Index) Face(Card card) =>
-            TextFaces.FaceId(card) is { } id ? (DefineText(id, card.Text, card.Style, card.Size ?? Card.DefaultSize), 0) : (card.FaceAsset, card.FaceIndex);
+            card.Unknown ? Back(card)
+            : TextFaces.FaceId(card) is { } id ? (DefineText(id, card.Text, card.Style, card.Size ?? Card.DefaultSize), 0) : (card.FaceAsset, card.FaceIndex);
 
         public (string AssetId, int Index) Back(Card card) =>
             TextFaces.BackId(card) is { } id ? (DefineText(id, null, card.Style, card.Size ?? Card.DefaultSize), 0) : (card.BackAsset, card.BackIndex);
 
         public (string AssetId, int Index) Face(Deck deck, DeckCard entry) =>
-            TextFaces.FaceId(deck, entry) is { } id
+            entry.Unknown ? Back(deck, entry)
+            : TextFaces.FaceId(deck, entry) is { } id
                 ? (DefineText(id, entry.Text, entry.Style ?? deck.Style, deck.Size ?? Card.DefaultSize), 0)
                 : (entry.FaceAsset ?? deck.FaceAsset, entry.FaceIndex);
 

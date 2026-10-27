@@ -29,7 +29,8 @@ namespace Core.Tests.Engine
             var game = MiniGame.Start(MiniGame.Json(MiniGame.Action(@"{ ""move"": { ""from"": ""d"", ""to"": ""pile"", ""faceUp"": true } }, { ""show"": { ""object"": ""$obj.pile.top"" } }")));
             var result = game.Execute(new PerformActionCommand { Actor = "s1", ActionId = "a" });
             Assert.True(result.Ok, result.Error?.ToString());
-            Assert.Equal("c0", result.Events.OfType<CardShown>().Single().Card.Id);
+            var shown = result.Events.OfType<CardShown>().Single().Card;
+            Assert.Equal("c0", shown.EntryId ?? shown.Id);
         }
     }
 }

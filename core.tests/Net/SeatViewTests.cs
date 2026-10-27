@@ -133,6 +133,35 @@ namespace Core.Tests.Net
             Assert.Equal(0, table.Clients["seat_1"].PendingCount);
         }
 
+        /// <summary>T11.16: a rules game's cards are secret on the wire, and come back whole when a view is sent back.</summary>
+        [Fact]
+        public void HandsAndFaceDownDecks_ReachOthersAsUnknownCards()
+        {
+            var game = GameFixtures.Load("uno-lite", 3);
+            Assert.True(game.Execute(new StartGameCommand()).Ok);
+            var seats = game.State.Players.Seats.Select(s => s.Id).ToList();
+            var view = TableJson.Parse(SeatView.Serialize(game.State, seats[0])).State!;
+            var viewer = new GameEngine(view, 1);
+            var theirs = view.Objects.OfType<Card>().Where(c => viewer.Table.IsHiddenFrom(c.Id, seats[0])).ToList();
+            Assert.NotEmpty(theirs);
+            Assert.All(theirs, c => Assert.True(c.Unknown && c.Meta == null && c.Name == null && c.EntryId == null, c.Id));
+            var mine = view.Objects.OfType<Card>().Where(c => viewer.Table.ZonesOf(c.Id).Contains(game.State.Players.Seats[0].HandZone!)).ToList();
+            Assert.NotEmpty(mine);
+            Assert.All(mine, c => Assert.False(c.Unknown));
+            var draw = view.Objects.OfType<Deck>().Single(d => !d.IsFaceUp);
+            Assert.All(draw.Cards, c => Assert.True(c.Unknown && c.Id == null && c.Meta == null));
+            Assert.Equal(game.State.Objects.OfType<Deck>().Single(d => d.Id == draw.Id).Cards.Count, draw.Cards.Count);
+            // A free-play table keeps TTS's honest play.
+            var free = TableJson.Parse(EngineFixture.Json).State!;
+            Assert.DoesNotContain("\"unknown\":true", SeatView.Serialize(free, "seat_1"));
+
+            // A view sent back (an agent's edit) gets its real cards from the live table.
+            SeatView.Restore(view, game.State);
+            Assert.DoesNotContain(view.Objects.OfType<Card>(), c => c.Unknown);
+            Assert.DoesNotContain(view.Objects.OfType<Deck>().SelectMany(d => d.Cards), c => c.Unknown);
+            Assert.Equal(TableJson.Hash(game.State), TableJson.Hash(view));
+        }
+
         [Fact]
         public void EveryEventType_SurvivesTheWire()
         {

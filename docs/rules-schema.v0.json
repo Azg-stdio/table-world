@@ -356,6 +356,12 @@
         },
         "style": {
           "$ref": "#/$defs/CardStyle"
+        },
+        "unknown": {
+          "type": "boolean"
+        },
+        "entryId": {
+          "type": "string"
         }
       },
       "additionalProperties": false,
@@ -811,6 +817,9 @@
         },
         "style": {
           "$ref": "#/$defs/CardStyle"
+        },
+        "unknown": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false

@@ -7,6 +7,9 @@ namespace Core.Tests.Engine
     /// <summary>T4.2: one test per effect, per condition, and per engine error code.</summary>
     public class RulesEngineTests
     {
+        /// <summary>A card's deck id: on a table with rules a drawn card is named afresh, and keeps its deck id as EntryId.</summary>
+        private static string Key(TableObject obj) => (obj as Card)?.EntryId ?? obj.Id;
+
         // ---- effects ----
 
         [Fact]
@@ -20,16 +23,16 @@ namespace Core.Tests.Engine
             Assert.Equal(4, game.Deck("pile").Cards.Count);
 
             game = MiniGame.Run(@"{ ""move"": { ""object"": ""c2"", ""to"": ""z"", ""faceUp"": true } }");
-            Assert.Equal(new[] { "c2" }, game.Table.ObjectsIn("z").Select(o => o.Id));
-            Assert.True(game.Table.Find("c2")!.IsFaceUp);
+            Assert.Equal(new[] { "c2" }, game.Table.ObjectsIn("z").Select(Key));
+            Assert.True(game.Table.ObjectsIn("z").Single().IsFaceUp);
         }
 
         [Fact]
         public void Deal_ToHandsAndToTaggedDecks()
         {
             var game = MiniGame.Run(@"{ ""deal"": { ""from"": ""d"", ""count"": 2, ""toZone"": ""$it.hand"" } }");
-            Assert.Equal(new[] { "c0", "c2" }, game.Table.ObjectsIn("h1").Select(o => o.Id));
-            Assert.Equal(new[] { "c1", "c3" }, game.Table.ObjectsIn("h2").Select(o => o.Id));
+            Assert.Equal(new[] { "c0", "c2" }, game.Table.ObjectsIn("h1").Select(Key));
+            Assert.Equal(new[] { "c1", "c3" }, game.Table.ObjectsIn("h2").Select(Key));
 
             game = MiniGame.Run(@"{ ""deal"": { ""from"": ""d"", ""count"": 1, ""toTag"": ""mine"", ""seats"": [""s2""] } }");
             Assert.Equal(new[] { "c0" }, game.Deck("mine2").Ids());
@@ -156,12 +159,13 @@ namespace Core.Tests.Engine
             var game = MiniGame.Start(MiniGame.Json(actions, events: @"""onGameStart"": [ { ""deal"": { ""from"": ""d"", ""count"": 2, ""toZone"": ""$it.hand"" } } ]"));
 
             var legal = game.LegalActions("s1").Single(a => a.ActionId == "a");
-            Assert.Equal(new[] { "c0", "c2" }, legal.Choices.Select(c => c["card"]));
+            Assert.Equal(new[] { "c0", "c2" }, legal.Choices.Select(c => Key(game.Table.Find(c["card"])!)));
             Assert.Empty(game.LegalActions("s2"));   // not s2's turn
 
             Fails(game, "s1", "a", ErrorCodes.MissingParam);
-            Fails(game, "s1", "a", ErrorCodes.InvalidParam, ("card", "c1"));   // c1 is in s2's hand
-            Assert.True(game.Execute(new PerformActionCommand { Actor = "s1", ActionId = "a", Params = { ["card"] = "c2" } }).Ok);
+            string IdOf(string entry) => game.State.Objects.OfType<Card>().Single(c => c.EntryId == entry).Id;
+            Fails(game, "s1", "a", ErrorCodes.InvalidParam, ("card", IdOf("c1")));   // c1 is in s2's hand
+            Assert.True(game.Execute(new PerformActionCommand { Actor = "s1", ActionId = "a", Params = { ["card"] = IdOf("c2") } }).Ok);
             Assert.Equal(new[] { "c2" }, game.Deck("pile").Ids());
         }
 
