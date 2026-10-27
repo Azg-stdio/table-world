@@ -162,6 +162,7 @@
                 <ui:TextField name="screenLink" class="net-address screen-bar__link" tooltip="Paste a YouTube link" />
                 <ui:Button name="screenPlay" class="hud-button" text="Play" tooltip="Play this link now, or resume" />
                 <ui:Button name="screenQueue" class="hud-button" text="Add to queue" tooltip="Sing it next, after the songs already waiting" />
+                <ui:Button name="screenSearch" class="hud-button" text="Search" tooltip="Find a song on YouTube and add it to the queue" />
                 <ui:Button name="screenPause" class="hud-button" text="Pause" />
                 <ui:Button name="screenNext" class="hud-button" text="Next" tooltip="Skip to the next song in the queue" />
                 <ui:Label name="screenStatus" class="screen-bar__status" />
@@ -197,6 +198,19 @@
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:Label name="statusLabel" class="status-label hidden" picking-mode="Ignore" />
+        </ui:VisualElement>
+        <ui:VisualElement name="songSearch" class="song-search hidden" picking-mode="Ignore">
+            <ui:VisualElement class="song-search__card">
+                <ui:VisualElement class="song-search__row">
+                    <ui:Label class="song-search__title" text="Search YouTube" />
+                    <ui:TextField name="songSearchQuery" class="net-address song-search__query" />
+                    <ui:Button name="songSearchGo" class="hud-button" text="Search" />
+                    <ui:Button name="songSearchClose" class="hud-button" text="Close" />
+                </ui:VisualElement>
+                <ui:Label class="song-search__hint" text="Click a video to add it to the queue. Scroll with the mouse wheel." />
+                <ui:Label name="songSearchStatus" class="song-search__status" />
+                <ui:Image name="songSearchView" class="song-search__view" />
+            </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="loadingScreen" class="loading-screen hidden">
             <ui:VisualElement class="loading-card">

@@ -46,6 +46,9 @@ namespace TableWorld.View.Karaoke
         /// <summary>Ignore the real keyboard and mouse (tests walk it from code).</summary>
         public bool IgnoreDevices { get; set; }
 
+        /// <summary>A panel over the room has the mouse and keys (the song search): the body stands still and the view stays.</summary>
+        public bool Paused { get; set; }
+
         /// <summary>The body others see, for the presence frame.</summary>
         public AvatarPose Body => new AvatarPose { Position = new Vec3(Feet.x, Feet.y, Feet.z), Yaw = Yaw, Place = Place, Moving = Moving };
 
@@ -83,7 +86,12 @@ namespace TableWorld.View.Karaoke
 
         private void Update()
         {
-            if (!IgnoreDevices)
+            if (Paused)
+            {
+                Look(false);
+                Moving = false;
+            }
+            else if (!IgnoreDevices)
                 ReadDevices(Time.unscaledDeltaTime);
         }
 

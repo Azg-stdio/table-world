@@ -232,7 +232,10 @@ namespace TableWorld.View.Hud
                 calculator.clicked += AddCalculator;
             _showcase = new ShowcaseView(_root);
             if (_table != null)
+            {
                 _screenBar = new ScreenBar(_root, _table);
+                _songSearch = new SongSearch(_root, _screenBar);
+            }
             _blindButton = _root.Q<Button>("blindButton");
             if (_blindButton != null)
                 _blindButton.clicked += ToggleBlindRound;
@@ -285,6 +288,9 @@ namespace TableWorld.View.Hud
             if (_reader != null && _reader.Visible)
                 return true;
             if (_scriptUi != null && _scriptUi.Typing)
+                return true;
+            // Searching for a song: the page has the mouse, Escape closes it.
+            if (_songSearch != null && _songSearch.Visible)
                 return true;
             // Moving a key in the settings: the next key pressed is the menu's.
             if (_escape != null && _escape.CapturingKey)
@@ -473,6 +479,8 @@ namespace TableWorld.View.Hud
         }
 
         private ScreenBar _screenBar;
+        private SongSearch _songSearch;
+        private TableWorld.View.Chalkers.ChalkersView _walkers;
         private bool _walkGuideClosed;
         private bool _walkGuideShown;
 
@@ -502,7 +510,7 @@ namespace TableWorld.View.Hud
                          Ui.T("Walk: {PanForward} {PanLeft} {PanBack} {PanRight} or the arrows; hold Shift to hurry."),
                          Ui.T("Look around: hold the right mouse button and move the mouse."),
                          Ui.T("Sit: walk up to a sofa and press {Sit}; press it again, or walk, to stand up."),
-                         Ui.T("Big screen: paste a YouTube link in the bar at the top and press Play, or Add to queue to sing it later."),
+                         Ui.T("Big screen: press Search in the bar at the top to find a song, or paste a YouTube link and press Play; Add to queue sings it later."),
                          Ui.T("Sing: walk onto the pink carpet in front of the screen; everyone hears you in time with the song."),
                      })
             {
@@ -515,6 +523,9 @@ namespace TableWorld.View.Hud
 
         /// <summary>The karaoke room's big screen bar (null without a table).</summary>
         public ScreenBar ScreenBar => _screenBar;
+
+        /// <summary>The karaoke room's song search (null without a table).</summary>
+        public SongSearch SongSearch => _songSearch;
 
         private void Update()
         {
@@ -553,6 +564,23 @@ namespace TableWorld.View.Hud
             if (_agent != null && _agent.Visible)
                 _agent.Update();
             MenuKeys();
+            // After the menu keys, so the Escape that closes the search does not also open the menu.
+            if (_songSearch != null)
+            {
+                _songSearch.Update(_table.Engine.State.Environment is { Room: Core.Rules.RoomPreset.Karaoke });
+                // Searching means the room is understood: the guide card goes.
+                if (_songSearch.Visible && !_walkGuideClosed)
+                {
+                    _walkGuideClosed = true;
+                    _root.Q("walkGuide")?.AddToClassList(Hidden);
+                }
+                if (TableGeometry.Walk)
+                {
+                    _walkers ??= FindAnyObjectByType<TableWorld.View.Chalkers.ChalkersView>();
+                    if (_walkers != null && _walkers.Walker != null)
+                        _walkers.Walker.Paused = _songSearch.Visible;
+                }
+            }
             // While a calculator is selected, Enter is its = key, not the chat.
             _chat?.Update(TypingInUi() || (_interaction != null && (_interaction.IgnoreDevices || _interaction.Selected?.Model is Calculator)));
             _players?.Update();

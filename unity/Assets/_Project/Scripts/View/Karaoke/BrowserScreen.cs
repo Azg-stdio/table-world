@@ -74,10 +74,30 @@ namespace TableWorld.View.Karaoke
             screen._target = target;
             screen._page = new PlayerPage();
             screen.VideoId = videoId;
-            var client = screen.browserClient;
+            Configure(screen.browserClient, screen._page.PageFor(videoId), width, height);
+            go.SetActive(true);
+            return screen;
+        }
+
+        /// <summary>
+        /// The settings every browser of ours starts with: the CEF engine, <paramref name="url"/> first, a page of
+        /// <paramref name="width"/> × <paramref name="height"/> pixels, no cookies or logins kept, no pop-ups, no WebRTC,
+        /// no remote debugging.
+        /// </summary>
+        internal static void Configure(WebBrowserClient client, string url, int width, int height)
+        {
+            client.Logger = new BrowserLog();
             client.engine = Resources.Load<EngineConfiguration>("Cef Engine Configuration");
-            client.communicationLayer = Resources.Load<CommunicationLayer>("TCP Communication Layer");
-            client.initialUrl = screen._page.PageFor(videoId);
+            // Each browser talks to its engine on two ports of its own: the plugin's fixed ones clash between the screen
+            // and the song search, and between two copies of the game on one machine.
+            var layer = ScriptableObject.CreateInstance<TCPCommunicationLayer>();
+            layer.inPort = FreePort();
+            layer.outPort = FreePort(layer.inPort);
+            client.communicationLayer = layer;
+            client.initialUrl = url;
+            // Chromium will not start on a cache folder another of its processes holds (the screen starting while the song
+            // search is still closing, or two copies of the game): each browser gets a folder of its own.
+            client.CachePath = new System.IO.FileInfo(NewCacheFolder());
             // The Resolution setter resizes a running browser (and throws before it runs): the size it starts at is the field.
             typeof(WebBrowserClient).GetField("resolution", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
                 ?.SetValue(client, new VoltstroStudios.UnityWebBrowser.Shared.Resolution((uint)width, (uint)height));
@@ -89,8 +109,80 @@ namespace TableWorld.View.Karaoke
             client.remoteDebugging = false;
             // Starting Chromium takes a moment the first time.
             client.engineStartupTimeout = 15000;
-            go.SetActive(true);
-            return screen;
+        }
+
+        /// <summary>
+        /// The plugin's log, with what the web pages print to their own console (YouTube's scripts, mostly) kept as plain
+        /// lines: a page's errors are the page's, not the game's.
+        /// </summary>
+        private sealed class BrowserLog : VoltstroStudios.UnityWebBrowser.Logging.IWebBrowserLogger
+        {
+            private const string Tag = "[UWB]";
+            private const string PageConsole = "[CEF Engine Browser Console]";
+
+            public void Debug(object message) => UnityEngine.Debug.unityLogger.Log(LogType.Log, Tag, message);
+
+            public void Warn(object message) => UnityEngine.Debug.unityLogger.Log(FromPage(message) ? LogType.Log : LogType.Warning, Tag, message);
+
+            public void Error(object message) => UnityEngine.Debug.unityLogger.Log(FromPage(message) ? LogType.Log : LogType.Error, Tag, message);
+
+            private static bool FromPage(object message) =>
+                message?.ToString().StartsWith(PageConsole, StringComparison.Ordinal) ?? false;
+        }
+
+        /// <summary>
+        /// A new, empty cache folder for one browser. Folders left by browsers that have closed are removed first (one an
+        /// engine still holds cannot be, and stays until next time); they keep nothing worth keeping, the browsers being
+        /// incognito.
+        /// </summary>
+        private static string NewCacheFolder()
+        {
+            var root = System.IO.Path.Combine(Application.temporaryCachePath, "Browsers");
+            if (System.IO.Directory.Exists(root))
+                foreach (var old in System.IO.Directory.GetDirectories(root))
+                    try
+                    {
+                        if (!InUse(old))
+                            System.IO.Directory.Delete(old, true);
+                    }
+                    catch (Exception e) when (e is System.IO.IOException || e is UnauthorizedAccessException)
+                    {
+                    }
+            return System.IO.Path.Combine(root, Guid.NewGuid().ToString("N"));
+        }
+
+        /// <summary>
+        /// True while a Chromium process runs on <paramref name="folder"/>: it keeps the folder's lock file open, so it
+        /// cannot be opened alone. A folder only just made (no lock file yet) counts as in use for its first minute.
+        /// </summary>
+        private static bool InUse(string folder)
+        {
+            var lockFile = System.IO.Path.Combine(folder, "lockfile");
+            if (!System.IO.File.Exists(lockFile))
+                return System.IO.Directory.GetCreationTimeUtc(folder) > DateTime.UtcNow.AddMinutes(-1);
+            try
+            {
+                using (new System.IO.FileStream(lockFile, System.IO.FileMode.Open, System.IO.FileAccess.ReadWrite, System.IO.FileShare.None))
+                    return false;
+            }
+            catch (System.IO.IOException)
+            {
+                return true;
+            }
+        }
+
+        /// <summary>A loopback port nobody listens on now (other than <paramref name="not"/>).</summary>
+        private static int FreePort(int not = 0)
+        {
+            while (true)
+            {
+                var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+                listener.Start();
+                var port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
+                listener.Stop();
+                if (port != not)
+                    return port;
+            }
         }
 
         /// <summary>Plays another video from <paramref name="at"/> seconds.</summary>

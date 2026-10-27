@@ -98,7 +98,7 @@ namespace TableWorld.View.Hud
             var id = YouTube.VideoId(link);
             if (id == null)
             {
-                Say(Ui.T("That is not a YouTube link."));
+                Tell(Ui.T("That is not a YouTube link."));
                 return false;
             }
             _link.SetValueWithoutNotify("");
@@ -120,17 +120,18 @@ namespace TableWorld.View.Hud
         /// Adds the video a YouTube link names to the end of the queue. Its title comes from YouTube's public oEmbed address
         /// (no key needed), which also says whether the owner allows playing it elsewhere: a video that cannot play is
         /// refused here instead of failing on everyone's screen later. Without an answer the song is queued untitled.
+        /// <paramref name="done"/> hears how it ended: null once queued, else why not.
         /// </summary>
-        public bool QueueLink(string link)
+        public bool QueueLink(string link, System.Action<string> done = null)
         {
             var id = YouTube.VideoId(link);
             if (id == null)
             {
-                Say(Ui.T("That is not a YouTube link."));
+                Tell(Ui.T("That is not a YouTube link."));
                 return false;
             }
             _link.SetValueWithoutNotify("");
-            Say(Ui.T("Checking the video…"));
+            Tell(Ui.T("Checking the video…"));
             var address = "https://www.youtube.com/oembed?format=json&url=" + System.Uri.EscapeDataString("https://www.youtube.com/watch?v=" + id);
             var request = UnityEngine.Networking.UnityWebRequest.Get(address);
             request.timeout = 10;
@@ -147,18 +148,15 @@ namespace TableWorld.View.Hud
                     {
                     }
                 request.Dispose();
+                string refused = null;
                 if (code == 401 || code == 403)
-                {
-                    Say(ErrorText(150));
-                    return;
-                }
-                if (code == 404 || code == 400)
-                {
-                    Say(ErrorText(100));
-                    return;
-                }
-                var result = _table.Execute(new QueueSongCommand { VideoId = id, Title = title });
-                Say(result.Ok ? Ui.T("Queued: {song}", ("song", title ?? id)) : Ui.Refusal(result.Error));
+                    refused = ErrorText(150);
+                else if (code == 404 || code == 400)
+                    refused = ErrorText(100);
+                else if (_table.Execute(new QueueSongCommand { VideoId = id, Title = title }) is { Ok: false } result)
+                    refused = Ui.Refusal(result.Error);
+                Tell(refused ?? Ui.T("Queued: {song}", ("song", title ?? id)));
+                done?.Invoke(refused);
             };
             return true;
         }
@@ -173,7 +171,7 @@ namespace TableWorld.View.Hud
         {
             var result = _table.Execute(command);
             if (!result.Ok)
-                Say(Ui.Refusal(result.Error));
+                Tell(Ui.Refusal(result.Error));
             return result.Ok;
         }
 
@@ -200,7 +198,7 @@ namespace TableWorld.View.Hud
             if (state?.VideoId is not { } videoId)
             {
                 if (karaoke)
-                    Say("");
+                    Status("");
                 return;
             }
 
@@ -214,7 +212,7 @@ namespace TableWorld.View.Hud
             else if (_screen.VideoId != videoId)
                 _screen.LoadVideo(videoId, state.PositionAt(HostNow - Delay));
             Follow(state);
-            Say(_screen.Error is { } error ? ErrorText(error)
+            Status(_screen.Error is { } error ? ErrorText(error)
                 : !_screen.Ready ? Ui.T("Starting the screen…")
                 : _screen.State switch
                 {
@@ -308,6 +306,25 @@ namespace TableWorld.View.Hud
             var total = (int)seconds;
             return $"{total / 60}:{total % 60:00}";
         }
+
+        /// <summary>How long an answer to something this player did stays in the status line, in seconds.</summary>
+        public const float NoticeSeconds = 6f;
+        private string _notice;
+        private float _noticeUntil;
+
+        /// <summary>Answers something this player did (a refusal, a queued song): it stays a few seconds over the screen's state.</summary>
+        private void Tell(string text)
+        {
+            _notice = text;
+            _noticeUntil = Time.unscaledTime + NoticeSeconds;
+            Say(text);
+        }
+
+        /// <summary>The screen's own state, unless an answer is still showing.</summary>
+        private void Status(string text) => Say(Time.unscaledTime < _noticeUntil ? _notice : text);
+
+        /// <summary>The status line's text now.</summary>
+        public string Shown => _shown;
 
         private void Say(string text)
         {

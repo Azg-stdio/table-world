@@ -73,6 +73,10 @@ namespace TableWorld.View.Karaoke
                     context.Response.OutputStream.Write(body, 0, body.Length);
                     context.Response.Close();
                 }
+                catch (Exception e) when (e is System.IO.IOException || e is HttpListenerException)
+                {
+                    // The browser went away while the page was on its way (the screen closed, the room changed).
+                }
                 catch (Exception e)
                 {
                     Debug.LogWarning($"[PlayerPage] {e.Message}");

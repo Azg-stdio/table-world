@@ -1757,3 +1757,55 @@
     align-self: flex-end;
     margin-top: 8px;
 }
+
+/* The song search: YouTube's results page in a panel over the room (its picture comes from code). */
+.song-search {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+.song-search__card {
+    padding: 12px 14px;
+    border-radius: 8px;
+    background-color: rgba(16, 18, 22, 0.95);
+}
+
+.song-search__row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.song-search__title {
+    margin-right: 6px;
+    color: rgb(240, 236, 226);
+    font-size: 16px;
+    -unity-font-style: bold;
+}
+
+.song-search__query {
+    width: 360px;
+}
+
+.song-search__hint {
+    margin: 4px 0 6px 0;
+    color: rgb(200, 196, 186);
+    font-size: 13px;
+}
+
+.song-search__status {
+    margin-bottom: 6px;
+    color: rgb(255, 196, 120);
+    font-size: 14px;
+    white-space: normal;
+}
+
+.song-search__view {
+    width: 896px;
+    height: 504px;
+    background-color: rgb(0, 0, 0);
+}

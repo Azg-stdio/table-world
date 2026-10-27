@@ -306,6 +306,51 @@ namespace TableWorld.Tests.PlayMode
             Assert.AreEqual("Paste a YouTube link", root.Q<TextField>("screenLink").textEdition.placeholder);
         }
 
+        /// <summary>T12.15: the song search shows YouTube's results and its consent page; a video is a pick; anything else goes back.</summary>
+        [Test]
+        public void TheSongSearch_ShowsOnlyYouTubesResults()
+        {
+            Assert.AreEqual("https://www.youtube.com/results?search_query=queen%20karaoke", SearchBrowser.SearchUrl("queen karaoke"));
+            Assert.AreEqual(SearchBrowser.Verdict.Show, SearchBrowser.Judge("https://www.youtube.com/results?search_query=a", out _));
+            Assert.AreEqual(SearchBrowser.Verdict.Show, SearchBrowser.Judge("https://consent.youtube.com/m?continue=x", out _));
+            Assert.AreEqual(SearchBrowser.Verdict.Show, SearchBrowser.Judge("about:blank", out _));
+            Assert.AreEqual(SearchBrowser.Verdict.Pick, SearchBrowser.Judge("https://www.youtube.com/watch?v=M7lc1UVf-VE&pp=x", out var id));
+            Assert.AreEqual("M7lc1UVf-VE", id);
+            Assert.AreEqual(SearchBrowser.Verdict.Pick, SearchBrowser.Judge("https://www.youtube.com/shorts/aqz-KE-bpKQ", out id));
+            Assert.AreEqual("aqz-KE-bpKQ", id);
+            foreach (var refused in new[]
+                     {
+                         "https://www.youtube.com/@SingKingKaraoke", "https://www.youtube.com/", "https://accounts.google.com/ServiceLogin",
+                         "http://www.youtube.com/results?search_query=a", "https://example.com/watch?v=M7lc1UVf-VE",
+                         "https://www.youtube.com.evil.example/results", "https://www.youtube.com/watch?v=nope",
+                     })
+                Assert.AreEqual(SearchBrowser.Verdict.Refuse, SearchBrowser.Judge(refused, out _), refused);
+        }
+
+        /// <summary>T12.15: Search opens the panel over the room (walking waits, the guide goes); Close ends its browser.</summary>
+        [UnityTest]
+        public IEnumerator TheSearchPanel_OpensOverTheRoom_AndClosesItsBrowser()
+        {
+            var root = _hud.GetComponent<UIDocument>().rootVisualElement;
+            yield return null;
+            Assert.IsNotNull(root.Q<Button>("screenSearch"), "the bar has a Search button");
+            _hud.SongSearch.Open("bohemian rhapsody");
+            yield return null;
+            yield return null;
+            Assert.IsTrue(_hud.SongSearch.Visible);
+            Assert.IsNotNull(_hud.SongSearch.Browser, "its own browser runs while it is open");
+            Assert.IsTrue(Walker.Paused, "walking waits while searching");
+            Assert.IsTrue(_hud.TypingInUi(), "the HUD's keys wait too");
+            Assert.IsTrue(root.Q("walkGuide").ClassListContains("hidden"), "the guide card goes");
+            ClickButton(root.Q<Button>("songSearchClose"));
+            yield return null;
+            yield return null;
+            Assert.IsFalse(_hud.SongSearch.Visible);
+            Assert.IsNull(_hud.SongSearch.Browser);
+            Assert.IsNull(Object.FindAnyObjectByType<SearchBrowser>(), "its browser is gone");
+            Assert.IsFalse(Walker.Paused);
+        }
+
         /// <summary>Clicks a button the way the mouse does (a click, not a keyboard submit).</summary>
         private static void ClickButton(Button button)
         {

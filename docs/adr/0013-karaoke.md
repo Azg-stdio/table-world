@@ -108,6 +108,19 @@ karaoke night. Miguel decided:
 - **Song titles** come from YouTube's public oEmbed address (`youtube.com/oembed`, no key), asked once by whoever adds
   the song; its answer also says when the owner blocks embedding (401) or the video is gone (404), so the queue refuses
   it before it reaches anyone's screen.
+- **Song search (Miguel, 2026-10-27):** YouTube's own results page (`youtube.com/results`, the player's words plus
+  "karaoke") in a second browser, open only while the search panel is. It is the one exception to "only our page": it
+  may show YouTube's results and its cookie consent pages, nothing else. A click on a video is caught on the page and
+  never opens it: the video goes through the same oEmbed check as a pasted link and joins the queue; a video page
+  reached any other way counts as that pick and the browser goes back to the results; any other page (a channel,
+  sign-in, another site) is refused back to the results; ads open in a new window, which is ignored. It is muted (a
+  hovered result plays a preview). Rejected: YouTube's Data API (needs a key that would ship inside the game, with a
+  shared quota of about 100 searches a day) and unofficial search (scraping, mirrors such as Invidious: against
+  YouTube's terms and fragile).
+- **Each browser runs apart:** its own pair of loopback ports to talk to its engine and its own cache folder (Chromium
+  will not start on a folder another of its processes holds), so the screen and the search, or two copies of the game
+  on one machine, never clash. What the pages print to their own console is logged as plain lines, not as the game's
+  errors.
 
 ## Consequences
 
