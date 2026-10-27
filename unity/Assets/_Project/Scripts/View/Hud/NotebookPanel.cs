@@ -1,6 +1,7 @@
 using System.Linq;
 using Core.Engine;
 using Core.Rules;
+using Core.Text;
 using UnityEngine.UIElements;
 
 namespace TableWorld.View.Hud
@@ -82,7 +83,8 @@ namespace TableWorld.View.Hud
             if (!Visible || _table.Engine == null)
                 return;
             var pages = _table.Engine.State.Notebook.Where(CanRead).ToList();
-            var key = string.Join("|", pages.Select(p => $"{p.Id}:{p.Title}:{p.Color}:{p.Body.GetHashCode()}")) + "#" + _open + _confirmDelete;
+            var state = _table.Engine.State;
+            var key = string.Join("|", pages.Select(p => $"{p.Id}:{p.Title}:{p.Color}:{p.Body.GetHashCode()}")) + "#" + _open + _confirmDelete + "#" + state.Session?.Language;
             if (key == _shownKey)
                 return;
             _shownKey = key;
@@ -92,7 +94,8 @@ namespace TableWorld.View.Hud
             foreach (var page in pages)
             {
                 var id = page.Id;
-                var button = new Button(() => OpenPage_(id)) { text = string.IsNullOrWhiteSpace(page.Title) ? "(untitled)" : page.Title };
+                var title = TitleOf(state, page);
+                var button = new Button(() => OpenPage_(id)) { text = string.IsNullOrWhiteSpace(title) ? "(untitled)" : title };
                 button.AddToClassList("notes-tab");
                 if (page.Color != null)
                     button.AddToClassList("notes-tab--private");
@@ -104,11 +107,16 @@ namespace TableWorld.View.Hud
             _editor.EnableInClassList(Hidden, open == null);
             if (open == null)
                 return;
+            // A page read in another language than the game's own is read-only: an edit would write the translation over
+            // the game's text.
+            var translated = Translated(state, open);
+            _title.isReadOnly = translated;
+            _text.isReadOnly = translated;
             // Someone else's edit must not overwrite what this player is typing.
-            if (_title.focusController?.focusedElement != _title)
-                _title.SetValueWithoutNotify(open.Title);
-            if (_text.focusController?.focusedElement != _text)
-                _text.SetValueWithoutNotify(open.Body);
+            if (_title.focusController?.focusedElement != _title || translated)
+                _title.SetValueWithoutNotify(TitleOf(state, open));
+            if (_text.focusController?.focusedElement != _text || translated)
+                _text.SetValueWithoutNotify(BodyOf(state, open));
             _who.text = open.Color == null ? "For everyone" : "Only for you";
             _who.SetEnabled(SeatColor != null);
             _delete.text = _confirmDelete ? "Really delete?" : "Delete page";
@@ -135,11 +143,18 @@ namespace TableWorld.View.Hud
             Commit();
         }
 
+        private static string TitleOf(TableState state, NoteTab page) => Translations.Text(state, $"notebook.{page.Id}.title", page.Title) ?? "";
+
+        private static string BodyOf(TableState state, NoteTab page) => Translations.Text(state, $"notebook.{page.Id}.body", page.Body) ?? "";
+
+        /// <summary>The page reads in a translation (the session's language is not the game's own and translates it).</summary>
+        private static bool Translated(TableState state, NoteTab page) => TitleOf(state, page) != page.Title || BodyOf(state, page) != page.Body;
+
         /// <summary>Sends the open page when its title or text changed.</summary>
         private void Commit()
         {
             var page = Current();
-            if (page == null || (page.Title == _title.value && page.Body == _text.value))
+            if (page == null || Translated(_table.Engine.State, page) || (page.Title == _title.value && page.Body == _text.value))
                 return;
             Send(new NoteTab { Id = page.Id, Title = _title.value ?? "", Body = _text.value ?? "", Color = page.Color });
         }
@@ -159,7 +174,7 @@ namespace TableWorld.View.Hud
         private void ToggleWho()
         {
             var page = Current();
-            if (page == null || SeatColor == null)
+            if (page == null || SeatColor == null || Translated(_table.Engine.State, page))
                 return;
             Send(new NoteTab { Id = page.Id, Title = _title.value ?? page.Title, Body = _text.value ?? page.Body, Color = page.Color == null ? SeatColor : null });
         }

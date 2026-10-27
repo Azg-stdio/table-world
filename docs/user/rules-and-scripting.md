@@ -333,6 +333,31 @@ The keys are `win`, `choseInSecret`, `chose` (`{seat}`, `{action}`, `{option}`),
 (the full list, with the English and Spanish texts, is `core/Text/strings/en.json` and `es.json` under `engine.`). A line
 that counts has a singular of its own: `reveal.one` is read when one piece was revealed, `reveal` otherwise.
 
+**A game in several languages.** Write the game in your language and say which it is in `game.language`; each other
+language is a list of the texts it replaces, by what they are, under `translations`. Texts a translation leaves out read
+as you wrote them, so a half-finished translation still plays:
+
+```json
+"game": { "id": "carrera", "name": "Carrera", "language": "es" },
+"translations": {
+  "es": { "strings.va": "{$actor.name} va al bosque." },
+  "en": { "game.name": "Race", "actions.ir.name": "Go", "phases.turno.name": "Your turn",
+          "params.ir.casilla.bosque": "Forest", "strings.va": "{$actor.name} goes to the forest." }
+}
+```
+
+The keys name the text: `objects.<id>.name`, `cards.<id>.name`, a text card's `.text.body`, `seats.<id>.name`,
+`actions.<id>.name`, choice options `params.<action>.<param>.<option>`, `phases.<id>.name`, panels
+`ui.<panel>.title` and `ui.<panel>.<n>.text`, `messages.<key>`, notebook pages, roles and teams (the
+[design notes](../rules-schema.md#languages) list them all). A sentence your rules write, in a `message` or a `refuse`,
+becomes translatable when it is `@va` and `strings.va` holds it, first in your own language. Images with words on
+them can name a file per language (`"localized": { "en": "cards_en.png" }` on the asset).
+
+Before the start the host picks the language beside **Start**; everyone reads the game in it, the engine's own lines
+included. Lua reads it with `Game.getLanguage()` and a game's string with `Game.text("va", { ... })`. Your agent does the
+translating for you: ask it to "translate the game to English" (it uses `translate_game` and `set_translations`). A
+notebook page shown in a translation is read-only, so an edit never writes the translation over your text.
+
 **Light.** The room has two lights: the room's own (the lamp and its warm fill, on the walls, the floor and the table's
 frame) and the table light on the felt and the pieces. The `light` effect changes one of them while playing, so night
 can fall in the room while the cards stay readable. `scale` multiplies it (1 normal, 0 off) and `tint` colours it (three

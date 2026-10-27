@@ -559,7 +559,7 @@ namespace TableWorld.View.Hud
                 var card = cards[i];
                 var (faceAsset, faceIndex) = _table.Assets.Face(deck, card);
                 var face = _images.Face(_table.Assets, faceAsset, faceIndex);
-                grid.Add(SearchCell(container, card.Unknown ? "…" : Names.Of(card), card.Id, i, face));
+                grid.Add(SearchCell(container, card.Unknown ? "…" : Names.Of(_table.Engine.State, card), card.Id, i, face));
             }
         }
 
@@ -644,9 +644,9 @@ namespace TableWorld.View.Hud
         // ---- looking, tooltip, box, measure -----------------------------------------------------------------------
 
         /// <summary>The name a player may see: a face-down card (or anything hiding when face down, G39) shows its kind only.</summary>
-        public static string DisplayName(TableObject model) =>
+        public static string DisplayName(TableObject model, TableState state = null) =>
             model.NameHidden ? (model is Card ? "Face-down card" : model.Type)
-            : Names.Of(model);
+            : state != null ? Names.Of(state, model) : Names.Of(model);
 
         private void OnLook(ObjectView view, bool peek)
         {
@@ -658,7 +658,7 @@ namespace TableWorld.View.Hud
             _lookImage.style.backgroundImage = Background.FromRenderTexture(_look.Texture);
             // Peeking shows the face, so its name; a plain look at a face-down card shows only its back (G39).
             _lookCaption.text = view.HideFace ? "A card in another player's hand"
-                : peek ? "Peek: " + Names.Of(view.Model) : DisplayName(view.Model);
+                : peek ? "Peek: " + Names.Of(_table.Engine.State, view.Model) : DisplayName(view.Model, _table.Engine.State);
         }
 
         /// <summary>
@@ -691,7 +691,8 @@ namespace TableWorld.View.Hud
                     break;
             }
             // A face-down card keeps its name secret (G39): its tooltip says nothing.
-            var name = model.NameHidden ? (model is Core.Rules.Card ? null : model.Type) : model.Name ?? (model is Core.Rules.Card ? null : model.Type);
+            var name = model.NameHidden ? (model is Core.Rules.Card ? null : model.Type)
+                : model.Name != null ? Names.Of(engine.State, model) : (model is Core.Rules.Card ? null : model.Type);
             return count == null ? name : $"{name}\n{count}";
         }
 

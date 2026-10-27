@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Engine;
 using Core.Rules;
+using Core.Text;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -193,8 +194,14 @@ namespace TableWorld.View.Hud
                 return;
             var viewer = _table.LocalSeat;
             var host = _table.HostsTable;
+            var state = game.State;
             foreach (var (def, root) in _panels)
+            {
                 root.EnableInClassList("hidden", !PanelDef.Shows(def.VisibleTo, viewer, host));
+                // The language is picked at the start, after the panels were built.
+                if (root.Q<Label>(className: "game-ui-title") is { } title)
+                    title.text = def.Title != null ? Translations.Text(state, $"ui.{def.Id}.title", def.Title) : Names.Humanize(def.Id);
+            }
 
             foreach (var (def, element) in _bound)
             {
@@ -202,18 +209,31 @@ namespace TableWorld.View.Hud
                 switch (def.Type)
                 {
                     case UiElementType.Label:
-                        ((Label)element).text = game.Format(def.Text ?? "", viewer);
+                        ((Label)element).text = game.Format(Written(state, def) ?? "", viewer);
                         break;
                     case UiElementType.Counter:
+                        element.Q<Label>(className: "game-ui-label").text = Written(state, def) ?? "";
                         element.Q<Label>(className: "game-ui-counter-value").text = def.Value == null ? "" : game.Evaluate(def.Value, viewer)?.ToString() ?? "–";
                         break;
                     case UiElementType.Button:
                         var button = (Button)element;
-                        button.text = game.Format(def.Text ?? def.Action ?? "", viewer);
+                        button.text = game.Format(Written(state, def) ?? def.Action ?? "", viewer);
                         button.SetEnabled(IsLegal(game, def, viewer));
                         break;
                 }
             }
+        }
+
+        /// <summary>An element's text in the session's language (<c>ui.&lt;panel&gt;.&lt;index&gt;.text</c>, ADR 0011).</summary>
+        private static string Written(TableState state, UiElementDef def)
+        {
+            foreach (var panel in state.Ui?.Panels ?? new List<PanelDef>())
+            {
+                var index = panel.Elements.IndexOf(def);
+                if (index >= 0)
+                    return Translations.Text(state, $"ui.{panel.Id}.{index}.text", def.Text);
+            }
+            return def.Text;
         }
 
         private VisualElement Create(UiElementDef def)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Engine;
 using Core.Rules;
+using Core.Text;
 using UnityEngine;
 using TableWorld.View.Settings;
 using UnityEngine.UIElements;
@@ -60,6 +61,8 @@ namespace TableWorld.View.Hud
         /// <summary>Optional roles ticked for the next start, by table (a new table starts with none).</summary>
         private readonly HashSet<string> _optionalRoles = new HashSet<string>();
         private object _optionalRolesFor;
+        /// <summary>The language the host picked for the next start (ADR 0011); null: the game's own.</summary>
+        private string _startLanguage;
         /// <summary>Lines of the game log already shown, and the session they belong to.</summary>
         private int _logShown;
         private object _logSession;
@@ -528,6 +531,7 @@ namespace TableWorld.View.Hud
         private void AddStartButtons(TableState state)
         {
             AddOptionalRoles(state);
+            AddLanguages(state);
             var seated = SeatedSeats();
             var min = Mathf.Max(1, state.Game?.MinPlayers ?? 1);
             var max = state.Game?.MaxPlayers > 0 ? state.Game.MaxPlayers : state.Players.Seats.Count;
@@ -535,7 +539,7 @@ namespace TableWorld.View.Hud
             var button = new Button(() =>
             {
                 var roles = state.Roles?.List.Where(r => r.Optional && _optionalRoles.Contains(r.Id)).Select(r => r.Id).ToList() ?? new List<string>();
-                var result = _table.Execute(new StartGameCommand { Seats = seated, Roles = roles });
+                var result = _table.Execute(new StartGameCommand { Seats = seated, Roles = roles, Language = _startLanguage });
                 if (!result.Ok)
                     ShowStatus(result.Error.Message, error: true);
             }) { text = $"Start game ({players})" };
@@ -546,6 +550,35 @@ namespace TableWorld.View.Hud
             button.tooltip = fits ? "Sit at more seats with the + over each seat on the table"
                 : $"This game takes {takes} players: sit at the seats with the + over each one on the table";
             _gameActions.Add(button);
+        }
+
+        /// <summary>
+        /// A game in several languages (ADR 0011): one toggle per language before the start, each named in its own
+        /// language; the host picks the one everyone reads. The game's own language is picked until then.
+        /// </summary>
+        private void AddLanguages(TableState state)
+        {
+            var languages = Translations.Languages(state);
+            if (languages.Count < 2)
+            {
+                _startLanguage = null;
+                return;
+            }
+            if (_startLanguage == null || !languages.Contains(_startLanguage))
+                _startLanguage = languages[0];
+            foreach (var language in languages)
+            {
+                var code = language;
+                var toggle = new Button(() =>
+                {
+                    _startLanguage = code;
+                    _shownGameKey = null;
+                }) { text = Strings.For(code).Raw("language.name") is { } own && Strings.BuiltIn().Contains(code) ? own : code };
+                toggle.AddToClassList("hud-button");
+                toggle.EnableInClassList("hud-button--picked", code == _startLanguage);
+                toggle.tooltip = "The language everyone reads this game in.";
+                _gameActions.Add(toggle);
+            }
         }
 
         /// <summary>
@@ -592,7 +625,8 @@ namespace TableWorld.View.Hud
                     continue;
                 var voters = game.VotersOf(action).Count;
                 // A private vote shows nobody how many have voted (this machine only ever sees its own ballot).
-                var line = action.Vote.Private ? $"{action.Name ?? Names.Humanize(action.Id)}: voted" : $"{action.Name ?? Names.Humanize(action.Id)}: {cast.Count} of {voters} voted";
+                var actionName = Names.Action(_table.Engine.State, action);
+                var line = action.Vote.Private ? $"{actionName}: voted" : $"{actionName}: {cast.Count} of {voters} voted";
                 if (cast.FirstOrDefault(s => s.Seat == _table.LocalSeat) is { } mine && mine.Params.TryGetValue(GameEngine.VoteParam, out var choice))
                     line += $" (you: {game.OptionLabel(action.Id, GameEngine.VoteParam, choice)})";
                 if (_voteLeft.TryGetValue(action.Id, out var left))
@@ -662,7 +696,7 @@ namespace TableWorld.View.Hud
         /// <summary>Who sits at a seat as its marker says it ("Red (you)", a player's name), or null when it is free.</summary>
         private string SitterLabel(Seat seat)
         {
-            var name = Names.Of(seat);
+            var name = Names.Of(_table.Engine.State, seat);
             if (_table.Networked && _session != null)
             {
                 if (seat.Id == _table.LocalSeat)
@@ -801,9 +835,10 @@ namespace TableWorld.View.Hud
                     .Where(l => state.Actions.FirstOrDefault(a => a.Id == l.Action.ActionId)?.Button != false).ToList()
                 : new List<(string Seat, LegalAction Action)>();
             var turns = state.FreeTurns;
-            var key = $"{state.HasRules}|{session?.Turn}|{session?.Phase}|{session?.CurrentSeat}|{session?.Over}|{session?.Log.Count}|" +
+            // Another table loaded (even one that looks the same) redraws: its toggles and buttons are its own.
+            var key = $"{System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(game)}|{state.HasRules}|{session?.Turn}|{session?.Phase}|{session?.CurrentSeat}|{session?.Over}|{session?.Log.Count}|" +
                       $"{turns?.Current}|{turns?.Count}|{turns?.Reverse}|{_table.LocalSeat}|{string.Join(",", SeatedSeats())}|" +
-                      $"{RoleKey(session)}|{string.Join(",", _optionalRoles)}|{session?.Secrets.Count}|{string.Join(",", _voteLeft.Values)}|" +
+                      $"{RoleKey(session)}|{string.Join(",", _optionalRoles)}|{_startLanguage}|{session?.Secrets.Count}|{string.Join(",", _voteLeft.Values)}|" +
                       string.Join(",", legal.Select(l => $"{l.Seat}/{l.Action.ActionId}/{l.Action.Choices.Count}"));
             if (key == _shownGameKey)
                 return;
@@ -811,7 +846,7 @@ namespace TableWorld.View.Hud
 
             AnnounceTurn();
             _turnLabel.text = !state.HasRules ? (turns is { Enabled: true } ? FreeTurnText(turns) : "Free play")
-                : session == null ? $"{state.Game?.Name ?? "Game"}: not started"
+                : session == null ? $"{(state.Game != null ? Names.Game(state) : "Game")}: not started"
                 : session.Over ? $"Game over: {WinnerName(state, session)} {(session.WinnerTeam != null ? "win" : "wins")}"
                 : $"Turn {session.Turn} · {PhaseName(state, session.Phase)} · {Names.Seat(state, session.CurrentSeat)}";
             // A long turn line is cut short in the bar; the whole of it is on hover.
@@ -845,7 +880,7 @@ namespace TableWorld.View.Hud
             {
                 if (count++ >= MaxActionButtons)
                     return;
-                var name = action.Name ?? Names.Humanize(action.ActionId);
+                var name = state.Actions.FirstOrDefault(a => a.Id == action.ActionId) is { } def ? Names.Action(state, def) : action.Name ?? Names.Humanize(action.ActionId);
                 var actor = seat;
                 var id = action.ActionId;
                 void Perform(Dictionary<string, string> parameters)
@@ -894,7 +929,7 @@ namespace TableWorld.View.Hud
         private string TurnText(Command command)
         {
             var turns = _table.Engine.State.FreeTurns;
-            string NameOf(string id) => _table.Engine.Find(id) is { } o ? o.Name ?? o.Type : id;
+            string NameOf(string id) => _table.Engine.Find(id) is { } o ? (o.Name != null ? Names.Of(_table.Engine.State, o) : o.Type) : id;
             return command switch
             {
                 SetCounterCommand c => $"{NameOf(c.ObjectId)}: {(_table.Engine.Find(c.ObjectId) as Counter)?.Value}",
@@ -938,7 +973,7 @@ namespace TableWorld.View.Hud
                 ShowStatus("Your turn", error: false);
         }
 
-        private static string PhaseName(TableState state, string phase) => state.Phases.FirstOrDefault(p => p.Id == phase)?.Name ?? Names.Humanize(phase);
+        private static string PhaseName(TableState state, string phase) => Names.Phase(state, phase);
 
         /// <summary>The lines the latest change added to the game log (the last <see cref="MaxLogLines"/>), or the last line.</summary>
         private string LatestLogLines(Session session)
@@ -1009,11 +1044,11 @@ namespace TableWorld.View.Hud
                 // Online, a seat shows who sits there by name (G23); free seats show the seat.
                 var who = sitter != null ? _session.NameOf(sitter) : null;
                 var suffix = seat.Id == local ? " (you)" : sitter == TableWorld.View.Net.NetworkTableSession.HostIdForUi ? " (host)" : takenByOther && who == null ? " (taken)" : "";
-                var name = new Label((who ?? Names.Of(seat)) + suffix) { pickingMode = PickingMode.Ignore, enableRichText = false };
+                var name = new Label((who ?? Names.Of(_table.Engine.State, seat)) + suffix) { pickingMode = PickingMode.Ignore, enableRichText = false };
                 name.AddToClassList("seat-name");
                 chip.Add(swatch);
                 chip.Add(name);
-                var seatName = Names.Of(seat);
+                var seatName = Names.Of(_table.Engine.State, seat);
                 chip.tooltip = takenByOther ? $"{who ?? "Someone"} sits at {seatName}" : seat.Id == local ? $"Your seat ({seatName})" : $"Click to sit at {seatName}";
                 var id = seat.Id;
                 if (!takenByOther && seat.Id != local)
@@ -1132,7 +1167,7 @@ namespace TableWorld.View.Hud
         {
             // A card shown to everyone (by a player, a rule or a script) comes up big on every screen.
             if (result.Ok && result.Events.OfType<CardShown>().LastOrDefault() is { } shown)
-                _showcase?.Show(shown.Card, $"{shown.Seat ?? "The game"} shows {Names.Of(shown.Card)}");
+                _showcase?.Show(shown.Card, Names.Message(_table.Engine.State, "shows", ("seat", Names.Seat(_table.Engine.State, shown.Seat)), ("card", Names.Of(_table.Engine.State, shown.Card))));
             // What table scripts do is theirs to tell (chat, their own UI); their refusals are in the log.
             if (command.ByScript)
                 return;
