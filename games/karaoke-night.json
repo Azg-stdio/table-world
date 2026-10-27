@@ -14,209 +14,63 @@
       "rows": 1
     }
   ],
-  "zones": [
-    {
-      "id": "hand_1",
-      "type": "HandZone",
-      "transform": {
-        "position": [
-          0.275,
-          0.05,
-          -0.42
-        ]
-      },
-      "size": [
-        0.5,
-        0.1,
-        0.12
-      ],
-      "owner": "seat_1"
-    },
-    {
-      "id": "hand_2",
-      "type": "HandZone",
-      "transform": {
-        "position": [
-          -0.275,
-          0.05,
-          -0.42
-        ]
-      },
-      "size": [
-        0.5,
-        0.1,
-        0.12
-      ],
-      "owner": "seat_2"
-    },
-    {
-      "id": "hand_3",
-      "type": "HandZone",
-      "transform": {
-        "position": [
-          -0.68,
-          0.05,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          90.0,
-          0.0
-        ]
-      },
-      "size": [
-        0.5,
-        0.1,
-        0.12
-      ],
-      "owner": "seat_3"
-    },
-    {
-      "id": "hand_4",
-      "type": "HandZone",
-      "transform": {
-        "position": [
-          -0.275,
-          0.05,
-          0.42
-        ],
-        "rotation": [
-          0.0,
-          180.0,
-          0.0
-        ]
-      },
-      "size": [
-        0.5,
-        0.1,
-        0.12
-      ],
-      "owner": "seat_4"
-    },
-    {
-      "id": "hand_5",
-      "type": "HandZone",
-      "transform": {
-        "position": [
-          0.275,
-          0.05,
-          0.42
-        ],
-        "rotation": [
-          0.0,
-          180.0,
-          0.0
-        ]
-      },
-      "size": [
-        0.5,
-        0.1,
-        0.12
-      ],
-      "owner": "seat_5"
-    },
-    {
-      "id": "hand_6",
-      "type": "HandZone",
-      "transform": {
-        "position": [
-          0.68,
-          0.05,
-          -0.0
-        ],
-        "rotation": [
-          0.0,
-          270.0,
-          0.0
-        ]
-      },
-      "size": [
-        0.5,
-        0.1,
-        0.12
-      ],
-      "owner": "seat_6"
-    }
-  ],
   "players": {
     "seats": [
       {
         "id": "seat_1",
-        "color": "red",
-        "handZone": "hand_1"
+        "color": "red"
       },
       {
         "id": "seat_2",
-        "color": "blue",
-        "handZone": "hand_2"
+        "color": "blue"
       },
       {
         "id": "seat_3",
-        "color": "green",
-        "handZone": "hand_3"
+        "color": "green"
       },
       {
         "id": "seat_4",
-        "color": "yellow",
-        "handZone": "hand_4"
+        "color": "yellow"
       },
       {
         "id": "seat_5",
-        "color": "orange",
-        "handZone": "hand_5"
+        "color": "orange"
       },
       {
         "id": "seat_6",
-        "color": "purple",
-        "handZone": "hand_6"
+        "color": "purple"
+      },
+      {
+        "id": "seat_7",
+        "color": "pink"
+      },
+      {
+        "id": "seat_8",
+        "color": "teal"
       }
     ]
   },
   "environment": {
     "room": "karaoke",
     "lighting": {},
-    "table": {}
+    "table": {
+      "size": [
+        2.15,
+        1.34
+      ]
+    }
   },
   "notebook": [
     {
       "id": "how",
       "title": "How it works",
-      "body": "Karaoke night is a room for singing together: sofas round the table, a big screen on the far wall.\n\nSit down with the + over a seat, then Start. Whoever's turn it is sings: they hold the microphone and the stage light is on them. When the song is done, press \"Pass the microphone\" and the next seat sings.\n\nVoice: hold T to talk (Settings, Voice can open the microphone when you speak). Songs on the screen are not there yet."
+      "body": "Karaoke night is a room to sing together in: sofas, a big screen on the far wall, no table.\n\nWalk: W A S D (or the arrows), hold Shift to hurry. Look around: hold the right mouse button and move the mouse.\nSit: walk up to a sofa and press C; press C again (or walk) to stand up.\nThe big screen: paste a YouTube link in the \"Big screen\" bar and press Play.\nVoice: hold T to talk (Settings, Voice can open the microphone when you speak)."
     }
   ],
   "game": {
     "id": "karaoke-night",
     "name": "Karaoke night",
-    "description": "Take turns at the microphone in the karaoke room: whoever's turn it is sings, then passes the microphone.",
-    "maxPlayers": 6
-  },
-  "turn": {
-    "startingPlayer": "first",
-    "phases": [
-      "sing"
-    ]
-  },
-  "phases": [
-    {
-      "id": "sing",
-      "name": "Singing",
-      "actions": [
-        "pass_mic"
-      ],
-      "advanceWhen": {
-        "currentPlayerEnds": true
-      }
-    }
-  ],
-  "actions": [
-    {
-      "id": "pass_mic",
-      "name": "Pass the microphone",
-      "effects": [
-        {
-          "endTurn": {}
-        }
-      ]
-    }
-  ]
+    "description": "A room for singing together: walk around, sit on the sofas, put a song on the big screen.",
+    "maxPlayers": 8
+  }
 }

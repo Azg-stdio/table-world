@@ -104,6 +104,11 @@ namespace TableWorld.View
         /// <summary>The karaoke room's stage light, on the singer while someone sings (null in other rooms).</summary>
         public Light StageLight => _stage;
 
+        private Karaoke.Lounge _lounge;
+
+        /// <summary>The sofas of a room people walk in (the karaoke room), or null.</summary>
+        public Karaoke.Lounge Lounge => _lounge;
+
         /// <summary>
         /// Points the stage light down at whoever sits at <paramref name="seat"/> facing <paramref name="facing"/>, from the
         /// ceiling in front of them; null turns it off. Only the karaoke room has one.
@@ -218,6 +223,8 @@ namespace TableWorld.View
             _screen = null;
             _stage = null;
             _accents.Clear();
+            _lounge?.Destroy();
+            _lounge = null;
 
             FitTable();
             var karaoke = env.Room == RoomPreset.Karaoke && env.RoomAsset == null;
@@ -371,6 +378,10 @@ namespace TableWorld.View
             _stage.shadows = LightShadows.None;
             SetLayers(_stage, PiecesLayers | RoomLayers);
             _stage.enabled = false;
+
+            // Where people walk: sofas facing the screen instead of a table.
+            if (TableGeometry.Walk)
+                _lounge = new Karaoke.Lounge(_room.transform, screen.transform.position);
         }
 
         private Material _sky;

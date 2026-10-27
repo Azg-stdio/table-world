@@ -1,9 +1,11 @@
-"""M11: builds Karaoke night through the MCP tools only and saves games/karaoke-night.json: the karaoke room, a turn per
-singer, and passing the microphone. The song on the screen and the listeners' delay come with sing mode (T12.5).
+"""M11: builds Karaoke night through the MCP tools only and saves games/karaoke-night.json: the karaoke room, which has
+no table (people walk in it, ADR 0013 section 5), and no rules: the screen, the song queue and the stage come with the
+room itself (T12.11-T12.13).
 
     dotnet build mcp-server
     python -I tools/mcp/build_karaoke.py [path to TableWorld.Mcp.dll]
 """
+import json
 import os
 import sys
 
@@ -12,21 +14,22 @@ from mcp_session import ROOT, McpSession  # noqa: E402
 
 OUT = os.path.join(ROOT, "games", "karaoke-night.json")
 
-HOW = """Karaoke night is a room for singing together: sofas round the table, a big screen on the far wall.
+HOW = """Karaoke night is a room to sing together in: sofas, a big screen on the far wall, no table.
 
-Sit down with the + over a seat, then Start. Whoever's turn it is sings: they hold the microphone and the stage light is on them. When the song is done, press "Pass the microphone" and the next seat sings.
-
-Voice: hold T to talk (Settings, Voice can open the microphone when you speak). Songs on the screen are not there yet."""
+Walk: W A S D (or the arrows), hold Shift to hurry. Look around: hold the right mouse button and move the mouse.
+Sit: walk up to a sofa and press C; press C again (or walk) to stand up.
+The big screen: paste a YouTube link in the "Big screen" bar and press Play.
+Voice: hold T to talk (Settings, Voice can open the microphone when you speak)."""
 
 with McpSession(sys.argv[1] if len(sys.argv) > 1 else None, name="build_karaoke") as mcp:
-    mcp.call("new_game", id="karaoke-night", name="Karaoke night", players=6, minPlayers=1, room="karaoke",
-             description="Take turns at the microphone in the karaoke room: whoever's turn it is sings, then passes the microphone.")
-    mcp.call("add_action", actionJson={
-        "id": "pass_mic", "name": "Pass the microphone", "actor": "current",
-        "effects": [{"endTurn": {}}],
-    })
-    mcp.call("add_phase", phaseJson={"id": "sing", "name": "Singing", "actions": ["pass_mic"], "advanceWhen": {"currentPlayerEnds": True}})
-    mcp.call("set_turn", phases="sing", order="clockwise", startingPlayer="first")
+    mcp.call("new_game", id="karaoke-night", name="Karaoke night", players=8, minPlayers=1, room="karaoke",
+             description="A room for singing together: walk around, sit on the sofas, put a song on the big screen.")
+    # A room people walk in has no table: the hands new_game laid round one would float in the air.
+    doc = mcp.call("get_rules_document")
+    doc["zones"] = []
+    for seat in doc["players"]["seats"]:
+        seat.pop("handZone", None)
+    mcp.call("set_rules_document", documentJson=json.dumps(doc))
     mcp.call("set_notebook", id="how", title="How it works", text=HOW)
     mcp.call("validate_rules")
     mcp.call("save_game", path=OUT)

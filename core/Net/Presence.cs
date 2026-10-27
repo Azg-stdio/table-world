@@ -19,6 +19,22 @@ namespace Core.Net
     /// state: frames are sent often over an unreliable channel, the newest wins, and a silent player fades out. The table
     /// only changes through commands (a drop still ends in a move command).
     /// </summary>
+    /// <summary>
+    /// A player's body in a room they walk in (karaoke, ADR 0013 §5): where their feet are, which way they face, and the
+    /// sofa place they sit on. Others draw their chalker there; nothing on the table depends on it.
+    /// </summary>
+    public sealed class AvatarPose
+    {
+        /// <summary>The point between the feet, in metres (the floor's height included).</summary>
+        public Vec3 Position { get; set; }
+        /// <summary>Which way the body faces, degrees round the vertical (0 = +Z).</summary>
+        public float Yaw { get; set; }
+        /// <summary>The sofa place sat on, or null standing.</summary>
+        public int? Place { get; set; }
+        /// <summary>Walking now: the legs swing.</summary>
+        public bool Moving { get; set; }
+    }
+
     public sealed class PresenceFrame
     {
         public string Seat { get; set; } = "";
@@ -37,6 +53,8 @@ namespace Core.Net
         public string? Hover { get; set; }
         /// <summary>What the player has selected: everyone sees it outlined in their colour (TTS, G3).</summary>
         public List<string> Selected { get; set; } = new List<string>();
+        /// <summary>The player's body where players walk (karaoke); null at a table.</summary>
+        public AvatarPose? Body { get; set; }
     }
 
     /// <summary>Presence frames on the wire: <c>{ kind: "presence", seat, seq, pointer?, gaze?, emote?: { name, n }, hover?, sel?: [id], held: [{ id, p, r }] }</c>.</summary>
@@ -59,6 +77,15 @@ namespace Core.Net
             ["emote"] = frame.Emote != null ? new JObject { ["name"] = frame.Emote, ["n"] = frame.EmoteCount } : null,
             ["hover"] = frame.Hover,
             ["sel"] = frame.Selected.Count > 0 ? new JArray(frame.Selected) : null,
+            ["body"] = frame.Body is { } body
+                ? new JObject
+                {
+                    ["p"] = new JArray(body.Position.X, body.Position.Y, body.Position.Z),
+                    ["yaw"] = body.Yaw,
+                    ["place"] = body.Place,
+                    ["moving"] = body.Moving ? true : (bool?)null,
+                }
+                : null,
             ["held"] = new JArray(frame.Held.Select(h => new JObject
             {
                 ["id"] = h.Id,
@@ -109,6 +136,22 @@ namespace Core.Net
                         return null;
                     frame.Selected.Add(id);
                 }
+            }
+            if (message["body"] is JObject body)
+            {
+                if (!(body["p"] is JArray at) || !(ReadVec(at) is { } feet) || !(body["yaw"] is JValue { Type: JTokenType.Float or JTokenType.Integer } yaw))
+                    return null;
+                var turned = (float)yaw;
+                if (float.IsNaN(turned) || float.IsInfinity(turned))
+                    return null;
+                int? place = null;
+                if (body["place"] is JValue { Type: JTokenType.Integer } sat)
+                {
+                    if ((long)sat < 0 || (long)sat > 999)
+                        return null;
+                    place = (int)sat;
+                }
+                frame.Body = new AvatarPose { Position = feet, Yaw = turned, Place = place, Moving = body["moving"]?.Type == JTokenType.Boolean && (bool)body["moving"]! };
             }
             if (message["held"] is JArray held)
             {

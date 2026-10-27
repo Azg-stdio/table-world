@@ -15,8 +15,14 @@ namespace TableWorld.View
         /// <summary>Playing surface of the loaded table, metres.</summary>
         public static Vector2 Size { get; private set; } = DefaultSize;
 
-        /// <summary>No table: the game's own objects are the surface (TTS <c>Table_None</c>).</summary>
+        /// <summary>No table: the game's own objects are the surface (TTS <c>Table_None</c>), or a room people walk in.</summary>
         public static bool Hidden { get; private set; }
+
+        /// <summary>
+        /// A room people walk in instead of sitting at a table (the karaoke room, ADR 0013 §5): no table, first-person
+        /// walking, sofas anyone can sit on.
+        /// </summary>
+        public static bool Walk { get; private set; }
 
         private static float _lostBelow = LostBelow;
 
@@ -28,7 +34,8 @@ namespace TableWorld.View
         {
             var look = environment?.Table;
             Size = look?.Size is { } size ? new Vector2(size.X, size.Y) : DefaultSize;
-            Hidden = look?.Hidden ?? false;
+            Walk = environment != null && environment.Room == Core.Rules.RoomPreset.Karaoke && environment.RoomAsset == null;
+            Hidden = (look?.Hidden ?? false) || Walk;
             _lostBelow = look?.LowestY ?? LostBelow;
         }
 

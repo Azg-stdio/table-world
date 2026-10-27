@@ -321,7 +321,8 @@ namespace TableWorld.View
 
             var mouse = Mouse.current;
             var keyboard = Keyboard.current;
-            if (mouse == null || keyboard == null || IgnoreDevices)
+            // A room people walk in has no table: the mouse looks around and the keys walk (Karaoke.Walker).
+            if (mouse == null || keyboard == null || IgnoreDevices || TableGeometry.Walk)
                 return;
 
             var pointer = mouse.position.ReadValue();

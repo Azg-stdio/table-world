@@ -13,7 +13,7 @@ namespace TableWorld.View.Settings
     {
         Flip, RotateLeft, RotateRight, Roll, Lock, Group, PlaceUnder, Nudge, Grow, Shrink, Delete,
         PanForward, PanBack, PanLeft, PanRight, ResetCamera, QuickZoom, TopDown, Blindfold, QuickSave, QuickLoad,
-        Talk, Emotes, SeatView, Wink,
+        Talk, Emotes, SeatView, Wink, Sit,
     }
 
     /// <summary>
@@ -32,6 +32,7 @@ namespace TableWorld.View.Settings
             [GameAction.ResetCamera] = Key.Space, [GameAction.QuickZoom] = Key.Z, [GameAction.TopDown] = Key.P,
             [GameAction.Blindfold] = Key.B, [GameAction.QuickSave] = Key.F5, [GameAction.QuickLoad] = Key.F9,
             [GameAction.Talk] = Key.T, [GameAction.Emotes] = Key.X, [GameAction.SeatView] = Key.O, [GameAction.Wink] = Key.K,
+            [GameAction.Sit] = Key.C,
         };
 
         /// <summary>Keys that keep their own meaning and cannot take an action.</summary>
@@ -123,34 +124,35 @@ namespace TableWorld.View.Settings
             };
         }
 
-        /// <summary>The action's name in the settings.</summary>
+        /// <summary>The action's name in the settings, in the interface's language.</summary>
         public static string Name(GameAction action) => action switch
         {
-            GameAction.Flip => "Flip",
-            GameAction.RotateLeft => "Rotate left (and turn the camera)",
-            GameAction.RotateRight => "Rotate right (and turn the camera)",
-            GameAction.Roll => "Roll / shuffle",
-            GameAction.Lock => "Lock",
-            GameAction.Group => "Group into a deck",
-            GameAction.PlaceUnder => "Place underneath",
-            GameAction.Nudge => "Nudge (hold)",
-            GameAction.Grow => "Scale up (hold)",
-            GameAction.Shrink => "Scale down (hold)",
-            GameAction.Delete => "Delete",
-            GameAction.PanForward => "Pan forward",
-            GameAction.PanBack => "Pan back",
-            GameAction.PanLeft => "Pan left",
-            GameAction.PanRight => "Pan right",
-            GameAction.ResetCamera => "Back to your seat's view",
-            GameAction.QuickZoom => "Quick zoom",
-            GameAction.TopDown => "Top-down view",
-            GameAction.Blindfold => "Blindfold",
-            GameAction.QuickSave => "Quick save",
-            GameAction.QuickLoad => "Quick load",
-            GameAction.Talk => "Push to talk (hold)",
-            GameAction.Emotes => "Emote wheel (hold)",
-            GameAction.SeatView => "View from your seat",
-            GameAction.Wink => "Wink at the face you look at",
+            GameAction.Flip => Ui.T("Flip"),
+            GameAction.RotateLeft => Ui.T("Rotate left (and turn the camera)"),
+            GameAction.RotateRight => Ui.T("Rotate right (and turn the camera)"),
+            GameAction.Roll => Ui.T("Roll / shuffle"),
+            GameAction.Lock => Ui.T("Lock"),
+            GameAction.Group => Ui.T("Group into a deck"),
+            GameAction.PlaceUnder => Ui.T("Place underneath"),
+            GameAction.Nudge => Ui.T("Nudge (hold)"),
+            GameAction.Grow => Ui.T("Scale up (hold)"),
+            GameAction.Shrink => Ui.T("Scale down (hold)"),
+            GameAction.Delete => Ui.T("Delete"),
+            GameAction.PanForward => Ui.T("Pan forward"),
+            GameAction.PanBack => Ui.T("Pan back"),
+            GameAction.PanLeft => Ui.T("Pan left"),
+            GameAction.PanRight => Ui.T("Pan right"),
+            GameAction.ResetCamera => Ui.T("Back to your seat's view"),
+            GameAction.QuickZoom => Ui.T("Quick zoom"),
+            GameAction.TopDown => Ui.T("Top-down view"),
+            GameAction.Blindfold => Ui.T("Blindfold"),
+            GameAction.QuickSave => Ui.T("Quick save"),
+            GameAction.QuickLoad => Ui.T("Quick load"),
+            GameAction.Talk => Ui.T("Push to talk (hold)"),
+            GameAction.Emotes => Ui.T("Emote wheel (hold)"),
+            GameAction.SeatView => Ui.T("View from your seat"),
+            GameAction.Wink => Ui.T("Wink at the face you look at"),
+            GameAction.Sit => Ui.T("Sit down / stand up (walking rooms)"),
             _ => action.ToString(),
         };
 

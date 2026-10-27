@@ -89,6 +89,16 @@ namespace TableWorld.View.Chalkers
                 _session.LocalEmoted += OnLocalEmote;
                 _subscribed = _session;
             }
+            if (TableGeometry.Walk)
+            {
+                Walking(Time.deltaTime);
+                return;
+            }
+            if (_walker != null)
+            {
+                _walker.End();
+                _walker = null;
+            }
             var seen = new HashSet<string>();
             var seated = new HashSet<string>();
             var dt = Time.deltaTime;
@@ -299,6 +309,89 @@ namespace TableWorld.View.Chalkers
             foreach (var sofa in _sofas.Values)
                 sofa.Destroy();
             _sofas.Clear();
+        }
+
+        private TableWorld.View.Karaoke.Walker _walker;
+
+        /// <summary>This player's walker in a room people walk in (null at a table).</summary>
+        public TableWorld.View.Karaoke.Walker Walker => _walker;
+
+        /// <summary>
+        /// A room people walk in (T12.10): no chairs; this player walks in first person, and every other player's chalker
+        /// stands, walks or sits on a sofa where their presence says. With Hear myself on, your own chalker stands in
+        /// front of you, a mirror of your body.
+        /// </summary>
+        private void Walking(float dt)
+        {
+            var environment = FindAnyObjectByType<EnvironmentView>();
+            var lounge = environment != null ? environment.Lounge : null;
+            foreach (var chair in _chairs.Values)
+                chair.Destroy();
+            _chairs.Clear();
+            ClearSofas();
+            if (_walker == null && Camera.main != null && environment != null)
+            {
+                var index = _table.Engine.State.Players.Seats.FindIndex(s => s.Id == _table.LocalSeat);
+                _walker = TableWorld.View.Karaoke.Walker.Begin(Camera.main, environment, Mathf.Max(0, index));
+                _walker.Taken = () => (_session?.Others ?? Enumerable.Empty<(string, Core.Net.PresenceFrame)>())
+                    .Where(o => o.Item2.Body?.Place != null).Select(o => o.Item2.Body!.Place!.Value);
+            }
+
+            var seen = new HashSet<string>();
+            if (_session != null)
+                foreach (var (_, frame) in _session.Others)
+                {
+                    if (frame.Body is not { } body)
+                        continue;
+                    seen.Add(frame.Seat);
+                    var chalker = ChalkerFor(frame.Seat, ColorOf(frame.Seat));
+                    chalker.Personality = PersonalityOf(_session.LookAtSeat(frame.Seat));
+                    chalker.Microphone = Singer != null && Singer == frame.Seat;
+                    if (_emoteCounts.TryGetValue(frame.Seat, out var count) && count != frame.EmoteCount && Enum.TryParse<ChalkerEmote>(frame.Emote, out var emote))
+                        chalker.Play(emote);
+                    _emoteCounts[frame.Seat] = frame.EmoteCount;
+                    var gaze = frame.Gaze is { } g ? new Vector3(g.X, g.Y, g.Z) : (Vector3?)null;
+                    var (position, facing) = BodyPlace(body, lounge);
+                    chalker.Standing = body.Place == null;
+                    chalker.Walking = body.Moving;
+                    chalker.Pose(position, facing, gaze ?? position + facing * 3f + Vector3.up * 0.5f, gaze, _voice != null ? _voice.LevelOf(frame.Seat) : 0f, dt);
+                    Carry(chalker, frame.Seat);
+                }
+
+            var camera = Camera.main;
+            if (VoiceChat.HearMyself && camera != null && _walker != null)
+            {
+                seen.Add(MirrorKey);
+                var mirror = ChalkerFor(MirrorKey, ColorOf(_table.LocalSeat));
+                mirror.Personality = PersonalityOf(_session != null ? _session.LocalLook : "");
+                var flat = new Vector3(camera.transform.forward.x, 0f, camera.transform.forward.z).normalized;
+                if (flat.sqrMagnitude < 1e-4f)
+                    flat = Vector3.forward;
+                // Standing in front of you, facing you, moving as you move.
+                var feet = new Vector3(camera.transform.position.x, EnvironmentView.FloorY, camera.transform.position.z) + flat * 1.6f;
+                mirror.Standing = true;
+                mirror.Walking = _walker.Moving;
+                mirror.Microphone = Singer != null && Singer == _table.LocalSeat;
+                mirror.Pose(Chalker.StandingOrigin(feet), -flat, camera.transform.position, camera.transform.position, _voice != null ? _voice.LevelOf(VoiceChat.SelfSeat) : 0f, dt);
+                Carry(mirror, VoiceChat.SelfSeat);
+            }
+
+            foreach (var key in _chalkers.Keys.Where(k => !seen.Contains(k)).ToList())
+            {
+                _chalkers[key].Destroy();
+                _chalkers.Remove(key);
+                _emoteCounts.Remove(key);
+            }
+            AimStage();
+        }
+
+        /// <summary>Where a walking player's chalker goes: on its sofa place, or standing where its feet are, facing its way.</summary>
+        public static (Vector3 Position, Vector3 Facing) BodyPlace(Core.Net.AvatarPose body, TableWorld.View.Karaoke.Lounge lounge)
+        {
+            if (body.Place is { } place && lounge != null && place < lounge.Places.Count)
+                return lounge.Places[place];
+            var facing = Quaternion.Euler(0f, body.Yaw, 0f) * Vector3.forward;
+            return (Chalker.StandingOrigin(new Vector3(body.Position.X, body.Position.Y, body.Position.Z)), facing);
         }
 
         /// <summary>How close to the centre of the view a face must be to count as looked at, in degrees.</summary>

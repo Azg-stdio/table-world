@@ -34,6 +34,35 @@ namespace Core.Tests.Net
             Assert.Null(PresenceCodec.Decode(PresenceCodec.Encode(noPointer))!.Gaze);
         }
 
+        /// <summary>T12.10: a walking body travels in the frame (position, facing, sofa place, moving); nonsense is refused.</summary>
+        [Fact]
+        public void Bodies_RoundTrip_AndNonsenseIsRefused()
+        {
+            var frame = Frame("seat_north", 4);
+            frame.Body = new AvatarPose { Position = new Vec3(1.5f, -0.76f, -2f), Yaw = 135f, Place = 3, Moving = true };
+            var body = PresenceCodec.Decode(JObject.Parse(PresenceCodec.Encode(frame).ToString()))!.Body!;
+            Assert.Equal(new Vec3(1.5f, -0.76f, -2f), body.Position);
+            Assert.Equal(135f, body.Yaw);
+            Assert.Equal(3, body.Place);
+            Assert.True(body.Moving);
+
+            frame.Body = new AvatarPose { Position = new Vec3(0f, -0.76f, 0f), Yaw = 0f };
+            var standing = PresenceCodec.Decode(PresenceCodec.Encode(frame))!.Body!;
+            Assert.Null(standing.Place);
+            Assert.False(standing.Moving);
+            Assert.Null(PresenceCodec.Decode(PresenceCodec.Encode(Frame("seat_north", 5)))!.Body);
+
+            var bad = PresenceCodec.Encode(frame);
+            bad["body"]!["place"] = -1;
+            Assert.Null(PresenceCodec.Decode(bad));
+            bad = PresenceCodec.Encode(frame);
+            bad["body"]!["p"] = new JArray(0f, 5000f, 0f);
+            Assert.Null(PresenceCodec.Decode(bad));
+            bad = PresenceCodec.Encode(frame);
+            bad["body"]!["yaw"] = "north";
+            Assert.Null(PresenceCodec.Decode(bad));
+        }
+
         [Fact]
         public void Emotes_RoundTrip()
         {

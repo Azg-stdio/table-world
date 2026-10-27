@@ -92,6 +92,8 @@ namespace TableWorld.View.Net
         }
 
         /// <summary>This player's frame, sent when it changed (at most <see cref="PresenceRate"/>/s) or as a keep-alive.</summary>
+        private Chalkers.ChalkersView _chalkersView;
+
         private void SendPresence()
         {
             var now = Time.unscaledTime;
@@ -117,8 +119,13 @@ namespace TableWorld.View.Net
                     if (view != null)
                         frame.Held.Add(new HeldPose { Id = view.Id, Position = view.transform.position.ToCore(), Rotation = view.transform.rotation.eulerAngles.ToCore() });
             }
+            // Walking (the karaoke room): the body others see.
+            _chalkersView ??= FindAnyObjectByType<Chalkers.ChalkersView>();
+            if (_chalkersView != null && _chalkersView.Walker != null)
+                frame.Body = _chalkersView.Walker.Body;
             // Millimetre and degree resolution is plenty; it also keeps an idle player quiet.
-            var key = string.Join("|", new[] { frame.Pointer is { } p ? $"{p.X:F3},{p.Z:F3}" : "-", frame.Gaze is { } g ? $"{g.X:F2},{g.Y:F2},{g.Z:F2}" : "-", frame.EmoteCount.ToString(), frame.Hover ?? "-", string.Join(",", frame.Selected) }
+            var key = string.Join("|", new[] { frame.Pointer is { } p ? $"{p.X:F3},{p.Z:F3}" : "-", frame.Gaze is { } g ? $"{g.X:F2},{g.Y:F2},{g.Z:F2}" : "-", frame.EmoteCount.ToString(), frame.Hover ?? "-", string.Join(",", frame.Selected),
+                    frame.Body is { } b ? $"{b.Position.X:F2},{b.Position.Z:F2},{b.Yaw:F0},{b.Place},{b.Moving}" : "-" }
                 .Concat(frame.Held.Select(h => $"{h.Id}:{h.Position.X:F3},{h.Position.Y:F3},{h.Position.Z:F3},{h.Rotation.Y:F0},{h.Rotation.X:F0},{h.Rotation.Z:F0}")));
             if (key == _presenceKey && now - _presenceSentAt < PresenceKeepAlive)
                 return;

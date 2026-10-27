@@ -27,6 +27,13 @@ namespace TableWorld.View.Hud
                 (Ui.T("{RotateLeft} / {RotateRight} over nothing"), Ui.T("Turn the camera")),
                 (Ui.T("Ctrl + 1–9 / Shift + 1–9"), Ui.T("Save / load a camera view")),
             }),
+            (Ui.T("Walking rooms (karaoke)"), new[]
+            {
+                (Ui.T("{PanForward} {PanLeft} {PanBack} {PanRight} / arrows"), Ui.T("Walk; hold Shift to hurry")),
+                (Ui.T("Hold the right mouse button"), Ui.T("Look around")),
+                (Ui.T("{Sit} near a sofa"), Ui.T("Sit on the nearest free place; again, or walking, stands you up")),
+                (Ui.T("Big screen bar"), Ui.T("Paste a YouTube link and press Play to show it on the screen")),
+            }),
             (Ui.T("Moving things"), new[]
             {
                 (Ui.T("Left drag"), Ui.T("Pick up and move; release to drop (release while moving to throw)")),

@@ -27,6 +27,24 @@ namespace TableWorld.View.Chalkers
         /// <summary>How far forward the knees reach, under the table's edge.</summary>
         public const float KneeForward = 0.24f;
 
+        /// <summary>
+        /// How much longer standing legs are than the seated chalker's shins: standing, the body is taller than seated
+        /// (eyes about 1.5 m above the floor instead of 1.3 m).
+        /// </summary>
+        public const float StandingExtra = 0.24f;
+
+        /// <summary>
+        /// Standing (a room people walk in, T12.10), the chalker's origin is this far above its feet: the same body on
+        /// straight legs reaching the floor, so <see cref="EyeHeight"/> still counts from the origin.
+        /// </summary>
+        public const float StandingLift = -EnvironmentView.FloorY + StandingExtra;
+
+        /// <summary>Walking pace: steps per second (both legs).</summary>
+        public const float StepsPerSecond = 1.8f;
+
+        /// <summary>The origin for a body whose feet are at <paramref name="feet"/>.</summary>
+        public static Vector3 StandingOrigin(Vector3 feet) => feet + Vector3.up * StandingLift;
+
         private readonly GameObject _root;
         private readonly Transform _torso;
         private readonly Transform _head;
@@ -64,6 +82,20 @@ namespace TableWorld.View.Chalkers
         /// Singing (karaoke, M11): the right hand holds a microphone up to the mouth, whatever the emote does with that arm.
         /// </summary>
         public bool Microphone { get; set; }
+
+        /// <summary>
+        /// Standing on its own legs (a room people walk in) rather than seated: <see cref="Pose"/> then takes the origin from
+        /// <see cref="StandingOrigin"/> and the arms hang.
+        /// </summary>
+        public bool Standing { get; set; }
+
+        /// <summary>Walking: the legs and arms swing.</summary>
+        public bool Walking { get; set; }
+
+        private Transform _sitLegs;
+        private Transform _standLegs;
+        private readonly Transform[] _hips = new Transform[2];
+        private float _stride;
 
         /// <summary>The microphone, built the first time the chalker sings; null before.</summary>
         public Transform Mic => _mic;
@@ -122,15 +154,31 @@ namespace TableWorld.View.Chalkers
             var bodyMaterial = Lit(color, 0.35f, tinted: true);
             var limbMaterial = Lit(color * 0.85f, 0.3f, tinted: true);
             Part(PrimitiveType.Capsule, "Body", _torso, new Vector3(0f, -0.12f, 0f), new Vector3(0.34f, 0.3f, 0.24f), bodyMaterial);
-            // Seated legs, on the root so emotes move only the upper body: thighs forward on the cushion, shins down to the floor.
+            // Seated legs, under the root so emotes move only the upper body: thighs forward on the cushion, shins down to the floor.
+            _sitLegs = new GameObject("Seated legs").transform;
+            _sitLegs.SetParent(_root.transform, false);
             var footY = EnvironmentView.FloorY + 0.025f;
             foreach (var x in new[] { -0.085f, 0.085f })
             {
-                var thigh = Part(PrimitiveType.Capsule, "Thigh", _root.transform, new Vector3(x, HipHeight, KneeForward / 2f), new Vector3(0.1f, KneeForward / 2f + 0.04f, 0.1f), limbMaterial);
+                var thigh = Part(PrimitiveType.Capsule, "Thigh", _sitLegs, new Vector3(x, HipHeight, KneeForward / 2f), new Vector3(0.1f, KneeForward / 2f + 0.04f, 0.1f), limbMaterial);
                 thigh.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-                Part(PrimitiveType.Capsule, "Shin", _root.transform, new Vector3(x, (HipHeight + footY) / 2f, KneeForward), new Vector3(0.085f, (HipHeight - footY) / 2f, 0.085f), limbMaterial);
-                Part(PrimitiveType.Cube, "Foot", _root.transform, new Vector3(x, footY, KneeForward + 0.04f), new Vector3(0.09f, 0.05f, 0.15f), bodyMaterial);
+                Part(PrimitiveType.Capsule, "Shin", _sitLegs, new Vector3(x, (HipHeight + footY) / 2f, KneeForward), new Vector3(0.085f, (HipHeight - footY) / 2f, 0.085f), limbMaterial);
+                Part(PrimitiveType.Cube, "Foot", _sitLegs, new Vector3(x, footY, KneeForward + 0.04f), new Vector3(0.09f, 0.05f, 0.15f), bodyMaterial);
             }
+            // Standing legs: straight from the hips to the floor, each swinging from its hip when walking.
+            _standLegs = new GameObject("Standing legs").transform;
+            _standLegs.SetParent(_root.transform, false);
+            var legLength = HipHeight - EnvironmentView.FloorY + StandingExtra;
+            for (var side = 0; side < 2; side++)
+            {
+                var hip = new GameObject(side == 0 ? "Left hip" : "Right hip").transform;
+                hip.SetParent(_standLegs, false);
+                hip.localPosition = new Vector3(side == 0 ? -0.085f : 0.085f, HipHeight, 0f);
+                Part(PrimitiveType.Capsule, "Leg", hip, new Vector3(0f, -legLength / 2f + 0.03f, 0f), new Vector3(0.1f, legLength / 2f - 0.01f, 0.1f), limbMaterial);
+                Part(PrimitiveType.Cube, "Foot", hip, new Vector3(0f, -legLength + 0.025f, 0.04f), new Vector3(0.09f, 0.05f, 0.15f), bodyMaterial);
+                _hips[side] = hip;
+            }
+            _standLegs.gameObject.SetActive(false);
             for (var side = 0; side < 2; side++)
             {
                 var x = side == 0 ? -0.165f : 0.165f;
@@ -267,6 +315,25 @@ namespace TableWorld.View.Chalkers
             _sleep = Mathf.MoveTowards(_sleep, EyesClosed ? 1f : 0f, dt * 2.5f);
             pose.Head += new Vector3(28f * _sleep, 0f, 0f);
             pose.Lean += 6f * _sleep;
+            if (_sitLegs.gameObject.activeSelf == Standing)
+            {
+                _sitLegs.gameObject.SetActive(!Standing);
+                _standLegs.gameObject.SetActive(Standing);
+            }
+            if (Standing)
+            {
+                // Arms hang instead of resting on a table, and swing against the legs while walking.
+                _stride = Walking ? _stride + dt * StepsPerSecond * Mathf.PI : Mathf.MoveTowards(_stride, Mathf.Round(_stride / Mathf.PI) * Mathf.PI, dt * 4f);
+                var swing = Mathf.Sin(_stride);
+                var rest = ChalkerEmotes.Rest;
+                pose.LeftForward += -rest.LeftForward - swing * 22f;
+                pose.RightForward += -rest.RightForward + swing * 22f;
+                pose.LeftElbow += -rest.LeftElbow + 12f;
+                pose.RightElbow += -rest.RightElbow + 12f;
+                pose.Bob += Walking ? Mathf.Abs(Mathf.Cos(_stride)) * 0.015f : 0f;
+                _hips[0].localRotation = Quaternion.Euler(-swing * 25f, 0f, 0f);
+                _hips[1].localRotation = Quaternion.Euler(swing * 25f, 0f, 0f);
+            }
             if (Microphone)
             {
                 pose.RightForward = MicForward;

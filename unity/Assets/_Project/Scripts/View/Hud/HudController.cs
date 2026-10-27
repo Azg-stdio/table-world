@@ -462,6 +462,8 @@ namespace TableWorld.View.Hud
             if (_table == null || _table.Engine == null)
                 return;
             _screenBar?.Update();
+            // A room people walk in has no table to grab, draw or measure on.
+            _root.Q("toolBar")?.EnableInClassList(Hidden, TableGeometry.Walk);
             var seatsKey = $"{_table.LocalSeat}|{_table.Spectating}|{CurrentTurnSeat()}|{_table.Networked}|" +
                            (_session != null ? string.Join(",", _session.Occupants.Select(o => o.Key + "=" + o.Value + "=" + _session.NameOf(o.Value))) : "");
             if (_shownEngine != _table.Engine || seatsKey != _shownSeatsKey)
