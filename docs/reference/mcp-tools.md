@@ -176,6 +176,7 @@ Start a new game document: name, player seats with a hand zone each, and the bui
 | `description` | string | none | One-paragraph summary of the rules. |
 | `dicePerSeat` | integer | `0` | Dice for each seat in its colour (d6, tagged owner:<seat>), in front of its hand; 0 for none. |
 | `seatNames` | string | none | Optional names players read for the seats, comma-separated in seat order (e.g. 'Hunter, Mage, Thief'); a seat without one is called by its colour. |
+| `room` | string | none | The room round the table: gameNight (default: a dim room, a warm lamp over the table, chairs), karaoke (sofas round the table, a big screen, a stage light on the singer) or none (a plain background). |
 
 ### `perform_action`
 

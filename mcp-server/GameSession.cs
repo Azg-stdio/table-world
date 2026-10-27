@@ -210,8 +210,12 @@ namespace TableWorld.Mcp
 
         /// <summary>A new empty game: standard deck assets, seats around the table, one hand zone per seat.</summary>
         public EditResult NewGame(string id, string name, int players, int minPlayers, int maxPlayers, string? description, int dicePerSeat = 0,
-            string[]? seatNames = null)
+            string[]? seatNames = null, string? room = null)
         {
+            var preset = RoomPreset.GameNight;
+            if (room != null && (!Enum.TryParse(room, ignoreCase: true, out preset) || !Enum.IsDefined(typeof(RoomPreset), preset)))
+                return EditResult.Rejected(new ValidationError("room", ErrorCodes.InvalidValue, $"No room called '{room}'.",
+                    "Use gameNight, karaoke or none."));
             if (seatNames != null && seatNames.Length > players)
                 return EditResult.Rejected(new ValidationError("seatNames", ErrorCodes.InvalidValue, $"{seatNames.Length} seat names for {players} seats.",
                     "Give one name per seat, in seat order, or fewer (the rest are called by their colour)."));
@@ -233,8 +237,8 @@ namespace TableWorld.Mcp
             };
             // Each hand faces its seat; five seats or more need a bigger table, which the environment carries.
             var (tableSize, places) = SeatLayout.Arrange(players);
-            if (tableSize != TableLookDef.DefaultSize)
-                doc.Environment = new EnvironmentDef { Table = { Size = tableSize } };
+            if (tableSize != TableLookDef.DefaultSize || preset != RoomPreset.GameNight)
+                doc.Environment = new EnvironmentDef { Room = preset, Table = { Size = tableSize != TableLookDef.DefaultSize ? tableSize : (Vec2?)null } };
             var index = 0;
             foreach (var place in places)
             {

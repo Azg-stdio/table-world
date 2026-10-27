@@ -16,6 +16,11 @@ namespace TableWorld.View
     /// wooden rim); game pieces and the felt are lit only by a neutral table light, so card art keeps its true colours
     /// whatever mood the room has. Ambient is neutral for the same reason.
     /// </para>
+    /// <para>
+    /// The karaoke room (T12.6) is the same room in party colours, with a big screen on the far wall, speakers either side
+    /// of it, two coloured accent lights and a stage light that follows the singer (<see cref="AimStage"/>); sofas
+    /// replace the chairs (<see cref="Chalkers.ChalkersView"/>).
+    /// </para>
     /// </summary>
     public sealed class EnvironmentView : MonoBehaviour
     {
@@ -38,6 +43,13 @@ namespace TableWorld.View
         public const float DefaultLampIntensity = 3.2f;
         public static readonly Color DefaultFelt = new Color(0.09f, 0.27f, 0.19f);
         public static readonly Color DefaultWood = new Color(0.36f, 0.22f, 0.12f);
+        public static readonly Color KaraokeWall = new Color(0.09f, 0.07f, 0.15f);
+        public static readonly Color KaraokeFloor = new Color(0.13f, 0.07f, 0.14f);
+        /// <summary>The karaoke screen: as wide as the far wall allows, up to this (metres), 16:9.</summary>
+        public const float ScreenWidth = 3.2f;
+        public const float ScreenCentreY = 1.15f;
+        public const float StageLightIntensity = 6f;
+        public const float StageLightAngle = 34f;
 
         /// <summary>Room size around the table centre: the camera reaches 4 m, so it never leaves the room.</summary>
         /// <summary>The room grows with a big table, keeping walls a few steps away from it.</summary>
@@ -81,6 +93,33 @@ namespace TableWorld.View
         }
         public Light TableLight => _tableLight;
         public GameObject Room => _room;
+
+        private Renderer _screen;
+        private Light _stage;
+        private readonly List<Light> _accents = new List<Light>();
+
+        /// <summary>The karaoke room's big screen (null in other rooms): a shared video will play on it (T12.4).</summary>
+        public Renderer Screen => _screen;
+
+        /// <summary>The karaoke room's stage light, on the singer while someone sings (null in other rooms).</summary>
+        public Light StageLight => _stage;
+
+        /// <summary>
+        /// Points the stage light down at whoever sits at <paramref name="seat"/> facing <paramref name="facing"/>, from the
+        /// ceiling in front of them; null turns it off. Only the karaoke room has one.
+        /// </summary>
+        public void AimStage(Vector3? seat, Vector3? facing)
+        {
+            if (_stage == null)
+                return;
+            _stage.enabled = seat != null;
+            if (!(seat is { } at))
+                return;
+            var forward = facing is { } f && f.sqrMagnitude > 1e-4f ? f.normalized : Vector3.forward;
+            var target = at + Vector3.up * (Chalkers.Chalker.EyeHeight * 0.6f);
+            var from = at + forward * 0.9f + Vector3.up * (CeilingY - 0.15f);
+            _stage.transform.SetPositionAndRotation(from, Quaternion.LookRotation(target - from, Vector3.up));
+        }
 
         public void Configure(TableView table, Transform tableRoot, Light sun, Camera camera)
         {
@@ -176,13 +215,19 @@ namespace TableWorld.View
             _tableLight = null;
             _sideLights.Clear();
             _fill = null;
+            _screen = null;
+            _stage = null;
+            _accents.Clear();
 
             FitTable();
-            var wall = ToColor(env.WallColor, DefaultWall);
-            var floor = ToColor(env.FloorColor, DefaultFloor);
-            var gameNight = env.Room == RoomPreset.GameNight && env.RoomAsset == null;
+            var karaoke = env.Room == RoomPreset.Karaoke && env.RoomAsset == null;
+            var wall = ToColor(env.WallColor, karaoke ? KaraokeWall : DefaultWall);
+            var floor = ToColor(env.FloorColor, karaoke ? KaraokeFloor : DefaultFloor);
+            var gameNight = (env.Room == RoomPreset.GameNight || karaoke) && env.RoomAsset == null;
             if (gameNight)
                 BuildGameNight(wall, floor);
+            if (karaoke)
+                BuildKaraoke();
             if (_camera != null)
                 _camera.backgroundColor = wall * 0.5f;
             ApplySky(env);
@@ -243,6 +288,89 @@ namespace TableWorld.View
                 _fill.color = FillColor * roomTint;
                 _fill.intensity = FillIntensity * roomScale;
             }
+            foreach (var accent in _accents)
+                if (accent != null)
+                    accent.intensity = AccentIntensity * roomScale;
+            if (_stage != null)
+                _stage.intensity = StageLightIntensity * roomScale;
+        }
+
+        private const float AccentIntensity = 1.4f;
+
+        /// <summary>
+        /// The karaoke room on top of the game night one: the screen on the far wall (dark until a song plays) in a black
+        /// bezel, a speaker either side, a magenta and a blue light low on the side walls, and the stage light (off until
+        /// someone sings). The pendant lamp stays: the table is still for playing.
+        /// </summary>
+        private void BuildKaraoke()
+        {
+            _room.name = "Room (karaoke)";
+            var h = RoomHalfSize;
+            var width = Mathf.Min(ScreenWidth, h.x * 2f - 2f);
+            var height = width * 9f / 16f;
+            var wallZ = h.z - 0.01f;
+            Box("Screen Bezel", new Vector3(0f, ScreenCentreY, wallZ - 0.03f), new Vector3(width + 0.08f, height + 0.08f, 0.05f), new Color(0.02f, 0.02f, 0.02f), 0.6f);
+            var screen = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            screen.name = "Screen";
+            Object.Destroy(screen.GetComponent<Collider>());
+            screen.transform.SetParent(_room.transform, false);
+            // A quad shows its -Z side: it faces into the room from the far (+Z) wall unturned.
+            screen.transform.SetPositionAndRotation(new Vector3(0f, ScreenCentreY, wallZ - 0.06f), Quaternion.identity);
+            screen.transform.localScale = new Vector3(width, height, 1f);
+            var picture = new Material(RequiredShaders.Unlit) { name = "Karaoke screen" };
+            picture.SetColor("_BaseColor", new Color(0.06f, 0.08f, 0.17f));
+            _screen = screen.GetComponent<Renderer>();
+            _screen.sharedMaterial = picture;
+            _screen.shadowCastingMode = ShadowCastingMode.Off;
+            _screen.renderingLayerMask = RoomLayers;
+
+            foreach (var side in new[] { -1f, 1f })
+            {
+                var x = side * (width / 2f + 0.45f);
+                Box("Speaker", new Vector3(x, FloorY + 0.5f, wallZ - 0.2f), new Vector3(0.36f, 1f, 0.3f), new Color(0.05f, 0.05f, 0.06f), 0.3f);
+                foreach (var (y, size) in new[] { (0.72f, 0.24f), (0.28f, 0.12f) })
+                {
+                    var cone = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                    cone.name = "Speaker Cone";
+                    Object.Destroy(cone.GetComponent<Collider>());
+                    cone.transform.SetParent(_room.transform, false);
+                    cone.transform.SetPositionAndRotation(new Vector3(x, FloorY + y, wallZ - 0.355f), Quaternion.Euler(90f, 0f, 0f));
+                    cone.transform.localScale = new Vector3(size, 0.005f, size);
+                    var renderer = cone.GetComponent<Renderer>();
+                    renderer.sharedMaterial = NewMaterial(new Color(0.12f, 0.12f, 0.13f), 0.5f);
+                    renderer.renderingLayerMask = RoomLayers;
+                }
+            }
+
+            // Either side of the screen, washing the far wall in colour.
+            foreach (var (x, color) in new[] { (-(width / 2f + 1.1f), new Color(0.9f, 0.2f, 0.75f)), (width / 2f + 1.1f, new Color(0.25f, 0.4f, 1f)) })
+            {
+                var accentGo = new GameObject("Accent Light");
+                accentGo.transform.SetParent(_room.transform, false);
+                accentGo.transform.position = new Vector3(x, 1.5f, h.z - 0.7f);
+                var accent = accentGo.AddComponent<Light>();
+                accent.type = LightType.Point;
+                accent.range = 4.5f;
+                accent.color = color;
+                accent.intensity = AccentIntensity;
+                accent.shadows = LightShadows.None;
+                SetLayers(accent, RoomLayers);
+                _accents.Add(accent);
+            }
+
+            // The stage light lights the singer (a piece-layer chalker) and their sofa (also on the pieces layer).
+            var stageGo = new GameObject("Stage Light");
+            stageGo.transform.SetParent(_room.transform, false);
+            _stage = stageGo.AddComponent<Light>();
+            _stage.type = LightType.Spot;
+            _stage.spotAngle = StageLightAngle;
+            _stage.innerSpotAngle = StageLightAngle * 0.6f;
+            _stage.range = 5f;
+            _stage.color = new Color(1f, 0.93f, 0.85f);
+            _stage.intensity = StageLightIntensity;
+            _stage.shadows = LightShadows.None;
+            SetLayers(_stage, PiecesLayers | RoomLayers);
+            _stage.enabled = false;
         }
 
         private Material _sky;

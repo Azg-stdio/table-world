@@ -1099,7 +1099,7 @@ object or object or object or object or object or object or object or object or 
 
 | Field | Type | Required |
 |---|---|---|
-| `room` | one of `gameNight`, `none` |  |
+| `room` | one of `gameNight`, `none`, `karaoke` |  |
 | `roomAsset` | string |  |
 | `skyAsset` | string |  |
 | `wallColor` | array of number |  |

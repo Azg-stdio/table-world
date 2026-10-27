@@ -32,9 +32,10 @@ namespace TableWorld.Mcp
             [Description("Maximum players the game supports.")] int? maxPlayers = null,
             [Description("One-paragraph summary of the rules.")] string? description = null,
             [Description("Dice for each seat in its colour (d6, tagged owner:<seat>), in front of its hand; 0 for none.")] int dicePerSeat = 0,
-            [Description("Optional names players read for the seats, comma-separated in seat order (e.g. 'Hunter, Mage, Thief'); a seat without one is called by its colour.")] string? seatNames = null) =>
+            [Description("Optional names players read for the seats, comma-separated in seat order (e.g. 'Hunter, Mage, Thief'); a seat without one is called by its colour.")] string? seatNames = null,
+            [Description("The room round the table: gameNight (default: a dim room, a warm lamp over the table, chairs), karaoke (sofas round the table, a big screen, a stage light on the singer) or none (a plain background).")] string? room = null) =>
             session.Locked(() => Reply(session.NewGame(id, name, players, minPlayers ?? players, maxPlayers ?? players, description, dicePerSeat,
-                seatNames?.Split(',').Select(n => n.Trim()).ToArray()), session));
+                seatNames?.Split(',').Select(n => n.Trim()).ToArray(), room), session));
 
         [McpServerTool(Name = "set_messages"), Description("The game's own words for the lines the engine writes in the log, e.g. in the game's language: {\"win\":\"¡{seat} gana!\",\"choseInSecret\":\"{seat} eligió en secreto.\",\"chose\":\"{seat} eligió {option}.\"}. Keys: win, choseInSecret, chose ({seat}, {action}, {option}, {choice}), blindRound, reveal ({count}), shows ({card}). A key left out keeps the English line. Option labels are set on choice params (\"labels\": {\"dungeon\":\"Mazmorra\"}).")]
         public static string SetMessages(GameSession session, [Description("JSON object: message key to text.")] string messagesJson) =>

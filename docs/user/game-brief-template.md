@@ -180,7 +180,7 @@ Things that react to the table rather than to a button, or effects too special f
 
 | | |
 |---|---|
-| Room | *game night (dim room, warm lamp) / plain background* |
+| Room | *game night (dim room, warm lamp) / plain background / karaoke (sofas, big screen)* |
 | Table surface | *green felt / wood / my image `mat.jpg`* |
 | Lighting notes | *keep the art's colours true; darker room for a horror game* |
 

@@ -43,7 +43,7 @@ Optional. The room around the table, so a game (a mod) can set its own place. Om
 
 ```json
 "environment": {
-  "room": "gameNight",                 // gameNight (default: dim room, warm lamp over the table) | none (plain background, sun light)
+  "room": "gameNight",                 // gameNight (default: dim room, warm lamp over the table) | none (plain background, sun light) | karaoke (sofas, a big screen, a stage light)
   "roomAsset": "my_room",              // model or assetBundle asset that replaces the built-in room (loads with M4)
   "wallColor": [0.16, 0.12, 0.1], "floorColor": [0.22, 0.14, 0.09],   // colours 0–1
   "lighting": { "ambientIntensity": 0.3, "ambientColor": [0.6, 0.6, 0.62], "lampIntensity": 3.2, "lampColor": [1, 0.83, 0.62],

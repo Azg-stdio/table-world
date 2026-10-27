@@ -175,6 +175,20 @@ namespace TableWorld.Mcp.Tests
         }
 
         [Fact]
+        public async Task NewGame_PicksTheRoom()
+        {
+            Ok(await Call("new_game", ("id", "singalong"), ("name", "Sing-along"), ("players", 4), ("room", "karaoke")));
+            var doc = await Call("get_rules_document");
+            Assert.Equal("karaoke", (string?)doc["environment"]!["room"]);
+            Assert.Null(doc["environment"]!["table"]!["size"]);
+            Ok(await Call("validate_rules"));
+
+            var unknown = await Call("new_game", ("id", "disco"), ("name", "Disco"), ("players", 2), ("room", "disco"));
+            Assert.False((bool)unknown["ok"]!);
+            Assert.Equal("room", (string?)unknown["errors"]![0]!["path"]);
+        }
+
+        [Fact]
         public async Task AddAsset_CopiesTheFileNextToTheGame_AndDecksUseIt()
         {
             var outside = Path.Combine(Path.GetTempPath(), "tw-asset-" + Guid.NewGuid().ToString("N"));

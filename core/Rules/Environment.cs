@@ -7,6 +7,11 @@ namespace Core.Rules
         GameNight,
         /// <summary>No room: the table over a plain background colour (<see cref="EnvironmentDef.WallColor"/>).</summary>
         None,
+        /// <summary>
+        /// A karaoke room (M11): the game night room with sofas round the table instead of chairs, a big screen on the far
+        /// wall and a stage light on whoever sings.
+        /// </summary>
+        Karaoke,
     }
 
     /// <summary>

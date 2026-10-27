@@ -60,6 +60,23 @@ namespace TableWorld.View.Chalkers
         /// </summary>
         public bool EyesClosed { get; set; }
 
+        /// <summary>
+        /// Singing (karaoke, M11): the right hand holds a microphone up to the mouth, whatever the emote does with that arm.
+        /// </summary>
+        public bool Microphone { get; set; }
+
+        /// <summary>The microphone, built the first time the chalker sings; null before.</summary>
+        public Transform Mic => _mic;
+
+        /// <summary>The right arm holding the microphone: forward, slightly across the chest, the forearm up (solved for the hand below the chin).</summary>
+        public const float MicForward = 92f;
+        public const float MicRaise = -28f;
+        public const float MicElbow = 90f;
+        /// <summary>The microphone's length, from the grip in the hand to the end of its head.</summary>
+        public const float MicLength = 0.14f;
+
+        private Transform _mic;
+
         /// <summary>How long a wink keeps one eye shut, in seconds.</summary>
         public const float WinkSeconds = 0.45f;
 
@@ -250,6 +267,12 @@ namespace TableWorld.View.Chalkers
             _sleep = Mathf.MoveTowards(_sleep, EyesClosed ? 1f : 0f, dt * 2.5f);
             pose.Head += new Vector3(28f * _sleep, 0f, 0f);
             pose.Lean += 6f * _sleep;
+            if (Microphone)
+            {
+                pose.RightForward = MicForward;
+                pose.RightRaise = MicRaise;
+                pose.RightElbow = MicElbow;
+            }
             Apply(pose);
 
             // The head turns toward the gaze, as far as a neck goes.
@@ -283,6 +306,33 @@ namespace TableWorld.View.Chalkers
             var wink = Winking;
             EyesShut = (asleep || blink || wink == true, asleep || blink || wink == false);
             _face.Draw(face, _mouthFollower.Update(level, dt), pupils, EyesShut.Left, EyesShut.Right);
+            HoldMic();
+        }
+
+        /// <summary>The microphone in the right hand, its head toward the mouth (the head turns, the microphone follows).</summary>
+        private void HoldMic()
+        {
+            if (!Microphone)
+            {
+                if (_mic != null)
+                    _mic.gameObject.SetActive(false);
+                return;
+            }
+            if (_mic == null)
+            {
+                _mic = new GameObject("Microphone").transform;
+                _mic.SetParent(_root.transform, false);
+                var metal = Lit(new Color(0.12f, 0.12f, 0.13f), 0.6f, tinted: false);
+                var grille = Lit(new Color(0.55f, 0.56f, 0.58f), 0.7f, tinted: false);
+                // Built along +Z from the grip, so LookRotation points it.
+                var handle = Part(PrimitiveType.Cylinder, "Handle", _mic, new Vector3(0f, 0f, (MicLength - 0.05f) / 2f), new Vector3(0.028f, (MicLength - 0.05f) / 2f, 0.028f), metal);
+                handle.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+                Part(PrimitiveType.Sphere, "Head", _mic, new Vector3(0f, 0f, MicLength - 0.025f), Vector3.one * 0.05f, grille);
+            }
+            _mic.gameObject.SetActive(true);
+            var grip = RightHand.position;
+            var toMouth = _mouth.position - grip;
+            _mic.SetPositionAndRotation(grip, Quaternion.LookRotation(toMouth.sqrMagnitude < 1e-6f ? _root.transform.forward : toMouth, _root.transform.up));
         }
 
         private void Apply(BodyPose pose)

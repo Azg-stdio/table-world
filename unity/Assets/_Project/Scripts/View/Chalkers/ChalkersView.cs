@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Rules;
 using TableWorld.View.Net;
 using TableWorld.View.Voice;
 using UnityEngine;
@@ -13,6 +14,10 @@ namespace TableWorld.View.Chalkers
     /// turns to where that player looks (presence gaze), the pupils follow their pointer, and the mouth opens with their
     /// voice. With "Hear myself" on, a mirror chalker sits across the
     /// table, looks back at this player and talks with their own voice: the whole voice path, tested alone.
+    /// <para>
+    /// In the karaoke room (T12.6) everyone sits on sofas along the table's sides instead of chairs, and the
+    /// <see cref="Singer"/> holds a microphone under the room's stage light.
+    /// </para>
     /// </summary>
     public sealed class ChalkersView : MonoBehaviour
     {
@@ -31,6 +36,21 @@ namespace TableWorld.View.Chalkers
         /// <summary>The last emote count seen per seat: an emote plays when it changes.</summary>
         private readonly Dictionary<string, int> _emoteCounts = new Dictionary<string, int>();
         private NetworkTableSession _subscribed;
+        private EnvironmentView _environment;
+        /// <summary>The karaoke room's sofas, by the side of the table they stand along.</summary>
+        private readonly Dictionary<int, ChalkerSofa> _sofas = new Dictionary<int, ChalkerSofa>();
+        private readonly Dictionary<int, (Vector3 Centre, Vector3 Facing, int Places)> _sofaRows = new Dictionary<int, (Vector3, Vector3, int)>();
+        private Dictionary<string, (Vector3 Position, Vector3 Facing)> _sofaPlaces;
+        private int _sofaFrame = -1;
+
+        /// <summary>The seat singing (karaoke): its chalker holds the microphone and the stage light is on it. Null: nobody.</summary>
+        public string Singer { get; set; }
+
+        /// <summary>The karaoke room is up: sofas instead of chairs.</summary>
+        public bool Karaoke => _table != null && _table.Engine?.State.Environment is { Room: RoomPreset.Karaoke, RoomAsset: null } && !TableGeometry.Hidden;
+
+        /// <summary>The sofas on screen, by table side (0 near, 1 right, 2 far, 3 left).</summary>
+        public IReadOnlyDictionary<int, ChalkerSofa> Sofas => _sofas;
 
         public void Configure(TableView table, NetworkTableSession session, VoiceChat voice)
         {
@@ -58,7 +78,12 @@ namespace TableWorld.View.Chalkers
             var seated = new HashSet<string>();
             var dt = Time.deltaTime;
             // A chair at every seat but the one this player sits in (the camera is there), played or not.
-            if (!TableGeometry.Hidden)
+            var karaoke = Karaoke;
+            if (karaoke)
+                BuildSofas();
+            else
+                ClearSofas();
+            if (!TableGeometry.Hidden && !karaoke)
                 foreach (var seat in _table.Engine.State.Players.Seats)
                     if (seat.Id != _table.LocalSeat && Place(seat.Id) is { } place)
                     {
@@ -75,6 +100,7 @@ namespace TableWorld.View.Chalkers
                     chalker.Personality = PersonalityOf(_session.LookAtSeat(frame.Seat));
                     // Eyes closed: asleep as far as this player can tell (a sleeper's screen is dark anyway).
                     chalker.EyesClosed = _table.Game is { EyesClosedPhase: true } game && !game.IsAwake(frame.Seat, _table.LocalSeat);
+                    chalker.Microphone = Singer != null && Singer == frame.Seat;
                     // A new count is a new emote; the first frame seen only records it (no replay of an old one).
                     if (_emoteCounts.TryGetValue(frame.Seat, out var count) && count != frame.EmoteCount && Enum.TryParse<ChalkerEmote>(frame.Emote, out var emote))
                         chalker.Play(emote);
@@ -92,6 +118,7 @@ namespace TableWorld.View.Chalkers
                 var chalker = ChalkerFor(MirrorKey, ColorOf(_table.LocalSeat));
                 chalker.Personality = PersonalityOf(_session != null ? _session.LocalLook : "");
                 chalker.EyesClosed = _table.Game is { EyesClosedPhase: true } night && _table.LocalSeat != null && !night.IsAwake(_table.LocalSeat, _table.LocalSeat);
+                chalker.Microphone = Singer != null && Singer == _table.LocalSeat;
                 var from = camera.transform.position;
                 var across = new Vector3(-from.x, 0f, -from.z);
                 if (across.sqrMagnitude < 1e-4f)
@@ -104,7 +131,14 @@ namespace TableWorld.View.Chalkers
                 var taken = _chairs.Where(p => p.Key != MirrorKey && seated.Contains(p.Key))
                     .Select(p => p.Value.Root.transform)
                     .FirstOrDefault(t => Vector3.Distance(t.position, mirrorPlace.Position) < ChalkerChair.SeatWidth);
-                if (taken != null)
+                if (karaoke)
+                {
+                    // On a sofa: the nearest place someone else would sit.
+                    var places = SofaPlaces().Where(p => p.Key != _table.LocalSeat).Select(p => p.Value).ToList();
+                    if (places.Count > 0)
+                        mirrorPlace = places.OrderBy(p => Vector3.Distance(p.Position, mirrorPlace.Position)).First();
+                }
+                else if (taken != null)
                     mirrorPlace = (taken.position, taken.forward);
                 else if (!TableGeometry.Hidden)
                 {
@@ -126,6 +160,117 @@ namespace TableWorld.View.Chalkers
                 _chairs[key].Destroy();
                 _chairs.Remove(key);
             }
+            AimStage();
+        }
+
+        /// <summary>The room's stage light on the singer's place, or off.</summary>
+        private void AimStage()
+        {
+            if (_environment == null)
+                _environment = FindAnyObjectByType<EnvironmentView>();
+            if (_environment == null)
+                return;
+            // The singer's chalker where it sits (yours, with Hear myself, sits across from you), else their place.
+            var key = Singer != null && Singer == _table.LocalSeat ? MirrorKey : Singer;
+            if (key != null && _chalkers.TryGetValue(key, out var shown))
+            {
+                _environment.AimStage(shown.Root.transform.position, shown.Root.transform.forward);
+                return;
+            }
+            var place = Singer != null ? Place(Singer) : null;
+            _environment.AimStage(place?.Position, place?.Facing);
+        }
+
+        /// <summary>
+        /// Where everyone sits in the karaoke room: each seat goes to the side of the table its chair would be on, and the
+        /// seats on a side sit next to each other on one sofa, in the order they would sit, kept within the side when
+        /// they fit. The far side faces away from the room's screen: its seats move to the left and right sofas while
+        /// those have room (<see cref="SideRoom"/>), so nobody sings with their back to the screen or blocks it. Worked
+        /// out once a frame.
+        /// </summary>
+        private Dictionary<string, (Vector3 Position, Vector3 Facing)> SofaPlaces()
+        {
+            if (_sofaPlaces != null && _sofaFrame == Time.frameCount)
+                return _sofaPlaces;
+            _sofaFrame = Time.frameCount;
+            _sofaPlaces = new Dictionary<string, (Vector3, Vector3)>();
+            _sofaRows.Clear();
+            var half = TableGeometry.Size / 2f;
+            var bySide = new Dictionary<int, List<(string Seat, Vector3 At)>>();
+            foreach (var seat in _table.Engine.State.Players.Seats)
+            {
+                if (!(ChairPlace(seat.Id) is { } place))
+                    continue;
+                var p = place.Position;
+                var side = Mathf.Abs(p.x) / half.x > Mathf.Abs(p.z) / half.y ? (p.x > 0f ? 1 : 3) : (p.z > 0f ? 2 : 0);
+                if (!bySide.TryGetValue(side, out var list))
+                    bySide[side] = list = new List<(string, Vector3)>();
+                list.Add((seat.Id, p));
+            }
+            if (bySide.TryGetValue(2, out var far))
+            {
+                foreach (var seat in far.OrderBy(s => Mathf.Abs(s.At.x)).ToList())
+                {
+                    var to = seat.At.x >= 0f ? 1 : 3;
+                    var other = to == 1 ? 3 : 1;
+                    // The sides first, then the near side, which faces the screen too.
+                    var target = Count(to) < SideRoom(half.y) ? to : Count(other) < SideRoom(half.y) ? other : Count(0) < SideRoom(half.x) ? 0 : -1;
+                    if (target < 0)
+                        continue;
+                    far.Remove(seat);
+                    if (!bySide.TryGetValue(target, out var list))
+                        bySide[target] = list = new List<(string, Vector3)>();
+                    // At the far end of a side, where it meets the far side; on the near side, across from where it was.
+                    list.Add((seat.Seat, new Vector3(seat.At.x, 0f, target == 0 ? -half.y : half.y)));
+                }
+                if (far.Count == 0)
+                    bySide.Remove(2);
+            }
+            int Count(int side) => bySide.TryGetValue(side, out var list) ? list.Count : 0;
+            foreach (var (side, list) in bySide)
+            {
+                var outward = side switch { 0 => Vector3.back, 1 => Vector3.right, 2 => Vector3.forward, _ => Vector3.left };
+                var facing = -outward;
+                var right = Vector3.Cross(Vector3.up, facing);
+                var sideHalf = side % 2 == 0 ? half.x : half.y;
+                var across = side % 2 == 0 ? half.y : half.x;
+                var sorted = list.OrderBy(s => Vector3.Dot(s.At, right)).ToList();
+                var width = sorted.Count * ChalkerSofa.PlaceWidth;
+                var room = Mathf.Max(0f, sideHalf - width / 2f);
+                var centre = Mathf.Clamp(sorted.Average(s => Vector3.Dot(s.At, right)), -room, room);
+                var line = outward * (across + SeatDistance);
+                for (var i = 0; i < sorted.Count; i++)
+                    _sofaPlaces[sorted[i].Seat] = (line + right * (centre - width / 2f + ChalkerSofa.PlaceWidth * (i + 0.5f)), facing);
+                _sofaRows[side] = (line + right * centre, facing, sorted.Count);
+            }
+            return _sofaPlaces;
+        }
+
+        /// <summary>How many sit on a side <paramref name="half"/> long each way from its middle without the sofa passing its ends.</summary>
+        public static int SideRoom(float half) => Mathf.Max(1, Mathf.FloorToInt(2f * half / ChalkerSofa.PlaceWidth));
+
+        /// <summary>A sofa along every side someone sits on, sized for them (the player's own place included).</summary>
+        private void BuildSofas()
+        {
+            SofaPlaces();
+            foreach (var side in _sofas.Keys.Where(k => !_sofaRows.ContainsKey(k) || _sofas[k].Places != _sofaRows[k].Places).ToList())
+            {
+                _sofas[side].Destroy();
+                _sofas.Remove(side);
+            }
+            foreach (var (side, row) in _sofaRows)
+            {
+                if (!_sofas.TryGetValue(side, out var sofa))
+                    _sofas[side] = sofa = new ChalkerSofa(side.ToString(), transform, row.Places);
+                sofa.Place(row.Centre, row.Facing);
+            }
+        }
+
+        private void ClearSofas()
+        {
+            foreach (var sofa in _sofas.Values)
+                sofa.Destroy();
+            _sofas.Clear();
         }
 
         /// <summary>How close to the centre of the view a face must be to count as looked at, in degrees.</summary>
@@ -203,6 +348,14 @@ namespace TableWorld.View.Chalkers
         /// the table, in seat order, starting from the near side.
         /// </summary>
         public (Vector3 Position, Vector3 Facing)? Place(string seat)
+        {
+            if (Karaoke)
+                return SofaPlaces().TryGetValue(seat, out var onSofa) ? onSofa : ((Vector3, Vector3)?)null;
+            return ChairPlace(seat);
+        }
+
+        /// <summary>Where a seat's chair goes (<see cref="Place"/> outside the karaoke room).</summary>
+        private (Vector3 Position, Vector3 Facing)? ChairPlace(string seat)
         {
             var state = _table.Engine.State;
             var index = state.Players.Seats.FindIndex(s => s.Id == seat);
@@ -302,6 +455,7 @@ namespace TableWorld.View.Chalkers
             foreach (var chair in _chairs.Values)
                 chair.Destroy();
             _chairs.Clear();
+            ClearSofas();
         }
     }
 }

@@ -12,7 +12,7 @@ Units are metres. The chalker's origin is on the edge of the table, at table-top
 
 | Measure | Value | Where it comes from |
 |---|---|---|
-| Chair seat (cushion top) | 0.30 m below the table top | `ChalkerChair.SeatTop` |
+| Chair seat (cushion top) | 0.30 m below the table top | `ChalkerChair.SeatTop` (a karaoke sofa's cushions too, `ChalkerSofa`) |
 | Distance from the table's edge | 0.22 m | `ChalkersView.SeatDistance` |
 | Torso pivot above the origin | 0.14 m | `Chalker.TorsoHeight` |
 | Eyes above the origin | 0.53 m | `Chalker.EyeHeight` (the camera from your seat sits here) |
@@ -35,6 +35,10 @@ parented to it.
 | `leftShoulder`, `rightShoulder` | arm raise and forward swing | emotes, rest pose (`ChalkerEmotes.Rest`: forearms on the table) |
 | `leftElbow`, `rightElbow` | elbow bend | emotes, rest pose |
 | `leftHand`, `rightHand` | the hands | follow the elbows; tests check the right hand reaches the table |
+
+A singer (karaoke, `Chalker.Microphone`) holds a microphone in the right hand: the right arm takes a fixed pose
+(`Chalker.MicForward`, `MicRaise`, `MicElbow`) whatever the emote does, and the microphone (0.14 m) points from the
+right hand to `mouth`. A model's hand should close round a grip there.
 
 Rotations are local Euler angles on those transforms, so a rig whose bones share the axes (+Z forward, +Y up, arms
 hanging down −Y at zero) works as it is.
