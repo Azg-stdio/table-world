@@ -168,6 +168,23 @@ Effects can only set declared variables and resources; the validator rejects und
 - Entering a phase resets who has acted and the per-phase action counts. `gotoPhase` re-enters a phase (War uses it for ties).
 - More than 200 phase changes without waiting for a player is reported as `rules_loop` and rolled back.
 
+### Eyes closed and voice
+
+A phase can close eyes (ADR 0012): `"awake"` names who stays awake (`nobody`, `team:<id>`, `role:<id>`, a seat, or a
+list such as `$var.night_order`); everyone else sleeps for the phase.
+
+```jsonc
+{ "id": "night_wolves", "awake": "team:wolves", "sleepText": "Night {$var.night}. Eyes closed.", "voice": "awake",
+  "actions": [ "bite" ] }
+```
+
+- Sleepers take no actions, see a dark screen with `sleepText` (default "Eyes closed."), and do not see the awake
+  players' pointers or held pieces; their chalkers sleep on the awake players' screens.
+- Each machine tells who is awake from what it knows: a villager cannot tell who the wolves are by who seems awake.
+- `voice`: `all` (default), `awake` (default in an eyes-closed phase: the awake hear each other, the sleepers hear and
+  are heard by nobody), `team` (each team hears only itself), `none`. Spectators and a host without a seat see and
+  hear everyone.
+
 ## Actions
 
 ```jsonc

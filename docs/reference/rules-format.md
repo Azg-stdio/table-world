@@ -1236,6 +1236,9 @@ object or object or object or object or object or object or object or object or 
 | `onEnter` | array of [Effect](#effect) |  |
 | `onExit` | array of [Effect](#effect) |  |
 | `advanceWhen` | [AdvanceRule](#advancerule) |  |
+| `awake` | string |  |
+| `sleepText` | string |  |
+| `voice` | one of `all`, `awake`, `team`, `none` |  |
 
 ### AdvanceRule
 

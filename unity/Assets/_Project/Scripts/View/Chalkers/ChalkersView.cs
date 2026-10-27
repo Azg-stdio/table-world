@@ -73,6 +73,8 @@ namespace TableWorld.View.Chalkers
                     seen.Add(frame.Seat);
                     var chalker = ChalkerFor(frame.Seat, ColorOf(frame.Seat));
                     chalker.Personality = PersonalityOf(_session.LookAtSeat(frame.Seat));
+                    // Eyes closed: asleep as far as this player can tell (a sleeper's screen is dark anyway).
+                    chalker.EyesClosed = _table.Game is { EyesClosedPhase: true } game && !game.IsAwake(frame.Seat, _table.LocalSeat);
                     // A new count is a new emote; the first frame seen only records it (no replay of an old one).
                     if (_emoteCounts.TryGetValue(frame.Seat, out var count) && count != frame.EmoteCount && Enum.TryParse<ChalkerEmote>(frame.Emote, out var emote))
                         chalker.Play(emote);
@@ -89,6 +91,7 @@ namespace TableWorld.View.Chalkers
                 seen.Add(MirrorKey);
                 var chalker = ChalkerFor(MirrorKey, ColorOf(_table.LocalSeat));
                 chalker.Personality = PersonalityOf(_session != null ? _session.LocalLook : "");
+                chalker.EyesClosed = _table.Game is { EyesClosedPhase: true } night && _table.LocalSeat != null && !night.IsAwake(_table.LocalSeat, _table.LocalSeat);
                 var from = camera.transform.position;
                 var across = new Vector3(-from.x, 0f, -from.z);
                 if (across.sqrMagnitude < 1e-4f)

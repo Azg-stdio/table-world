@@ -4198,6 +4198,20 @@
         },
         "advanceWhen": {
           "$ref": "#/$defs/AdvanceRule"
+        },
+        "awake": {
+          "type": "string"
+        },
+        "sleepText": {
+          "type": "string"
+        },
+        "voice": {
+          "enum": [
+            "all",
+            "awake",
+            "team",
+            "none"
+          ]
         }
       },
       "additionalProperties": false

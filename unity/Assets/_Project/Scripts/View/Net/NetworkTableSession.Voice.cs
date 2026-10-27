@@ -49,8 +49,11 @@ namespace TableWorld.View.Net
                 return;
             var bytes = VoiceCodec.Encode(packet);
             if (IsHost)
+            {
                 foreach (var client in _network.ConnectedClientsIds.Where(c => c != NetworkManager.ServerClientId).ToList())
-                    SendVoiceTo(client, bytes);
+                    if (HeardBy(packet.Seat, client))
+                        SendVoiceTo(client, bytes);
+            }
             else
                 SendVoiceTo(NetworkManager.ServerClientId, bytes);
         }
@@ -63,11 +66,22 @@ namespace TableWorld.View.Net
             if (packet == null || !_seatOf.TryGetValue(sender, out var seat))
                 return;
             packet.Seat = seat ?? SpectatorVoice(sender.ToString());
-            _voice?.Receive(packet);
+            if (Hears(packet.Seat, _table.Spectating ? null : _table.LocalSeat))
+                _voice?.Receive(packet);
             var relayed = VoiceCodec.Encode(packet);
             foreach (var client in _network.ConnectedClientsIds.Where(c => c != NetworkManager.ServerClientId && c != sender).ToList())
-                SendVoiceTo(client, relayed);
+                if (HeardBy(packet.Seat, client))
+                    SendVoiceTo(client, relayed);
         }
+
+        /// <summary>
+        /// Voice channels (ADR 0012): the host relays a voice only to those the phase lets hear it (the awake among
+        /// themselves at night, a team among itself). A spectator's voice ("~…") speaks as nobody's seat.
+        /// </summary>
+        private bool HeardBy(string speaker, ulong client) => Hears(speaker, _seatOf.TryGetValue(client, out var seat) ? seat : null);
+
+        private bool Hears(string speaker, string listener) =>
+            _table.Game == null || _table.Game.Hears(speaker != null && speaker.StartsWith("~") ? null : speaker, listener);
 
         private void OnClientVoice(ulong sender, FastBufferReader reader)
         {

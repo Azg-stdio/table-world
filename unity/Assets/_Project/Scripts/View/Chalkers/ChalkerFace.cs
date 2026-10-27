@@ -99,18 +99,24 @@ namespace TableWorld.View.Chalkers
         /// <param name="voice">How far the voice opens the mouth, 0–1, on top of the expression's own opening.</param>
         /// <param name="look">Where the pupils point, each axis -1..1 (right, up).</param>
         /// <param name="blink">The eyes are shut for a blink.</param>
-        public void Draw(FaceShape face, float voice, Vector2 look, bool blink)
+        public void Draw(FaceShape face, float voice, Vector2 look, bool blink) => Draw(face, voice, look, blink, blink);
+
+        /// <summary>
+        /// As <see cref="Draw(FaceShape, float, Vector2, bool)"/> with each eye shut on its own (<paramref name="leftShut"/> is
+        /// the chalker's left, on the right as you face it): a wink, or both shut while sleeping.
+        /// </summary>
+        public void Draw(FaceShape face, float voice, Vector2 look, bool leftShut, bool rightShut)
         {
             var open = Mathf.Clamp01(Mathf.Max(face.MouthOpen, voice));
             var lx = Mathf.Clamp(look.x, -1f, 1f);
             var ly = Mathf.Clamp(look.y, -1f, 1f);
             var key = Key(face.EyeOpen, face.EyeSmile, face.Pupil, face.Brows, face.BrowRaise, face.BrowTilt, face.BrowAsym,
-                face.Smile, face.Smirk, face.MouthWidth, open, lx, ly) * 31 + (int)face.Extra * 2 + (blink ? 1 : 0);
+                face.Smile, face.Smirk, face.MouthWidth, open, lx, ly) * 31 + (int)face.Extra * 4 + (leftShut ? 1 : 0) + (rightShut ? 2 : 0);
             if (key == _shown)
                 return;
             _shown = key;
             _background.CopyTo(_pixels, 0);
-            DrawEyes(face, lx, ly, blink);
+            DrawEyes(face, lx, ly, leftShut, rightShut);
             DrawMouth(face, open);
             DrawExtra(face.Extra);
             Texture.SetPixels32(_pixels);
@@ -126,13 +132,15 @@ namespace TableWorld.View.Chalkers
             return key;
         }
 
-        private void DrawEyes(FaceShape face, float lx, float ly, bool blink)
+        private void DrawEyes(FaceShape face, float lx, float ly, bool leftShut, bool rightShut)
         {
             var height = Mathf.Clamp(face.EyeOpen, 0f, 1.5f);
             for (var side = 0; side < 2; side++)
             {
                 var x = EyeX[side];
                 var outward = side == 0 ? -1f : 1f;
+                // Side 0 is drawn on the left of the board as you face it: the chalker's right eye.
+                var blink = side == 0 ? rightShut : leftShut;
                 if (face.Extra == FaceExtra.Hearts && !blink)
                     Heart(x, EyeY, 1.05f);
                 else if (blink || height < 0.12f)

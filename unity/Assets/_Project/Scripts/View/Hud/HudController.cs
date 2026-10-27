@@ -54,6 +54,9 @@ namespace TableWorld.View.Hud
         private Label _gameLog;
         /// <summary>This player's hidden role and what it knows (ADR 0012), above the log.</summary>
         private Label _gameRole;
+        /// <summary>The dark screen of a player whose eyes are closed (ADR 0012), with the phase's words.</summary>
+        private VisualElement _sleepOverlay;
+        private Label _sleepText;
         /// <summary>Optional roles ticked for the next start, by table (a new table starts with none).</summary>
         private readonly HashSet<string> _optionalRoles = new HashSet<string>();
         private object _optionalRolesFor;
@@ -146,6 +149,8 @@ namespace TableWorld.View.Hud
             _gamePanel = _root.Q("gamePanel");
             _gameLog = _root.Q<Label>("gameLog");
             _gameRole = _root.Q<Label>("gameRole");
+            _sleepOverlay = _root.Q("sleepOverlay");
+            _sleepText = _root.Q<Label>("sleepText");
             _gameActions = _root.Q("gameActions");
             _gameUi = new GameUiRenderer(_root.Q("gameUi"), _table);
             if (_interaction != null)
@@ -470,6 +475,7 @@ namespace TableWorld.View.Hud
             if (Time.unscaledTime >= _nextGameRefresh)
             {
                 _nextGameRefresh = Time.unscaledTime + 0.25f;
+                RefreshSleep();
                 RefreshGame();
                 _gameUi.Refresh();
             }
@@ -700,6 +706,20 @@ namespace TableWorld.View.Hud
         /// turn it is, or the one picked from its chip). An action with several choices opens the picker; actions marked
         /// <c>button: false</c> are done with the pieces, by scripts or by agents, and get none.
         /// </summary>
+        /// <summary>
+        /// Eyes closed (ADR 0012): while the phase keeps this player asleep, the table is dark behind the phase's words. A
+        /// spectator, and a host without a seat, keep watching.
+        /// </summary>
+        private void RefreshSleep()
+        {
+            var game = _table.Game;
+            var seat = _table.Spectating ? null : _table.LocalSeat;
+            var asleep = game != null && seat != null && game.EyesClosedPhase && !game.IsAwake(seat, seat);
+            _sleepOverlay?.EnableInClassList(Hidden, !asleep);
+            if (asleep && _sleepText != null)
+                _sleepText.text = game.SleepText;
+        }
+
         /// <summary>Who won, as players say it: a team's name, a seat's, or nobody.</summary>
         private static string WinnerName(TableState state, Session session) =>
             session.WinnerTeam is { } team && state.Roles != null ? GameEngine.TeamName(state.Roles, team)

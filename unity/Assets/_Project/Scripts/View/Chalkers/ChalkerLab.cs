@@ -133,6 +133,9 @@ namespace TableWorld.View.Chalkers
             }
             _holdButton = Choice("", () => SetHold(!_chalker.Hold));
             emotes.Add(_holdButton);
+            // Social games (ADR 0012): a wink, and eyes closed for a night.
+            emotes.Add(Choice("W Wink", () => _chalker.Wink()));
+            emotes.Add(Choice("Z Eyes closed", () => _chalker.EyesClosed = !_chalker.EyesClosed));
             var colors = root.Q("colors");
             foreach (var name in Colors)
             {
@@ -255,6 +258,10 @@ namespace TableWorld.View.Chalkers
                 }
                 if (keyboard.hKey.wasPressedThisFrame)
                     SetHold(!_chalker.Hold);
+                if (keyboard.wKey.wasPressedThisFrame)
+                    _chalker.Wink();
+                if (keyboard.zKey.wasPressedThisFrame)
+                    _chalker.EyesClosed = !_chalker.EyesClosed;
                 if (keyboard.spaceKey.wasPressedThisFrame)
                 {
                     _yaw = HomeYaw;

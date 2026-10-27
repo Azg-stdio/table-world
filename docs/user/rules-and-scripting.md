@@ -189,6 +189,11 @@ only how many chose each option (`count`, like face-down mission cards), or only
 `$vote.result` and the counts (`$vote.fail`). A vote can be for a player (`"seats": true`), and `closeVote` ends one
 early. The format is in [the rules format](../rules-schema.md#votes).
 
+**Nights: eyes closed, voices low.** A phase with `"awake": "team:wolves"` (or `role:seer`, `nobody`, a seat, a list)
+keeps everyone else asleep: their screen goes dark with the phase's `sleepText`, they cannot act, and they neither see
+nor hear the awake players. `"voice"` sets who hears whom: `all`, `awake` (the default at night), `team` (each team
+among itself, by day too) or `none`. The format is in [the rules format](../rules-schema.md#eyes-closed-and-voice).
+
 **Picking a group, and a team that wins.** A variable can hold a list: `{ "setVariable": { "name": "team", "add":
 "$param.member" } }` adds one item, `"remove"` takes one out, `"value": []` empties it. Rules read `$var.team.count`
 and check `{ "inList": { "list": "$var.team", "value": "$param.member" } }`, and a vote's `who` can be the list.

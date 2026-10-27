@@ -71,6 +71,18 @@ namespace Core.Rules
                         Add($"{path}.actions[{j}]", ErrorCodes.UnknownAction, $"Action '{phase.Actions[j]}' does not exist.",
                             Suggest.OneOf(phase.Actions[j], actionIds, "an action id") ?? "Define it under 'actions' first.");
                 _params = null;
+                if (phase.Awake is { } awake && awake != "nobody" && awake != "all")
+                {
+                    if (References.IsReference(awake))
+                    {
+                        if (References.Check(awake, $"{path}.awake", _state, null) is { } awakeError)
+                            _errors.Add(awakeError);
+                    }
+                    else
+                        Audience(awake, $"{path}.awake");
+                }
+                if (phase.Voice == PhaseVoice.Team && _state.Roles == null)
+                    Add($"{path}.voice", ErrorCodes.UnknownTeam, "Team voice needs teams.", "Add roles with teams (set_roles), or use all, awake or none.");
                 Effects(phase.OnEnter, $"{path}.onEnter", phaseIds);
                 Effects(phase.OnExit, $"{path}.onExit", phaseIds);
                 if (phase.AdvanceWhen is { } advance)

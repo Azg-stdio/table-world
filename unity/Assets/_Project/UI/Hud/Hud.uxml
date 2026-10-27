@@ -3,6 +3,9 @@
     <ui:VisualElement name="root" class="hud" picking-mode="Ignore">
         <ui:VisualElement name="gameUi" class="game-ui" picking-mode="Ignore" />
         <ui:VisualElement name="presenceLayer" class="presence-layer" picking-mode="Ignore" />
+        <ui:VisualElement name="sleepOverlay" class="sleep-overlay hidden">
+            <ui:Label name="sleepText" class="sleep-text" />
+        </ui:VisualElement>
         <ui:VisualElement name="overlay" class="overlay" picking-mode="Ignore">
             <ui:VisualElement name="boxRect" class="box-rect hidden" picking-mode="Ignore" />
             <ui:Label name="tooltip" class="tooltip hidden" picking-mode="Ignore" />

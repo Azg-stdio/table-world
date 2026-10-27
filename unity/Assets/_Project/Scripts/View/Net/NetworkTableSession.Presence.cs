@@ -126,8 +126,11 @@ namespace TableWorld.View.Net
             frame.Sequence = ++_presenceSeq;
             var message = PresenceCodec.Encode(frame);
             if (IsHost)
+            {
                 foreach (var client in _network.ConnectedClientsIds.Where(c => c != NetworkManager.ServerClientId).ToList())
-                    SendPresenceTo(client, message);
+                    if (SeenBy(frame.Seat, client))
+                        SendPresenceTo(client, message);
+            }
             else
                 SendPresenceTo(NetworkManager.ServerClientId, message);
         }
@@ -156,8 +159,16 @@ namespace TableWorld.View.Net
             ScriptsHearHover(seat, frame.Hover);
             var relayed = PresenceCodec.Encode(frame);
             foreach (var client in _network.ConnectedClientsIds.Where(c => c != NetworkManager.ServerClientId && c != sender).ToList())
-                SendPresenceTo(client, relayed);
+                if (SeenBy(seat, client))
+                    SendPresenceTo(client, relayed);
         }
+
+        /// <summary>
+        /// The host relays a player's pointer, gaze and held pieces only to those the rules let see them: in an eyes-closed
+        /// phase the sleepers see nothing of the awake (ADR 0012).
+        /// </summary>
+        private bool SeenBy(string seat, ulong client) =>
+            _table.Game == null || _table.Game.Sees(seat, _seatOf.TryGetValue(client, out var viewer) ? viewer : null);
 
         private void OnClientPresence(ulong sender, FastBufferReader reader)
         {

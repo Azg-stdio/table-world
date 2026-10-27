@@ -35,6 +35,27 @@ namespace TableWorld.Tests.PlayMode
             }
         }
 
+        /// <summary>M10: a wink shuts one eye and opens it again; eyes closed shuts both and lowers the head until woken.</summary>
+        [UnityTest]
+        public IEnumerator AWink_ShutsOneEye_AndEyesClosed_PutsItToSleep()
+        {
+            yield return Run(0.2f);
+            _chalker.Wink();
+            yield return Run(0.1f);
+            Assert.AreEqual((true, false), _chalker.EyesShut, "only the left eye");
+            yield return Run(Chalker.WinkSeconds);
+            Assert.IsNull(_chalker.Winking);
+
+            var awakeHead = _chalker.Mouth.y;
+            _chalker.EyesClosed = true;
+            yield return Run(0.8f);
+            Assert.AreEqual((true, true), _chalker.EyesShut);
+            Assert.Less(_chalker.Mouth.y, awakeHead - 0.01f, "the head drops");
+            _chalker.EyesClosed = false;
+            yield return Run(0.8f);
+            Assert.AreEqual(awakeHead, _chalker.Mouth.y, 0.003f, "and comes back up");
+        }
+
         [UnityTest]
         public IEnumerator Personalities_SetTheRestingFace()
         {

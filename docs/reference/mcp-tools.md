@@ -41,7 +41,7 @@ Set the effects run on an event: onGameStart (setup: shuffle, deal), onTurnStart
 
 ### `add_phase`
 
-Add or replace a phase: {"id":"play","name":"Play","actions":["play_card"],"advanceWhen":{"currentPlayerEnds":true},"onEnter":[effects],"onExit":[effects]}. advanceWhen takes exactly one of immediate, allPlayersActed, currentPlayerEnds, condition. Appends the phase to the turn if it is not there. See get_rules_reference for the format.
+Add or replace a phase: {"id":"play","name":"Play","actions":["play_card"],"advanceWhen":{"currentPlayerEnds":true},"onEnter":[effects],"onExit":[effects]}. advanceWhen takes exactly one of immediate, allPlayersActed, currentPlayerEnds, condition. Appends the phase to the turn if it is not there. A phase may close eyes: "awake" (nobody, team:<id>, role:<id>, a seat or $var.<list>) keeps the others asleep (dark screen with "sleepText", no actions, no sight or sound of the awake), and "voice" (all, awake, team, none) sets who hears whom. See get_rules_reference for the format.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|

@@ -1,0 +1,109 @@
+using System.Collections.Generic;
+using System.Linq;
+using Core.Rules;
+using Newtonsoft.Json.Linq;
+
+namespace Core.Engine
+{
+    /// <summary>
+    /// Eyes-closed phases and voice channels (ADR 0012 §3–4, T11.7–T11.8). A phase may say who is awake; the others sleep:
+    /// they take no actions, their screen goes dark, and they neither see the awake players' pointers nor hear them. A
+    /// phase's <c>voice</c> says who hears whom. On the host every answer is exact; on a peer it uses only what that seat
+    /// knows (its own role, what it was shown), so a sleeping seat learns nothing from who seems awake.
+    /// </summary>
+    public sealed partial class GameEngine
+    {
+        /// <summary>The phase being played now, or null.</summary>
+        public PhaseDef? Phase => CurrentPhase();
+
+        /// <summary>True while the phase in play closes some eyes (it names who is awake).</summary>
+        public bool EyesClosedPhase => Session is { Started: true, Over: false } && CurrentPhase()?.Awake != null;
+
+        /// <summary>
+        /// Whether <paramref name="seat"/> is awake now, as <paramref name="viewer"/> can tell (null: the host, who knows
+        /// all). Outside an eyes-closed phase everyone is awake.
+        /// </summary>
+        public bool IsAwake(string seat, string? viewer = null)
+        {
+            if (!EyesClosedPhase)
+                return true;
+            var awake = CurrentPhase()!.Awake!;
+            switch (awake)
+            {
+                case "all":
+                    return true;
+                case "nobody":
+                    return false;
+            }
+            if (awake.StartsWith("team:"))
+                return KnownTeam(seat, viewer) == awake.Substring(5);
+            if (awake.StartsWith("role:"))
+                return KnownRole(seat, viewer) == awake.Substring(5);
+            if (!References.IsReference(awake))
+                return seat == awake;
+            return WithContext(new Context { Actor = Session!.CurrentSeat }, () => TryResolve(awake)) switch
+            {
+                Seat one => one.Id == seat,
+                JArray list => list.Any(t => t.Type == JTokenType.String && (string)t! == seat),
+                JValue { Type: JTokenType.String } id => (string)id! == seat,
+                _ => false,
+            };
+        }
+
+        /// <summary>What a sleeping seat reads on its dark screen.</summary>
+        public string SleepText => CurrentPhase()?.SleepText is { Length: > 0 } text ? Template(text) : Names.Message(State, "eyesClosed", "Eyes closed.");
+
+        /// <summary>
+        /// Whether <paramref name="listener"/> hears <paramref name="speaker"/> now (seats; null for a spectator or a host
+        /// without a seat, who hear everyone). Decided on the host, which relays voice.
+        /// </summary>
+        public bool Hears(string? speaker, string? listener)
+        {
+            if (listener == null || speaker == listener || !(Session is { Started: true, Over: false }))
+                return true;
+            var phase = CurrentPhase();
+            var voice = phase?.Voice ?? (phase?.Awake != null ? PhaseVoice.Awake : PhaseVoice.All);
+            switch (voice)
+            {
+                case PhaseVoice.None:
+                    return false;
+                case PhaseVoice.Awake:
+                    return speaker != null && IsAwake(speaker) && IsAwake(listener);
+                case PhaseVoice.Team:
+                    return speaker != null && TeamOf(speaker) is { } team && TeamOf(listener) == team;
+                default:
+                    return true;
+            }
+        }
+
+        /// <summary>
+        /// Whether <paramref name="viewer"/> sees <paramref name="seat"/>'s pointer, gaze and held pieces now: an awake player
+        /// is not seen by the sleepers. Spectators and a host without a seat see everyone.
+        /// </summary>
+        public bool Sees(string seat, string? viewer) => viewer == null || seat == viewer || !EyesClosedPhase || !IsAwake(seat) || IsAwake(viewer);
+
+        private string? KnownTeam(string seat, string? viewer)
+        {
+            if (viewer == null || viewer == seat)
+            {
+                _secretsRead = true;
+                return TeamOf(seat);
+            }
+            var sight = Sight(seat, viewer);
+            return sight?.Team ?? (sight?.Role is { } role ? State.Roles?.List.FirstOrDefault(r => r.Id == role)?.Team : null);
+        }
+
+        private string? KnownRole(string seat, string? viewer)
+        {
+            if (viewer == null || viewer == seat)
+            {
+                _secretsRead = true;
+                return RoleOf(seat);
+            }
+            return Sight(seat, viewer)?.Role;
+        }
+
+        private RoleSight? Sight(string seat, string viewer) =>
+            Session != null && Session.Knows.TryGetValue(viewer, out var sights) ? sights.FirstOrDefault(s => s.Seat == seat) : null;
+    }
+}

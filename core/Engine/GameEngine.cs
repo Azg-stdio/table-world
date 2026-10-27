@@ -271,6 +271,8 @@ namespace Core.Engine
             if (CurrentPhase() is not { } phase || !phase.Actions.Contains(action.Id))
                 return new RuleException("actionId", ErrorCodes.ActionNotAvailable, $"'{action.Id}' is not allowed in phase '{session.Phase}'.",
                     CurrentPhase() is { } p && p.Actions.Count > 0 ? $"Allowed now: {string.Join(", ", p.Actions)}." : null);
+            if (!IsAwake(seat))
+                return new RuleException("actor", ErrorCodes.ActionNotAvailable, $"{Names.Seat(State, seat)} has eyes closed in this phase.", "Wait for the phase where you are awake.");
             if (action.Actor == ActorRule.Current && seat != session.CurrentSeat)
                 return new RuleException("actor", ErrorCodes.NotYourTurn, $"It is {session.CurrentSeat}'s turn, not {seat}'s.");
             if (action.Vote != null && !WithContext(new Context { Actor = seat }, () => VotersOf(action)).Contains(seat))

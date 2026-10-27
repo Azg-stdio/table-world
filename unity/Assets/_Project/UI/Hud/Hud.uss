@@ -319,6 +319,26 @@
     background-color: rgba(16, 18, 22, 0.82);
 }
 
+/* Eyes closed (ADR 0012): the table goes dark behind the phase's words; it takes the clicks, so nothing is moved. */
+.sleep-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(4, 5, 8);
+}
+
+.sleep-text {
+    font-size: 30px;
+    -unity-font-style: bold;
+    color: rgb(170, 178, 200);
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
 /* This player's hidden role and what it knows (ADR 0012). */
 .game-role {
     font-size: 15px;

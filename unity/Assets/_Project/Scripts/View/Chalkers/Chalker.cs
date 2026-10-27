@@ -38,6 +38,9 @@ namespace TableWorld.View.Chalkers
         private readonly List<Material> _tinted = new List<Material>();
         private float _nextBlink = Random.Range(2f, 5f);
         private float _blinkUntil;
+        private float _winkUntil;
+        private bool _winkLeft = true;
+        private float _sleep;
         private bool _placed;
         private float _emoteSeconds;
 
@@ -48,6 +51,28 @@ namespace TableWorld.View.Chalkers
 
         /// <summary>Freezes the emote where it is (the lab, to look at one moment of it).</summary>
         public bool Hold { get; set; }
+
+        /// <summary>
+        /// Asleep for an eyes-closed phase (ADR 0012 §3): both eyes shut and the head lowered, eased in and out, on every
+        /// screen; no blinking meanwhile.
+        /// </summary>
+        public bool EyesClosed { get; set; }
+
+        /// <summary>How long a wink keeps one eye shut, in seconds.</summary>
+        public const float WinkSeconds = 0.45f;
+
+        /// <summary>The eye a wink is shutting now (true: its left), or null.</summary>
+        public bool? Winking => Time.time < _winkUntil ? _winkLeft : (bool?)null;
+
+        /// <summary>Shuts one eye for <see cref="WinkSeconds"/>: its left by default (on the right as you face it).</summary>
+        public void Wink(bool left = true)
+        {
+            _winkLeft = left;
+            _winkUntil = Time.time + WinkSeconds;
+        }
+
+        /// <summary>The eyes as last drawn (tests): each shut or not.</summary>
+        public (bool Left, bool Right) EyesShut { get; private set; }
 
         /// <summary>The face as last drawn (tests).</summary>
         public FaceShape Face { get; private set; } = FaceShape.Neutral;
@@ -189,6 +214,10 @@ namespace TableWorld.View.Chalkers
                         emoteLook = look;
                 }
             }
+            // Asleep: the head drops and the shoulders round, eased so it reads as falling asleep, not a jump.
+            _sleep = Mathf.MoveTowards(_sleep, EyesClosed ? 1f : 0f, dt * 2.5f);
+            pose.Head += new Vector3(28f * _sleep, 0f, 0f);
+            pose.Lean += 6f * _sleep;
             Apply(pose);
 
             // The head turns toward the gaze, as far as a neck goes.
@@ -217,7 +246,11 @@ namespace TableWorld.View.Chalkers
                 _nextBlink = now + Random.Range(2.5f, 6f);
             }
             Face = face;
-            _face.Draw(face, _mouthFollower.Update(level, dt), pupils, now < _blinkUntil);
+            var blink = now < _blinkUntil;
+            var asleep = EyesClosed || _sleep > 0.5f;
+            var wink = Winking;
+            EyesShut = (asleep || blink || wink == true, asleep || blink || wink == false);
+            _face.Draw(face, _mouthFollower.Update(level, dt), pupils, EyesShut.Left, EyesShut.Right);
         }
 
         private void Apply(BodyPose pose)

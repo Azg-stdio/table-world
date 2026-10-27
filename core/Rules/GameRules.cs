@@ -14,7 +14,8 @@ namespace Core.Rules
         /// ("{seat} shows {card}."), and for roles <c>youAre</c> ("You are {role} ({team})."), <c>youAreRole</c>,
         /// <c>youHave</c> ("{set}: {role}."), <c>seenAsRole</c>, <c>seenAsTeam</c>, <c>seenAsOneOf</c>, <c>revealedRole</c>,
         /// <c>revealedTeam</c>, <c>revealedTrait</c>, <c>nowRole</c>, <c>nowTeam</c>, <c>nowTrait</c>; for votes <c>voted</c>,
-        /// <c>voteNamed</c> ("{vote}: {votes}."), <c>voteCount</c> ("{vote}: {counts}."), <c>voteResult</c> ("{vote}: {result}."). <c>{seat}</c> and the other names in
+        /// <c>voteNamed</c> ("{vote}: {votes}."), <c>voteCount</c> ("{vote}: {counts}."), <c>voteResult</c> ("{vote}: {result}."),
+        /// <c>teamWins</c> ("{team} win: {seats}."), <c>eyesClosed</c> (a sleeper's screen without its own sleepText). <c>{seat}</c> and the other names in
         /// braces are filled in; a missing key keeps the English line.
         /// </summary>
         public Dictionary<string, string>? Messages { get; set; }
@@ -65,7 +66,26 @@ namespace Core.Rules
         public List<Effect> OnExit { get; set; } = new List<Effect>();
         /// <summary>Null means <c>currentPlayerEnds</c>.</summary>
         public AdvanceRule? AdvanceWhen { get; set; }
+
+        /// <summary>
+        /// An eyes-closed phase (ADR 0012): who is awake (<c>nobody</c>, <c>team:&lt;id&gt;</c>, <c>role:&lt;id&gt;</c>, a seat,
+        /// or a list such as <c>$var.night_order</c>). The others sleep: no actions, a dark screen, no sight or sound of the
+        /// awake. Null: everyone is awake.
+        /// </summary>
+        public string? Awake { get; set; }
+
+        /// <summary>What the sleepers read ("Night falls. Eyes closed."); <c>{$ref}</c> parts are filled in.</summary>
+        public string? SleepText { get; set; }
+
+        /// <summary>Who hears whom in this phase; null is <c>all</c>, or <c>awake</c> in an eyes-closed phase.</summary>
+        public PhaseVoice? Voice { get; set; }
     }
+
+    /// <summary>
+    /// <c>all</c>: everyone hears everyone; <c>awake</c>: the awake hear each other and the sleepers hear nobody;
+    /// <c>team</c>: each team hears only itself; <c>none</c>: silence. Spectators and a host without a seat hear all.
+    /// </summary>
+    public enum PhaseVoice { All, Awake, Team, None }
 
     public enum ActorRule { Current, Any }
     public enum ParamType { Object, Seat, Number, Choice }
