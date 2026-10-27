@@ -49,6 +49,19 @@ line left out stays in English. Choice options get their words from `labels` on 
 set_messages {"messagesJson": {"win": "{seat} takes the race!", "choseInSecret": "{seat} has chosen."}}
 ```
 
+**`set_translations`** and **`translate_game`**: the game in other languages. Say once which language the game is
+written in (`gameLanguage`), then `translate_game` lists every text a language lacks, by path key, with the text as
+written; send the translations back in batches until `left` is 0. Players pick the language when the game starts
+([languages in the rules format](../rules-schema.md#languages)).
+
+```call
+set_translations {"language": "es", "gameLanguage": "en", "translationsJson": {"game.name": "Carrera de cartas"}}
+```
+
+```call
+translate_game {"language": "es"}
+```
+
 **`ask_host`**: when the rulebook does not say something, the agent asks you instead of guessing. The server only
 hands the question back; your agent asks you in the chat.
 

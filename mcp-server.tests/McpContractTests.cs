@@ -89,8 +89,8 @@ namespace TableWorld.Mcp.Tests
             {
                 "add_action", "add_asset", "add_event", "add_phase", "add_resource", "add_to_games", "ask_host", "create_deck", "create_supply", "create_text_deck", "deal", "define_zone",
                 "get_rules_document", "get_rules_reference", "get_table_state", "load_game", "new_game", "perform_action",
-                "place_object", "remove", "reset_game", "run_lua", "save_game", "screenshot", "set_messages", "set_notebook", "set_roles", "set_rules_document", "set_script", "set_turn", "set_variables",
-                "set_win_condition", "start_game", "table_action", "validate_rules",
+                "place_object", "remove", "reset_game", "run_lua", "save_game", "screenshot", "set_messages", "set_notebook", "set_roles", "set_rules_document", "set_script", "set_translations", "set_turn", "set_variables",
+                "set_win_condition", "start_game", "table_action", "translate_game", "validate_rules",
             };
             Assert.Equal(expected, tools);
         }
@@ -172,6 +172,44 @@ namespace TableWorld.Mcp.Tests
             var tooMany = await Call("new_game", ("id", "crowd"), ("name", "Crowd"), ("players", 13));
             Assert.False((bool)tooMany["ok"]!);
             Assert.Equal("players", (string?)tooMany["errors"]![0]!["path"]);
+        }
+
+        [Fact]
+        public async Task TranslateGame_ListsWhatIsLeft_SetTranslationsFillsIt()
+        {
+            Ok(await Call("new_game", ("id", "carrera"), ("name", "Carrera"), ("players", 2)));
+            Ok(await Call("add_action", ("actionJson", "{\"id\":\"pasar\",\"name\":\"Pasar\",\"actor\":\"current\",\"effects\":[{\"message\":{\"text\":\"@pasa\"}},{\"endTurn\":{}}]}")));
+            Ok(await Call("add_phase", ("phaseJson", "{\"id\":\"turno\",\"name\":\"Tu turno\",\"actions\":[\"pasar\"],\"advanceWhen\":{\"currentPlayerEnds\":true}}")));
+
+            var noLanguage = await Call("translate_game", ("language", "en"));
+            Assert.False((bool)noLanguage["ok"]!);
+            Assert.Equal("game.language", (string?)noLanguage["errors"]![0]!["path"]);
+
+            // The game's own string first, in its own language; the @pasa reference then validates.
+            Ok(await Call("set_translations", ("language", "es"), ("gameLanguage", "es"), ("translationsJson", "{\"strings.pasa\":\"Pasa el turno.\"}")));
+            Ok(await Call("validate_rules"));
+
+            var left = await Call("translate_game", ("language", "en"));
+            Ok(left);
+            Assert.Equal("Pasar", (string?)left["missing"]!["actions.pasar.name"]);
+            Assert.Equal("Tu turno", (string?)left["missing"]!["phases.turno.name"]);
+            Assert.Equal("Pasa el turno.", (string?)left["missing"]!["strings.pasa"]);
+            var total = (int)left["total"]!;
+
+            Ok(await Call("set_translations", ("language", "en"), ("translationsJson", "{\"actions.pasar.name\":\"Pass\",\"phases.turno.name\":\"Your turn\",\"strings.pasa\":\"Passes the turn.\",\"game.name\":\"Race\"}")));
+            var after = await Call("translate_game", ("language", "en"));
+            Assert.Equal(total - 4, (int)after["left"]!);
+            Assert.Null(after["missing"]!["actions.pasar.name"]);
+
+            var unknown = await Call("set_translations", ("language", "en"), ("translationsJson", "{\"actions.volar.name\":\"Fly\"}"));
+            Assert.False((bool)unknown["ok"]!);
+            Assert.Equal("translations.en.actions.volar.name", (string?)unknown["errors"]![0]!["path"]);
+
+            Ok(await Call("set_translations", ("language", "en"), ("translationsJson", "{\"game.name\":\"\"}")));
+            var doc = await Call("get_rules_document");
+            Assert.Equal("es", (string?)doc["game"]!["language"]);
+            Assert.Null(doc["translations"]!["en"]!["game.name"]);
+            Assert.Equal("Pass", (string?)doc["translations"]!["en"]!["actions.pasar.name"]);
         }
 
         [Fact]

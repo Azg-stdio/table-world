@@ -61,7 +61,13 @@ And **resources** an agent can read on its own: the rules reference, the game br
 6. Look at what you placed: `screenshot` (`view` `top` for the layout, `seat` with a seat id for what that player sees, `object` with a `target` to read a card) whenever the game window is open. Check that things face their seat, do not overlap and are readable; you cannot see the table otherwise.
 7. `validate_rules` until it returns no problems. Every problem has a path, a code and usually a suggestion ("Did you mean 'shuffle'?"). Edits with shape errors are not applied; edits that leave the document incomplete are kept and listed as problems.
 8. `start_game`, then `get_table_state`: it lists every seat's legal actions with their parameter choices. `perform_action` plays one; the human can also play in the window (HUD buttons, or the table itself).
-9. When the rulebook does not say something (tie rules, what happens when the draw pile runs out, aces high or low), call `ask_host` and ask the human. Record the answer in the rules, e.g. as a `message` at game start or in `game.description`.
+9. Other languages (when the designer asks for them): write the game in its own language, then `set_translations`
+   with `gameLanguage` once (e.g. `es`, with `{}`), `translate_game` with the target language (it lists every text the
+   language lacks, by path key, with the text as written), and `set_translations` with the translated batch; repeat
+   until `left` is 0. Keep `{placeholders}`, `$references` and `@strings` as they are. A free text the rules write (a
+   `message`, a `refuse` reason) becomes translatable as `@key` with `strings.<key>` set in the game's own language
+   first. Players pick the language when the game starts.
+10. When the rulebook does not say something (tie rules, what happens when the draw pile runs out, aces high or low), call `ask_host` and ask the human. Record the answer in the rules, e.g. as a `message` at game start or in `game.description`.
 
 ## 4. Things that trip agents up
 

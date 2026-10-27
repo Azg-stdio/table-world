@@ -285,6 +285,16 @@ Set Lua for the table: target 'global' for the global script (rules call its fun
 | `target` | string | required | 'global' or an object id. |
 | `code` | string | required | The Lua source; empty removes it. |
 
+### `set_translations`
+
+Write texts of the game in another language: a JSON object of path key -> text (the keys translate_game lists), e.g. {"actions.elegir.name":"Choose","strings.noche":"It is night."}. An empty text removes a key. strings.<key> are the game's own free texts, read where a text says @key: write them in the game's own language first (language = the game's language), then translate them like any other. gameLanguage sets the language the game is written in (needed once, before any translation). Players pick the language when the game starts.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `language` | string | required | Language code of these texts, e.g. 'en'. |
+| `translationsJson` | string | required | JSON object: path key -> text. |
+| `gameLanguage` | string | none | The language the game itself is written in, e.g. 'es' (once). |
+
 ### `set_turn`
 
 Set the turn structure: order ('clockwise'/'counterclockwise'), startingPlayer (seat id, 'first' or 'random'), and the phase ids played each turn, in order.
@@ -323,6 +333,15 @@ Start playing the game: deals the hidden roles (if the game has them), runs onGa
 | `seats` | string | none | Comma-separated seat ids that play; empty for every seat. |
 | `players` | integer | none | How many play, spread evenly around the table (instead of seats). |
 | `roles` | string | none | Comma-separated optional roles to deal this time (e.g. 'percival,morgana'); the others stay out. |
+
+### `translate_game`
+
+What is left to translate the game into a language: every text of the game (names, card texts, actions, options, phases, panels, messages, notebook, roles, the game's own strings) that the language lacks, by path key, with the text as written. Translate them and send them back with set_translations, in batches; call again until none are left. The game needs its own language first (set_translations gameLanguage). Texts a translation lacks read as written while playing, so an unfinished translation still plays.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `language` | string | required | Language code to translate into, e.g. 'en'. |
+| `limit` | integer | `150` | How many to list (the rest are counted). |
 
 ### `validate_rules`
 

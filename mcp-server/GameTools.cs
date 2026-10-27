@@ -46,6 +46,81 @@ namespace TableWorld.Mcp
                 doc["game"] = game;
             }), session));
 
+        [McpServerTool(Name = "translate_game"), Description("What is left to translate the game into a language: every text of the game (names, card texts, actions, options, phases, panels, messages, notebook, roles, the game's own strings) that the language lacks, by path key, with the text as written. Translate them and send them back with set_translations, in batches; call again until none are left. The game needs its own language first (set_translations gameLanguage). Texts a translation lacks read as written while playing, so an unfinished translation still plays.")]
+        public static string TranslateGame(GameSession session,
+            [Description("Language code to translate into, e.g. 'en'.")] string language,
+            [Description("How many to list (the rest are counted).")] int limit = 150) =>
+            session.Locked(() =>
+            {
+                var doc = session.Document;
+                if (Core.Text.Translations.BaseLanguage(doc) is not { } own)
+                    return Json(new { ok = false, errors = Errors(new[] { new ValidationError("game.language", ErrorCodes.MissingField,
+                        "The game does not say which language it is written in.", "Call set_translations with gameLanguage, e.g. 'es', and an empty translationsJson {}.") }) });
+                if (language == own)
+                    return Json(new { ok = false, errors = Errors(new[] { new ValidationError("language", ErrorCodes.InvalidValue,
+                        $"'{own}' is the game's own language: its texts are written in the game.", "Edit them where they are; set_translations with this language holds only strings.<key>.") }) });
+                var texts = Core.Text.Translations.Texts(doc);
+                doc.Translations.TryGetValue(language, out var done);
+                var missing = texts.Where(t => done == null || !done.ContainsKey(t.Key)).ToList();
+                return Json(new
+                {
+                    ok = true,
+                    gameLanguage = own,
+                    language,
+                    total = texts.Count,
+                    translated = texts.Count - missing.Count,
+                    left = missing.Count,
+                    missing = missing.Take(System.Math.Max(1, limit)).ToDictionary(t => t.Key, t => t.Value),
+                    hint = missing.Count == 0 ? "Nothing left: the game reads fully in this language." :
+                        "Keep {placeholders}, $references and @strings as they are; translate the words around them.",
+                });
+            });
+
+        [McpServerTool(Name = "set_translations"), Description("Write texts of the game in another language: a JSON object of path key -> text (the keys translate_game lists), e.g. {\"actions.elegir.name\":\"Choose\",\"strings.noche\":\"It is night.\"}. An empty text removes a key. strings.<key> are the game's own free texts, read where a text says @key: write them in the game's own language first (language = the game's language), then translate them like any other. gameLanguage sets the language the game is written in (needed once, before any translation). Players pick the language when the game starts.")]
+        public static string SetTranslations(GameSession session,
+            [Description("Language code of these texts, e.g. 'en'.")] string language,
+            [Description("JSON object: path key -> text.")] string translationsJson,
+            [Description("The language the game itself is written in, e.g. 'es' (once).")] string? gameLanguage = null) =>
+            session.Locked(() => Reply(session.Edit(doc =>
+            {
+                var texts = GameSession.ParseObject(translationsJson, "translationsJson");
+                var game = doc["game"] as JObject ?? new JObject();
+                if (!string.IsNullOrWhiteSpace(gameLanguage))
+                    game["language"] = gameLanguage;
+                var own = (string?)game["language"];
+                if (string.IsNullOrWhiteSpace(own))
+                    throw new EditException(new ValidationError("gameLanguage", ErrorCodes.MissingField, "The game does not say which language it is written in.",
+                        "Pass gameLanguage, e.g. 'es'."));
+                if (game["languages"] is JArray { Count: > 0 } languages && language != own && languages.All(l => (string?)l != language))
+                    languages.Add(language);
+                doc["game"] = game;
+                var all = doc["translations"] as JObject ?? new JObject();
+                var table = all[language] as JObject ?? new JObject();
+                // A key that names nothing is a typo: refused, not kept as an unfinished document.
+                var known = Core.Text.Translations.Texts(session.Document);
+                foreach (var property in texts.Properties())
+                    if (!property.Name.StartsWith(Core.Text.Translations.StringsPrefix) && !known.ContainsKey(property.Name) && ((string?)property.Value)?.Length != 0)
+                        throw new EditException(new ValidationError($"translations.{language}.{property.Name}", ErrorCodes.UnknownKey,
+                            $"'{property.Name}' names no text of the game.", "Use the keys translate_game lists."));
+                foreach (var property in texts.Properties())
+                {
+                    if (property.Value.Type == JTokenType.String && ((string?)property.Value)!.Length == 0)
+                        table.Remove(property.Name);
+                    else if (property.Value.Type == JTokenType.String)
+                        table[property.Name] = property.Value;
+                    else
+                        throw new EditException(new ValidationError($"translationsJson.{property.Name}", ErrorCodes.InvalidValue, "Every value is a text."));
+                }
+                if (table.Count > 0)
+                    all[language] = table;
+                else
+                    all.Remove(language);
+                if (all.Count > 0)
+                    doc["translations"] = all;
+                else
+                    doc.Remove("translations");
+            }), session));
+
         [McpServerTool(Name = "set_roles"), Description("Hidden roles (Avalon, Werewolf, Wink Murder), dealt at random when the game starts, each player told privately who they are. JSON: {\"teams\":[{id,name}], \"list\":[{id, name, team, count (number, default 1, or \"fill\" for the seats left in its team), optional (the host ticks it at start), description}], \"byPlayers\":{\"5\":{\"good\":3,\"evil\":2}} (team sizes per player count), \"knows\":[{role or team that sees, sees:{team, roles, except}, as: team (default) | role | oneOf}]}. A role's own knows rules replace its team's (Oberon: {\"role\":\"oberon\",\"sees\":{}}). Roles with a set (\"set\":\"objective\") deal another hidden trait beside the role. Rules read roles with $actor.role / $seat.<id>.team / $actor.role.<set>; effects revealRole {seat, to, teamOnly, set}, setRole {seat, role, tell}, swapRoles {a, b, tell}, setTeam {seat, team, tell}; to is a seat, team:<id>, role:<id> or all, and message takes to as well for a private line. Ask the host which optional roles exist and who knows whom when the rulebook is unclear.")]
         public static string SetRoles(GameSession session, [Description("The roles JSON object; empty or '{}' removes them.")] string rolesJson) =>
             session.Locked(() => Reply(session.Edit(doc =>
