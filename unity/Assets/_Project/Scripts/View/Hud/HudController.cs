@@ -210,6 +210,8 @@ namespace TableWorld.View.Hud
             if (_root.Q<Button>("calculatorButton") is { } calculator)
                 calculator.clicked += AddCalculator;
             _showcase = new ShowcaseView(_root);
+            if (_table != null)
+                _screenBar = new ScreenBar(_root, _table);
             _blindButton = _root.Q<Button>("blindButton");
             if (_blindButton != null)
                 _blindButton.clicked += ToggleBlindRound;
@@ -449,11 +451,17 @@ namespace TableWorld.View.Hud
             PingMarker.Spawn(point, ZoneViewFactory.SeatColor(seat?.Color ?? "white"));
         }
 
+        private ScreenBar _screenBar;
+
+        /// <summary>The karaoke room's big screen bar (null without a table).</summary>
+        public ScreenBar ScreenBar => _screenBar;
+
         private void Update()
         {
             _loading?.Update();
             if (_table == null || _table.Engine == null)
                 return;
+            _screenBar?.Update();
             var seatsKey = $"{_table.LocalSeat}|{_table.Spectating}|{CurrentTurnSeat()}|{_table.Networked}|" +
                            (_session != null ? string.Join(",", _session.Occupants.Select(o => o.Key + "=" + o.Value + "=" + _session.NameOf(o.Value))) : "");
             if (_shownEngine != _table.Engine || seatsKey != _shownSeatsKey)

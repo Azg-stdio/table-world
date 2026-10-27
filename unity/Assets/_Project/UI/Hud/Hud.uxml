@@ -156,6 +156,13 @@
             <ui:Label name="gameLog" class="game-log" />
             <ui:VisualElement name="gameActions" class="actions" />
         </ui:VisualElement>
+        <ui:VisualElement name="screenBar" class="screen-bar hidden">
+            <ui:Label class="screen-bar__title" text="Big screen" />
+            <ui:TextField name="screenLink" class="net-address screen-bar__link" tooltip="Paste a YouTube link" />
+            <ui:Button name="screenPlay" class="hud-button" text="Play" />
+            <ui:Button name="screenPause" class="hud-button" text="Pause" />
+            <ui:Label name="screenStatus" class="screen-bar__status" />
+        </ui:VisualElement>
         <ui:VisualElement name="handBar" class="hand-bar hidden" picking-mode="Ignore" />
         <ui:VisualElement name="blindfold" class="blindfold hidden" picking-mode="Ignore">
             <ui:Label class="blindfold-text" text="Blindfolded. Press B to take it off." picking-mode="Ignore" />

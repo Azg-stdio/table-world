@@ -5,7 +5,8 @@
         "TableWorld.Runtime",
         "UnityEngine.TestRunner",
         "Unity.InputSystem",
-        "Unity.InputSystem.TestFramework"
+        "Unity.InputSystem.TestFramework",
+        "VoltstroStudios.UnityWebBrowser"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

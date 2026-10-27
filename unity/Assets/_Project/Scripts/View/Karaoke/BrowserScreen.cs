@@ -20,6 +20,8 @@ namespace TableWorld.View.Karaoke
         private Renderer _target;
         private Material _material;
         private PlayerPage _page;
+        /// <summary>A video was asked for and has not started yet: once the player reports, the screen clicks and plays.</summary>
+        private bool _starting = true;
 
         /// <summary>The video the screen was last asked to show.</summary>
         public string VideoId { get; private set; }
@@ -88,6 +90,7 @@ namespace TableWorld.View.Karaoke
         {
             VideoId = videoId;
             Error = null;
+            _starting = true;
             Run($"tw.load('{Escape(videoId)}',{at.ToString(CultureInfo.InvariantCulture)})");
         }
 
@@ -113,6 +116,16 @@ namespace TableWorld.View.Karaoke
                 VoltstroStudios.UnityWebBrowser.Shared.Events.MouseEventType.Down);
             browserClient.SendMouseClick(middle, 1, VoltstroStudios.UnityWebBrowser.Shared.Events.MouseClickType.Left,
                 VoltstroStudios.UnityWebBrowser.Shared.Events.MouseEventType.Up);
+        }
+
+        /// <summary>Starts a video the player has loaded: the click Chromium wants for sound, then play.</summary>
+        protected override void OnFixedUpdate()
+        {
+            if (!_starting || !Ready || State == null || Error != null)
+                return;
+            _starting = false;
+            ClickToStart();
+            Play();
         }
 
         private void Run(string js)

@@ -6,6 +6,7 @@ using TableWorld.View.Chalkers;
 using TableWorld.View.Hud;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 using UnityEngine.TestTools;
 
 namespace TableWorld.Tests.PlayMode
@@ -137,6 +138,31 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsTrue(_environment.StageLight.enabled, "the stage light is on the singer");
             Assert.IsTrue(_table.Execute(new Core.Engine.PerformActionCommand { Actor = first, ActionId = "pass_mic" }).Ok);
             Assert.AreNotEqual(first, _chalkers.Singer, "the microphone passed");
+        }
+
+        /// <summary>
+        /// The big screen bar (no YouTube needed): shown only in the karaoke room, a link that is not YouTube's is refused
+        /// with a reason, a YouTube link puts the browser on the room's screen, and another room takes it away.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator TheScreenBar_PutsAVideoOnTheRoomsScreen()
+        {
+            var root = _hud.GetComponent<UnityEngine.UIElements.UIDocument>().rootVisualElement;
+            yield return null;
+            Assert.IsFalse(root.Q("screenBar").ClassListContains("hidden"), "shown in the karaoke room");
+            var bar = _hud.ScreenBar;
+            Assert.IsFalse(bar.PlayLink("https://example.com/watch?v=M7lc1UVf-VE"));
+            Assert.AreEqual("That is not a YouTube link.", root.Q<UnityEngine.UIElements.Label>("screenStatus").text);
+            Assert.IsTrue(bar.PlayLink("https://youtu.be/M7lc1UVf-VE"));
+            Assert.IsNotNull(bar.Screen);
+            Assert.AreEqual("M7lc1UVf-VE", bar.Screen.VideoId);
+            Assert.AreEqual(bar.Screen.transform.parent, _environment.Screen.transform, "on the room's screen");
+
+            Assert.IsTrue(_table.Load(Karaoke.Replace("karaoke", "gameNight"), null));
+            yield return null;
+            yield return null;
+            Assert.IsTrue(root.Q("screenBar").ClassListContains("hidden"), "hidden in another room");
+            Assert.IsNull(bar.Screen, "the screen goes with the room");
         }
 
         [UnityTest]
