@@ -34,6 +34,14 @@ namespace TableWorld.View.Karaoke
             return false;
         }
 
+        private readonly HashSet<string> _played = new();
+
+        /// <summary>True once <paramref name="videoId"/> started in YouTube's embedded player here (so it will on the screen).</summary>
+        public bool Played(string videoId) => _played.Contains(videoId);
+
+        /// <summary>Records that <paramref name="videoId"/> started in the embedded player.</summary>
+        public void MarkPlayed(string videoId) => _played.Add(videoId);
+
         /// <summary>
         /// Records what playing <paramref name="videoId"/> showed (YouTube's player refused it, though oEmbed allowed it):
         /// later questions get this answer.

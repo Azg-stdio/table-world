@@ -26,8 +26,10 @@ namespace TableWorld.View.Karaoke
             "var m=u.pathname.match(/^\\/shorts\\/([\\w-]{11})/);return m?m[1]:null;}catch(e){return null;}};" +
             "var box=function(a){return a.closest('ytd-video-renderer,ytd-rich-item-renderer,ytd-reel-item-renderer,ytd-radio-renderer," +
             "ytd-playlist-renderer,yt-lockup-view-model,ytm-shorts-lockup-view-model-v2,ytm-shorts-lockup-view-model,ytd-compact-video-renderer');};" +
+            "var ad=function(a){return a.closest('ytd-ad-slot-renderer,ytd-in-feed-ad-layout-renderer,ytd-promoted-video-renderer," +
+            "ytd-promoted-sparkles-web-renderer,ytd-search-pyv-renderer,ytd-display-ad-renderer');};" +
             "var scan=function(){var fresh=[],done=new Set();" +
-            "document.querySelectorAll('a[href*=\"/watch?v=\"],a[href*=\"/shorts/\"]').forEach(function(a){var i=vid(a.href);if(!i)return;" +
+            "document.querySelectorAll('a[href*=\"/watch?v=\"],a[href*=\"/shorts/\"]').forEach(function(a){var i=vid(a.href);if(!i||ad(a))return;" +
             "var b=box(a);if(b&&!done.has(b)){done.add(b);if(blocked[i]){b.style.display='none';b.dataset.twHidden='1';}" +
             "else if(b.dataset.twHidden){b.style.display='';delete b.dataset.twHidden;}}" +
             "if(!seen[i]&&fresh.length<" + IdsPerReport + "){seen[i]=1;fresh.push(i);}});" +
@@ -35,6 +37,8 @@ namespace TableWorld.View.Karaoke
             "window.twBlock=function(ids){ids.forEach(function(i){blocked[i]=1;});scan();};" +
             "document.addEventListener('click',function(e){" +
             "var a=e.target&&e.target.closest?e.target.closest('a[href]'):null;if(!a)return;var h=a.href||'';" +
+            // An ad's video is not a song: clicking it does nothing here (ads still show, as YouTube places them).
+            "if(ad(a)){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();return;}" +
             "if(h.indexOf('/watch')<0&&h.indexOf('/shorts/')<0)return;" +
             "e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();document.title='twpick|'+(++n)+'|'+h;},true);" +
             "setInterval(scan,500);}";
@@ -177,6 +181,23 @@ namespace TableWorld.View.Karaoke
         {
             if (Ready)
                 browserClient.SendMouseScroll(Pixel(at), amount);
+        }
+
+        /// <summary>
+        /// A browser that only tries videos, never shown (the song search checks every result with it before anyone
+        /// clicks). Muted like the search.
+        /// </summary>
+        public static SearchBrowser CreateTester(Transform parent, int width = 640, int height = 360)
+        {
+            var go = new GameObject("Song Tester");
+            go.SetActive(false);
+            go.transform.SetParent(parent, false);
+            var tester = go.AddComponent<SearchBrowser>();
+            tester._search = "about:blank";
+            tester.Size = new Vector2Int(width, height);
+            BrowserScreen.Configure(tester.browserClient, "about:blank", width, height);
+            go.SetActive(true);
+            return tester;
         }
 
         /// <summary>Hides the results of these videos (they cannot play here).</summary>

@@ -9,9 +9,9 @@ namespace TableWorld.View.Hud
     /// The karaoke room's song search (T12.15): Search on the screen bar opens YouTube's own results in a panel
     /// (<see cref="SearchBrowser"/>, a second Chromium that runs only while the panel is open). The mouse and wheel go to
     /// the page; clicking a video adds it to the queue (as Add to queue does, title and embedding checked) and closes the
-    /// panel. Every result is checked the same way as it appears, and those whose owner does not allow playing them outside
-    /// YouTube (or that are gone) are hidden; one clicked before its check is refused with the panel still open. Escape or
-    /// Close closes it.
+    /// panel. Every result is checked as it appears, first with oEmbed, then by trying it in YouTube's embedded player in
+    /// a hidden, muted browser (some videos pass oEmbed and still refuse every embedded player); those that will not play
+    /// are hidden. One clicked before its turn is tried there and then. Escape or Close closes it.
     /// </summary>
     public sealed class SongSearch
     {
@@ -30,6 +30,10 @@ namespace TableWorld.View.Hud
         private readonly ScreenBar _bar;
         private SearchBrowser _browser;
         private string _picked;
+        /// <summary>The hidden browser that tries every result in the embedded player, and the results waiting for it.</summary>
+        private SearchBrowser _tester;
+        private readonly System.Collections.Generic.Queue<string> _toTry = new();
+        private readonly System.Collections.Generic.HashSet<string> _waitingToTry = new();
 
         public SongSearch(VisualElement root, ScreenBar bar)
         {
@@ -126,6 +130,11 @@ namespace TableWorld.View.Hud
             if (_browser != null)
                 Object.Destroy(_browser.gameObject);
             _browser = null;
+            if (_tester != null)
+                Object.Destroy(_tester.gameObject);
+            _tester = null;
+            _toTry.Clear();
+            _waitingToTry.Clear();
         }
 
         /// <summary>Keeps the picture current; Escape closes; leaving the karaoke room closes.</summary>
@@ -140,6 +149,7 @@ namespace TableWorld.View.Hud
             }
             if (_browser != null && _view.image != _browser.Texture)
                 _view.image = _browser.Texture;
+            TryNext();
             if (_browser != null && _toBlock.Count > 0)
             {
                 _browser.Block(_toBlock);
@@ -157,11 +167,48 @@ namespace TableWorld.View.Hud
             foreach (var id in videoIds)
                 _bar.Videos.Ask(id, (answer, _) =>
                 {
-                    if (browser != _browser || (answer != VideoCheck.Answer.Blocked && answer != VideoCheck.Answer.Gone))
+                    if (browser != _browser)
                         return;
+                    if (answer == VideoCheck.Answer.Blocked || answer == VideoCheck.Answer.Gone)
+                    {
+                        if (_hidden.Add(id))
+                            _toBlock.Add(id);
+                    }
+                    else if (!_bar.Videos.Played(id) && _waitingToTry.Add(id))
+                        _toTry.Enqueue(id);
+                });
+        }
+
+        /// <summary>
+        /// Tries the next waiting result in the hidden player, top of the list first: one that plays is remembered (a
+        /// click on it queues at once), one that will not is hidden.
+        /// </summary>
+        private void TryNext()
+        {
+            if (_browser == null || _toTry.Count == 0)
+                return;
+            if (_tester == null)
+                _tester = SearchBrowser.CreateTester(null);
+            if (!_tester.Ready || _tester.Probing)
+                return;
+            var id = _toTry.Dequeue();
+            _waitingToTry.Remove(id);
+            if (_bar.Videos.Played(id) || (_bar.Videos.TryGet(id, out var known, out _) && known != VideoCheck.Answer.Playable))
+                return;
+            var tester = _tester;
+            tester.Probe(id, error =>
+            {
+                if (tester != _tester)
+                    return;
+                if (error is { } code)
+                {
+                    _bar.Videos.Mark(id, code == 100 ? VideoCheck.Answer.Gone : VideoCheck.Answer.Blocked);
                     if (_hidden.Add(id))
                         _toBlock.Add(id);
-                });
+                }
+                else
+                    _bar.Videos.MarkPlayed(id);
+            });
         }
 
         /// <summary>How to choose, and how many results were hidden.</summary>
@@ -201,6 +248,11 @@ namespace TableWorld.View.Hud
                     Refuse(videoId, ScreenBar.ErrorText(answer == VideoCheck.Answer.Gone ? 100 : 150));
                     return;
                 }
+                if (_bar.Videos.Played(videoId))
+                {
+                    Queue(videoId);
+                    return;
+                }
                 browser.Probe(videoId, error =>
                 {
                     if (browser != _browser)
@@ -212,17 +264,24 @@ namespace TableWorld.View.Hud
                         Refuse(videoId, ScreenBar.ErrorText(code));
                         return;
                     }
-                    _bar.QueueLink("https://www.youtube.com/watch?v=" + videoId, refused =>
-                    {
-                        if (refused != null)
-                        {
-                            Refuse(videoId, refused);
-                            return;
-                        }
-                        _query.SetValueWithoutNotify("");
-                        Close();
-                    });
+                    _bar.Videos.MarkPlayed(videoId);
+                    Queue(videoId);
                 });
+            });
+        }
+
+        /// <summary>Queues a video known to play and closes the panel (or says why the queue refused it).</summary>
+        private void Queue(string videoId)
+        {
+            _bar.QueueLink("https://www.youtube.com/watch?v=" + videoId, refused =>
+            {
+                if (refused != null)
+                {
+                    Refuse(videoId, refused);
+                    return;
+                }
+                _query.SetValueWithoutNotify("");
+                Close();
             });
         }
 
