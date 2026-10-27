@@ -415,7 +415,7 @@ namespace Core.Net
             var result = Confirmed.Execute(command);
             // The host's hash comes every few orders (SessionHost.HashEvery): the confirmed table is checked then.
             var hash = (string?)message["hash"];
-            if (!result.Ok || hash != null && SeatView.Hash(Confirmed.State) != hash)
+            if (!result.Ok || hash != null && SeatView.Hash(Confirmed.State, Confirmed.Table) != hash)
                 return Resync();
             Ordered?.Invoke((string?)message["origin"] ?? "", command, result);
 
@@ -428,7 +428,7 @@ namespace Core.Net
             {
                 // The host ordered our oldest command next: the prediction already includes it (the engine is
                 // deterministic, so it came out the same). With nothing left in flight, a hash check now and then.
-                if (_pending.Count == 0 && hash != null && SeatView.Hash(Predicted!.State) != hash)
+                if (_pending.Count == 0 && hash != null && SeatView.Hash(Predicted!.State, Predicted.Table) != hash)
                     Rebuild(null);
                 return null;
             }
@@ -437,7 +437,7 @@ namespace Core.Net
                 // Nothing of ours in flight, or ours touch other things: the command applies to the prediction the same
                 // way, in place (rebuilding copies the whole table, 320 ms for a 2 800-object TTS table).
                 var applied = Predicted!.Execute(command);
-                if (applied.Ok && (_pending.Count > 0 || hash == null || SeatView.Hash(Predicted.State) == hash))
+                if (applied.Ok && (_pending.Count > 0 || hash == null || SeatView.Hash(Predicted.State, Predicted.Table) == hash))
                 {
                     Applied?.Invoke(command, applied);
                     return null;
@@ -463,7 +463,7 @@ namespace Core.Net
                 changed = TablePatch.Apply(Confirmed!, patch);
             else
                 Confirmed = Copy(TableJson.Parse((string)message["state"]!).State!, null);
-            if (hash != null && SeatView.Hash(Confirmed!.State) != hash)
+            if (hash != null && SeatView.Hash(Confirmed!.State, Confirmed.Table) != hash)
                 return Resync();
             Ordered?.Invoke((string?)message["origin"] ?? "", command, result);
 
@@ -478,7 +478,7 @@ namespace Core.Net
                 return null;
             }
             TablePatch.Apply(Predicted!, patch);
-            if (hash != null && SeatView.Hash(Predicted!.State) != hash)
+            if (hash != null && SeatView.Hash(Predicted!.State, Predicted.Table) != hash)
             {
                 Rebuild(null);
                 return null;

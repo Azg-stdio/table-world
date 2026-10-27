@@ -108,11 +108,16 @@ namespace Core.Rules
             JsonConvert.SerializeObject(state, indented ? Formatting.Indented : Formatting.None, WriteSettings);
 
         /// <summary>Any part of a table (an object, the session, an event's card) in its canonical JSON form (ADR 0012 patches).</summary>
-        internal static JToken ToToken(object value) => JToken.FromObject(value, JsonSerializer.Create(WriteSettings));
+        internal static JToken ToToken(object value) => JToken.FromObject(value, TokenWriter.Value);
 
         /// <summary>Reads back what <see cref="ToToken"/> wrote, objects of any kind included.</summary>
-        internal static object? FromToken(JToken token, Type type) =>
-            token.ToObject(type, JsonSerializer.Create(new JsonSerializerSettings { ContractResolver = Resolver, Converters = CreateConverters(), DateParseHandling = DateParseHandling.None }));
+        internal static object? FromToken(JToken token, Type type) => token.ToObject(type, TokenReader.Value);
+
+        // Building a serializer costs far more than using one (a hidden card's round trip was mostly that); one per thread.
+        private static readonly System.Threading.ThreadLocal<JsonSerializer> TokenWriter =
+            new System.Threading.ThreadLocal<JsonSerializer>(() => JsonSerializer.Create(WriteSettings));
+        private static readonly System.Threading.ThreadLocal<JsonSerializer> TokenReader =
+            new System.Threading.ThreadLocal<JsonSerializer>(() => JsonSerializer.Create(new JsonSerializerSettings { ContractResolver = Resolver, Converters = CreateConverters(), DateParseHandling = DateParseHandling.None }));
 
         /// <summary>One object's canonical JSON (for comparing pieces, G14).</summary>
         internal static JObject ToJson(TableObject obj) => JObject.FromObject(obj, JsonSerializer.Create(WriteSettings));

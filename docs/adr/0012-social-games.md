@@ -116,7 +116,7 @@ dedicated server. What matters is that no one sees a secret by accident or with 
 - **Cards secret on the wire (T11.16, as built):** only on tables with rules or roles; free-play tables keep TTS's
   honest play, so big imports pay nothing. Hidden cards and face-down decks reach a machine as unknown cards, a drawn
   card gets a fresh id (its deck id would name it), and every command touching such a card is host-run. In card games
-  that is every order: about 3.5 kB per client each, roughly 8 ms of work, no resyncs. The searcher of a face-down
+  that is every order: about 3.5 kB per client each, roughly 4.6 ms of work across host and clients, no resyncs. The searcher of a face-down
   deck receives its cards; bag contents stay public, left for later.
 - **The sandbox check (T11.15b, Secret Dictator: plays like Secret Hitler, a game the milestone does not name)**
   needed one more general piece: `knows` rules that hold only for some player counts (`minPlayers`, `maxPlayers`: the

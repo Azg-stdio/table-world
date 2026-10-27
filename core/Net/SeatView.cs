@@ -73,11 +73,32 @@ namespace Core.Net
             { "name", "description", "gmNotes", "tags", "faceAsset", "faceIndex", "meta", "text", "script", "scriptState", "states", "ttsExtra", "buttons", "inputs", "scriptUi", "entryId" };
 
         /// <summary>One object as <paramref name="seat"/> receives it: unknown cards keep only their place and back.</summary>
-        public static JToken Object(TableObject obj, (HashSet<string> Cards, HashSet<string> Decks) hidden)
+        public static JToken Object(TableObject obj, (HashSet<string> Cards, HashSet<string> Decks) hidden) => Object(obj, TableJson.ToToken(obj), hidden);
+
+        /// <summary>As <see cref="Object(TableObject, ValueTuple{HashSet{string}, HashSet{string}})"/>, from the object's JSON already written.</summary>
+        private static JToken Object(TableObject obj, JToken token, (HashSet<string> Cards, HashSet<string> Decks) hidden)
         {
-            var token = TableJson.ToToken(obj);
             if (!(token is JObject json) || !hidden.Cards.Contains(obj.Id) && !hidden.Decks.Contains(obj.Id))
                 return token;
+            // Most hidden cards do not change from one command to the next: their blank is kept by what they are.
+            var key = (hidden.Cards.Contains(obj.Id) ? "c" : "d") + json.ToString(Newtonsoft.Json.Formatting.None);
+            lock (Blanks)
+                if (Blanks.TryGetValue(key, out var known))
+                    return known.DeepClone();
+            var blank = BlankOf(obj, json, hidden);
+            lock (Blanks)
+            {
+                if (Blanks.Count > 4096)
+                    Blanks.Clear();
+                Blanks[key] = blank;
+            }
+            return blank.DeepClone();
+        }
+
+        private static readonly Dictionary<string, JToken> Blanks = new Dictionary<string, JToken>();
+
+        private static JToken BlankOf(TableObject obj, JObject json, (HashSet<string> Cards, HashSet<string> Decks) hidden)
+        {
             if (hidden.Cards.Contains(obj.Id))
                 Blank(json, keepId: true);
             else if (json["cards"] is JArray entries)
@@ -107,7 +128,7 @@ namespace Core.Net
             if (json["objects"] is JArray objects)
                 for (var i = 0; i < objects.Count && i < state.Objects.Count; i++)
                     if (hidden.Cards.Contains(state.Objects[i].Id) || hidden.Decks.Contains(state.Objects[i].Id))
-                        objects[i] = Object(state.Objects[i], hidden);
+                        objects[i] = Object(state.Objects[i], objects[i], hidden);
             return json.ToString(Newtonsoft.Json.Formatting.None);
         }
 
