@@ -94,6 +94,39 @@ namespace TableWorld.View
         public Asset Find(string assetId) => assetId != null && _assets.TryGetValue(assetId, out var a) ? a : null;
 
         /// <summary>
+        /// The table whose session's language picks localized images and card texts (ADR 0011, T10.6); null reads every
+        /// asset and text as the game wrote it.
+        /// </summary>
+        public System.Func<TableState> State { get; set; }
+
+        /// <summary>
+        /// <paramref name="asset"/> with the file for the session's language (<see cref="Asset.Localized"/>): a stand-in
+        /// with that path, so the cache keeps each language's image apart. The asset itself otherwise.
+        /// </summary>
+        private Asset Localized(Asset asset)
+        {
+            if (asset == null || asset.Localized.Count == 0 || !(State?.Invoke() is { } state))
+                return asset;
+            var path = Core.Text.Translations.AssetPath(state, asset);
+            return path == asset.Path ? asset
+                : new Asset { Id = asset.Id, Type = asset.Type, Path = path, Columns = asset.Columns, Rows = asset.Rows, MeshScale = asset.MeshScale };
+        }
+
+        /// <summary>A card's words in the session's language (<c>&lt;prefix&gt;.text.&lt;field&gt;</c>); the text itself when nothing is translated.</summary>
+        private CardText Localized(CardText text, string prefix)
+        {
+            if (text == null || !(State?.Invoke() is { Translations: { Count: > 0 } } state))
+                return text;
+            var copy = text.Clone();
+            copy.Title = Core.Text.Translations.Text(state, prefix + ".text.title", text.Title);
+            copy.Kind = Core.Text.Translations.Text(state, prefix + ".text.kind", text.Kind);
+            copy.Body = Core.Text.Translations.Text(state, prefix + ".text.body", text.Body);
+            copy.Footer = Core.Text.Translations.Text(state, prefix + ".text.footer", text.Footer);
+            copy.Corner = Core.Text.Translations.Text(state, prefix + ".text.corner", text.Corner);
+            return copy;
+        }
+
+        /// <summary>
         /// The image of <paramref name="assetId"/> multiplied by <paramref name="tint"/>, as TTS colours a custom model's
         /// texture with its <c>ColorDiffuse</c> (Sinnoh's map hexes are one white image in a dozen tints). One material
         /// per image and tint; plain <paramref name="tint"/> while the image is missing.
@@ -183,7 +216,7 @@ namespace TableWorld.View
         {
             if (TextFaces.IsTextId(assetId))
                 return TextTexture(assetId);
-            var asset = Find(assetId);
+            var asset = Localized(Find(assetId));
             if (asset == null || asset.Type != AssetType.Image)
                 return null;
             if (_texturesByPath.TryGetValue(asset.Path, out var cached))
@@ -240,18 +273,32 @@ namespace TableWorld.View
         /// The image a card's face shows and its cell: its face image, or the drawing of its words. A card this machine
         /// may not know (ADR 0012) shows its back on both sides.
         /// </summary>
-        public (string AssetId, int Index) Face(Card card) =>
-            card.Unknown ? Back(card)
-            : TextFaces.FaceId(card) is { } id ? (DefineText(id, card.Text, card.Style, card.Size ?? Card.DefaultSize), 0) : (card.FaceAsset, card.FaceIndex);
+        public (string AssetId, int Index) Face(Card card)
+        {
+            if (card.Unknown)
+                return Back(card);
+            if (!card.TextFace)
+                return (card.FaceAsset, card.FaceIndex);
+            // A card drawn from a deck reads its deck entry's words.
+            var text = Localized(card.Text, card.EntryId is { Length: > 0 } entry ? "cards." + entry : "objects." + card.Id);
+            var size = card.Size ?? Card.DefaultSize;
+            return (DefineText(TextFaces.FaceId(text, card.Style, size), text, card.Style, size), 0);
+        }
 
         public (string AssetId, int Index) Back(Card card) =>
             TextFaces.BackId(card) is { } id ? (DefineText(id, null, card.Style, card.Size ?? Card.DefaultSize), 0) : (card.BackAsset, card.BackIndex);
 
-        public (string AssetId, int Index) Face(Deck deck, DeckCard entry) =>
-            entry.Unknown ? Back(deck, entry)
-            : TextFaces.FaceId(deck, entry) is { } id
-                ? (DefineText(id, entry.Text, entry.Style ?? deck.Style, deck.Size ?? Card.DefaultSize), 0)
-                : (entry.FaceAsset ?? deck.FaceAsset, entry.FaceIndex);
+        public (string AssetId, int Index) Face(Deck deck, DeckCard entry)
+        {
+            if (entry.Unknown)
+                return Back(deck, entry);
+            if (TextFaces.FaceId(deck, entry) == null)
+                return (entry.FaceAsset ?? deck.FaceAsset, entry.FaceIndex);
+            var text = string.IsNullOrEmpty(entry.Id) ? entry.Text : Localized(entry.Text, "cards." + entry.Id);
+            var style = entry.Style ?? deck.Style;
+            var size = deck.Size ?? Card.DefaultSize;
+            return (DefineText(TextFaces.FaceId(text, style, size), text, style, size), 0);
+        }
 
         public (string AssetId, int Index) Back(Deck deck, DeckCard entry) =>
             TextFaces.BackId(deck, entry) is { } id

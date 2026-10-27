@@ -138,7 +138,7 @@ namespace TableWorld.View
 
             _packageRoot = packageRoot;
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            Assets = new AssetLibrary(parsed.State.Assets, packageRoot, FetchAsset);
+            Assets = new AssetLibrary(parsed.State.Assets, packageRoot, FetchAsset) { State = () => Engine?.State };
             Assets.Decoded += ShowDecoded;
             Replace(parsed.State);
             var placed = watch.ElapsedMilliseconds;
@@ -355,7 +355,7 @@ namespace TableWorld.View
             var assets = TableJson.Serialize(new TableState { Assets = game.State.Assets }, indented: false);
             if (Assets == null || assets != _assetsJson)
             {
-                Assets = new AssetLibrary(game.State.Assets, _packageRoot, FetchAsset);
+                Assets = new AssetLibrary(game.State.Assets, _packageRoot, FetchAsset) { State = () => Engine?.State };
                 Assets.Decoded += ShowDecoded;
             }
             _assetsJson = assets;
@@ -761,12 +761,26 @@ namespace TableWorld.View
             _inputsToDraw.Clear();
         }
 
+        /// <summary>The session's language the pieces were last drawn in (ADR 0011): a change redraws them.</summary>
+        private string _drawnLanguage;
+
         private void LateUpdate()
         {
             DrawScriptControls();
             if (Engine == null)
                 return;
             RecordTimeline();
+            // The language is picked at the start (on the host, or arriving with the session on a client): card words and
+            // localized images are drawn again in it.
+            var language = Engine.State.Session?.Language;
+            if (language != _drawnLanguage)
+            {
+                _drawnLanguage = language;
+                if (Assets != null)
+                    foreach (var view in _views.Values)
+                        if (view != null)
+                            ObjectViewFactory.Refresh(view, Assets);
+            }
             if (_presentedSeat != LocalSeat || _presentedHosting != HostsTable || _presentedAll != SeesEverything)
                 PresentHands();
             _scratch.Clear();
