@@ -115,7 +115,11 @@ karaoke night. Miguel decided:
   reached any other way counts as that pick and the browser goes back to the results; every result is checked with
   oEmbed as it appears (answers remembered for the session, four questions at a time) and those whose owner blocks
   playing outside YouTube, or that are gone, are hidden from the page, the panel saying how many (Miguel, 2026-10-27:
-  many karaoke uploads, Sing King's among them, block it). Ads are left as YouTube shows them (hiding them would be ad
+  many karaoke uploads, Sing King's among them, block it). oEmbed does not tell everything: some videos (label-claimed
+  music mostly) pass it and still refuse every embedded player with error 150 ("Video unavailable"). So a picked video
+  is first tried in the official player on our own page, muted, inside the search browser, before it is queued; one the
+  player refuses is hidden and the panel says why. Whatever still fails on the screen (a pasted link, a country block) is
+  skipped by the host, so "Video unavailable" does not stay up for everyone. Ads are left as YouTube shows them (hiding them would be ad
   blocking); any other page (a channel,
   sign-in, another site) is refused back to the results; ads open in a new window, which is ignored. It is muted (a
   hovered result plays a preview). Rejected: YouTube's Data API (needs a key that would ship inside the game, with a

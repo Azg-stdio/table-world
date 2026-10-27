@@ -44,6 +44,14 @@ namespace TableWorld.View.Karaoke
 
         private string _search;
         private bool _muted;
+        private PlayerPage _page;
+        /// <summary>The video being tried in the official player, and who hears how it went.</summary>
+        private string _probing;
+        private Action<int?> _probed;
+        private float _probeUntil;
+
+        /// <summary>How long a try may take before the video is taken as playable (the player said nothing against it).</summary>
+        public const float ProbeSeconds = 8f;
 
         /// <summary>A video was chosen: its id.</summary>
         public event Action<string> Picked;
@@ -117,6 +125,39 @@ namespace TableWorld.View.Karaoke
                 browserClient.LoadUrl(_search);
         }
 
+        /// <summary>True while a video is being tried.</summary>
+        public bool Probing => _probing != null;
+
+        /// <summary>
+        /// Tries <paramref name="videoId"/> in YouTube's official player, muted, on our own page (as the screen will play
+        /// it): <paramref name="done"/> hears null once it plays (or nothing went wrong in time), else the player's error
+        /// (100 gone, 101 or 150 not allowed outside YouTube, 2 or 5 broken). Some videos pass oEmbed and still refuse
+        /// every embedded player; only the player tells. The results come back after a refusal.
+        /// </summary>
+        public void Probe(string videoId, Action<int?> done)
+        {
+            if (!Ready)
+            {
+                done?.Invoke(null);
+                return;
+            }
+            _page ??= new PlayerPage();
+            _probing = videoId;
+            _probed = done;
+            _probeUntil = Time.realtimeSinceStartup + ProbeSeconds;
+            browserClient.LoadUrl(_page.PageFor(videoId, muted: true));
+        }
+
+        private void EndProbe(int? error)
+        {
+            var done = _probed;
+            _probing = null;
+            _probed = null;
+            if (error != null && Ready)
+                browserClient.LoadUrl(_search);
+            done?.Invoke(error);
+        }
+
         /// <summary>The pointer moved to <paramref name="at"/> (0–1 across and down the page).</summary>
         public void PointerMove(Vector2 at)
         {
@@ -163,6 +204,8 @@ namespace TableWorld.View.Karaoke
         /// <summary>Mutes it as soon as the engine answers: hovering a result plays a preview.</summary>
         protected override void OnFixedUpdate()
         {
+            if (_probing != null && Time.realtimeSinceStartup > _probeUntil)
+                EndProbe(null);
             if (_muted || !Ready)
                 return;
             _muted = true;
@@ -170,8 +213,20 @@ namespace TableWorld.View.Karaoke
             browserClient.ExecuteJs(PageJs);
         }
 
+        protected override void OnDestroyed() => _page?.Dispose();
+
         private void OnTitle(string title)
         {
+            if (_probing != null)
+            {
+                // Our page reports state|time|duration|video, or error|code.
+                var report = title.Split('|');
+                if (report.Length == 2 && report[0] == "error" && int.TryParse(report[1], out var code))
+                    EndProbe(code);
+                else if (report.Length >= 4 && report[0] == "1" && report[3] == _probing)
+                    EndProbe(null);
+                return;
+            }
             var parts = title.Split(new[] { '|' }, 3);
             if (parts.Length != 3)
                 return;
@@ -184,6 +239,9 @@ namespace TableWorld.View.Karaoke
         /// <summary>A video page is a pick; a page that is not the search goes back to it.</summary>
         private void OnUrlChanged(string url)
         {
+            // Our own player page, while a video is tried.
+            if (_page != null && url.StartsWith(_page.Url, StringComparison.Ordinal))
+                return;
             var verdict = Judge(url, out var id);
             if (verdict == Verdict.Show)
                 return;

@@ -34,6 +34,16 @@ namespace TableWorld.View.Karaoke
             return false;
         }
 
+        /// <summary>
+        /// Records what playing <paramref name="videoId"/> showed (YouTube's player refused it, though oEmbed allowed it):
+        /// later questions get this answer.
+        /// </summary>
+        public void Mark(string videoId, Answer answer)
+        {
+            _known.TryGetValue(videoId, out var known);
+            _known[videoId] = (answer, known.Title);
+        }
+
         /// <summary>Asks about <paramref name="videoId"/>; <paramref name="done"/> hears the answer and the title (null when unknown).</summary>
         public void Ask(string videoId, Action<Answer, string> done)
         {

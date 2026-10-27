@@ -88,15 +88,15 @@ namespace TableWorld.View.Hud
             _picked = null;
             _status.text = "";
             _hidden.Clear();
-            var search = (query ?? "").Trim() + Suffix;
+            var search = Words(query);
             if (_browser == null)
             {
-                _browser = SearchBrowser.Create(null, search.Trim());
+                _browser = SearchBrowser.Create(null, search);
                 _browser.Picked += OnPicked;
                 _browser.Found += OnFound;
             }
             else
-                _browser.Search(search.Trim());
+                _browser.Search(search);
             _query.Focus();
         }
 
@@ -108,8 +108,15 @@ namespace TableWorld.View.Hud
             else
             {
                 _hidden.Clear();
-                _browser.Search(((query ?? "").Trim() + Suffix).Trim());
+                _browser.Search(Words(query));
             }
+        }
+
+        /// <summary>What is searched for: the player's words, with "karaoke" unless they said it.</summary>
+        public static string Words(string query)
+        {
+            var words = (query ?? "").Trim();
+            return words.IndexOf(Suffix.Trim(), System.StringComparison.OrdinalIgnoreCase) >= 0 ? words : (words + Suffix).Trim();
         }
 
         public void Close()
@@ -171,25 +178,61 @@ namespace TableWorld.View.Hud
             _hint.text = text;
         }
 
+        /// <summary>
+        /// A video was chosen: asked about (oEmbed), then tried in the official player, muted, where the screen will play
+        /// it; only a video that plays is queued and closes the panel. One that will not is hidden from the results and
+        /// the panel says why.
+        /// </summary>
         private void OnPicked(string videoId)
         {
-            // A click can report the video twice (the click, then the page it would have opened).
-            if (videoId == _picked)
+            // A click can report the video twice (the click, then the page it would have opened); one try at a time.
+            if (videoId == _picked || (_browser != null && _browser.Probing))
                 return;
             _picked = videoId;
             Debug.Log($"[SongSearch] Picked {videoId}.");
             _status.text = Ui.T("Checking the video…");
-            _bar.QueueLink("https://www.youtube.com/watch?v=" + videoId, refused =>
+            var browser = _browser;
+            _bar.Videos.Ask(videoId, (answer, _) =>
             {
-                if (refused != null)
+                if (browser == null || browser != _browser)
+                    return;
+                if (answer == VideoCheck.Answer.Blocked || answer == VideoCheck.Answer.Gone)
                 {
-                    _picked = null;
-                    _status.text = refused;
+                    Refuse(videoId, ScreenBar.ErrorText(answer == VideoCheck.Answer.Gone ? 100 : 150));
                     return;
                 }
-                _query.SetValueWithoutNotify("");
-                Close();
+                browser.Probe(videoId, error =>
+                {
+                    if (browser != _browser)
+                        return;
+                    if (error is { } code)
+                    {
+                        Debug.Log($"[SongSearch] {videoId} refused by the player (error {code}).");
+                        _bar.Videos.Mark(videoId, code == 100 ? VideoCheck.Answer.Gone : VideoCheck.Answer.Blocked);
+                        Refuse(videoId, ScreenBar.ErrorText(code));
+                        return;
+                    }
+                    _bar.QueueLink("https://www.youtube.com/watch?v=" + videoId, refused =>
+                    {
+                        if (refused != null)
+                        {
+                            Refuse(videoId, refused);
+                            return;
+                        }
+                        _query.SetValueWithoutNotify("");
+                        Close();
+                    });
+                });
             });
+        }
+
+        /// <summary>The panel stays open saying why; the video is hidden from the results.</summary>
+        private void Refuse(string videoId, string why)
+        {
+            _picked = null;
+            _status.text = why;
+            if (_hidden.Add(videoId))
+                _toBlock.Add(videoId);
         }
 
         /// <summary>A point on the picture as 0–1 across and down the page.</summary>

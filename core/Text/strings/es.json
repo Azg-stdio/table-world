@@ -583,6 +583,7 @@
   "ui:Sit: walk up to a sofa and press {Sit}; press it again, or walk, to stand up.": "Sentarse: acércate a un sofá y pulsa {Sit}; púlsalo otra vez, o camina, para levantarte.",
   "ui:Skip empty hands": "Saltar manos vacías",
   "ui:Skip to the next song in the queue": "Pasar a la siguiente canción de la cola",
+  "ui:Skipped: {reason}": "Saltada: {reason}",
   "ui:Sleepy": "Dormilón",
   "ui:Snap": "Ajuste",
   "ui:Snap to grid": "Ajustar a la cuadrícula",

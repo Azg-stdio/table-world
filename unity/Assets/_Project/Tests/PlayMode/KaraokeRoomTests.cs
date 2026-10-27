@@ -311,6 +311,9 @@ namespace TableWorld.Tests.PlayMode
         public void TheSongSearch_ShowsOnlyYouTubesResults()
         {
             Assert.AreEqual("https://www.youtube.com/results?search_query=queen%20karaoke", SearchBrowser.SearchUrl("queen karaoke"));
+            Assert.AreEqual("queen karaoke", SongSearch.Words(" queen "));
+            Assert.AreEqual("Tu falta de querer Karaoke", SongSearch.Words("Tu falta de querer Karaoke"), "said once, not twice");
+            Assert.AreEqual("karaoke", SongSearch.Words(""));
             Assert.AreEqual(SearchBrowser.Verdict.Show, SearchBrowser.Judge("https://www.youtube.com/results?search_query=a", out _));
             Assert.AreEqual(SearchBrowser.Verdict.Show, SearchBrowser.Judge("https://consent.youtube.com/m?continue=x", out _));
             Assert.AreEqual(SearchBrowser.Verdict.Show, SearchBrowser.Judge("about:blank", out _));

@@ -219,7 +219,22 @@ namespace TableWorld.View.Hud
         /// </summary>
         private void Advance(ScreenState state)
         {
-            if (!_table.HostsTable || _table.Engine.State.SongQueue.Count == 0)
+            if (!_table.HostsTable)
+                return;
+            // A song the player will not play (gone, or not allowed outside YouTube for this machine) is skipped, so
+            // "Video unavailable" does not stay up for everyone.
+            if (state?.VideoId is { } failing && _screen != null && _screen.VideoId == failing && _screen.Error is { } error)
+            {
+                var failed = "failed:" + failing + "@" + state.At;
+                if (failed == _advancedFrom)
+                    return;
+                _advancedFrom = failed;
+                Videos.Mark(failing, error == 100 ? VideoCheck.Answer.Gone : VideoCheck.Answer.Blocked);
+                Next();
+                Tell(Ui.T("Skipped: {reason}", ("reason", ErrorText(error))));
+                return;
+            }
+            if (_table.Engine.State.SongQueue.Count == 0)
                 return;
             var ended = state?.VideoId != null && _screen != null && _screen.VideoId == state.VideoId && _screen.State == 0;
             if (state?.VideoId != null && !ended)
@@ -282,7 +297,7 @@ namespace TableWorld.View.Hud
         }
 
         /// <summary>YouTube's error codes in words a player can act on.</summary>
-        private static string ErrorText(int code) => code switch
+        public static string ErrorText(int code) => code switch
         {
             101 or 150 or 153 => Ui.T("This video's owner does not allow playing it outside YouTube. Try another upload of the song."),
             100 => Ui.T("This video was not found (removed or private)."),

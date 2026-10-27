@@ -33,8 +33,9 @@ namespace TableWorld.View.Karaoke
             _thread.Start();
         }
 
-        /// <summary>The page for a video: its player starts it as soon as it can.</summary>
-        public string PageFor(string videoId) => $"{Url}?v={Uri.EscapeDataString(videoId)}";
+        /// <summary>The page for a video: its player starts it as soon as it can (without sound when <paramref name="muted"/>).</summary>
+        public string PageFor(string videoId, bool muted = false) =>
+            $"{Url}?v={Uri.EscapeDataString(videoId)}" + (muted ? "&mute=1" : "");
 
         private static int FreePort()
         {
@@ -98,7 +99,7 @@ var params=new URLSearchParams(location.search);var player=null;var lastError=''
 var tag=document.createElement('script');tag.src='https://www.youtube.com/iframe_api';document.head.appendChild(tag);
 function onYouTubeIframeAPIReady(){
   player=new YT.Player('p',{width:'100%',height:'100%',videoId:params.get('v')||'',
-    playerVars:{autoplay:1,playsinline:1,rel:0,origin:'http://127.0.0.1:" + port + @"'},
+    playerVars:{autoplay:1,playsinline:1,rel:0,mute:params.get('mute')?1:0,origin:'http://127.0.0.1:" + port + @"'},
     events:{onError:function(e){lastError='error|'+e.data;}}});
 }
 window.tw={
