@@ -180,6 +180,8 @@ namespace TableWorld.View.Hud
             _settingsList.Clear();
             var s = Settings;
             Group("You");
+            Choice("Language", new[] { "" }.Concat(Ui.Languages).ToArray(), s.Language, v => s.Language = v,
+                v => v == "" ? Ui.T("System ({language})", ("language", Ui.NameOf(Ui.SystemLanguage()))) : Ui.NameOf(v));
             Text("Your name", s.PlayerName, "Player", v => s.PlayerName = v);
             Choice("Chalker face", Enum.GetNames(typeof(TableWorld.View.Chalkers.ChalkerPersonality)), s.Personality, v => s.Personality = v, v => v);
 
@@ -361,6 +363,13 @@ namespace TableWorld.View.Hud
                 Rebuild();
                 return;
             }
+        }
+
+        /// <summary>The interface's language changed: the settings page, when built, is drawn again in it.</summary>
+        public void Redraw()
+        {
+            if (_settingsList.childCount > 0)
+                Rebuild();
         }
 
         /// <summary>Redraws the settings page where it was scrolled to (a key moved, or keys reset).</summary>

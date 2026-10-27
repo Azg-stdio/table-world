@@ -77,6 +77,8 @@ namespace TableWorld.View.Settings
         public GraphicsQuality Graphics { get; set; } = GraphicsQuality.Auto;
         /// <summary>Size of the HUD, 1 = designed size.</summary>
         public float UiScale { get; set; } = 1f;
+        /// <summary>The interface's language (ADR 0011): a language code, or empty for the system's.</summary>
+        public string Language { get; set; } = "";
 
         public static string DefaultPath => Path.Combine(Application.persistentDataPath, FileName);
 
@@ -92,6 +94,7 @@ namespace TableWorld.View.Settings
             VoiceVolume = Clamp(VoiceVolume, 0f, 1f, 1f);
             VoiceThresholdDb = Clamp(VoiceThresholdDb, MinVoiceThresholdDb, MaxVoiceThresholdDb, -45f);
             Microphone ??= "";
+            Language ??= "";
             if (!Enum.IsDefined(typeof(VoiceMode), VoiceMode))
                 VoiceMode = VoiceMode.PushToTalk;
             OrbitSensitivity = Clamp(OrbitSensitivity, MinScale, MaxScale, 1f);

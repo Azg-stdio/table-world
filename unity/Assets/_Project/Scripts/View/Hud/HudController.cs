@@ -142,6 +142,9 @@ namespace TableWorld.View.Hud
                 document.panelSettings = Instantiate(_sharedPanelSettings);
             }
             _root = document.rootVisualElement;
+            // The UXML's own texts are read before any code fills a label, so each keeps its English to translate.
+            _localizer = new UiLocalizer(_root);
+            Ui.Changed += OnLanguageChanged;
             _turnLabel = _root.Q<Label>("turnLabel");
             _seatList = _root.Q("seatList");
             _selectionPanel = _root.Q("selectionPanel");
@@ -381,8 +384,19 @@ namespace TableWorld.View.Hud
             _escape.Open();
         }
 
+        private UiLocalizer _localizer;
+
+        /// <summary>The interface's language changed: the UXML's texts, the game bar and the settings page are drawn again.</summary>
+        private void OnLanguageChanged()
+        {
+            _localizer?.Apply();
+            _shownGameKey = null;
+            _escape?.Redraw();
+        }
+
         private void ApplySettings(GameSettings settings)
         {
+            Ui.SetLanguage(settings.Language);
             var camera = Camera.main != null ? Camera.main.GetComponent<TableCamera>() : null;
             settings.Apply(camera);
             _session?.SetLocalName(settings.PlayerName);
@@ -413,6 +427,7 @@ namespace TableWorld.View.Hud
 
         private void OnDisable()
         {
+            Ui.Changed -= OnLanguageChanged;
             if (_table != null)
             {
                 _table.CommandExecuted -= OnCommand;
