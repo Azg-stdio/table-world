@@ -1804,8 +1804,52 @@
     white-space: normal;
 }
 
-.song-search__view {
-    width: 896px;
-    height: 504px;
-    background-color: rgb(0, 0, 0);
+.song-search__results {
+    width: 720px;
+    height: 420px;
+    background-color: rgba(0, 0, 0, 0.35);
+}
+
+.song-search__result {
+    flex-direction: row;
+    align-items: center;
+    margin: 0;
+    padding: 6px 8px;
+    border-width: 0;
+    border-radius: 0;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.song-search__result:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.song-search__thumb {
+    width: 128px;
+    height: 72px;
+    flex-shrink: 0;
+    background-color: rgb(20, 20, 24);
+}
+
+.song-search__text {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin-left: 10px;
+}
+
+.song-search__result-title {
+    color: rgb(240, 236, 226);
+    font-size: 15px;
+    white-space: normal;
+}
+
+.song-search__result-meta {
+    margin-top: 2px;
+    color: rgb(170, 166, 158);
+    font-size: 13px;
+}
+
+.song-search__more {
+    align-self: center;
+    margin-top: 6px;
 }

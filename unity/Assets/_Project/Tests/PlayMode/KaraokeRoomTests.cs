@@ -330,9 +330,12 @@ namespace TableWorld.Tests.PlayMode
                 Assert.AreEqual(SearchBrowser.Verdict.Refuse, SearchBrowser.Judge(refused, out _), refused);
         }
 
-        /// <summary>T12.15: Search opens the panel over the room (walking waits, the guide goes); Close ends its browser.</summary>
+        /// <summary>
+        /// T12.15, after Miguel kept meeting videos that cannot play: the panel is our own list, never YouTube's page;
+        /// walking and the HUD's keys wait while it is open; its hidden browsers end with it.
+        /// </summary>
         [UnityTest]
-        public IEnumerator TheSearchPanel_OpensOverTheRoom_AndClosesItsBrowser()
+        public IEnumerator TheSearchPanel_IsOurOwnList_AndClosesItsBrowsers()
         {
             var root = _hud.GetComponent<UIDocument>().rootVisualElement;
             yield return null;
@@ -341,7 +344,10 @@ namespace TableWorld.Tests.PlayMode
             yield return null;
             yield return null;
             Assert.IsTrue(_hud.SongSearch.Visible);
-            Assert.IsNotNull(_hud.SongSearch.Browser, "its own browser runs while it is open");
+            Assert.IsNull(root.Q<Image>("songSearchView"), "YouTube's page is not shown");
+            Assert.IsNotNull(root.Q<ScrollView>("songSearchResults"));
+            Assert.AreEqual(0, _hud.SongSearch.Listed.Count, "nothing is listed before it is checked");
+            Assert.AreEqual(1 + SongSearch.Testers, Object.FindObjectsByType<SearchBrowser>().Length, "a reader and the testers run while it is open");
             Assert.IsTrue(Walker.Paused, "walking waits while searching");
             Assert.IsTrue(_hud.TypingInUi(), "the HUD's keys wait too");
             Assert.IsTrue(root.Q("walkGuide").ClassListContains("hidden"), "the guide card goes");
@@ -349,19 +355,29 @@ namespace TableWorld.Tests.PlayMode
             yield return null;
             yield return null;
             Assert.IsFalse(_hud.SongSearch.Visible);
-            Assert.IsNull(_hud.SongSearch.Browser);
-            Assert.IsNull(Object.FindAnyObjectByType<SearchBrowser>(), "its browser is gone");
+            Assert.IsNull(Object.FindAnyObjectByType<SearchBrowser>(), "its browsers are gone");
             Assert.IsFalse(Walker.Paused);
+        }
 
-            // Miguel: the second search showed YouTube upside down (clearing the picture reset its flip).
-            _hud.SongSearch.Open("queen");
-            var view = root.Q<Image>("songSearchView");
-            for (var wait = 0f; view.image == null && wait < 5f; wait += Time.unscaledDeltaTime)
-                yield return null;
-            Assert.IsNotNull(view.image, "the page's picture arrives");
-            Assert.AreEqual(SongSearch.Flipped, view.uv, "the picture is turned right way up again");
-            _hud.SongSearch.Close();
-            yield return null;
+        /// <summary>T12.15: what the hidden reader hands over is checked before anything is listed.</summary>
+        [Test]
+        public void TheReader_KeepsWellFormedResults_InOrder_Once()
+        {
+            var read = new System.Collections.Generic.HashSet<string>();
+            var rank = 0;
+            var batch = SearchBrowser.ReadBatch(
+                "[[\"M7lc1UVf-VE\",\"Queen - Bohemian Rhapsody (Karaoke)\",\"Sing King\",\"6:05 6:05\"]," +
+                "[\"bad id\",\"x\",\"\",\"\"],[\"aqz-KE-bpKQ\",\"\",\"\",\"\"],[\"dQw4w9WgXcQ\",\"Song\\u0007 two\",\"Ch\",\"3:33\"]," +
+                "[\"M7lc1UVf-VE\",\"again\",\"\",\"\"],\"not a row\"]", read, ref rank);
+            Assert.AreEqual(2, batch.Count, "a bad id, an empty title, a repeat and a stray value are left out");
+            Assert.AreEqual("M7lc1UVf-VE", batch[0].VideoId);
+            Assert.AreEqual("Sing King", batch[0].Channel);
+            Assert.AreEqual("6:05", batch[0].Length, "the length once, as the page may show it twice");
+            Assert.AreEqual("Song two", batch[1].Title, "control characters dropped");
+            Assert.AreEqual(new[] { 0, 1 }, new[] { batch[0].Rank, batch[1].Rank });
+            Assert.AreEqual(0, SearchBrowser.ReadBatch("not json", read, ref rank).Count);
+            var more = SearchBrowser.ReadBatch("[[\"9w5Q-4DT1ig\",\"Three\",\"\",\"\"]]", read, ref rank);
+            Assert.AreEqual(2, more[0].Rank, "the order runs on across batches");
         }
 
         /// <summary>Clicks a button the way the mouse does (a click, not a keyboard submit).</summary>

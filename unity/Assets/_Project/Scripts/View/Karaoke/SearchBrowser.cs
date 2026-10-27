@@ -1,57 +1,63 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using VoltstroStudios.UnityWebBrowser.Core;
-using VoltstroStudios.UnityWebBrowser.Shared.Events;
 
 namespace TableWorld.View.Karaoke
 {
+    /// <summary>One video YouTube's search listed: its id, title, channel and length as the page shows them, and its place in the list.</summary>
+    public sealed class SearchResult
+    {
+        public string VideoId;
+        public string Title;
+        public string Channel;
+        public string Length;
+        public int Rank;
+    }
+
     /// <summary>
-    /// The song search (ADR 0013 §6, T12.15): YouTube's own search page in a second embedded Chromium, drawn into a HUD
-    /// panel. It is muted, keeps no cookies or logins, and shows only YouTube's search results (and its cookie consent
-    /// page): choosing a video does not open it, it is handed to <see cref="Picked"/> and the page stays on the results;
-    /// any other page (a channel, sign-in, another site) sends it back to the search. It is open only while the panel is.
+    /// The song search's hidden browsers (ADR 0013 §6, T12.15), never shown to anyone, muted, keeping no cookies or logins.
+    /// A reader opens YouTube's search results and reads what they list (<see cref="Results"/>): the game shows its own
+    /// list, of the videos that play here only. A tester tries videos in YouTube's official embedded player on our own
+    /// page (<see cref="Probe"/>), as the screen will play them: some videos pass oEmbed and still refuse every embedded
+    /// player, and only the player tells. Both run only while the search panel is open.
     /// </summary>
     public sealed class SearchBrowser : BaseUwbClientManager
     {
         /// <summary>
-        /// Run on every page the search loads, reporting through the page's title (the channel <see cref="BrowserScreen"/>
-        /// uses too): a click on a link to a video is caught before YouTube's own handler (<c>twpick|n|link</c>); every
-        /// video the results show is reported once (<c>twids|n|id,id,…</c>, a few at a time); <c>twBlock([ids])</c>
-        /// hides the results of those videos, and keeps them hidden as YouTube redraws its list; results not yet known to
-        /// play show faint until <c>twOk([ids])</c> confirms them.
+        /// Run on the results page: every single video the list shows (not the ads YouTube places in it, nor playlists
+        /// and mixes) is read once, as
+        /// <c>[id, title, channel, length]</c>, and handed over through the page's title (the channel
+        /// <see cref="BrowserScreen"/> uses too) a few at a time, <c>twres|n|[…]</c>; the game answers <c>twAck()</c>
+        /// before the next batch (one not answered in 2 s is sent again). <c>twMore()</c> scrolls to the end, where
+        /// YouTube loads more results.
         /// </summary>
-        private static readonly string PageJs =
-            "if(!window.__tw){window.__tw=1;var n=0,seen={},blocked={},ok={};" +
-            "var vid=function(h){try{var u=new URL(h,location.href);if(u.pathname=='/watch')return u.searchParams.get('v');" +
-            "var m=u.pathname.match(/^\\/shorts\\/([\\w-]{11})/);return m?m[1]:null;}catch(e){return null;}};" +
-            "var box=function(a){return a.closest('ytd-video-renderer,ytd-rich-item-renderer,ytd-reel-item-renderer,ytd-radio-renderer," +
-            "ytd-playlist-renderer,yt-lockup-view-model,ytm-shorts-lockup-view-model-v2,ytm-shorts-lockup-view-model,ytd-compact-video-renderer');};" +
-            "var ad=function(a){return a.closest('ytd-ad-slot-renderer,ytd-in-feed-ad-layout-renderer,ytd-promoted-video-renderer," +
+        private const string ReaderJs =
+            "if(!window.__tw){window.__tw=1;var n=0,seen={},out=[],last=null,sentAt=0;" +
+            "var ad=function(e){return e.closest('ytd-ad-slot-renderer,ytd-in-feed-ad-layout-renderer,ytd-promoted-video-renderer," +
             "ytd-promoted-sparkles-web-renderer,ytd-search-pyv-renderer,ytd-display-ad-renderer');};" +
-            "var scan=function(){var fresh=[],done=new Set();" +
-            "document.querySelectorAll('a[href*=\"/watch?v=\"],a[href*=\"/shorts/\"]').forEach(function(a){var i=vid(a.href);if(!i||ad(a))return;" +
-            "var b=box(a);if(b&&!done.has(b)){done.add(b);if(blocked[i]){b.style.display='none';b.dataset.twHidden='1';}" +
-            "else{if(b.dataset.twHidden){b.style.display='';delete b.dataset.twHidden;}b.style.opacity=ok[i]?'':'0.35';}}" +
-            "if(!seen[i]&&fresh.length<" + IdsPerReport + "){seen[i]=1;fresh.push(i);}});" +
-            "if(fresh.length)document.title='twids|'+(++n)+'|'+fresh.join(',');};" +
-            "window.twBlock=function(ids){ids.forEach(function(i){blocked[i]=1;});scan();};" +
-            "window.twOk=function(ids){ids.forEach(function(i){ok[i]=1;});scan();};" +
-            "document.addEventListener('click',function(e){" +
-            "var a=e.target&&e.target.closest?e.target.closest('a[href]'):null;if(!a)return;var h=a.href||'';" +
-            // An ad's video is not a song: clicking it does nothing here (ads still show, as YouTube places them).
-            "if(ad(a)){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();return;}" +
-            "if(h.indexOf('/watch')<0&&h.indexOf('/shorts/')<0)return;" +
-            "e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();document.title='twpick|'+(++n)+'|'+h;},true);" +
-            "setInterval(scan,500);}";
-
-        /// <summary>Videos reported in one go (the rest follow half a second later).</summary>
-        public const int IdsPerReport = 30;
+            "var txt=function(e){return e?(e.getAttribute('title')||e.textContent||'').replace(/\\s+/g,' ').trim():'';};" +
+            "var scan=function(){document.querySelectorAll('ytd-video-renderer,yt-lockup-view-model').forEach(function(r){if(ad(r))return;" +
+            "var a=r.querySelector('a#video-title,a[href*=\"/watch?v=\"]');if(!a)return;var id=null;" +
+            // Only single songs are read. A video entry may carry a radio list (list=RD…&start_radio=1) and is still one
+            // song; a card with stacked thumbnails, or a card linking into a list, is a playlist or a mix.
+            "var single=r.tagName=='YTD-VIDEO-RENDERER';if(!single&&r.querySelector('yt-collection-thumbnail-view-model,yt-collections-stack'))return;" +
+            "try{var u=new URL(a.href,location.href);if(!single&&u.searchParams.get('list'))return;id=u.searchParams.get('v');}catch(e){}" +
+            "if(!id||seen[id])return;var t=txt(r.querySelector('#video-title'))||txt(r.querySelector('h3'))||txt(a);if(!t)return;seen[id]=1;" +
+            "out.push([id,t.slice(0,120),txt(r.querySelector('ytd-channel-name a,#channel-name a')).slice(0,60)," +
+            "txt(r.querySelector('ytd-thumbnail-overlay-time-status-renderer,badge-shape')).slice(0,24)]);});send();};" +
+            "var send=function(){if(last&&Date.now()-sentAt<2000)return;if(last){out=last.concat(out);last=null;}if(!out.length)return;" +
+            "var b=[],len=0;while(out.length&&len<1000){var x=out.shift();b.push(x);len+=JSON.stringify(x).length;}" +
+            "last=b;sentAt=Date.now();document.title='twres|'+(++n)+'|'+JSON.stringify(b);};" +
+            "window.twAck=function(){last=null;send();};" +
+            "window.twMore=function(){window.scrollTo(0,document.documentElement.scrollHeight);};" +
+            "setInterval(scan,400);}";
 
         private string _search;
         private bool _muted;
         private PlayerPage _page;
-        /// <summary>A tester stays on our player page between tries (only a search goes back to its results).</summary>
+        /// <summary>A tester stays on our player page between tries.</summary>
         private bool _isTester;
         /// <summary>Our player page is loaded and answering: the next try switches the video in it, no reload.</summary>
         private bool _onPlayer;
@@ -59,23 +65,16 @@ namespace TableWorld.View.Karaoke
         private string _probing;
         private Action<int?> _probed;
         private float _probeUntil;
+        private int _rank;
+        private readonly HashSet<string> _read = new();
 
         /// <summary>How long a try may take before the video is taken as playable (the player said nothing against it).</summary>
         public const float ProbeSeconds = 8f;
 
-        /// <summary>A video was chosen: its id.</summary>
-        public event Action<string> Picked;
-
-        /// <summary>Videos the results show, each reported once a page.</summary>
-        public event Action<string[]> Found;
-
-        /// <summary>The page's size in pixels.</summary>
-        public Vector2Int Size { get; private set; }
+        /// <summary>Videos the results list, in the list's order, each once a search.</summary>
+        public event Action<SearchResult[]> Results;
 
         public bool Ready => browserClient != null && browserClient.ReadySignalReceived && browserClient.IsConnected;
-
-        /// <summary>The engine's latest frame (upside down: the engine sends it that way).</summary>
-        public Texture2D Texture => browserClient?.BrowserTexture;
 
         /// <summary>Pages refused since it opened.</summary>
         public int Refused { get; private set; }
@@ -84,12 +83,12 @@ namespace TableWorld.View.Karaoke
         public static string SearchUrl(string query) =>
             "https://www.youtube.com/results?search_query=" + Uri.EscapeDataString(query ?? "");
 
-        /// <summary>What the search may show: <c>Show</c>, a video to <c>Pick</c>, or <c>Refuse</c> (sent back to the search).</summary>
+        /// <summary>What the reader may show: <c>Show</c>, a video page (<c>Pick</c>, sent back like any other), or <c>Refuse</c>.</summary>
         public enum Verdict { Show, Pick, Refuse }
 
         /// <summary>
-        /// Judges a page the search was about to show: YouTube's results and its cookie consent pages are shown, a video
-        /// page is a pick, anything else is refused.
+        /// Judges a page the reader was about to show: YouTube's results and its cookie consent pages are shown; a video
+        /// page or anything else sends it back to the results.
         /// </summary>
         public static Verdict Judge(string url, out string videoId)
         {
@@ -113,36 +112,51 @@ namespace TableWorld.View.Karaoke
             return Verdict.Refuse;
         }
 
-        /// <summary>A search under <paramref name="parent"/> for <paramref name="query"/>, its page <paramref name="width"/> × <paramref name="height"/> pixels.</summary>
-        public static SearchBrowser Create(Transform parent, string query, int width = 1280, int height = 720)
+        /// <summary>A reader under <paramref name="parent"/> for <paramref name="query"/>.</summary>
+        public static SearchBrowser CreateReader(Transform parent, string query) =>
+            Make(parent, "Song Search", SearchUrl(query), 1280, 720, tester: false);
+
+        /// <summary>A browser that only tries videos (the song search checks every result with it before listing it).</summary>
+        public static SearchBrowser CreateTester(Transform parent) =>
+            Make(parent, "Song Tester", "about:blank", 640, 360, tester: true);
+
+        private static SearchBrowser Make(Transform parent, string name, string url, int width, int height, bool tester)
         {
-            var go = new GameObject("Song Search");
+            var go = new GameObject(name);
             go.SetActive(false);
             go.transform.SetParent(parent, false);
-            var search = go.AddComponent<SearchBrowser>();
-            search._search = SearchUrl(query);
-            search.Size = new Vector2Int(width, height);
-            BrowserScreen.Configure(search.browserClient, search._search, width, height);
+            var browser = go.AddComponent<SearchBrowser>();
+            browser._search = url;
+            browser._isTester = tester;
+            BrowserScreen.Configure(browser.browserClient, url, width, height);
             go.SetActive(true);
-            return search;
+            return browser;
         }
 
-        /// <summary>Searches YouTube for <paramref name="query"/>.</summary>
+        /// <summary>Searches YouTube for <paramref name="query"/>: the results are read afresh.</summary>
         public void Search(string query)
         {
             _search = SearchUrl(query);
+            _rank = 0;
+            _read.Clear();
             if (Ready)
                 browserClient.LoadUrl(_search);
+        }
+
+        /// <summary>Asks YouTube for more results (they are read as they come).</summary>
+        public void More()
+        {
+            if (Ready)
+                browserClient.ExecuteJs("window.twMore&&twMore()");
         }
 
         /// <summary>True while a video is being tried.</summary>
         public bool Probing => _probing != null;
 
         /// <summary>
-        /// Tries <paramref name="videoId"/> in YouTube's official player, muted, on our own page (as the screen will play
-        /// it): <paramref name="done"/> hears null once it plays (or nothing went wrong in time), else the player's error
-        /// (100 gone, 101 or 150 not allowed outside YouTube, 2 or 5 broken). Some videos pass oEmbed and still refuse
-        /// every embedded player; only the player tells. The results come back after a refusal.
+        /// Tries <paramref name="videoId"/> in YouTube's official player, muted, on our own page: <paramref name="done"/>
+        /// hears null once it plays (or nothing went wrong in time), else the player's error (100 gone, 101 or 150 not
+        /// allowed outside YouTube, 2 or 5 broken).
         /// </summary>
         public void Probe(string videoId, Action<int?> done)
         {
@@ -166,83 +180,68 @@ namespace TableWorld.View.Karaoke
             var done = _probed;
             _probing = null;
             _probed = null;
-            if (error != null && Ready && !_isTester)
-                browserClient.LoadUrl(_search);
-            else if (_isTester && Ready)
+            if (Ready)
                 browserClient.ExecuteJs("tw.pause()");
             done?.Invoke(error);
         }
 
-        /// <summary>The pointer moved to <paramref name="at"/> (0–1 across and down the page).</summary>
-        public void PointerMove(Vector2 at)
-        {
-            if (Ready)
-                browserClient.SendMouseMove(Pixel(at));
-        }
-
-        /// <summary>The left button went down or up at <paramref name="at"/> (0–1 across and down the page).</summary>
-        public void PointerButton(Vector2 at, bool down)
-        {
-            if (Ready)
-                browserClient.SendMouseClick(Pixel(at), 1, MouseClickType.Left, down ? MouseEventType.Down : MouseEventType.Up);
-        }
-
-        /// <summary>The wheel turned at <paramref name="at"/>: positive scrolls up, as Chromium counts (120 a notch).</summary>
-        public void Scroll(Vector2 at, int amount)
-        {
-            if (Ready)
-                browserClient.SendMouseScroll(Pixel(at), amount);
-        }
+        /// <summary>The shape of a YouTube video id (what the page reports may go back into a script).</summary>
+        public static bool IsVideoId(string id) =>
+            id != null && id.Length == 11 && id.All(c => (char.IsLetterOrDigit(c) && c < 128) || c == '-' || c == '_');
 
         /// <summary>
-        /// A browser that only tries videos, never shown (the song search checks every result with it before anyone
-        /// clicks). Muted like the search.
+        /// Reads one batch the page handed over (<c>[[id, title, channel, length], …]</c>): results with a well-formed id
+        /// and a title, not read before in this search, numbered in the list's order.
         /// </summary>
-        public static SearchBrowser CreateTester(Transform parent, int width = 640, int height = 360)
+        public static List<SearchResult> ReadBatch(string json, HashSet<string> read, ref int rank)
         {
-            var go = new GameObject("Song Tester");
-            go.SetActive(false);
-            go.transform.SetParent(parent, false);
-            var tester = go.AddComponent<SearchBrowser>();
-            tester._search = "about:blank";
-            tester._isTester = true;
-            tester.Size = new Vector2Int(width, height);
-            BrowserScreen.Configure(tester.browserClient, "about:blank", width, height);
-            go.SetActive(true);
-            return tester;
+            var results = new List<SearchResult>();
+            Newtonsoft.Json.Linq.JArray rows;
+            try
+            {
+                rows = Newtonsoft.Json.Linq.JArray.Parse(json);
+            }
+            catch (Newtonsoft.Json.JsonException)
+            {
+                return results;
+            }
+            foreach (var row in rows.OfType<Newtonsoft.Json.Linq.JArray>())
+            {
+                if (row.Count < 2)
+                    continue;
+                var id = row[0].Type == Newtonsoft.Json.Linq.JTokenType.String ? (string)row[0] : null;
+                var title = row[1].Type == Newtonsoft.Json.Linq.JTokenType.String ? ((string)row[1]).Trim() : "";
+                if (!IsVideoId(id) || title.Length == 0 || !read.Add(id))
+                    continue;
+                string Text(int i, int max) =>
+                    row.Count > i && row[i].Type == Newtonsoft.Json.Linq.JTokenType.String
+                        ? new string(((string)row[i]).Where(c => !char.IsControl(c)).Take(max).ToArray()).Trim()
+                        : "";
+                results.Add(new SearchResult
+                {
+                    VideoId = id,
+                    Title = Text(1, Core.Rules.QueuedSong.MaxTitle),
+                    Channel = Text(2, 60),
+                    // The page may show the length twice (the badge and its text): the first one.
+                    Length = System.Text.RegularExpressions.Regex.Match(Text(3, 24), @"\d{1,2}(:\d{2}){1,2}").Value,
+                    Rank = rank++,
+                });
+            }
+            return results;
         }
-
-        /// <summary>Shows the results of these videos at full strength: they were tried and play.</summary>
-        public void Confirm(System.Collections.Generic.IEnumerable<string> videoIds)
-        {
-            var ids = string.Join(",", System.Linq.Enumerable.Select(videoIds, id => "'" + id + "'"));
-            if (Ready && ids.Length > 0)
-                browserClient.ExecuteJs("window.twOk&&twOk([" + ids + "])");
-        }
-
-        /// <summary>Hides the results of these videos (they cannot play here).</summary>
-        public void Block(System.Collections.Generic.IEnumerable<string> videoIds)
-        {
-            var ids = string.Join(",", System.Linq.Enumerable.Select(videoIds, id => "'" + id + "'"));
-            if (Ready && ids.Length > 0)
-                browserClient.ExecuteJs("window.twBlock&&twBlock([" + ids + "])");
-        }
-
-        /// <summary>The shape of a YouTube video id (what the page reports goes back into its script).</summary>
-        private static bool IsVideoId(string id) =>
-            id.Length == 11 && id.All(c => (char.IsLetterOrDigit(c) && c < 128) || c == '-' || c == '_');
-
-        private Vector2 Pixel(Vector2 at) =>
-            new Vector2(Mathf.Clamp01(at.x) * Size.x, Mathf.Clamp01(at.y) * Size.y);
 
         protected override void OnStart()
         {
             browserClient.OnUrlChanged += OnUrlChanged;
-            browserClient.OnLoadFinish += _ => browserClient.ExecuteJs(PageJs);
+            browserClient.OnLoadFinish += _ =>
+            {
+                if (!_isTester)
+                    browserClient.ExecuteJs(ReaderJs);
+            };
             browserClient.OnTitleChange += OnTitle;
         }
 
-        /// <summary>Mutes it as soon as the engine answers: hovering a result plays a preview.</summary>
+        /// <summary>Mutes it as soon as the engine answers (a hovered result, a tried video).</summary>
         protected override void OnFixedUpdate()
         {
             if (_probing != null && Time.realtimeSinceStartup > _probeUntil)
@@ -251,7 +250,8 @@ namespace TableWorld.View.Karaoke
                 return;
             _muted = true;
             browserClient.AudioMute(true);
-            browserClient.ExecuteJs(PageJs);
+            if (!_isTester)
+                browserClient.ExecuteJs(ReaderJs);
         }
 
         protected override void OnDestroyed() => _page?.Dispose();
@@ -274,32 +274,28 @@ namespace TableWorld.View.Karaoke
                 }
                 return;
             }
+            if (_isTester || !title.StartsWith("twres|", StringComparison.Ordinal))
+                return;
             var parts = title.Split(new[] { '|' }, 3);
             if (parts.Length != 3)
                 return;
-            if (parts[0] == "twpick" && Judge(parts[2], out var id) == Verdict.Pick)
-                Picked?.Invoke(id);
-            else if (parts[0] == "twids")
-                Found?.Invoke(System.Array.FindAll(parts[2].Split(','), IsVideoId));
+            var batch = ReadBatch(parts[2], _read, ref _rank);
+            browserClient.ExecuteJs("window.twAck&&twAck()");
+            if (batch.Count > 0)
+                Results?.Invoke(batch.ToArray());
         }
 
-        /// <summary>A video page is a pick; a page that is not the search goes back to it.</summary>
+        /// <summary>Anything but the results (a video page, a channel, sign-in, another site) goes back to the results.</summary>
         private void OnUrlChanged(string url)
         {
             // Our own player page, while a video is tried.
             if (_page != null && url.StartsWith(_page.Url, StringComparison.Ordinal))
                 return;
             _onPlayer = false;
-            var verdict = Judge(url, out var id);
-            if (verdict == Verdict.Show)
+            if (_isTester || Judge(url, out _) == Verdict.Show)
                 return;
-            if (verdict == Verdict.Pick)
-                Picked?.Invoke(id);
-            else
-            {
-                Refused++;
-                Debug.LogWarning($"[SearchBrowser] Refused '{url}': the song search shows only YouTube's search results.");
-            }
+            Refused++;
+            Debug.LogWarning($"[SearchBrowser] Refused '{url}': the song search reads only YouTube's search results.");
             browserClient.LoadUrl(_search);
         }
     }

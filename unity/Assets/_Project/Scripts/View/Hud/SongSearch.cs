@@ -1,46 +1,52 @@
+using System.Collections.Generic;
 using TableWorld.View.Karaoke;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Networking;
 using UnityEngine.UIElements;
 
 namespace TableWorld.View.Hud
 {
     /// <summary>
-    /// The karaoke room's song search (T12.15): Search on the screen bar opens YouTube's own results in a panel
-    /// (<see cref="SearchBrowser"/>, a second Chromium that runs only while the panel is open). The mouse and wheel go to
-    /// the page; clicking a video adds it to the queue (as Add to queue does, title and embedding checked) and closes the
-    /// panel. Every result is checked as it appears, first with oEmbed, then by trying it in YouTube's embedded player in
-    /// a hidden, muted browser (some videos pass oEmbed and still refuse every embedded player); those that will not play
-    /// are hidden. One clicked before its turn is tried there and then. Escape or Close closes it.
+    /// The karaoke room's song search (T12.15): Search on the screen bar opens our own list of songs. A hidden browser
+    /// reads YouTube's results for the words (plus "karaoke"), and every result is checked before it is listed: first
+    /// with oEmbed, then by playing it, muted, in YouTube's embedded player in hidden testers (some videos pass oEmbed and
+    /// still refuse every embedded player). Only songs that play here appear, in YouTube's order; clicking one queues it
+    /// and closes the panel. YouTube's page is never shown. More results are asked for when few pass. Escape or Close
+    /// closes it, and its browsers with it.
     /// </summary>
     public sealed class SongSearch
     {
         /// <summary>Added to what the player types, so the results are versions to sing over.</summary>
         public const string Suffix = " karaoke";
 
-        /// <summary>The page's picture turned right way up (the engine sends its frames upside down).</summary>
-        public static readonly Rect Flipped = new Rect(0f, 1f, 1f, -1f);
+        /// <summary>Hidden players trying results at once.</summary>
+        public const int Testers = 2;
+
+        /// <summary>Fewer listed than this once every result is checked: more results are asked for.</summary>
+        public const int Enough = 20;
+
+        /// <summary>How many results one search reads at most (more costs time for little).</summary>
+        public const int MostRead = 80;
 
         private readonly VisualElement _panel;
         private readonly TextField _query;
-        private readonly Image _view;
         private readonly Label _status;
-        private readonly Label _hint;
-        /// <summary>Results of this search hidden because they cannot play here.</summary>
-        private readonly System.Collections.Generic.HashSet<string> _hidden = new();
-        private readonly System.Collections.Generic.List<string> _toBlock = new();
-        private string _hintShown;
+        private readonly ScrollView _list;
         private readonly ScreenBar _bar;
-        private SearchBrowser _browser;
-        private string _picked;
-        /// <summary>The hidden browser that tries every result in the embedded player, and the results waiting for it.</summary>
-        private readonly System.Collections.Generic.List<SearchBrowser> _testers = new();
-        private readonly System.Collections.Generic.List<string> _toConfirm = new();
-
-        /// <summary>Hidden players trying results at once.</summary>
-        public const int Testers = 2;
-        private readonly System.Collections.Generic.Queue<string> _toTry = new();
-        private readonly System.Collections.Generic.HashSet<string> _waitingToTry = new();
+        private SearchBrowser _reader;
+        private readonly List<SearchBrowser> _testers = new();
+        private readonly Queue<SearchResult> _toTry = new();
+        /// <summary>Results that play here, in YouTube's order, as listed.</summary>
+        private readonly List<SearchResult> _listed = new();
+        private readonly List<Texture2D> _thumbnails = new();
+        private int _read;
+        private int _hidden;
+        private int _asking;
+        private int _trying;
+        private float _askedMoreAt;
+        private bool _queueing;
+        private string _statusShown;
 
         public SongSearch(VisualElement root, ScreenBar bar)
         {
@@ -49,77 +55,49 @@ namespace TableWorld.View.Hud
             _query = root.Q<TextField>("songSearchQuery");
             _query.textEdition.placeholder = Ui.T("Song or artist");
             _query.textEdition.hidePlaceholderOnFocus = true;
-            _view = root.Q<Image>("songSearchView");
             _status = root.Q<Label>("songSearchStatus");
-            _hint = root.Q<Label>("songSearchHint");
-            _view.uv = Flipped;
-            _view.scaleMode = ScaleMode.StretchToFill;
+            _list = root.Q<ScrollView>("songSearchResults");
             root.Q<Button>("screenSearch").clicked += () => Open(_query.value);
             root.Q<Button>("songSearchGo").clicked += () => Search(_query.value);
             root.Q<Button>("songSearchClose").clicked += Close;
+            root.Q<Button>("songSearchMore").clicked += More;
             _query.RegisterCallback<KeyDownEvent>(e =>
             {
                 if (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter)
                     Search(_query.value);
-            });
-            _view.RegisterCallback<PointerMoveEvent>(e => _browser?.PointerMove(At(e.localPosition)));
-            _view.RegisterCallback<PointerDownEvent>(e =>
-            {
-                if (e.button != 0)
-                    return;
-                _view.CapturePointer(e.pointerId);
-                _browser?.PointerButton(At(e.localPosition), true);
-            });
-            _view.RegisterCallback<PointerUpEvent>(e =>
-            {
-                if (e.button != 0)
-                    return;
-                _view.ReleasePointer(e.pointerId);
-                _browser?.PointerButton(At(e.localPosition), false);
-            });
-            // Unity counts about 3 a notch, down positive; Chromium 120 a notch, up positive.
-            _view.RegisterCallback<WheelEvent>(e =>
-            {
-                _browser?.Scroll(At(e.localMousePosition), Mathf.RoundToInt(-e.delta.y * 40f));
-                e.StopPropagation();
             });
         }
 
         /// <summary>True while the panel is open: the HUD's keys and walking wait.</summary>
         public bool Visible => !_panel.ClassListContains("hidden");
 
-        /// <summary>The search browser (null while closed).</summary>
-        public SearchBrowser Browser => _browser != null ? _browser : null;
+        /// <summary>The songs listed now, in order.</summary>
+        public IReadOnlyList<SearchResult> Listed => _listed;
 
-        /// <summary>Opens the panel on YouTube's results for <paramref name="query"/> (popular karaoke songs when empty).</summary>
+        /// <summary>Results still being checked.</summary>
+        public int Checking => _asking + _trying + _toTry.Count;
+
+        /// <summary>Opens the panel on the songs for <paramref name="query"/> (popular karaoke songs when empty).</summary>
         public void Open(string query)
         {
             _panel.RemoveFromClassList("hidden");
-            _picked = null;
-            _status.text = "";
-            _hidden.Clear();
-            var search = Words(query);
-            if (_browser == null)
-            {
-                _browser = SearchBrowser.Create(null, search);
-                _browser.Picked += OnPicked;
-                _browser.Found += OnFound;
-            }
-            else
-                _browser.Search(search);
+            Search(query);
             _query.Focus();
         }
 
-        /// <summary>Searches again for <paramref name="query"/>.</summary>
+        /// <summary>Searches again for <paramref name="query"/>: the list starts empty and fills as songs pass.</summary>
         public void Search(string query)
         {
-            if (_browser == null)
-                Open(query);
-            else
+            ClearList();
+            if (_reader == null)
             {
-                _hidden.Clear();
-                _browser.Search(Words(query));
+                _reader = SearchBrowser.CreateReader(null, Words(query));
+                _reader.Results += OnResults;
             }
+            else
+                _reader.Search(Words(query));
+            while (_testers.Count < Testers)
+                _testers.Add(SearchBrowser.CreateTester(null));
         }
 
         /// <summary>What is searched for: the player's words, with "karaoke" unless they said it.</summary>
@@ -132,20 +110,24 @@ namespace TableWorld.View.Hud
         public void Close()
         {
             _panel.AddToClassList("hidden");
-            _view.image = null;
-            if (_browser != null)
-                Object.Destroy(_browser.gameObject);
-            _browser = null;
+            ClearList();
+            if (_reader != null)
+                Object.Destroy(_reader.gameObject);
+            _reader = null;
             foreach (var tester in _testers)
                 if (tester != null)
                     Object.Destroy(tester.gameObject);
             _testers.Clear();
-            _toConfirm.Clear();
-            _toTry.Clear();
-            _waitingToTry.Clear();
         }
 
-        /// <summary>Keeps the picture current; Escape closes; leaving the karaoke room closes.</summary>
+        /// <summary>Asks YouTube for more results.</summary>
+        public void More()
+        {
+            _askedMoreAt = Time.unscaledTime;
+            _reader?.More();
+        }
+
+        /// <summary>Feeds the testers, keeps the status line, asks for more when few pass; Escape or leaving the room closes.</summary>
         public void Update(bool karaoke)
         {
             if (!Visible)
@@ -155,160 +137,147 @@ namespace TableWorld.View.Hud
                 Close();
                 return;
             }
-            if (_browser != null && _view.image != _browser.Texture)
-            {
-                _view.image = _browser.Texture;
-                // The engine sends its frames upside down; changing the picture resets the flip.
-                _view.uv = Flipped;
-            }
             TryNext();
-            if (_browser != null && _toConfirm.Count > 0)
-            {
-                _browser.Confirm(_toConfirm);
-                _toConfirm.Clear();
-            }
-            if (_browser != null && _toBlock.Count > 0)
-            {
-                _browser.Block(_toBlock);
-                _toBlock.Clear();
-            }
-            ShowHint();
+            if (Checking == 0 && _listed.Count < Enough && _read > 0 && _read < MostRead && Time.unscaledTime - _askedMoreAt > 3f)
+                More();
+            ShowStatus();
             if (Keyboard.current is { } keyboard && keyboard.escapeKey.wasPressedThisFrame)
                 Close();
         }
 
-        /// <summary>The results show these videos: each is checked (answers are remembered), and those that cannot play here are hidden.</summary>
-        private void OnFound(string[] videoIds)
+        private void ClearList()
         {
-            var browser = _browser;
-            foreach (var id in videoIds)
-                _bar.Videos.Ask(id, (answer, _) =>
-                {
-                    if (browser != _browser)
-                        return;
-                    if (answer == VideoCheck.Answer.Blocked || answer == VideoCheck.Answer.Gone)
-                    {
-                        if (_hidden.Add(id))
-                            _toBlock.Add(id);
-                    }
-                    else if (_bar.Videos.Played(id))
-                        _toConfirm.Add(id);
-                    else if (_waitingToTry.Add(id))
-                        _toTry.Enqueue(id);
-                });
+            _list.Clear();
+            _listed.Clear();
+            _toTry.Clear();
+            foreach (var texture in _thumbnails)
+                if (texture != null)
+                    Object.Destroy(texture);
+            _thumbnails.Clear();
+            _read = 0;
+            _hidden = 0;
+            _asking = 0;
+            _queueing = false;
+            _statusShown = null;
+            // Answers still on their way belong to the search they were asked for.
+            _generation++;
         }
 
-        /// <summary>
-        /// Tries the next waiting result in the hidden player, top of the list first: one that plays is remembered (a
-        /// click on it queues at once), one that will not is hidden.
-        /// </summary>
+        private int _generation;
+
+        /// <summary>Results the reader found: each asked about (oEmbed), then tried unless it already played here.</summary>
+        private void OnResults(SearchResult[] results)
+        {
+            var generation = _generation;
+            foreach (var result in results)
+            {
+                _read++;
+                _asking++;
+                _bar.Videos.Ask(result.VideoId, (answer, _) =>
+                {
+                    if (generation != _generation)
+                        return;
+                    _asking--;
+                    if (answer == VideoCheck.Answer.Blocked || answer == VideoCheck.Answer.Gone)
+                        _hidden++;
+                    else if (_bar.Videos.Played(result.VideoId))
+                        List(result);
+                    else
+                        _toTry.Enqueue(result);
+                });
+            }
+        }
+
+        /// <summary>Hands the waiting results to free testers, top of YouTube's list first.</summary>
         private void TryNext()
         {
-            if (_browser == null || _toTry.Count == 0)
-                return;
-            while (_testers.Count < Testers)
-                _testers.Add(SearchBrowser.CreateTester(null));
             foreach (var tester in _testers)
             {
                 if (_toTry.Count == 0)
                     return;
                 if (tester == null || !tester.Ready || tester.Probing)
                     continue;
-                var id = _toTry.Dequeue();
-                _waitingToTry.Remove(id);
-                if (_bar.Videos.Played(id))
+                var result = _toTry.Dequeue();
+                var generation = _generation;
+                _trying++;
+                tester.Probe(result.VideoId, error =>
                 {
-                    _toConfirm.Add(id);
-                    continue;
-                }
-                if (_bar.Videos.TryGet(id, out var known, out _) && known != VideoCheck.Answer.Playable)
-                    continue;
-                tester.Probe(id, error =>
-                {
-                    if (!_testers.Contains(tester))
-                        return;
+                    _trying--;
                     if (error is { } code)
-                    {
-                        _bar.Videos.Mark(id, code == 100 ? VideoCheck.Answer.Gone : VideoCheck.Answer.Blocked);
-                        if (_hidden.Add(id))
-                            _toBlock.Add(id);
-                    }
+                        _bar.Videos.Mark(result.VideoId, code == 100 ? VideoCheck.Answer.Gone : VideoCheck.Answer.Blocked);
                     else
-                    {
-                        _bar.Videos.MarkPlayed(id);
-                        _toConfirm.Add(id);
-                    }
+                        _bar.Videos.MarkPlayed(result.VideoId);
+                    if (generation != _generation)
+                        return;
+                    if (error != null)
+                        _hidden++;
+                    else
+                        List(result);
                 });
             }
         }
 
-        /// <summary>How to choose, and how many results were hidden.</summary>
-        private void ShowHint()
+        /// <summary>Puts a song that plays here in the list, at its place in YouTube's order.</summary>
+        private void List(SearchResult result)
         {
-            var text = Ui.T("Click a video to add it to the queue. Scroll with the mouse wheel.");
-            if (_hidden.Count == 1)
-                text += " " + Ui.T("1 video that cannot play here is hidden.");
-            else if (_hidden.Count > 1)
-                text += " " + Ui.T("{count} videos that cannot play here are hidden.", ("count", _hidden.Count));
-            if (text == _hintShown)
-                return;
-            _hintShown = text;
-            _hint.text = text;
+            var at = _listed.FindIndex(r => r.Rank > result.Rank);
+            if (at < 0)
+                at = _listed.Count;
+            _listed.Insert(at, result);
+            var row = new Button(() => Choose(result)) { text = "", tooltip = Ui.T("Add it to the queue") };
+            row.AddToClassList("song-search__result");
+            var thumbnail = new Image { scaleMode = ScaleMode.ScaleAndCrop };
+            thumbnail.AddToClassList("song-search__thumb");
+            row.Add(thumbnail);
+            var text = new VisualElement();
+            text.AddToClassList("song-search__text");
+            var title = new Label(result.Title) { enableRichText = false };
+            title.AddToClassList("song-search__result-title");
+            text.Add(title);
+            var meta = string.Join(" · ", new[] { result.Channel, result.Length }).Trim(' ', '·');
+            var details = new Label(meta) { enableRichText = false };
+            details.AddToClassList("song-search__result-meta");
+            text.Add(details);
+            row.Add(text);
+            _list.Insert(at, row);
+            LoadThumbnail(result.VideoId, thumbnail);
         }
 
-        /// <summary>
-        /// A video was chosen: asked about (oEmbed), then tried in the official player, muted, where the screen will play
-        /// it; only a video that plays is queued and closes the panel. One that will not is hidden from the results and
-        /// the panel says why.
-        /// </summary>
-        private void OnPicked(string videoId)
+        /// <summary>YouTube's public thumbnail for the video (no key needed).</summary>
+        private void LoadThumbnail(string videoId, Image into)
         {
-            // A click can report the video twice (the click, then the page it would have opened); one try at a time.
-            if (videoId == _picked || (_browser != null && _browser.Probing))
-                return;
-            _picked = videoId;
-            Debug.Log($"[SongSearch] Picked {videoId}.");
-            _status.text = Ui.T("Checking the video…");
-            var browser = _browser;
-            _bar.Videos.Ask(videoId, (answer, _) =>
+            var generation = _generation;
+            var request = UnityWebRequestTexture.GetTexture($"https://i.ytimg.com/vi/{videoId}/mqdefault.jpg");
+            request.timeout = 10;
+            request.SendWebRequest().completed += _ =>
             {
-                if (browser == null || browser != _browser)
-                    return;
-                if (answer == VideoCheck.Answer.Blocked || answer == VideoCheck.Answer.Gone)
+                if (request.result == UnityWebRequest.Result.Success && DownloadHandlerTexture.GetContent(request) is { } texture)
                 {
-                    Refuse(videoId, ScreenBar.ErrorText(answer == VideoCheck.Answer.Gone ? 100 : 150));
-                    return;
-                }
-                if (_bar.Videos.Played(videoId))
-                {
-                    Queue(videoId);
-                    return;
-                }
-                browser.Probe(videoId, error =>
-                {
-                    if (browser != _browser)
-                        return;
-                    if (error is { } code)
+                    if (generation == _generation)
                     {
-                        Debug.Log($"[SongSearch] {videoId} refused by the player (error {code}).");
-                        _bar.Videos.Mark(videoId, code == 100 ? VideoCheck.Answer.Gone : VideoCheck.Answer.Blocked);
-                        Refuse(videoId, ScreenBar.ErrorText(code));
-                        return;
+                        _thumbnails.Add(texture);
+                        into.image = texture;
                     }
-                    _bar.Videos.MarkPlayed(videoId);
-                    Queue(videoId);
-                });
-            });
+                    else
+                        Object.Destroy(texture);
+                }
+                request.Dispose();
+            };
         }
 
-        /// <summary>Queues a video known to play and closes the panel (or says why the queue refused it).</summary>
-        private void Queue(string videoId)
+        /// <summary>A song was chosen: it plays here (it was tried), so it joins the queue and the panel closes.</summary>
+        private void Choose(SearchResult result)
         {
-            _bar.QueueLink("https://www.youtube.com/watch?v=" + videoId, refused =>
+            if (_queueing)
+                return;
+            _queueing = true;
+            Debug.Log($"[SongSearch] Chose {result.VideoId}.");
+            _bar.QueueLink("https://www.youtube.com/watch?v=" + result.VideoId, refused =>
             {
+                _queueing = false;
                 if (refused != null)
                 {
-                    Refuse(videoId, refused);
+                    _status.text = _statusShown = refused;
                     return;
                 }
                 _query.SetValueWithoutNotify("");
@@ -316,20 +285,26 @@ namespace TableWorld.View.Hud
             });
         }
 
-        /// <summary>The panel stays open saying why; the video is hidden from the results.</summary>
-        private void Refuse(string videoId, string why)
+        /// <summary>How the search is going: songs ready, results still being checked, and how many could not play here.</summary>
+        private void ShowStatus()
         {
-            _picked = null;
-            _status.text = why;
-            if (_hidden.Add(videoId))
-                _toBlock.Add(videoId);
-        }
-
-        /// <summary>A point on the picture as 0–1 across and down the page.</summary>
-        private Vector2 At(Vector2 local)
-        {
-            var size = _view.contentRect.size;
-            return size.x > 0 && size.y > 0 ? new Vector2(local.x / size.x, local.y / size.y) : Vector2.zero;
+            if (_queueing)
+                return;
+            string text;
+            if (_read == 0)
+                text = Ui.T("Looking for songs that play here…");
+            else if (Checking > 0)
+                text = Ui.T("Ready: {ready} · checking: {checking}", ("ready", _listed.Count), ("checking", Checking));
+            else if (_listed.Count == 0)
+                text = Ui.T("No song for these words plays here. Try other words.");
+            else
+                text = Ui.T("Songs that play here: {count}", ("count", _listed.Count));
+            if (_hidden > 0)
+                text += " · " + Ui.T("Left out because they cannot play here: {count}", ("count", _hidden));
+            if (text == _statusShown)
+                return;
+            _statusShown = text;
+            _status.text = text;
         }
     }
 }

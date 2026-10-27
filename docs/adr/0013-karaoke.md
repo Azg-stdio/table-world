@@ -108,27 +108,23 @@ karaoke night. Miguel decided:
 - **Song titles** come from YouTube's public oEmbed address (`youtube.com/oembed`, no key), asked once by whoever adds
   the song; its answer also says when the owner blocks embedding (401) or the video is gone (404), so the queue refuses
   it before it reaches anyone's screen.
-- **Song search (Miguel, 2026-10-27):** YouTube's own results page (`youtube.com/results`, the player's words plus
-  "karaoke") in a second browser, open only while the search panel is. It is the one exception to "only our page": it
-  may show YouTube's results and its cookie consent pages, nothing else. A click on a video is caught on the page and
-  never opens it: the video goes through the same oEmbed check as a pasted link and joins the queue; a video page
-  reached any other way counts as that pick and the browser goes back to the results; every result is checked with
-  oEmbed as it appears (answers remembered for the session, four questions at a time) and those whose owner blocks
-  playing outside YouTube, or that are gone, are hidden from the page, the panel saying how many (Miguel, 2026-10-27:
-  many karaoke uploads, Sing King's among them, block it). oEmbed does not tell everything: some videos (label-claimed
-  music mostly) pass it and still refuse every embedded player with error 150 ("Video unavailable"). So a picked video
-  is first tried in the official player on our own page, muted, inside the search browser, before it is queued; one the
-  player refuses is hidden and the panel says why. Then every result is tried that way as it appears, in a third,
-  hidden and muted browsers (two) that run only while the panel is open, each switching videos inside the loaded
-  player page (about 7–16 s for a page of results); results not yet confirmed show faint, so what can be clicked plays (measured on one
-  Spanish search: 37 of 50 results played, 13 were refused with error 150). Sponsored results are neither tried nor
-  queued (an ad's video is not a song); they stay on the page as YouTube placed them. Whatever still fails on the screen (a pasted link, a country block) is
-  skipped by the host, so "Video unavailable" does not stay up for everyone. Ads are left as YouTube shows them (hiding them would be ad
-  blocking); any other page (a channel,
-  sign-in, another site) is refused back to the results; ads open in a new window, which is ignored. It is muted (a
-  hovered result plays a preview). Rejected: YouTube's Data API (needs a key that would ship inside the game, with a
-  shared quota of about 100 searches a day) and unofficial search (scraping, mirrors such as Invidious: against
-  YouTube's terms and fragile).
+- **Song search (Miguel, 2026-10-27):** our own list, never YouTube's page. A hidden, muted browser opens YouTube's
+  results for the player's words (plus "karaoke" unless they typed it) and reads the single videos they list (not the
+  ads placed among them, nor playlists and mixes). Every result is checked before it is listed: YouTube's public oEmbed
+  address first (a video whose owner blocks playing elsewhere, or one that is gone), then by playing it, muted, in
+  YouTube's embedded player on our own page in two hidden testers, as the screen will: label-claimed music often passes
+  oEmbed and still refuses every embedded player with error 150 ("Video unavailable"). Only songs that play are listed,
+  in YouTube's order, with YouTube's thumbnail, channel and length; clicking one queues it. When fewer than 20 pass, more
+  results are read (80 at most). Measured: a Spanish search lists 21 songs in about 20 s and leaves 56 out; the songs
+  chosen played on the screen. The browsers run only while the panel is open. A song that still fails on the screen (a
+  pasted link, a country block) is skipped by the host.
+- **Why a quarter to two thirds of karaoke results cannot play:** karaoke tracks are covers of songs labels and
+  publishers own, and they block embedded playback. Everyone embedding YouTube meets it (Watch2Gether, Discord Watch
+  Together); those who play everything (VRChat's worlds through yt-dlp) do it against YouTube's terms and break when
+  YouTube changes. Reading the results page is itself a grey area of YouTube's terms. Left for Miguel to decide later:
+  YouTube's Data API search with its `videoEmbeddable` and `videoSyndicated` filters (official, needs a key held by a
+  small server of ours, 100 searches a day before a compliance audit), or a general media-source protocol players plug
+  their own programs into (the Kodi model), or players' own song files (the UltraStar model).
 - **Each browser runs apart:** its own pair of loopback ports to talk to its engine and its own cache folder (Chromium
   will not start on a folder another of its processes holds), so the screen and the search, or two copies of the game
   on one machine, never clash. What the pages print to their own console is logged as plain lines, not as the game's
