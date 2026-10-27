@@ -165,6 +165,14 @@ namespace Core.Engine
                     return null;
                 case PerformActionCommand c:
                     return T("did", ("action", engine.State.Actions.FirstOrDefault(a => a.Id == c.ActionId) is { } done ? Names.Action(engine.State, done) : Names.Humanize(c.ActionId)));
+                case SetScreenCommand { VideoId: null }:
+                    return T("screenOff");
+                case SetScreenCommand { Playing: true, Position: 0 }:
+                    return T("screenVideo");
+                case SetScreenCommand { Playing: true }:
+                    return T("screenPlay");
+                case SetScreenCommand _:
+                    return T("screenPause");
                 case BlindRoundCommand { On: true }:
                     return T("blindOn");
                 case BlindRoundCommand _:

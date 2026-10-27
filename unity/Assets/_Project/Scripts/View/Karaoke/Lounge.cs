@@ -50,6 +50,16 @@ namespace TableWorld.View.Karaoke
 
         public IReadOnlyList<ChalkerSofa> Sofas => _sofas;
 
+        /// <summary>The stage: the floor in front of the screen. Whoever stands on it sings (ADR 0013 §5).</summary>
+        public Footprint Stage { get; }
+
+        /// <summary>True when feet at <paramref name="feet"/> stand on the stage.</summary>
+        public bool OnStage(Vector3 feet)
+        {
+            var closest = Stage.Closest(feet);
+            return Vector2.Distance(new Vector2(closest.x, closest.z), new Vector2(feet.x, feet.z)) < 1e-3f;
+        }
+
         /// <summary>
         /// Sofas in the room facing <paramref name="screen"/> (a point on the far wall): one long sofa in the middle, two at
         /// the sides turned towards the screen, an open floor in front of the screen for whoever sings.
@@ -57,9 +67,33 @@ namespace TableWorld.View.Karaoke
         public Lounge(Transform parent, Vector3 screen)
         {
             var target = new Vector3(screen.x, 0f, screen.z);
+            // The stage: from a step off the screen's wall, 3.6 m wide and 2 m deep, facing back into the room.
+            Stage = new Footprint(new Vector3(screen.x, 0f, screen.z - 1.4f), Vector3.back, new Vector2(1.8f, 1.0f));
+            BuildStageFloor(parent);
             Add(parent, "middle", new Vector3(0f, 0f, -0.8f), target, 4);
             Add(parent, "left", new Vector3(-3.1f, 0f, 0.9f), target, 3);
             Add(parent, "right", new Vector3(3.1f, 0f, 0.9f), target, 3);
+        }
+
+        private GameObject _stageFloor;
+        private Material _stageMaterial;
+
+        /// <summary>The stage drawn on the floor: a warm carpet with a lit edge, so people see where to stand to sing.</summary>
+        private void BuildStageFloor(Transform parent)
+        {
+            _stageFloor = new GameObject("Stage");
+            _stageFloor.transform.SetParent(parent, false);
+            _stageMaterial = new Material(RequiredShaders.Lit) { name = "Stage" };
+            _stageMaterial.SetColor("_BaseColor", new Color(0.34f, 0.12f, 0.26f));
+            _stageMaterial.EnableKeyword("_EMISSION");
+            _stageMaterial.SetColor("_EmissionColor", new Color(0.25f, 0.05f, 0.2f));
+            var carpet = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            Object.Destroy(carpet.GetComponent<Collider>());
+            carpet.name = "Stage carpet";
+            carpet.transform.SetParent(_stageFloor.transform, false);
+            carpet.transform.position = new Vector3(Stage.Centre.x, EnvironmentView.FloorY + 0.01f, Stage.Centre.z);
+            carpet.transform.localScale = new Vector3(Stage.Half.x * 2f, 0.02f, Stage.Half.y * 2f);
+            carpet.GetComponent<Renderer>().sharedMaterial = _stageMaterial;
         }
 
         private void Add(Transform parent, string name, Vector3 at, Vector3 lookAt, int places)
@@ -85,6 +119,10 @@ namespace TableWorld.View.Karaoke
             foreach (var sofa in _sofas)
                 sofa.Destroy();
             _sofas.Clear();
+            if (_stageMaterial != null)
+                Object.Destroy(_stageMaterial);
+            if (_stageFloor != null)
+                Object.Destroy(_stageFloor);
         }
     }
 }

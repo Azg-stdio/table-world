@@ -1204,7 +1204,7 @@ namespace TableWorld.View.Hud
                               command is DropCommand || command is PickUpCommand || command is PeekCommand || command is BlindfoldCommand ||
                               command is SetButtonsCommand || command is ClickButtonCommand || command is SetScriptUiCommand ||
                               command is SetUiAttributesCommand || command is UiEventCommand || command is SetInputsCommand ||
-                              command is TypeInputCommand || command is SpawnCommand))
+                              command is TypeInputCommand || command is SpawnCommand || command is SetScreenCommand))
                 return;
             // In words, never the type's name: "SetLightCommand" reads "Set light".
             var words = System.Text.RegularExpressions.Regex.Replace(command.GetType().Name.Replace("Command", ""), "(?<=[a-z])(?=[A-Z])", " ").ToLowerInvariant();

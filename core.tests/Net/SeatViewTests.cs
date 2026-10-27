@@ -197,7 +197,7 @@ namespace Core.Tests.Net
                 new DieRolled("d6", 5), new ZoneEntered("a", "z"), new ZoneLeft("a", "z"), new MusicChanged(), new ZoneChanged("z"),
                 new ScriptUiChanged(null), new AssetAdded("img"), new InputsChanged("a"), new ButtonsChanged("a"),
                 new NotebookChanged(), new DrawingsChanged(), new CardShown("c", new Card { Id = "c", Name = "Ace", FaceIndex = 3 }, "s1"),
-                new GameMessage("Red wins."), new PrivateMessage("s1", "You are Merlin."), new Searched("deck", "s1"),
+                new GameMessage("Red wins."), new PrivateMessage("s1", "You are Merlin."), new Searched("deck", "s1"), new ScreenChanged(),
             };
             var all = typeof(StateEvent).Assembly.GetTypes().Where(t => typeof(StateEvent).IsAssignableFrom(t) && !t.IsAbstract).Select(t => t.Name);
             Assert.Equal(all.OrderBy(n => n), events.Select(e => e.GetType().Name).OrderBy(n => n));

@@ -49,11 +49,18 @@ namespace TableWorld.View.Chalkers
         /// </summary>
         public string Singer
         {
-            get => _singer ?? (Karaoke && _table.Game?.Session is { Started: true, Over: false } session ? session.CurrentSeat : null);
+            get => _singer ?? (TableGeometry.Walk ? _stageSingers.FirstOrDefault()
+                : Karaoke && _table.Game?.Session is { Started: true, Over: false } session ? session.CurrentSeat : null);
             set => _singer = value;
         }
 
         private string _singer;
+
+        /// <summary>Who stands on the stage now, in seat order (a room people walk in): the first sings, any others sing along.</summary>
+        private readonly List<string> _stageSingers = new List<string>();
+
+        /// <summary>Everyone on the stage now, in seat order.</summary>
+        public IReadOnlyList<string> StageSingers => _stageSingers;
 
         /// <summary>
         /// Seats taken from this window besides the one the camera is at (a hot seat: one machine, several players). Each
@@ -215,6 +222,13 @@ namespace TableWorld.View.Chalkers
                 _environment.AimStage(shown.Root.transform.position, shown.Root.transform.forward);
                 return;
             }
+            // Walking and singing yourself (no mirror): the light finds your own body.
+            if (Singer != null && Singer == _table.LocalSeat && _walker != null)
+            {
+                var forward = Quaternion.Euler(0f, _walker.Yaw, 0f) * Vector3.forward;
+                _environment.AimStage(Chalker.StandingOrigin(_walker.Feet), forward);
+                return;
+            }
             var place = Singer != null ? Place(Singer) : null;
             _environment.AimStage(place?.Position, place?.Facing);
         }
@@ -337,6 +351,20 @@ namespace TableWorld.View.Chalkers
                     .Where(o => o.Item2.Body?.Place != null).Select(o => o.Item2.Body!.Place!.Value);
             }
 
+            // Whoever stands on the stage sings (ADR 0013 §5): the others from their presence, this player from their walker.
+            _stageSingers.Clear();
+            if (lounge != null)
+            {
+                var onStage = new HashSet<string>();
+                if (_session != null)
+                    foreach (var (_, frame) in _session.Others)
+                        if (frame.Body is { Place: null } other && lounge.OnStage(new Vector3(other.Position.X, 0f, other.Position.Z)))
+                            onStage.Add(frame.Seat);
+                if (_walker != null && _walker.Place == null && _table.LocalSeat != null && lounge.OnStage(_walker.Feet))
+                    onStage.Add(_table.LocalSeat);
+                _stageSingers.AddRange(_table.Engine.State.Players.Seats.Select(s => s.Id).Where(onStage.Contains));
+            }
+
             var seen = new HashSet<string>();
             if (_session != null)
                 foreach (var (_, frame) in _session.Others)
@@ -346,7 +374,7 @@ namespace TableWorld.View.Chalkers
                     seen.Add(frame.Seat);
                     var chalker = ChalkerFor(frame.Seat, ColorOf(frame.Seat));
                     chalker.Personality = PersonalityOf(_session.LookAtSeat(frame.Seat));
-                    chalker.Microphone = Singer != null && Singer == frame.Seat;
+                    chalker.Microphone = Singer == frame.Seat || _stageSingers.Contains(frame.Seat);
                     if (_emoteCounts.TryGetValue(frame.Seat, out var count) && count != frame.EmoteCount && Enum.TryParse<ChalkerEmote>(frame.Emote, out var emote))
                         chalker.Play(emote);
                     _emoteCounts[frame.Seat] = frame.EmoteCount;

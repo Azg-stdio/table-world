@@ -161,6 +161,31 @@ namespace TableWorld.Tests.PlayMode
             Assert.Less(Vector3.Angle(stage.transform.forward, toSinger), EnvironmentView.StageLightAngle / 2f, "the singer is in the light");
         }
 
+        /// <summary>T12.13: walking onto the stage in front of the screen makes you the singer; walking off ends it.</summary>
+        [UnityTest]
+        public IEnumerator StandingOnTheStage_MakesYouTheSinger()
+        {
+            var lounge = _environment.Lounge;
+            Assert.IsFalse(lounge.OnStage(Walker.Feet), "you start off the stage");
+            yield return null;
+            Assert.IsNull(_chalkers.Singer);
+            Assert.IsFalse(_environment.StageLight.enabled);
+
+            Walker.Feet = new Vector3(lounge.Stage.Centre.x, EnvironmentView.FloorY, lounge.Stage.Centre.z);
+            yield return null;
+            yield return null;
+            Assert.AreEqual(new[] { _table.LocalSeat }, _chalkers.StageSingers.ToArray());
+            Assert.AreEqual(_table.LocalSeat, _chalkers.Singer, "you sing");
+            Assert.IsTrue(_environment.StageLight.enabled, "the stage light is on you");
+            Assert.AreEqual(0, _hud.ScreenBar.Delay, "the singer's own screen is not delayed");
+
+            Walker.Feet = new Vector3(0f, EnvironmentView.FloorY, -2f);
+            yield return null;
+            yield return null;
+            Assert.IsNull(_chalkers.Singer, "off the stage, nobody sings");
+            Assert.IsFalse(_environment.StageLight.enabled);
+        }
+
         /// <summary>Another player's body from their presence: standing where their feet are, or on their sofa place.</summary>
         [Test]
         public void AnotherPlayersBody_StandsOrSitsWhereTheirPresenceSays()
