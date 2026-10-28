@@ -6452,9 +6452,9 @@
     {
       "id": "ritual_look",
       "name": "Your role",
-      "seconds": 12,
+      "hostEnds": true,
       "next": "ritual_close",
-      "banner": "Look at your role card: it is in your hand. Keep it to yourself."
+      "banner": "Look at your role card in your hand and keep it to yourself. The host starts the ritual with Next."
     },
     {
       "id": "ritual_close",
@@ -7208,7 +7208,7 @@
       "votes.quest.fail": "Fracaso",
       "actions.assassinate.name": "Nombrar a Merlín",
       "phases.ritual_look.name": "Tu rol",
-      "phases.ritual_look.banner": "Mira tu carta de rol: la tienes en la mano. No se la muestres a nadie.",
+      "phases.ritual_look.banner": "Mira tu carta de rol en tu mano y no se la muestres a nadie. El anfitrión empieza el ritual con Siguiente.",
       "phases.ritual_close.name": "Ojos cerrados",
       "phases.ritual_close.sleepText": "Todos, cierren los ojos.",
       "phases.ritual_minions.name": "Los esbirros",

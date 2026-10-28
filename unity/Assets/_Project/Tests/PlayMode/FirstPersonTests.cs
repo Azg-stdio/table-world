@@ -11,8 +11,8 @@ using UnityEngine.TestTools;
 namespace TableWorld.Tests.PlayMode
 {
     /// <summary>
-    /// First person (docs/dev/camera.md): you sit in your own chalker's eyes, its hands hold your cards in a fan instead of
-    /// the hand zone and the hand bar, they come up to your face to be read, and the free camera setting keeps you lifted.
+    /// First person (docs/dev/camera.md): you sit in your own chalker's eyes with nothing of it drawn but its shadow, your
+    /// cards in the hand bar; the free camera setting keeps you lifted.
     /// </summary>
     public class FirstPersonTests
     {
@@ -53,37 +53,18 @@ namespace TableWorld.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator YourChalker_HoldsYourCards_AndRaisesThemIntoView()
+        public IEnumerator Seated_YourCardsAreInTheHandBar_AndNothingOfYoursCoversTheTable()
         {
             Assert.IsTrue(_camera.IsSeated);
             var yours = _chalkers.Yours;
             Assert.IsNotNull(yours);
-            Assert.IsTrue(_table.HeldByChalker("south"), "your chalker holds your cards");
-            Assert.IsFalse(_table.HeldByChalker("north"), "nobody sits north: its cards stand at its hand zone");
-            var hold = yours.CardHold.Value;
-            foreach (var id in new[] { "a", "b", "c" })
-                Assert.Less(Vector3.Distance(_table.Views[id].transform.position, hold.Grip), 0.1f, $"{id} is in the fan");
-            Assert.IsTrue(Object.FindAnyObjectByType<HudController>().HandBar.SteppedAside, "the hand bar steps aside while the real cards are in your hands");
-
-            var low = _table.Views["b"].transform.position.y;
-            _interaction.ToggleHandUp();
-            yield return new WaitForSeconds(0.8f);
-            Assert.AreEqual(1f, yours.Raised, 0.01f);
-            Assert.Greater(_table.Views["b"].transform.position.y, low + 0.15f, "up to your face");
-            var cam = _camera.GetComponent<Camera>();
-            foreach (var id in new[] { "a", "b", "c" })
-            {
-                var seen = cam.WorldToViewportPoint(_table.Views[id].transform.position);
-                Assert.IsTrue(seen.z > 0f && seen.x > 0.2f && seen.x < 0.8f && seen.y > 0.2f && seen.y < 0.9f, $"{id} is in front of your eyes ({seen})");
-                // The face (local +Y) looks back at the eyes.
-                Assert.Greater(Vector3.Dot(_table.Views[id].transform.up, (cam.transform.position - _table.Views[id].transform.position).normalized), 0.7f, $"{id} faces you");
-            }
-            var leftHand = yours.Points["leftHand"].position;
-            Assert.Less(Vector3.Distance(leftHand, yours.CardHold.Value.LeftHand), 0.03f, "the hand is on the fan");
-
-            _interaction.ToggleHandUp();
-            yield return new WaitForSeconds(0.8f);
-            Assert.AreEqual(0f, yours.Raised, 0.01f, "and down again");
+            Assert.IsFalse(_table.HeldByChalker("south"), "on your own screen your cards are not in your chalker's hands");
+            Assert.IsFalse(Object.FindAnyObjectByType<HudController>().HandBar.SteppedAside, "the hand bar shows them, readable");
+            Assert.IsTrue(yours.HeadHidden);
+            foreach (var renderer in yours.Root.GetComponentsInChildren<Renderer>())
+                Assert.IsTrue(!renderer.enabled || renderer.shadowCastingMode == UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly,
+                    $"{renderer.name} is drawn in first person");
+            yield return null;
         }
 
         [UnityTest]
@@ -94,7 +75,6 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsFalse(_camera.IsSeated);
             Assert.IsFalse(_chalkers.Yours.HeadHidden, "you see your own chalker from outside");
             Assert.Greater(_camera.transform.position.y, _chalkers.Yours.Eyes.y + 0.2f, "the view rises out of your head");
-            Assert.IsTrue(_table.HeldByChalker("south"), "it still holds your cards");
             Assert.IsFalse(Object.FindAnyObjectByType<HudController>().HandBar.SteppedAside, "the hand bar is back");
             _camera.ResetView();
             yield return new WaitForSeconds(TableCamera.BlendSeconds + 0.2f);

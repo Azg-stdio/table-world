@@ -966,15 +966,14 @@ namespace TableWorld.View.Hud
             var asleep = phase != null && seat != null && game.EyesClosedPhase && !game.IsAwake(seat, seat);
             var banner = phase != null && !asleep ? game.BannerText : null;
             var timed = phase?.Seconds is { } seconds ? seconds : 0;
-            _phaseBar?.EnableInClassList(Hidden, phase == null || timed == 0 && banner == null);
+            var hostEnds = phase != null && (timed > 0 || phase.HostEnds);
+            _phaseBar?.EnableInClassList(Hidden, phase == null || !hostEnds && banner == null);
             if (phase == null || _phaseBar == null)
                 return;
             _phaseBanner.text = banner ?? "";
             _phaseBanner.EnableInClassList(Hidden, banner == null);
-            _phaseNext.EnableInClassList(Hidden, timed == 0 || !_table.HostsTable);
+            _phaseNext.EnableInClassList(Hidden, !hostEnds || !_table.HostsTable);
             _phaseTimer.EnableInClassList(Hidden, timed == 0);
-            if (timed == 0)
-                return;
             var key = (phase.Id, session.PhaseVisit);
             if (key != _timedPhase)
             {
@@ -982,6 +981,8 @@ namespace TableWorld.View.Hud
                 _timedSince = Time.unscaledTime;
                 _timedEnding = false;
             }
+            if (timed == 0)
+                return;
             var left = Mathf.Max(0, Mathf.CeilToInt(timed - (Time.unscaledTime - _timedSince)));
             _phaseTimer.text = Ui.T("{seconds} s", ("seconds", left));
             if (left == 0 && _table.HostsTable)

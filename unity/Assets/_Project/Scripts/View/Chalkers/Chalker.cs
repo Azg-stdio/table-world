@@ -157,9 +157,9 @@ namespace TableWorld.View.Chalkers
         private ChalkerGhost _ghost;
 
         /// <summary>
-        /// First person: the first-person camera looks out from inside the head, which draws its shadow only. A worn model
-        /// draws only its shadow too, but for its own forearms and hands holding the cards in view; without a model (or
-        /// one whose rig has no forearms) the shapes' slim forearms and hands show instead.
+        /// First person: the camera looks out from inside the head, and nothing of this chalker is drawn but its shadow,
+        /// so nothing of yours stands between your eyes and the table (your cards are in the hand bar). Lifted out, it
+        /// is drawn again.
         /// </summary>
         public void HideHead(bool hide)
         {
@@ -167,57 +167,11 @@ namespace TableWorld.View.Chalkers
                 return;
             _headHidden = hide;
             var mode = hide ? UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly : UnityEngine.Rendering.ShadowCastingMode.On;
-            foreach (var renderer in _headTurn.GetComponentsInChildren<Renderer>(true))
-                renderer.shadowCastingMode = mode;
+            foreach (var renderer in _root.GetComponentsInChildren<Renderer>(true))
+                if (_model == null || !renderer.transform.IsChildOf(_model.Root.transform))
+                    renderer.shadowCastingMode = mode;
             _model?.HideBody(hide);
-            // A hand's length from the eyes, slimmer, longer arms and smaller fists hold the cards up in view without
-            // covering them (the shapes' stubby arms would stop short of a fan held up to be read).
-            for (var side = 0; side < 2; side++)
-            {
-                var hand = side == 0 ? LeftHand : RightHand;
-                Resize(_shoulders[side].Find("Upper arm"), hide, FirstPersonReach, 1f);
-                Resize(_elbows[side], hide, FirstPersonReach, 1f);
-                Resize(_elbows[side].Find("Forearm"), hide, FirstPersonReach, FirstPersonArm);
-                Resize(hand, hide, FirstPersonReach, FirstPersonHand);
-                if (_model == null)
-                    continue;
-                // The model shows its own forearms and hands when it has them; otherwise the shapes' forearms and fists
-                // show (the model's shadow already has arms, so they cast none).
-                foreach (var part in new[] { _elbows[side].Find("Forearm"), hand })
-                    if (part != null && part.TryGetComponent<Renderer>(out var renderer))
-                    {
-                        renderer.enabled = hide && !_model.FirstPersonArms;
-                        renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-                    }
-            }
         }
-
-        /// <summary>A part of an arm along its length (<paramref name="reach"/>) and across it (<paramref name="thickness"/>), or back as built.</summary>
-        private void Resize(Transform part, bool firstPerson, float reach, float thickness)
-        {
-            if (part == null)
-                return;
-            if (!_armRest.TryGetValue(part, out var rest))
-                _armRest[part] = rest = (part.localPosition, part.localScale);
-            if (!firstPerson)
-            {
-                part.SetLocalPositionAndRotation(rest.Position, part.localRotation);
-                part.localScale = rest.Scale;
-                return;
-            }
-            part.localPosition = rest.Position * reach;
-            // Capsules are long along y; a fist is round.
-            part.localScale = part == LeftHand || part == RightHand
-                ? rest.Scale * thickness
-                : new Vector3(rest.Scale.x * thickness, rest.Scale.y * reach, rest.Scale.z * thickness);
-        }
-
-        /// <summary>Seen from inside the head: the arms' length, the forearms' thickness and the fists' size against the shapes' own.</summary>
-        public const float FirstPersonReach = 1.2f;
-        public const float FirstPersonArm = 0.6f;
-        public const float FirstPersonHand = 0.55f;
-
-        private readonly Dictionary<Transform, (Vector3 Position, Vector3 Scale)> _armRest = new Dictionary<Transform, (Vector3, Vector3)>();
 
         public bool HeadHidden => _headHidden;
 

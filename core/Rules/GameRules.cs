@@ -94,6 +94,9 @@ namespace Core.Rules
         /// </summary>
         public int? Seconds { get; set; }
 
+        /// <summary>The phase waits for the host to move on (the host's Next button), with or without <see cref="Seconds"/>.</summary>
+        public bool HostEnds { get; set; }
+
         /// <summary>The phase that follows this one when it ends, instead of the next in the turn (a sequence such as a ritual).</summary>
         public string? Next { get; set; }
 

@@ -253,8 +253,9 @@ namespace TableWorld.View.Chalkers
             var carried = _interaction != null && _interaction.Held != null ? _interaction.Held.transform.position : (Vector3?)null;
             Prepare(yours, me, _interaction != null && _interaction.HandUp, _tableCamera != null ? _tableCamera.Lean : 0f, carried, place.Position);
             yours.ThumbUp = _interaction != null && _interaction.ThumbUp;
-            // With the free camera setting your hand stands at your edge of the table as in TTS, read from above.
-            yours.HoldingCards &= _tableCamera == null || _tableCamera.FirstPerson;
+            // On your own screen your cards stay in the hand bar and at your edge of the table, as in TTS, where they read
+            // easily; the other players see your chalker hold them (their machines pose it from your hand).
+            yours.HoldingCards = false;
             yours.Pose(place.Position, place.Facing, gaze, pointer ?? gaze, _voice != null && _voice.Talking ? _voice.MicLevel : 0f, dt);
             HoldCards(yours, me);
             if (_tableCamera != null)

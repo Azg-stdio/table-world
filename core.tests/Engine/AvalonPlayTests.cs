@@ -64,7 +64,7 @@ namespace Core.Tests.Engine
         {
             var s = game.Session!;
             var phase = game.Phase!;
-            if (phase.Seconds != null)
+            if (phase.Seconds != null || phase.HostEnds)
                 return (null, new EndTimedPhaseCommand { Phase = s.Phase!, Visit = s.PhaseVisit });
             var playing = game.Playing.Select(p => p.Id).ToList();
             switch (s.Phase)

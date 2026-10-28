@@ -73,35 +73,22 @@ swinging it round the neck, and emotes, sway and breathing leave it still.
 Every seat has a chair, yours too, and your chalker sits in it. Lifted, you see it from outside: that one is you.
 Seated, the camera is inside its head:
 
-- The head draws its shadow only (`Chalker.HideHead`), and a worn model draws only its shadow
-  (`ChalkerModel.HideBody`), except its own forearms and hands. Those are cut out of its meshes the first time (the
-  triangles its forearm and hand bones carry, on the same skeleton) and drawn alone, so you see the model's real hands
-  holding the cards. Cutting needs the mesh readable: an imported model needs Read/Write on (Tom has it).
-- Without a model, or with one that cannot be cut, the shapes' forearms and fists show instead, slimmer and smaller,
-  the arms 20 % longer (`Chalker.FirstPersonReach`, `FirstPersonArm`, `FirstPersonHand`).
-- Your shadow on the table is still the whole model.
-
-**Seen through when lifted.** Where your chalker stands between the lifted camera and the table
-(`ChalkersView.Covers`: points on the table top behind it, inside the screen box its body covers), it fades to 30 %
-(`ChalkerGhost.SeeThrough`) and a thin rim in your seat's colour goes round it at full strength, so the table shows
-through and you still know which one is you. Only your own, only on your screen; from across the table it is solid.
-
-- Lit materials are swapped for `TableWorld/Ghost`: a depth-only pass, then URP Lit's own forward pass made
-  transparent. Only the nearest surface of each mesh shows, so the body does not show its insides through itself, and
-  the lighting is the same as when solid.
-- The rim is the selection outline's shader on a copy of each mesh (a skinned model's baked each frame), its rim pass
-  depth-tested (`_ZTest` LessEqual) so the cards it holds cover it.
+- Nothing of your chalker is drawn but its shadow (`Chalker.HideHead`, `ChalkerModel.HideBody`): no head, body or
+  arms between your eyes and the table. Your shadow on the table is still the whole model.
+- Your cards stay in the hand bar and at your edge of the table, as in TTS (hover a card to raise it into full view):
+  your own chalker never holds them on your screen. The other players' machines pose it holding them (Miguel,
+  2026-10-28: reading a held fan in first person was a nightmare; function first).
 
 Your mouth moves with your microphone, your emotes play on it, and while you carry something its right arm reaches for
 it (`Chalker.ReachFor`, within 1.1 m). Other players' chalkers reach for what they carry the same way.
 
 ## Holding cards
 
-A seat whose chalker is shown holds its hand's cards in a fan (`HandHold`) instead of standing them at its hand zone.
+Another player's chalker holds that seat's cards in a fan (`HandHold`) instead of standing them at its hand zone.
 The cards stay in the hand zone as far as the rules are concerned: this is view only, like the TTS stand it replaces.
 `TableView.HoldHand` places each card every frame, at the render rate, so cards move with the hands. A seat nobody sits
-in keeps its cards standing at the zone, and so does yours with the free camera setting: read from above, TTS style,
-with the hand bar.
+in keeps its cards standing at the zone, and so does yours, always: read from above, TTS style, with the hand bar. The
+holder's palms lie on the cards' backs, fingers up them, so from across the table you see the backs of its fingers.
 
 - **Lowered**: the grip over the table's edge at chest height, the cards leaning back 40°. Seated, they peek in at the
   bottom of the view.
@@ -120,8 +107,8 @@ them, or across their width and no higher than their top. They drop 0.35 s after
 (`GameAction.HandUp`) keeps them up until pressed again. Other players see your hand go up and you lean in (presence
 `hand`, `lean`).
 
-**The hand bar** (the TTS hand at the bottom of the screen) steps aside while you are seated and your chalker holds the
-cards, and comes back when you lift out.
+**The hand bar** (the TTS hand at the bottom of the screen) always shows your own cards; it steps aside only on a
+machine whose own chalker holds them, which today none does.
 
 ## Checking it
 

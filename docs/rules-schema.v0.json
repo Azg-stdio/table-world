@@ -4352,6 +4352,9 @@
         "seconds": {
           "type": "integer"
         },
+        "hostEnds": {
+          "type": "boolean"
+        },
         "next": {
           "type": "string"
         },

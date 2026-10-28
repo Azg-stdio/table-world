@@ -383,8 +383,9 @@ def refuse(key):
 
 # ---- the ritual: timed steps before the first quest, eyes closed but for those it names --------------------------------
 RITUAL = [
-    {"id": "ritual_look", "name": "Your role", "seconds": 12, "next": "ritual_close",
-     "banner": "Look at your role card: it is in your hand. Keep it to yourself."},
+    # Waits for the host: everyone reads their card at their own pace, then the host starts the ritual.
+    {"id": "ritual_look", "name": "Your role", "hostEnds": True, "next": "ritual_close",
+     "banner": "Look at your role card in your hand and keep it to yourself. The host starts the ritual with Next."},
     {"id": "ritual_close", "name": "Eyes closed", "seconds": 4, "next": "ritual_minions", "awake": "nobody", "voice": "none",
      "sleepText": "Everyone, close your eyes."},
     {"id": "ritual_minions", "name": "The minions", "seconds": 10, "next": "ritual_merlin", "awake": "$var.minionEyes", "voice": "none",
@@ -626,7 +627,7 @@ ES = {
     'votes.quest.fail': 'Fracaso',
     'actions.assassinate.name': 'Nombrar a Merlín',
     'phases.ritual_look.name': 'Tu rol',
-    'phases.ritual_look.banner': 'Mira tu carta de rol: la tienes en la mano. No se la muestres a nadie.',
+    'phases.ritual_look.banner': 'Mira tu carta de rol en tu mano y no se la muestres a nadie. El anfitrión empieza el ritual con Siguiente.',
     'phases.ritual_close.name': 'Ojos cerrados',
     'phases.ritual_close.sleepText': 'Todos, cierren los ojos.',
     'phases.ritual_minions.name': 'Los esbirros',
