@@ -51,6 +51,9 @@ namespace TableWorld.View
         public const float BlendSeconds = 0.4f;
         /// <summary>Seated, the near clip plane: the eyes are a hand's length from the cards they hold.</summary>
         public const float SeatedNearClip = 0.02f;
+        /// <summary>Wheel steps out, in a row, that lift you out of your seat once you sit back; a pause longer than PullSettle forgets them.</summary>
+        public const int LiftSteps = 3;
+        public const float PullSettle = 0.6f;
 
         private readonly Dictionary<int, View> _saved = new Dictionary<int, View>();
         private View _home;
@@ -106,6 +109,9 @@ namespace TableWorld.View
         private float _liftedNearClip = -1f;
         private bool _topDownFromSeat;
         private bool _quickZoomFromSeat;
+        private int _pull;
+        private float _pullAt;
+        private float _pullShown;
 
         /// <summary>Set each frame by the interaction: Q/E rotate a held or hovered object instead of turning.</summary>
         public bool SuppressTurnKeys { get; set; }
@@ -403,6 +409,9 @@ namespace TableWorld.View
         /// </summary>
         private bool Seated(Mouse mouse, Keyboard keyboard)
         {
+            if (_pull > 0 && Time.unscaledTime - _pullAt > PullSettle)
+                _pull = 0;
+            _pullShown = Mathf.MoveTowards(_pullShown, _pull, Time.unscaledDeltaTime * 8f);
             if (mouse != null && !SuppressMouse)
             {
                 var delta = mouse.delta.ReadValue();
@@ -423,9 +432,18 @@ namespace TableWorld.View
                 {
                     if (scroll < 0f && _lean <= 0f)
                     {
-                        Lift();
+                        // Resistance: sitting back, the view gives a little with each step out and lifts only after
+                        // LiftSteps in a row; a pause lets it settle back.
+                        _pull++;
+                        _pullAt = Time.unscaledTime;
+                        if (_pull >= LiftSteps)
+                        {
+                            _pull = 0;
+                            Lift();
+                        }
                         return true;
                     }
+                    _pull = 0;
                     _lean = Mathf.Clamp01(_lean + LeanStep * Mathf.Sign(scroll));
                 }
             }
@@ -470,7 +488,8 @@ namespace TableWorld.View
             {
                 // The eyes are your chalker's, which leans with you (it is posed from Lean before it reports them).
                 rotation = Quaternion.Euler(_headPitch, _seatYaw + _headYaw, 0f);
-                position = _eye;
+                // Pulling out against the resistance eases the eyes back and up a little.
+                position = _eye + Quaternion.Euler(0f, _seatYaw, 0f) * new Vector3(0f, 0.02f, -0.035f) * _pullShown;
             }
             else
             {

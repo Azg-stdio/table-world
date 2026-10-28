@@ -78,7 +78,7 @@ namespace TableWorld.View.Chalkers
         }
 
         /// <summary>Where the holder's hands go: the left closes on the fan's foot, the right steadies it just beside, the cards showing above both.</summary>
-        public Vector3 LeftHand => Grip - Right * 0.018f + Face * 0.018f - Up * 0.012f;
-        public Vector3 RightHand => Grip + Right * 0.03f + Face * 0.016f - Up * 0.02f;
+        public Vector3 LeftHand => Grip - Right * 0.03f + Face * 0.018f - Up * 0.012f;
+        public Vector3 RightHand => Grip + Right * 0.042f + Face * 0.016f - Up * 0.02f;
     }
 }

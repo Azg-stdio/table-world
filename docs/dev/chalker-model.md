@@ -13,7 +13,7 @@ Units are metres. The chalker's origin is on the edge of the table, at table-top
 | Measure | Value | Where it comes from |
 |---|---|---|
 | Chair seat (cushion top) | 0.30 m below the table top | `ChalkerChair.SeatTop` (a karaoke sofa's cushions too, `ChalkerSofa`) |
-| Distance from the table's edge | 0.22 m | `ChalkersView.SeatDistance` |
+| Distance from the table's edge | 0.25 m | `ChalkersView.SeatDistance` |
 | Torso pivot above the origin | 0.14 m | `Chalker.TorsoHeight` |
 | Eyes above the origin | 0.53 m | `Chalker.EyeHeight` (the first-person camera sits at the shapes' eyes, `Chalker.Eyes`) |
 | Shoulders, upper arm, forearm | 0.06 m above the torso pivot, 0.17 m, 0.17 m | arm lengths that reach the table at rest |

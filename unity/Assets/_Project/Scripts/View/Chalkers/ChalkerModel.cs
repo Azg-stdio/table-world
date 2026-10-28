@@ -30,6 +30,8 @@ namespace TableWorld.View.Chalkers
             public float SkinHue, SkinSaturation, SkinValue;
             /// <summary>The hands' size against the file's (a cartoon's fists dwarf real-size cards).</summary>
             public float HandScale = 1f;
+            /// <summary>The whole body's size against the one that puts its shoulders where the shapes' are.</summary>
+            public float BodyScale = 1f;
 
             /// <summary>Unreal-style names (pelvis, spine_01, upperarm_l…), as on the placeholder lizard.</summary>
             public static readonly Rig Unreal = new Rig
@@ -45,7 +47,7 @@ namespace TableWorld.View.Chalkers
                 Tail = new[] { "tail1", "tail2", "tail3", "tail4" },
                 Skin = new[] { "Body", "Head" },
                 SkinHue = 0.3f, SkinSaturation = 0.45f, SkinValue = 0.7f,
-                HandScale = 0.75f,
+                HandScale = 0.75f, BodyScale = 0.9f,
             };
         }
 
@@ -137,7 +139,7 @@ namespace TableWorld.View.Chalkers
 
             var pelvis = At(rig.Pelvis);
             var shoulders = (At(rig.LeftUpperArm).y + At(rig.RightUpperArm).y) / 2f - pelvis.y;
-            Scale = (Chalker.TorsoHeight + 0.06f - Chalker.HipHeight) / Mathf.Max(shoulders, 0.01f);
+            Scale = (Chalker.TorsoHeight + 0.06f - Chalker.HipHeight) / Mathf.Max(shoulders, 0.01f) * rig.BodyScale;
             var thigh = At(rig.LeftThigh);
             var calf = At(rig.LeftCalf);
             var foot = At(rig.LeftFoot);

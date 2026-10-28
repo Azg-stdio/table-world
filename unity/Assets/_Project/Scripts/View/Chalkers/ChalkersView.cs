@@ -23,7 +23,7 @@ namespace TableWorld.View.Chalkers
     {
         public const string MirrorKey = "\u0001mirror";
         /// <summary>How far from the table's edge a chalker's origin (and its chair's) sits, in metres.</summary>
-        public const float SeatDistance = 0.22f;
+        public const float SeatDistance = 0.25f;
         /// <summary>The closest a seat comes to a table corner along its edge, so neighbouring chairs fit.</summary>
         public const float CornerClearance = 0.25f;
 

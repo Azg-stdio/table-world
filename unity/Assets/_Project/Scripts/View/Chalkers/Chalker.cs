@@ -529,7 +529,8 @@ namespace TableWorld.View.Chalkers
             var root = _root.transform;
             var outward = root.right * (side == 0 ? -1f : 1f);
             var shoulder = _shoulders[side].position;
-            var pole = shoulder + outward * 0.25f - root.up * 0.25f - root.forward * 0.05f;
+            // Elbows out to the sides and back, not down: lowered over the table's edge, dropped elbows would go through it.
+            var pole = shoulder + outward * 0.3f - root.up * 0.08f - root.forward * 0.15f;
             TwoBoneIk.Solve(_shoulders[side], _elbows[side], side == 0 ? LeftHand : RightHand, target, pole, -root.up, root.forward);
         }
 

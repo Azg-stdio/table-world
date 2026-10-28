@@ -51,7 +51,7 @@ flowchart LR
 | | Seated | Lifted |
 |---|---|---|
 | Right drag | turns the head (110° each way, 35° up, 80° down) | orbits |
-| Wheel | leans in over the table (four steps); out once sitting back lifts you | zooms |
+| Wheel | leans in over the table (four steps); sitting back, three steps out in a row lift you (each gives a little; a pause settles back) | zooms |
 | WASD, middle drag, Shift + right drag | lifts you, then pans | pans |
 | Q / E (nothing hovered) | turns the head | turns the camera |
 | Space | stays seated, head straight | sits you (stays lifted with the free camera setting) |
