@@ -12,6 +12,802 @@
       "path": "builtin:standard_back",
       "columns": 1,
       "rows": 1
+    },
+    {
+      "id": "piece_cube",
+      "type": "model",
+      "path": "builtin:cube",
+      "columns": 1,
+      "rows": 1
+    },
+    {
+      "id": "piece_pawn",
+      "type": "model",
+      "path": "builtin:pawn",
+      "columns": 1,
+      "rows": 1
+    },
+    {
+      "id": "piece_gem",
+      "type": "model",
+      "path": "builtin:gem",
+      "columns": 1,
+      "rows": 1
+    },
+    {
+      "id": "piece_checker",
+      "type": "model",
+      "path": "builtin:checker",
+      "columns": 1,
+      "rows": 1
+    }
+  ],
+  "objects": [
+    {
+      "id": "quest_1",
+      "type": "Card",
+      "name": "Quest 1",
+      "locked": true,
+      "transform": {
+        "position": [
+          -0.36,
+          0.0,
+          0.08
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.14,
+        0.19
+      ],
+      "text": {
+        "title": "Quest 1",
+        "kind": "Players: team",
+        "body": "5: 2\n6: 2\n7: 2\n8-10: 3"
+      },
+      "style": {
+        "paper": [
+          0.93,
+          0.89,
+          0.78
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.55,
+          0.38,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "quest_2",
+      "type": "Card",
+      "name": "Quest 2",
+      "locked": true,
+      "transform": {
+        "position": [
+          -0.18,
+          0.0,
+          0.08
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.14,
+        0.19
+      ],
+      "text": {
+        "title": "Quest 2",
+        "kind": "Players: team",
+        "body": "5: 3\n6: 3\n7: 3\n8-10: 4"
+      },
+      "style": {
+        "paper": [
+          0.93,
+          0.89,
+          0.78
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.55,
+          0.38,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "quest_3",
+      "type": "Card",
+      "name": "Quest 3",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.08
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.14,
+        0.19
+      ],
+      "text": {
+        "title": "Quest 3",
+        "kind": "Players: team",
+        "body": "5: 2\n6: 4\n7: 3\n8-10: 4"
+      },
+      "style": {
+        "paper": [
+          0.93,
+          0.89,
+          0.78
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.55,
+          0.38,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "quest_4",
+      "type": "Card",
+      "name": "Quest 4",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.18,
+          0.0,
+          0.08
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.14,
+        0.19
+      ],
+      "text": {
+        "title": "Quest 4",
+        "kind": "Players: team",
+        "body": "5: 3\n6: 3\n7: 4\n8-10: 5",
+        "footer": "7 or more: 2 fails to sink it"
+      },
+      "style": {
+        "paper": [
+          0.93,
+          0.89,
+          0.78
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.55,
+          0.38,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "quest_5",
+      "type": "Card",
+      "name": "Quest 5",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.36,
+          0.0,
+          0.08
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.14,
+        0.19
+      ],
+      "text": {
+        "title": "Quest 5",
+        "kind": "Players: team",
+        "body": "5: 3\n6: 4\n7: 4\n8-10: 5"
+      },
+      "style": {
+        "paper": [
+          0.93,
+          0.89,
+          0.78
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.55,
+          0.38,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "reject_1",
+      "type": "Card",
+      "name": "Rejected team 1",
+      "locked": true,
+      "transform": {
+        "position": [
+          -0.16,
+          0.0,
+          -0.17
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.06,
+        0.06
+      ],
+      "text": {
+        "title": "Rejected",
+        "body": "1"
+      },
+      "style": {
+        "paper": [
+          0.75,
+          0.72,
+          0.68
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.6,
+          0.15,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "reject_2",
+      "type": "Card",
+      "name": "Rejected team 2",
+      "locked": true,
+      "transform": {
+        "position": [
+          -0.08,
+          0.0,
+          -0.17
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.06,
+        0.06
+      ],
+      "text": {
+        "title": "Rejected",
+        "body": "2"
+      },
+      "style": {
+        "paper": [
+          0.75,
+          0.72,
+          0.68
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.6,
+          0.15,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "reject_3",
+      "type": "Card",
+      "name": "Rejected team 3",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          -0.17
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.06,
+        0.06
+      ],
+      "text": {
+        "title": "Rejected",
+        "body": "3"
+      },
+      "style": {
+        "paper": [
+          0.75,
+          0.72,
+          0.68
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.6,
+          0.15,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "reject_4",
+      "type": "Card",
+      "name": "Rejected team 4",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.08,
+          0.0,
+          -0.17
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.06,
+        0.06
+      ],
+      "text": {
+        "title": "Rejected",
+        "body": "4"
+      },
+      "style": {
+        "paper": [
+          0.75,
+          0.72,
+          0.68
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.6,
+          0.15,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "reject_5",
+      "type": "Card",
+      "name": "Rejected team 5",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.16,
+          0.0,
+          -0.17
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.06,
+        0.06
+      ],
+      "text": {
+        "title": "Evil wins",
+        "body": "5"
+      },
+      "style": {
+        "paper": [
+          0.75,
+          0.72,
+          0.68
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.6,
+          0.15,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "reject_marker",
+      "type": "Model",
+      "name": "Rejections",
+      "transform": {
+        "position": [
+          -0.26,
+          0.0,
+          -0.17
+        ],
+        "scale": [
+          1.6,
+          1.6,
+          1.6
+        ]
+      },
+      "tint": [
+        0.8,
+        0.82,
+        0.85
+      ],
+      "asset": "piece_cube"
+    },
+    {
+      "id": "crown",
+      "type": "Model",
+      "name": "Leader",
+      "transform": {
+        "position": [
+          0.3,
+          0.0,
+          -0.3
+        ],
+        "scale": [
+          2.4,
+          2.4,
+          2.4
+        ]
+      },
+      "tint": [
+        0.95,
+        0.75,
+        0.2
+      ],
+      "asset": "piece_pawn"
+    },
+    {
+      "id": "shield",
+      "type": "Model",
+      "name": "Team",
+      "transform": {
+        "position": [
+          -0.06,
+          0.0,
+          -0.3
+        ],
+        "scale": [
+          2.2,
+          2.2,
+          2.2
+        ]
+      },
+      "tint": [
+        0.8,
+        0.82,
+        0.85
+      ],
+      "asset": "piece_gem",
+      "material": "glass"
+    },
+    {
+      "id": "shield_2",
+      "type": "Model",
+      "name": "Team",
+      "transform": {
+        "position": [
+          -0.033999998,
+          0.0,
+          -0.3
+        ],
+        "scale": [
+          2.2,
+          2.2,
+          2.2
+        ]
+      },
+      "tint": [
+        0.8,
+        0.82,
+        0.85
+      ],
+      "asset": "piece_gem",
+      "material": "glass"
+    },
+    {
+      "id": "shield_3",
+      "type": "Model",
+      "name": "Team",
+      "transform": {
+        "position": [
+          -0.007999998,
+          0.0,
+          -0.3
+        ],
+        "scale": [
+          2.2,
+          2.2,
+          2.2
+        ]
+      },
+      "tint": [
+        0.8,
+        0.82,
+        0.85
+      ],
+      "asset": "piece_gem",
+      "material": "glass"
+    },
+    {
+      "id": "shield_4",
+      "type": "Model",
+      "name": "Team",
+      "transform": {
+        "position": [
+          0.018000003,
+          0.0,
+          -0.3
+        ],
+        "scale": [
+          2.2,
+          2.2,
+          2.2
+        ]
+      },
+      "tint": [
+        0.8,
+        0.82,
+        0.85
+      ],
+      "asset": "piece_gem",
+      "material": "glass"
+    },
+    {
+      "id": "shield_5",
+      "type": "Model",
+      "name": "Team",
+      "transform": {
+        "position": [
+          0.044000003,
+          0.0,
+          -0.3
+        ],
+        "scale": [
+          2.2,
+          2.2,
+          2.2
+        ]
+      },
+      "tint": [
+        0.8,
+        0.82,
+        0.85
+      ],
+      "asset": "piece_gem",
+      "material": "glass"
+    },
+    {
+      "id": "good",
+      "type": "Model",
+      "name": "Quest succeeded",
+      "transform": {
+        "position": [
+          -0.62,
+          0.0,
+          0.06
+        ],
+        "scale": [
+          1.8,
+          1.8,
+          1.8
+        ]
+      },
+      "tint": [
+        0.2,
+        0.42,
+        0.9
+      ],
+      "asset": "piece_checker",
+      "kind": "chip"
+    },
+    {
+      "id": "good_2",
+      "type": "Model",
+      "name": "Quest succeeded",
+      "transform": {
+        "position": [
+          -0.594,
+          0.0,
+          0.06
+        ],
+        "scale": [
+          1.8,
+          1.8,
+          1.8
+        ]
+      },
+      "tint": [
+        0.2,
+        0.42,
+        0.9
+      ],
+      "asset": "piece_checker",
+      "kind": "chip"
+    },
+    {
+      "id": "good_3",
+      "type": "Model",
+      "name": "Quest succeeded",
+      "transform": {
+        "position": [
+          -0.568,
+          0.0,
+          0.06
+        ],
+        "scale": [
+          1.8,
+          1.8,
+          1.8
+        ]
+      },
+      "tint": [
+        0.2,
+        0.42,
+        0.9
+      ],
+      "asset": "piece_checker",
+      "kind": "chip"
+    },
+    {
+      "id": "evil",
+      "type": "Model",
+      "name": "Quest failed",
+      "transform": {
+        "position": [
+          0.56,
+          0.0,
+          0.06
+        ],
+        "scale": [
+          1.8,
+          1.8,
+          1.8
+        ]
+      },
+      "tint": [
+        0.86,
+        0.2,
+        0.18
+      ],
+      "asset": "piece_checker",
+      "kind": "chip"
+    },
+    {
+      "id": "evil_2",
+      "type": "Model",
+      "name": "Quest failed",
+      "transform": {
+        "position": [
+          0.586,
+          0.0,
+          0.06
+        ],
+        "scale": [
+          1.8,
+          1.8,
+          1.8
+        ]
+      },
+      "tint": [
+        0.86,
+        0.2,
+        0.18
+      ],
+      "asset": "piece_checker",
+      "kind": "chip"
+    },
+    {
+      "id": "evil_3",
+      "type": "Model",
+      "name": "Quest failed",
+      "transform": {
+        "position": [
+          0.612,
+          0.0,
+          0.06
+        ],
+        "scale": [
+          1.8,
+          1.8,
+          1.8
+        ]
+      },
+      "tint": [
+        0.86,
+        0.2,
+        0.18
+      ],
+      "asset": "piece_checker",
+      "kind": "chip"
     }
   ],
   "zones": [
@@ -332,6 +1128,16 @@
           }
         },
         {
+          "lua": {
+            "call": "crownToLeader"
+          }
+        },
+        {
+          "lua": {
+            "call": "shieldsToTeam"
+          }
+        },
+        {
           "message": {
             "text": "@leads"
           }
@@ -395,6 +1201,11 @@
           }
         },
         {
+          "lua": {
+            "call": "shieldsToTeam"
+          }
+        },
+        {
           "message": {
             "text": "@picks"
           }
@@ -423,6 +1234,11 @@
           "setVariable": {
             "name": "team",
             "remove": "$param.member"
+          }
+        },
+        {
+          "lua": {
+            "call": "shieldsToTeam"
           }
         },
         {
@@ -488,6 +1304,11 @@
                   }
                 },
                 {
+                  "lua": {
+                    "call": "rejectTrack"
+                  }
+                },
+                {
                   "gotoPhase": {
                     "phase": "quest"
                   }
@@ -498,6 +1319,11 @@
                   "setVariable": {
                     "name": "rejections",
                     "delta": 1.0
+                  }
+                },
+                {
+                  "lua": {
+                    "call": "rejectTrack"
                   }
                 },
                 {
@@ -601,6 +1427,14 @@
                   }
                 },
                 {
+                  "lua": {
+                    "call": "markQuest",
+                    "args": {
+                      "result": "fail"
+                    }
+                  }
+                },
+                {
                   "message": {
                     "text": "@questFails"
                   }
@@ -611,6 +1445,14 @@
                   "setVariable": {
                     "name": "successes",
                     "delta": 1.0
+                  }
+                },
+                {
+                  "lua": {
+                    "call": "markQuest",
+                    "args": {
+                      "result": "success"
+                    }
                   }
                 },
                 {
@@ -824,7 +1666,7 @@
     ]
   },
   "scripts": {
-    "global": "\nSIZES = { [5] = {2, 3, 2, 3, 3}, [6] = {2, 3, 4, 3, 4}, [7] = {2, 3, 3, 4, 4},\n          [8] = {3, 4, 4, 5, 5}, [9] = {3, 4, 4, 5, 5}, [10] = {3, 4, 4, 5, 5} }\n\n-- The team size and the fails it takes for the quest about to be played.\nfunction setQuest(ctx)\n  local players = #Game.getSeats()\n  local quest = Game.getVariable(\"quest\")\n  Game.setVariable(\"size\", SIZES[players][quest])\n  if quest == 4 and players >= 7 then Game.setVariable(\"needFails\", 2) else Game.setVariable(\"needFails\", 1) end\nend\n"
+    "global": "\nSIZES = { [5] = {2, 3, 2, 3, 3}, [6] = {2, 3, 4, 3, 4}, [7] = {2, 3, 3, 4, 4},\n          [8] = {3, 4, 4, 5, 5}, [9] = {3, 4, 4, 5, 5}, [10] = {3, 4, 4, 5, 5} }\n\n-- The team size and the fails it takes for the quest about to be played.\nfunction setQuest(ctx)\n  local players = #Game.getSeats()\n  local quest = Game.getVariable(\"quest\")\n  Game.setVariable(\"size\", SIZES[players][quest])\n  if quest == 4 and players >= 7 then Game.setVariable(\"needFails\", 2) else Game.setVariable(\"needFails\", 1) end\nend\n\n-- The pieces on the table follow the game: the crown before the leader, a shield before each member of the team,\n-- a blue or red checker on each quest card once played, the marker on the rejection track.\nSHIELDS = {\"shield\", \"shield_2\", \"shield_3\", \"shield_4\", \"shield_5\"}\nHOME = {}\n\nlocal function at(id)\n  local o = getObjectFromGUID(id)\n  return o and o.getPosition()\nend\n\nlocal function put(id, p)\n  local o = getObjectFromGUID(id)\n  if HOME[id] == nil and o then HOME[id] = o.getPosition() end\n  if o and p then o.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z}) end\nend\n\n-- Before a seat, between its edge of the table and the middle (share of the way from the middle to its hand).\nlocal function before(seat, share)\n  local p = at(\"hand_\" .. seat:match(\"(%d+)$\"))\n  return {x = p.x * share, y = p.y, z = p.z * share}\nend\n\nfunction crownToLeader(ctx)\n  put(\"crown\", before(Game.getCurrentSeat(), 0.8))\nend\n\nfunction shieldsToTeam(ctx)\n  local team = Game.getVariable(\"team\") or {}\n  for i, id in ipairs(SHIELDS) do\n    put(id, nil)\n    if team[i] then put(id, before(team[i], 0.62)) else put(id, HOME[id]) end\n  end\nend\n\nfunction markQuest(ctx)\n  local quest = math.floor(Game.getVariable(\"quest\"))\n  if ctx.args.result == \"fail\" then\n    local n = math.floor(Game.getVariable(\"fails\"))\n    put(n == 1 and \"evil\" or (\"evil_\" .. n), at(\"quest_\" .. quest))\n  else\n    local n = math.floor(Game.getVariable(\"successes\"))\n    put(n == 1 and \"good\" or (\"good_\" .. n), at(\"quest_\" .. quest))\n  end\nend\n\nfunction rejectTrack(ctx)\n  local n = math.floor(Game.getVariable(\"rejections\"))\n  put(\"reject_marker\", nil)\n  if n == 0 then put(\"reject_marker\", HOME[\"reject_marker\"]) else put(\"reject_marker\", at(\"reject_\" .. n)) end\nend\n"
   },
   "roles": {
     "teams": [
@@ -1016,7 +1858,56 @@
       "strings.threeFailed": "Tres misiones fracasaron.",
       "strings.threeSucceeded": "Tres misiones tuvieron éxito. El Asesino nombra a Merlín.",
       "strings.wasMerlin": "{$param.target.name} era Merlín.",
-      "strings.wasNotMerlin": "{$param.target.name} no era Merlín."
+      "strings.wasNotMerlin": "{$param.target.name} no era Merlín.",
+      "objects.quest_1.name": "Misión 1",
+      "objects.quest_1.text.title": "Misión 1",
+      "objects.quest_1.text.kind": "Jugadores: equipo",
+      "objects.quest_1.text.body": "5: 2\n6: 2\n7: 2\n8-10: 3",
+      "objects.quest_2.name": "Misión 2",
+      "objects.quest_2.text.title": "Misión 2",
+      "objects.quest_2.text.kind": "Jugadores: equipo",
+      "objects.quest_2.text.body": "5: 3\n6: 3\n7: 3\n8-10: 4",
+      "objects.quest_3.name": "Misión 3",
+      "objects.quest_3.text.title": "Misión 3",
+      "objects.quest_3.text.kind": "Jugadores: equipo",
+      "objects.quest_3.text.body": "5: 2\n6: 4\n7: 3\n8-10: 4",
+      "objects.quest_4.name": "Misión 4",
+      "objects.quest_4.text.title": "Misión 4",
+      "objects.quest_4.text.kind": "Jugadores: equipo",
+      "objects.quest_4.text.body": "5: 3\n6: 3\n7: 4\n8-10: 5",
+      "objects.quest_5.name": "Misión 5",
+      "objects.quest_5.text.title": "Misión 5",
+      "objects.quest_5.text.kind": "Jugadores: equipo",
+      "objects.quest_5.text.body": "5: 3\n6: 4\n7: 4\n8-10: 5",
+      "objects.quest_4.text.footer": "7 o más: 2 fracasos para hundirla",
+      "objects.reject_1.name": "Equipo rechazado 1",
+      "objects.reject_1.text.title": "Rechazado",
+      "objects.reject_1.text.body": "1",
+      "objects.reject_2.name": "Equipo rechazado 2",
+      "objects.reject_2.text.title": "Rechazado",
+      "objects.reject_2.text.body": "2",
+      "objects.reject_3.name": "Equipo rechazado 3",
+      "objects.reject_3.text.title": "Rechazado",
+      "objects.reject_3.text.body": "3",
+      "objects.reject_4.name": "Equipo rechazado 4",
+      "objects.reject_4.text.title": "Rechazado",
+      "objects.reject_4.text.body": "4",
+      "objects.reject_5.name": "Equipo rechazado 5",
+      "objects.reject_5.text.title": "Gana el mal",
+      "objects.reject_5.text.body": "5",
+      "objects.reject_marker.name": "Rechazos",
+      "objects.crown.name": "Líder",
+      "objects.shield.name": "Equipo",
+      "objects.shield_2.name": "Equipo",
+      "objects.shield_3.name": "Equipo",
+      "objects.shield_4.name": "Equipo",
+      "objects.shield_5.name": "Equipo",
+      "objects.good.name": "Misión cumplida",
+      "objects.evil.name": "Misión fracasada",
+      "objects.good_2.name": "Misión cumplida",
+      "objects.evil_2.name": "Misión fracasada",
+      "objects.good_3.name": "Misión cumplida",
+      "objects.evil_3.name": "Misión fracasada"
     }
   }
 }

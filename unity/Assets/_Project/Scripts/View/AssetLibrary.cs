@@ -306,6 +306,27 @@ namespace TableWorld.View
             return (DefineText(TextFaces.FaceId(text, card.Style, size), text, card.Style, size), 0);
         }
 
+        /// <summary>
+        /// Whether <paramref name="obj"/> shows the text drawing <paramref name="id"/> as drawn now: in the session's
+        /// language, which <c>AssetUse</c> (the words as written) does not know, so a translated card's face is redrawn too.
+        /// </summary>
+        public bool DrawsText(TableObject obj, string id)
+        {
+            if (!TextFaces.IsTextId(id))
+                return false;
+            switch (obj)
+            {
+                case Card card:
+                    return Face(card).AssetId == id || Back(card).AssetId == id;
+                case Deck deck when deck.Cards.Count > 0:
+                    var top = deck.Cards[0];
+                    var bottom = deck.Cards[deck.Cards.Count - 1];
+                    return Face(deck, top).AssetId == id || Face(deck, bottom).AssetId == id || Back(deck, top).AssetId == id || Back(deck, bottom).AssetId == id;
+                default:
+                    return false;
+            }
+        }
+
         public (string AssetId, int Index) Back(Card card) =>
             TextFaces.BackId(card) is { } id ? (DefineText(id, null, card.Style, card.Size ?? Card.DefaultSize), 0) : (card.BackAsset, card.BackIndex);
 

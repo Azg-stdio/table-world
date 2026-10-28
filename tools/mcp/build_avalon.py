@@ -134,6 +134,57 @@ function setQuest(ctx)
   Game.setVariable("size", SIZES[players][quest])
   if quest == 4 and players >= 7 then Game.setVariable("needFails", 2) else Game.setVariable("needFails", 1) end
 end
+
+-- The pieces on the table follow the game: the crown before the leader, a shield before each member of the team,
+-- a blue or red checker on each quest card once played, the marker on the rejection track.
+SHIELDS = {"shield", "shield_2", "shield_3", "shield_4", "shield_5"}
+HOME = {}
+
+local function at(id)
+  local o = getObjectFromGUID(id)
+  return o and o.getPosition()
+end
+
+local function put(id, p)
+  local o = getObjectFromGUID(id)
+  if HOME[id] == nil and o then HOME[id] = o.getPosition() end
+  if o and p then o.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z}) end
+end
+
+-- Before a seat, between its edge of the table and the middle (share of the way from the middle to its hand).
+local function before(seat, share)
+  local p = at("hand_" .. seat:match("(%d+)$"))
+  return {x = p.x * share, y = p.y, z = p.z * share}
+end
+
+function crownToLeader(ctx)
+  put("crown", before(Game.getCurrentSeat(), 0.8))
+end
+
+function shieldsToTeam(ctx)
+  local team = Game.getVariable("team") or {}
+  for i, id in ipairs(SHIELDS) do
+    put(id, nil)
+    if team[i] then put(id, before(team[i], 0.62)) else put(id, HOME[id]) end
+  end
+end
+
+function markQuest(ctx)
+  local quest = math.floor(Game.getVariable("quest"))
+  if ctx.args.result == "fail" then
+    local n = math.floor(Game.getVariable("fails"))
+    put(n == 1 and "evil" or ("evil_" .. n), at("quest_" .. quest))
+  else
+    local n = math.floor(Game.getVariable("successes"))
+    put(n == 1 and "good" or ("good_" .. n), at("quest_" .. quest))
+  end
+end
+
+function rejectTrack(ctx)
+  local n = math.floor(Game.getVariable("rejections"))
+  put("reject_marker", nil)
+  if n == 0 then put("reject_marker", HOME["reject_marker"]) else put("reject_marker", at("reject_" .. n)) end
+end
 """)
 
 
@@ -151,6 +202,8 @@ call("add_phase", phaseJson=json.dumps({
     "onEnter": [
         {"lua": {"call": "setQuest"}},
         {"setVariable": {"name": "team", "value": []}},
+        {"lua": {"call": "crownToLeader"}},
+        {"lua": {"call": "shieldsToTeam"}},
         {"message": {"text": "@leads"}},
     ],
 }))
@@ -159,14 +212,14 @@ call("add_action", actionJson=json.dumps({
     "params": [{"name": "member", "type": "seat"}],
     "preconditions": [{"not": {"inList": {"list": "$var.team", "value": "$param.member"}}},
                       compare("$var.team.count", "$var.size", "<")],
-    "effects": [{"setVariable": {"name": "team", "add": "$param.member"}},
+    "effects": [{"setVariable": {"name": "team", "add": "$param.member"}}, {"lua": {"call": "shieldsToTeam"}},
                 {"message": {"text": "@picks"}}],
 }))
 call("add_action", actionJson=json.dumps({
     "id": "unpick", "name": "Take off the team", "actor": "current",
     "params": [{"name": "member", "type": "seat"}],
     "preconditions": [{"inList": {"list": "$var.team", "value": "$param.member"}}],
-    "effects": [{"setVariable": {"name": "team", "remove": "$param.member"}},
+    "effects": [{"setVariable": {"name": "team", "remove": "$param.member"}}, {"lua": {"call": "shieldsToTeam"}},
                 {"message": {"text": "@unpicks"}}],
 }))
 # The table talks the team over before the vote: the leader sends it when ready, and can change it until then.
@@ -184,8 +237,8 @@ call("add_action", actionJson=json.dumps({
         "reveal": "named", "decide": "majority", "otherwise": "reject",
         "onResult": [{"if": {
             "condition": compare("$vote.result", "approve"),
-            "then": [{"setVariable": {"name": "rejections", "value": 0}}, {"gotoPhase": {"phase": "quest"}}],
-            "else": [{"setVariable": {"name": "rejections", "delta": 1}},
+            "then": [{"setVariable": {"name": "rejections", "value": 0}}, {"lua": {"call": "rejectTrack"}}, {"gotoPhase": {"phase": "quest"}}],
+            "else": [{"setVariable": {"name": "rejections", "delta": 1}}, {"lua": {"call": "rejectTrack"}},
                      {"if": {"condition": compare("$var.rejections", 5, ">="),
                              "then": [{"message": {"text": "@fiveRejected"}}] + win("evil"),
                              "else": [{"endTurn": {}}]}}]}}],
@@ -203,8 +256,10 @@ call("add_action", actionJson=json.dumps({
         "who": "$var.team", "reveal": "count", "decide": "none",
         "onResult": [
             {"if": {"condition": compare("$vote.fail", "$var.needFails", ">="),
-                    "then": [{"setVariable": {"name": "fails", "delta": 1}}, {"message": {"text": "@questFails"}}],
-                    "else": [{"setVariable": {"name": "successes", "delta": 1}}, {"message": {"text": "@questSucceeds"}}]}},
+                    "then": [{"setVariable": {"name": "fails", "delta": 1}}, {"lua": {"call": "markQuest", "args": {"result": "fail"}}},
+                             {"message": {"text": "@questFails"}}],
+                    "else": [{"setVariable": {"name": "successes", "delta": 1}}, {"lua": {"call": "markQuest", "args": {"result": "success"}}},
+                             {"message": {"text": "@questSucceeds"}}]}},
             {"if": {"condition": compare("$var.fails", 3, ">="),
                     "then": [{"message": {"text": "@threeFailed"}}] + win("evil"),
                     "else": [{"if": {"condition": compare("$var.successes", 3, ">="),
@@ -228,9 +283,38 @@ call("add_action", actionJson=json.dumps({
     ],
 }))
 
+# The table: the quests' cards with their team sizes, the rejection track, and the pieces the rules move.
+SIZES = {"5": [2, 3, 2, 3, 3], "6": [2, 3, 4, 3, 4], "7": [2, 3, 3, 4, 4], "8-10": [3, 4, 4, 5, 5]}
+CARD = {"paper": [0.93, 0.89, 0.78], "ink": [0.2, 0.15, 0.1], "accent": [0.55, 0.38, 0.12]}
+for q in range(1, 6):
+    body = "\n".join(f"{players}: {sizes[q - 1]}" for players, sizes in SIZES.items())
+    text = {"title": f"Quest {q}", "kind": "Players: team", "body": body}
+    if q == 4:
+        text["footer"] = "7 or more: 2 fails to sink it"
+    call("place_object", objectJson=json.dumps({
+        "id": f"quest_{q}", "type": "Card", "name": f"Quest {q}", "locked": True, "size": [0.14, 0.19], "text": text,
+        "style": CARD, "transform": {"position": [-0.36 + 0.18 * (q - 1), 0, 0.08], "rotation": [0, 180, 0]}}))
+for n in range(1, 6):
+    call("place_object", objectJson=json.dumps({
+        "id": f"reject_{n}", "type": "Card", "name": f"Rejected team {n}", "locked": True, "size": [0.06, 0.06],
+        "text": {"title": "Evil wins" if n == 5 else "Rejected", "body": str(n)},
+        "style": {"paper": [0.75, 0.72, 0.68], "ink": [0.2, 0.15, 0.1], "accent": [0.6, 0.15, 0.12]},
+        "transform": {"position": [-0.16 + 0.08 * (n - 1), 0, -0.17], "rotation": [0, 180, 0]}}))
+call("create_supply", id="reject_marker", piece="cube", color="silver", mode="pile", count=1, name="Rejections", x=-0.26, z=-0.17)
+call("create_supply", id="crown", piece="pawn", color="gold", mode="pile", count=1, name="Leader", x=0.3, z=-0.3)
+call("create_supply", id="shield", piece="gem", color="silver", mode="pile", count=5, name="Team", x=-0.06, z=-0.3)
+call("create_supply", id="good", piece="checker", color="blue", mode="pile", count=3, name="Quest succeeded", x=-0.62, z=0.06)
+call("create_supply", id="evil", piece="checker", color="red", mode="pile", count=3, name="Quest failed", x=0.56, z=0.06)
+
 call("set_turn", phases="propose,team_vote,quest,assassinate", order="clockwise", startingPlayer="random")
 # Where the game stands, for everyone: the panel reads the variables the rules keep.
 document = call("get_rules_document")
+# The pieces bigger than a supply's default, so they read from across the table.
+SCALES = {"crown": 2.4, "shield": 2.2, "good": 1.8, "evil": 1.8, "reject_marker": 1.6}
+for obj in document["objects"]:
+    base = obj["id"].split("_")[0] if obj["id"] != "reject_marker" else obj["id"]
+    if base in SCALES:
+        obj["transform"]["scale"] = [SCALES[base]] * 3
 document["ui"] = {"panels": [{
     "id": "quests", "title": "Avalon", "anchor": "right", "visibleTo": [],
     "elements": [
@@ -286,6 +370,22 @@ ES = {
     'roles.minion.name': 'Esbirro de Mordred',
 }
 ES.update({f"strings.{key}": text for key, (_, text) in STRINGS.items()})
+for q in range(1, 6):
+    ES[f"objects.quest_{q}.name"] = ES[f"objects.quest_{q}.text.title"] = f"Misión {q}"
+    ES[f"objects.quest_{q}.text.kind"] = "Jugadores: equipo"
+    ES[f"objects.quest_{q}.text.body"] = "\n".join(f"{players}: {sizes[q - 1]}" for players, sizes in SIZES.items())
+ES["objects.quest_4.text.footer"] = "7 o más: 2 fracasos para hundirla"
+for n in range(1, 6):
+    ES[f"objects.reject_{n}.name"] = f"Equipo rechazado {n}"
+    ES[f"objects.reject_{n}.text.title"] = "Gana el mal" if n == 5 else "Rechazado"
+    ES[f"objects.reject_{n}.text.body"] = str(n)
+ES["objects.reject_marker.name"] = "Rechazos"
+ES["objects.crown.name"] = "Líder"
+for i in ["", "_2", "_3", "_4", "_5"]:
+    ES[f"objects.shield{i}.name"] = "Equipo"
+for i in ["", "_2", "_3"]:
+    ES[f"objects.good{i}.name"] = "Misión cumplida"
+    ES[f"objects.evil{i}.name"] = "Misión fracasada"
 call("set_translations", language="es", translationsJson=json.dumps(ES, ensure_ascii=False))
 left = call("translate_game", language="es")
 if left.get("left", 0):

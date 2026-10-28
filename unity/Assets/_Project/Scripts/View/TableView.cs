@@ -417,7 +417,7 @@ namespace TableWorld.View
             // Only the pieces drawn with it: a big table gets hundreds of images, and redrawing every piece for each one
             // stalled loading and re-made the colliders of cards falling onto each other (they sank into one another).
             foreach (var view in _views.Values)
-                if (view != null && AssetUse.Uses(view.Model, assetId))
+                if (view != null && (AssetUse.Uses(view.Model, assetId) || Assets.DrawsText(view.Model, assetId)))
                     ObjectViewFactory.Refresh(view, Assets);
             AssetRefreshed?.Invoke(assetId);
         }
