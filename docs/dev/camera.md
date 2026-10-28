@@ -37,8 +37,8 @@ flowchart LR
 |---|---|
 | TableCamera | [TableCamera.cs](../../unity/Assets/_Project/Scripts/View/TableCamera.cs): `Sit`, `Lift`, `ToggleSeated`, `SetSeat`, `FirstPerson`, `Lean`, the seated controls (`Seated`) |
 | TableInteraction | [TableInteraction.cs](../../unity/Assets/_Project/Scripts/View/TableInteraction.cs): `ToggleSeatView` (O), `HandUp`, `ToggleHandUp` (H), `UpdateHand` |
-| ChalkersView | [ChalkersView.cs](../../unity/Assets/_Project/Scripts/View/Chalkers/ChalkersView.cs): `Yours`, `Yourself`, `Prepare`, `HoldCards` |
-| Chalker | [Chalker.cs](../../unity/Assets/_Project/Scripts/View/Chalkers/Chalker.cs): `HoldingCards`, `RaiseHand`, `CardHold`, `ReachFor`, `LeanIn`, `Eyes`, `HideHead` |
+| ChalkersView | [ChalkersView.cs](../../unity/Assets/_Project/Scripts/View/Chalkers/ChalkersView.cs): `Yours`, `Yourself`, `Covers`, `Prepare`, `HoldCards` |
+| Chalker | [Chalker.cs](../../unity/Assets/_Project/Scripts/View/Chalkers/Chalker.cs): `HoldingCards`, `RaiseHand`, `CardHold`, `ReachFor`, `LeanIn`, `SteadyEyes`, `HideHead`, `Ghost`; [ChalkerGhost.cs](../../unity/Assets/_Project/Scripts/View/Chalkers/ChalkerGhost.cs), [Ghost.shader](../../unity/Assets/_Project/Shaders/Ghost.shader) |
 | ChalkerModel | [ChalkerModel.cs](../../unity/Assets/_Project/Scripts/View/Chalkers/ChalkerModel.cs): `HideBody`, holding hands, `FaceDepth` |
 | HandHold | [HandHold.cs](../../unity/Assets/_Project/Scripts/View/Chalkers/HandHold.cs), [TwoBoneIk.cs](../../unity/Assets/_Project/Scripts/View/Chalkers/TwoBoneIk.cs) |
 | TableView | [TableView.cs](../../unity/Assets/_Project/Scripts/View/TableView.cs): `HoldHand`, `HeldByChalker`, `HandCardCount` |
@@ -63,8 +63,10 @@ Space and the start of a game, for motion sickness or taste; O still sits you. Y
 the table as in TTS instead of in your chalker's hands. A spectator has no seat and stays lifted.
 
 The camera does not own the seat. Every frame `ChalkersView` poses your own chalker (leaning with `TableCamera.Lean`,
-the head turned where you look) and hands its eyes back with `SetSeat`. The eye point is the shapes' eyes as the head
-turns (`Chalker.Eyes`), whatever model is worn, so every model holds the cards in the same place in your view.
+the head turned where you look) and hands its eyes back with `SetSeat`. The eye point is the shapes' eyes with the head
+held straight (`Chalker.SteadyEyes`), whatever model is worn, so every model holds the cards in the same place in your
+view. Only leaning in carries it (gliding, `Chalker.LeanRate`): turning the head turns the view in place instead of
+swinging it round the neck, and emotes, sway and breathing leave it still.
 
 ## Your own chalker
 
@@ -76,6 +78,17 @@ Seated, the camera is inside its head:
 - The shapes' forearms and fists show instead, slimmer and smaller, the arms 20 % longer
   (`Chalker.FirstPersonReach`, `FirstPersonArm`, `FirstPersonHand`).
 - Your shadow on the table is still the whole model.
+
+**Seen through when lifted.** Where your chalker stands between the lifted camera and the table
+(`ChalkersView.Covers`: points on the table top behind it, inside the screen box its body covers), it fades to 30 %
+(`ChalkerGhost.SeeThrough`) and a thin rim in your seat's colour goes round it at full strength, so the table shows
+through and you still know which one is you. Only your own, only on your screen; from across the table it is solid.
+
+- Lit materials are swapped for `TableWorld/Ghost`: a depth-only pass, then URP Lit's own forward pass made
+  transparent. Only the nearest surface of each mesh shows, so the body does not show its insides through itself, and
+  the lighting is the same as when solid.
+- The rim is the selection outline's shader on a copy of each mesh (a skinned model's baked each frame), its rim pass
+  depth-tested (`_ZTest` LessEqual) so the cards it holds cover it.
 
 Your mouth moves with your microphone, your emotes play on it, and while you carry something its right arm reaches for
 it (`Chalker.ReachFor`, within 1.1 m). Other players' chalkers reach for what they carry the same way.
@@ -112,6 +125,8 @@ cards, and comes back when you lift out.
 - the hand bar stepping aside;
 - raising (the cards in front of the eyes, facing them, the hand on the fan);
 - lifting out;
+- turning the head without moving the eyes;
+- fading where it covers the table, solid again from across it;
 - the free camera setting.
 
 To look at it, load a table with a hand of cards in Play mode and render `Camera.main` into a texture: `capture

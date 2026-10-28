@@ -102,6 +102,46 @@ namespace TableWorld.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator TurningTheHead_TurnsTheView_InPlace()
+        {
+            Assert.IsTrue(_camera.IsSeated);
+            var from = _camera.transform.position;
+            var forward = _camera.transform.forward;
+            _camera.TurnHead(90f, 0f);
+            yield return new WaitForSeconds(0.8f);
+            Assert.Less(Vector3.Angle(forward, _camera.transform.forward), 150f);
+            Assert.Greater(Vector3.Angle(forward, _camera.transform.forward), 45f, "the view turned");
+            Assert.Less(Vector3.Distance(from, _camera.transform.position), 0.003f, "but the eyes stayed where they were");
+            _camera.TurnHead(-60f, 60f);
+            yield return new WaitForSeconds(0.8f);
+            Assert.Less(Vector3.Distance(from, _camera.transform.position), 0.003f, "looking down too");
+        }
+
+        [UnityTest]
+        public IEnumerator Lifted_YourChalkerFades_WhereItCoversTheTable()
+        {
+            _interaction.ToggleSeatView();
+            yield return new WaitForSeconds(TableCamera.BlendSeconds + 0.2f);
+            var yours = _chalkers.Yours;
+            // Behind your chair, looking over your chalker at the table.
+            _camera.SetView(new TableCamera.View { Pivot = Vector3.zero, Yaw = 0f, Pitch = 25f, Distance = 1.4f });
+            yield return new WaitForSeconds(0.6f);
+            Assert.IsTrue(ChalkersView.Covers(yours, _camera.GetComponent<Camera>()));
+            Assert.AreEqual(ChalkerGhost.SeeThrough, yours.Ghost.Alpha, 0.01f, "faded");
+            var shown = yours.Root.GetComponentsInChildren<Renderer>().Where(r => r.enabled && r.name != "Ghost rim").ToList();
+            Assert.IsTrue(shown.All(r => r.sharedMaterials.All(m => m == null || m.renderQueue >= 3000)), "drawn see-through");
+            Assert.IsTrue(yours.Root.GetComponentsInChildren<Renderer>().Any(r => r.name == "Ghost rim"), "with a rim in your colour");
+
+            // From across the table it stands behind it, hiding nothing.
+            _camera.SetView(new TableCamera.View { Pivot = Vector3.zero, Yaw = 180f, Pitch = 35f, Distance = 1.4f });
+            yield return new WaitForSeconds(0.6f);
+            Assert.IsFalse(ChalkersView.Covers(yours, _camera.GetComponent<Camera>()));
+            Assert.AreEqual(1f, yours.Ghost.Alpha, 0.01f, "solid again");
+            Assert.IsTrue(yours.Root.GetComponentsInChildren<Renderer>().All(r => r.sharedMaterials.All(m => m == null || m.renderQueue < 3000)));
+            Assert.IsFalse(yours.Root.GetComponentsInChildren<Renderer>().Any(r => r.name == "Ghost rim"));
+        }
+
+        [UnityTest]
         public IEnumerator FreeCameraSetting_KeepsYouLifted()
         {
             Object.FindAnyObjectByType<HudController>().Escape.Set(s => s.FreeCamera = true);

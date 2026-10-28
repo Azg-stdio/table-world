@@ -89,7 +89,7 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsTrue(camera.IsSeated, "a game starts seated");
             var yours = _chalkers.Yours;
             Assert.IsNotNull(yours, "your own chalker");
-            Assert.AreEqual(0f, Vector3.Distance(yours.Eyes, camera.transform.position), 0.01f, "at your chalker's eyes");
+            Assert.AreEqual(0f, Vector3.Distance(yours.SteadyEyes, camera.transform.position), 0.01f, "at your chalker's eyes");
             var place = _chalkers.Place(_table.LocalSeat).Value;
             Assert.Greater(Vector3.Dot(camera.transform.forward, place.Facing), 0.7f, "looking across the table");
             Assert.IsTrue(yours.HeadHidden, "you look out of your head");

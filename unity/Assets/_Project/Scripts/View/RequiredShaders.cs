@@ -18,7 +18,7 @@ namespace TableWorld.View
         public const string SkyName = "Skybox/Panoramic";
         /// <summary>Repaints a chalker model's skin in its seat's colour (<see cref="Chalkers.ChalkerModel"/>).</summary>
         public const string RecolorName = "TableWorld/Recolor";
-        public static readonly string[] Names = { LitName, UnlitName, ParticlesName, SkyName, Outline.ShaderName, RecolorName };
+        public static readonly string[] Names = { LitName, UnlitName, ParticlesName, SkyName, Outline.ShaderName, RecolorName, Chalkers.ChalkerGhost.ShaderName };
 
         public static Shader Lit => Find(LitName);
 

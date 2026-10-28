@@ -110,6 +110,10 @@ namespace TableWorld.View.Chalkers
 
         /// <summary>The torso's forward tilt at <see cref="LeanIn"/> 1, in degrees.</summary>
         public const float MaxLeanIn = 24f;
+        /// <summary>How fast the torso follows <see cref="LeanIn"/>, per second (a wheel step glides instead of jumping).</summary>
+        public const float LeanRate = 4f;
+
+        private float _leanShown;
 
         /// <summary>
         /// The player has cards in their hand: the chalker holds them in a fan (<see cref="Hold"/>), both hands on it,
@@ -135,6 +139,19 @@ namespace TableWorld.View.Chalkers
         /// (a long snout would put a model's own eyes over the hands).
         /// </summary>
         public Vector3 Eyes => _head.TransformPoint(new Vector3(0f, 0.17f, 0.03f));
+
+        /// <summary>
+        /// Where the seated camera sits: the eyes with the head straight, carried only by leaning in. The head still turns
+        /// where you look, but the view turns in place instead of swinging round the neck with it, and emotes, breathing
+        /// and sway leave it still.
+        /// </summary>
+        public Vector3 SteadyEyes => _root.transform.TransformPoint(new Vector3(0f, TorsoHeight, 0f) +
+            Quaternion.Euler(MaxLeanIn * _leanShown, 0f, 0f) * new Vector3(0f, 0.22f + 0.17f, 0.03f));
+
+        /// <summary>Fades this chalker where it covers the table from the lifted camera (your own, <see cref="ChalkerGhost"/>).</summary>
+        public ChalkerGhost Ghost => _ghost ??= new ChalkerGhost(_root);
+
+        private ChalkerGhost _ghost;
 
         /// <summary>
         /// First person: the first-person camera looks out from inside the head, which draws its shadow only. A worn model
@@ -460,7 +477,8 @@ namespace TableWorld.View.Chalkers
                 pose.RightRaise = MicRaise;
                 pose.RightElbow = MicElbow;
             }
-            pose.Lean += MaxLeanIn * Mathf.Clamp01(LeanIn);
+            _leanShown = Mathf.MoveTowards(_leanShown, Mathf.Clamp01(LeanIn), LeanRate * dt);
+            pose.Lean += MaxLeanIn * _leanShown;
             Apply(pose);
             HoldAndReach(dt);
 
@@ -575,6 +593,7 @@ namespace TableWorld.View.Chalkers
         public void Destroy()
         {
             _face.Destroy();
+            _ghost?.Destroy();
             _model?.Destroy();
             foreach (var material in _materials)
                 Object.Destroy(material);

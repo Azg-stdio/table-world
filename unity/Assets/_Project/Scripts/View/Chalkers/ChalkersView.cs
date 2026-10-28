@@ -257,10 +257,52 @@ namespace TableWorld.View.Chalkers
             HoldCards(yours, me);
             if (_tableCamera != null)
             {
-                yours.HideHead(Vector3.Distance(_tableCamera.transform.position, yours.Eyes) < 0.35f);
-                _tableCamera.SetSeat(yours.Eyes, place.Facing);
+                var eyes = yours.SteadyEyes;
+                var inside = Vector3.Distance(_tableCamera.transform.position, eyes) < 0.35f;
+                yours.HideHead(inside);
+                _tableCamera.SetSeat(eyes, place.Facing);
+                // Lifted, it fades where it stands between you and the table, rimmed in your colour.
+                var covering = !inside && !_tableCamera.IsSeated && Covers(yours, _tableCamera.GetComponent<Camera>());
+                yours.Ghost.Update(covering, ColorOf(me), dt);
             }
         }
+
+        /// <summary>
+        /// Whether <paramref name="chalker"/> stands between <paramref name="view"/> and some of the table: a grid of points on
+        /// the table's top, each behind the chalker and inside the screen box its body covers.
+        /// </summary>
+        public static bool Covers(Chalker chalker, Camera view)
+        {
+            if (view == null)
+                return false;
+            var root = chalker.Root.transform;
+            var min = new Vector2(float.MaxValue, float.MaxValue);
+            var max = new Vector2(float.MinValue, float.MinValue);
+            for (var i = 0; i < 8; i++)
+            {
+                var corner = root.TransformPoint(new Vector3((i & 1) == 0 ? -BodyBox.x : BodyBox.x, (i & 2) == 0 ? 0f : BodyBox.y,
+                    (i & 4) == 0 ? -BodyBox.z * 0.5f : BodyBox.z));
+                var seen = view.WorldToViewportPoint(corner);
+                if (seen.z <= 0f)
+                    return false;
+                min = Vector2.Min(min, seen);
+                max = Vector2.Max(max, seen);
+            }
+            var near = view.WorldToViewportPoint(root.position).z;
+            var size = TableGeometry.Size;
+            for (var x = 0; x <= 6; x++)
+            for (var z = 0; z <= 4; z++)
+            {
+                var point = new Vector3((x / 6f - 0.5f) * size.x, 0f, (z / 4f - 0.5f) * size.y);
+                var seen = view.WorldToViewportPoint(point);
+                if (seen.z > near && seen.x > min.x && seen.x < max.x && seen.y > min.y && seen.y < max.y)
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>A seated chalker's body for <see cref="Covers"/>: half its width, its height, its reach forward, in metres.</summary>
+        private static readonly Vector3 BodyBox = new Vector3(0.25f, 0.72f, 0.35f);
 
         /// <summary>What a seated chalker does with its hands this frame: hold its seat's cards (raised or not), reach for what its player carries.</summary>
         private void Prepare(Chalker chalker, string seat, bool raise, float lean, Vector3? carried, Vector3 at)

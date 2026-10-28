@@ -91,6 +91,13 @@ namespace TableWorld.View
         public float HeadYaw => _headYaw;
         public float HeadPitch => _headPitch;
 
+        /// <summary>Seated, turns the head to <paramref name="yaw"/> and <paramref name="pitch"/> (as right drag does), within a neck's reach.</summary>
+        public void TurnHead(float yaw, float pitch)
+        {
+            _headYaw = Mathf.Clamp(yaw, -MaxHeadYaw, MaxHeadYaw);
+            _headPitch = Mathf.Clamp(pitch, MinHeadPitch, MaxHeadPitch);
+        }
+
         /// <summary>Where your eyes are, or null without a seat (a spectator, no table).</summary>
         public Vector3? Eye => _hasSeat ? _eye : (Vector3?)null;
 

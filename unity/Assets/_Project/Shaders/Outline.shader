@@ -10,6 +10,9 @@ Shader "TableWorld/Outline"
         _BaseColor("Color", Color) = (1, 0.6, 0.1, 1)
         _Width("Width (m)", Float) = 0.003
         _Center("Centre (object space)", Vector) = (0, 0, 0, 0)
+        // The rim's depth test: Always (8) for a selection, seen through whatever covers it; LessEqual (4) for a faded
+        // chalker's rim, which what it holds covers. The silhouette is always marked whole.
+        [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest("Depth test", Float) = 8
     }
     SubShader
     {
@@ -61,7 +64,7 @@ Shader "TableWorld/Outline"
             Name "Rim"
             Tags { "LightMode" = "UniversalForward" }
             Cull Off
-            ZTest Always
+            ZTest [_ZTest]
             ZWrite Off
             Stencil { Ref 64 Comp NotEqual }
             HLSLPROGRAM
