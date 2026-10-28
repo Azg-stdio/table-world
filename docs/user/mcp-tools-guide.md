@@ -123,7 +123,7 @@ run_lua {"code": "return #Game.getSeats()"}
 ```
 
 **`add_asset`**: a file the table uses: card art, a sprite sheet of card faces (give `columns` and `rows`), a board
-or token image, an OBJ model, music or a PDF. With `path` (a file on your computer) the file is copied into a
+or token image, a 3D model (GLB or OBJ), music or a PDF. With `path` (a file on your computer) the file is copied into a
 `<game>-assets` folder next to the game file, so the game keeps working if you move the original and players who join
 receive it; with `url` the game downloads it. Images reply with their size in pixels, and a sheet with the size of one
 card, so the agent can size the cards to match. Use the id as a deck's `faceAsset` or `backAsset`, or an object's image.

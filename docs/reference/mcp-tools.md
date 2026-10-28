@@ -18,7 +18,7 @@ Add or replace a player action: {"id":"draw_card","name":"Draw","actor":"current
 
 ### `add_asset`
 
-Add a file the table uses: an image (PNG, JPEG) for cards, tokens, tiles and boards, a sprite sheet of card faces (give columns and rows), an OBJ model, audio (MP3, OGG, WAV) or a PDF. The file is copied next to the game file, so it travels with the game and is sent to players who join; or pass url for a file on the web. Then refer to the id: create_deck faceAsset/backAsset, an object's asset/faceAsset/imageAsset. Replaces an asset with the same id. Images reply with their pixel size.
+Add a file the table uses: an image (PNG, JPEG) for cards, tokens, tiles and boards, a sprite sheet of card faces (give columns and rows), a 3D model (GLB or OBJ), audio (MP3, OGG, WAV) or a PDF. The file is copied next to the game file, so it travels with the game and is sent to players who join; or pass url for a file on the web. Then refer to the id: create_deck faceAsset/backAsset, an object's asset/faceAsset/imageAsset. Replaces an asset with the same id. Images reply with their pixel size.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|

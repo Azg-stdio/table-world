@@ -169,6 +169,10 @@ namespace TableWorld.View
                     // A TTS asset bundle (Custom_Assetbundle, M4): the bundle's own model, materials and colliders.
                     SetBundle(view, prefab, 0.05f);
                     break;
+                case Model gltf when assets.GltfTemplate(gltf.Asset) is { } template:
+                    // A glTF or GLB model (M4 T5.1): its own meshes, materials and colliders.
+                    SetBundle(view, template, 0.05f, parent => GltfModels.Attach(parent, template, assets.Find(gltf.Asset).MeshScale));
+                    break;
                 case Model bowl when assets.Find(bowl.Asset)?.Path == Asset.BuiltinPrefix + "bowl" && assets.Mesh(bowl.Asset) is { } bowlMesh:
                     SetModel(view, bowlMesh, assets.Plain(model.Tint.ToColor(Ivory), 0.4f), 0.15f);
                     BowlColliders(view);
@@ -490,10 +494,10 @@ namespace TableWorld.View
         }
 
         /// <summary>
-        /// Shows an asset bundle's prefab on the object (once; refreshes keep it): the object's own mesh is emptied, and
+        /// Shows an asset bundle's prefab (or a glTF template, through <paramref name="attach"/>) on the object (once; refreshes keep it): the object's own mesh is emptied, and
         /// the bundle's colliders become the object's (a box around it when it has none).
         /// </summary>
-        private static void SetBundle(ObjectView view, GameObject prefab, float mass)
+        private static void SetBundle(ObjectView view, GameObject prefab, float mass, System.Func<Transform, GameObject> attach = null)
         {
             view.Filter.sharedMesh = null;
             view.Body.mass = mass;
@@ -502,7 +506,7 @@ namespace TableWorld.View
                 ShowLoopingEffect(view);
                 return;
             }
-            var copy = Bundles.Attach(view.transform, prefab);
+            var copy = attach != null ? attach(view.transform) : Bundles.Attach(view.transform, prefab);
             ShowLoopingEffect(view);
             if (view.Collider != null && view.Collider.transform == view.transform)
                 Object.Destroy(view.Collider);

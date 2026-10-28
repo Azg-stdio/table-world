@@ -1,6 +1,6 @@
 # Flow: loading assets
 
-Images, OBJ models and Unity asset bundles named by a table. Every machine loads them on its own; nothing waits for
+Images, glTF and OBJ models and Unity asset bundles named by a table. Every machine loads them on its own; nothing waits for
 them (pieces show plain colours until their image lands) and nothing loads twice.
 
 ```mermaid
@@ -30,6 +30,7 @@ flowchart TD
 | Files for clients (manifest, chunks, cache) | [AssetSync.cs](../../../core/Net/AssetSync.cs) |
 | Asset bundles and the URP remap | [Bundles.cs](../../../unity/Assets/_Project/Scripts/View/Bundles.cs) (`Prefab`, `Attach`, `Remap`), [ADR 0001](../../adr/0001-assetbundles.md) |
 | OBJ models | [ObjMesh.cs](../../../core/Models/ObjMesh.cs) |
+| glTF and GLB models (glTFast in the background, URP Lit materials, convex colliders, size limits) | [GltfModels.cs](../../../unity/Assets/_Project/Scripts/View/GltfModels.cs) (`Template`, `Attach`), `AssetLibrary.GltfTemplate` |
 | Download in bulk after an import | [AssetDownloader.cs](../../../core/Tts/AssetDownloader.cs) |
 
 ## Rules worth knowing

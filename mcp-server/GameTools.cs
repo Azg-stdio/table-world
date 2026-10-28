@@ -306,7 +306,7 @@ namespace TableWorld.Mcp
                 });
             });
 
-        [McpServerTool(Name = "add_asset"), Description("Add a file the table uses: an image (PNG, JPEG) for cards, tokens, tiles and boards, a sprite sheet of card faces (give columns and rows), an OBJ model, audio (MP3, OGG, WAV) or a PDF. The file is copied next to the game file, so it travels with the game and is sent to players who join; or pass url for a file on the web. Then refer to the id: create_deck faceAsset/backAsset, an object's asset/faceAsset/imageAsset. Replaces an asset with the same id. Images reply with their pixel size.")]
+        [McpServerTool(Name = "add_asset"), Description("Add a file the table uses: an image (PNG, JPEG) for cards, tokens, tiles and boards, a sprite sheet of card faces (give columns and rows), a 3D model (GLB or OBJ), audio (MP3, OGG, WAV) or a PDF. The file is copied next to the game file, so it travels with the game and is sent to players who join; or pass url for a file on the web. Then refer to the id: create_deck faceAsset/backAsset, an object's asset/faceAsset/imageAsset. Replaces an asset with the same id. Images reply with their pixel size.")]
         public static string AddAsset(GameSession session,
             [Description("Asset id, e.g. 'monsters' or 'board'.")] string id,
             [Description("Full path of the file on this computer.")] string? path = null,

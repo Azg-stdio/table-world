@@ -396,8 +396,8 @@ namespace TableWorld.View
         }
 
         /// <summary>
-        /// A model asset's mesh (OBJ, TTS Custom_Model; M4/G38), or null: builtin placeholders, other formats (glTF comes
-        /// with T5.1), unreadable files, and files still downloading. Cached per path.
+        /// A model asset's mesh (OBJ, TTS Custom_Model; M4/G38), or null: builtin placeholders, glTF (<see cref="GltfTemplate"/>),
+        /// other formats, unreadable files, and files still downloading. Cached per path.
         /// </summary>
         public Mesh Mesh(string assetId)
         {
@@ -407,6 +407,8 @@ namespace TableWorld.View
             // TTS's primitive pieces are built in (G38); builtin:placeholder stays the grey box.
             if (asset.IsBuiltin)
                 return Builtin.BuiltinModels.Get(asset.Path.Substring(BuiltinPrefix.Length));
+            if (GltfModels.Handles(asset.Path))
+                return null;
             if (_meshesByPath.TryGetValue(asset.Path, out var cached))
                 return cached;
             Mesh mesh = null;
@@ -416,7 +418,7 @@ namespace TableWorld.View
             if (bytes != null)
             {
                 if (!asset.Path.EndsWith(".obj", System.StringComparison.OrdinalIgnoreCase))
-                    Debug.LogWarning($"[AssetLibrary] '{asset.Path}': only OBJ models load for now; showing a placeholder.");
+                    Debug.LogWarning($"[AssetLibrary] '{asset.Path}': models load from OBJ, glTF or GLB files; showing a placeholder.");
                 else if (Core.Models.ObjMesh.Parse(System.Text.Encoding.UTF8.GetString(bytes), out var error) is { } data)
                     mesh = ToMesh(data, asset.Path, asset.MeshScale);
                 else
@@ -539,6 +541,23 @@ namespace TableWorld.View
                 : _packageRoot != null && Asset.IsSafePath(asset.Path) ? Path.GetFullPath(Path.Combine(_packageRoot, asset.Path)) : null;
             var key = file ?? "fetched:" + (asset.Hash ?? asset.Path);
             return Bundles.Prefab(key, file, _fetch == null ? null : (System.Func<byte[]>)(() => _fetch(asset)));
+        }
+
+        /// <summary>
+        /// A glTF or GLB model asset's template (M4 T5.1), or null while it loads (in the background; <see cref="Decoded"/>
+        /// fires when it is ready), while it downloads, or when it does not load. Loaded once per file for the session.
+        /// </summary>
+        public GameObject GltfTemplate(string assetId)
+        {
+            var asset = Find(assetId);
+            if (asset == null || asset.Type != AssetType.Model || asset.IsBuiltin || !GltfModels.Handles(asset.Path))
+                return null;
+            if (LocalCopy(asset) == null && FetchFromWeb(asset))
+                return null;
+            var file = LocalCopy(asset) is { } local ? Path.GetFullPath(local)
+                : _packageRoot != null && Asset.IsSafePath(asset.Path) ? Path.GetFullPath(Path.Combine(_packageRoot, asset.Path)) : null;
+            var key = file ?? "fetched:" + (asset.Hash ?? asset.Path);
+            return GltfModels.Template(key, file, _fetch == null ? null : (System.Func<byte[]>)(() => _fetch(asset)), () => Decoded?.Invoke(assetId));
         }
 
         /// <summary>The asset's file in the game package, or null. Paths were validated to stay inside the package.</summary>

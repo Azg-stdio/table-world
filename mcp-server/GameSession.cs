@@ -270,7 +270,7 @@ namespace TableWorld.Mcp
         public static readonly IReadOnlyDictionary<string, string> AssetExtensions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             [".png"] = "image", [".jpg"] = "image", [".jpeg"] = "image",
-            [".obj"] = "model",
+            [".obj"] = "model", [".glb"] = "model",
             [".mp3"] = "audio", [".ogg"] = "audio", [".wav"] = "audio",
             [".pdf"] = "pdf",
             [".unity3d"] = "assetBundle",
