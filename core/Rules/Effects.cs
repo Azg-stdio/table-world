@@ -193,6 +193,19 @@ namespace Core.Rules
         public string Action { get; set; } = "";
     }
 
+    /// <summary>
+    /// Casts <see cref="Seat"/>'s ballot in the vote <see cref="Action"/> as if that seat had voted: a piece placed means
+    /// a vote (a card laid face down in front of a player). The vote's voters, options and preconditions apply as to a
+    /// vote made with the buttons; a ballot the vote would refuse is refused, undoing what led to it.
+    /// </summary>
+    public sealed class CastBallotEffect : Effect
+    {
+        public string Action { get; set; } = "";
+        public string Seat { get; set; } = "";
+        /// <summary>The option (or, for a vote for a seat, the seat): literal or a reference such as <c>$it.meta.vote</c>.</summary>
+        public string Choice { get; set; } = "";
+    }
+
     /// <summary>Moves <see cref="Seat"/> to another team, keeping its role (an allegiance that changes).</summary>
     public sealed class SetTeamEffect : Effect
     {
@@ -269,6 +282,7 @@ namespace Core.Rules
             ["swapRoles"] = typeof(SwapRolesEffect),
             ["setTeam"] = typeof(SetTeamEffect),
             ["closeVote"] = typeof(CloseVoteEffect),
+            ["castBallot"] = typeof(CastBallotEffect),
             ["eliminate"] = typeof(EliminateEffect),
             ["lua"] = typeof(LuaEffect),
             ["refuse"] = typeof(RefuseEffect),

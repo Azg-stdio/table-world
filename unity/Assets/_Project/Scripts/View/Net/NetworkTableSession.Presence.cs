@@ -114,6 +114,7 @@ namespace TableWorld.View.Net
                 frame.EmoteCount = _emoteCount;
                 frame.Hover = _interaction.Hovered != null ? _interaction.Hovered.Id : null;
                 frame.HandUp = _interaction.HandUp;
+                frame.Thumb = _interaction.ThumbUp;
                 foreach (var view in _interaction.Selection)
                     if (view != null && !view.Held && frame.Selected.Count < PresenceCodec.MaxSelected)
                         frame.Selected.Add(view.Id);
@@ -131,7 +132,7 @@ namespace TableWorld.View.Net
                 frame.Lean = Mathf.Round(_seatCamera.Lean * 20f) / 20f;
             // Millimetre and degree resolution is plenty; it also keeps an idle player quiet.
             var key = string.Join("|", new[] { frame.Pointer is { } p ? $"{p.X:F3},{p.Z:F3}" : "-", frame.Gaze is { } g ? $"{g.X:F2},{g.Y:F2},{g.Z:F2}" : "-", frame.EmoteCount.ToString(), frame.Hover ?? "-", string.Join(",", frame.Selected),
-                    frame.Body is { } b ? $"{b.Position.X:F2},{b.Position.Z:F2},{b.Yaw:F0},{b.Place},{b.Moving}" : "-", frame.HandUp ? "h" : "-", frame.Lean.ToString("F2") }
+                    frame.Body is { } b ? $"{b.Position.X:F2},{b.Position.Z:F2},{b.Yaw:F0},{b.Place},{b.Moving}" : "-", frame.HandUp ? "h" : "-", frame.Thumb ? "t" : "-", frame.Lean.ToString("F2") }
                 .Concat(frame.Held.Select(h => $"{h.Id}:{h.Position.X:F3},{h.Position.Y:F3},{h.Position.Z:F3},{h.Rotation.Y:F0},{h.Rotation.X:F0},{h.Rotation.Z:F0}")));
             if (key == _presenceKey && now - _presenceSentAt < PresenceKeepAlive)
                 return;

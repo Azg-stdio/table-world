@@ -1743,6 +1743,14 @@ namespace TableWorld.View
 
         private float _handAwaySince = -1f;
 
+        /// <summary>
+        /// The thumb is up (<see cref="GameAction.ThumbUp"/>, Y): a raised fist others see on your chalker, even while your
+        /// eyes are closed (Avalon's minions raise their thumbs for Merlin). It drops by itself when the phase changes.
+        /// </summary>
+        public bool ThumbUp { get; set; }
+
+        public void ToggleThumb() => ThumbUp = !ThumbUp;
+
         public void ToggleHandUp()
         {
             HandPinned = !HandPinned;

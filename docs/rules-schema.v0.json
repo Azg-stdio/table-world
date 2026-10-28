@@ -2779,6 +2779,18 @@
         {
           "type": "object",
           "properties": {
+            "castBallot": {
+              "$ref": "#/$defs/CastBallotEffect"
+            }
+          },
+          "required": [
+            "castBallot"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
             "eliminate": {
               "$ref": "#/$defs/EliminateEffect"
             }
@@ -3377,6 +3389,21 @@
       "type": "object",
       "properties": {
         "action": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CastBallotEffect": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string"
+        },
+        "seat": {
+          "type": "string"
+        },
+        "choice": {
           "type": "string"
         }
       },
@@ -4321,6 +4348,15 @@
             "team",
             "none"
           ]
+        },
+        "seconds": {
+          "type": "integer"
+        },
+        "next": {
+          "type": "string"
+        },
+        "banner": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -4754,6 +4790,15 @@
         },
         "phase": {
           "type": "string"
+        },
+        "phaseVisit": {
+          "type": "integer"
+        },
+        "awake": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "acted": {
           "type": "array",

@@ -58,6 +58,10 @@ namespace TableWorld.View.Hud
         /// <summary>The dark screen of a player whose eyes are closed (ADR 0012), with the phase's words.</summary>
         private VisualElement _sleepOverlay;
         private Label _sleepText;
+        private VisualElement _phaseBar;
+        private Label _phaseBanner;
+        private Label _phaseTimer;
+        private Button _phaseNext;
         /// <summary>Optional roles ticked for the next start, by table (a new table starts with none).</summary>
         private readonly HashSet<string> _optionalRoles = new HashSet<string>();
         private object _optionalRolesFor;
@@ -178,6 +182,15 @@ namespace TableWorld.View.Hud
             _gameRole = _root.Q<Label>("gameRole");
             _sleepOverlay = _root.Q("sleepOverlay");
             _sleepText = _root.Q<Label>("sleepText");
+            _phaseBar = _root.Q("phaseBar");
+            _phaseBanner = _root.Q<Label>("phaseBanner");
+            _phaseTimer = _root.Q<Label>("phaseTimer");
+            _phaseNext = _root.Q<Button>("phaseNext");
+            if (_phaseNext != null)
+            {
+                _phaseNext.text = Ui.T("Next");
+                _phaseNext.clicked += () => EndTimedPhase();
+            }
             _gameActions = _root.Q("gameActions");
             _gameUi = new GameUiRenderer(_root.Q("gameUi"), _table);
             if (_interaction != null)
@@ -605,10 +618,14 @@ namespace TableWorld.View.Hud
                 _session?.Emote(nameof(TableWorld.View.Chalkers.ChalkerEmote.Wink));
                 Gesture("wink");
             }
+            // Y: the thumb up, eyes closed or not (it is how the asleep show themselves to whoever is awake).
+            if (UnityEngine.InputSystem.Keyboard.current is { } thumbKeys && !TypingInUi() && _interaction != null && KeyBindings.Pressed(thumbKeys, GameAction.ThumbUp))
+                _interaction.ToggleThumb();
             if (Time.unscaledTime >= _nextGameRefresh)
             {
                 _nextGameRefresh = Time.unscaledTime + 0.25f;
                 RefreshSleep();
+                TickPhase();
                 TickVotes();
                 RefreshGame();
                 _gameUi.Refresh();
@@ -920,6 +937,66 @@ namespace TableWorld.View.Hud
             _sleepOverlay?.EnableInClassList(Hidden, !asleep);
             if (asleep && _sleepText != null)
                 _sleepText.text = game.SleepText;
+        }
+
+        /// <summary>The timed phase visit this machine is counting (phase id and visit), and when it saw it begin.</summary>
+        private (string Phase, int Visit) _timedPhase;
+        private float _timedSince;
+        private int _thumbVisit = -1;
+        private bool _timedEnding;
+
+        /// <summary>
+        /// A timed phase (a ritual's step): everyone sees the seconds left from when their machine saw it begin, the awake
+        /// read its banner, and the host (or a table played alone) ends it when the time is up, or sooner with Next.
+        /// </summary>
+        private void TickPhase()
+        {
+            var game = _table.Game;
+            var session = game?.Session;
+            var phase = session is { Started: true, Over: false } ? game.Phase : null;
+            // A raised thumb is for one moment of the game: it drops when the phase changes.
+            var visit = session?.PhaseVisit ?? -1;
+            if (visit != _thumbVisit)
+            {
+                _thumbVisit = visit;
+                if (_interaction != null)
+                    _interaction.ThumbUp = false;
+            }
+            var seat = _table.Spectating ? null : _table.LocalSeat;
+            var asleep = phase != null && seat != null && game.EyesClosedPhase && !game.IsAwake(seat, seat);
+            var banner = phase != null && !asleep ? game.BannerText : null;
+            var timed = phase?.Seconds is { } seconds ? seconds : 0;
+            _phaseBar?.EnableInClassList(Hidden, phase == null || timed == 0 && banner == null);
+            if (phase == null || _phaseBar == null)
+                return;
+            _phaseBanner.text = banner ?? "";
+            _phaseBanner.EnableInClassList(Hidden, banner == null);
+            _phaseNext.EnableInClassList(Hidden, timed == 0 || !_table.HostsTable);
+            _phaseTimer.EnableInClassList(Hidden, timed == 0);
+            if (timed == 0)
+                return;
+            var key = (phase.Id, session.PhaseVisit);
+            if (key != _timedPhase)
+            {
+                _timedPhase = key;
+                _timedSince = Time.unscaledTime;
+                _timedEnding = false;
+            }
+            var left = Mathf.Max(0, Mathf.CeilToInt(timed - (Time.unscaledTime - _timedSince)));
+            _phaseTimer.text = Ui.T("{seconds} s", ("seconds", left));
+            if (left == 0 && _table.HostsTable)
+                EndTimedPhase();
+        }
+
+        /// <summary>The host ends the timed phase now (its time is up, or Next was pressed); once per visit.</summary>
+        private void EndTimedPhase()
+        {
+            if (_timedEnding || _table.Game?.Session is not { Started: true, Over: false } session || session.Phase == null)
+                return;
+            _timedEnding = true;
+            var result = _table.Execute(new EndTimedPhaseCommand { Phase = session.Phase, Visit = session.PhaseVisit });
+            if (!result.Ok)
+                ShowStatus(Ui.Refusal(result.Error), error: true);
         }
 
         /// <summary>
@@ -1301,11 +1378,13 @@ namespace TableWorld.View.Hud
                               command is SetUiAttributesCommand || command is UiEventCommand || command is SetInputsCommand ||
                               command is TypeInputCommand || command is SpawnCommand || command is SetScreenCommand ||
                               // The karaoke bar says what became of the song itself.
-                              command is QueueSongCommand || command is RemoveSongCommand || command is PlayNextSongCommand))
+                              command is QueueSongCommand || command is RemoveSongCommand || command is PlayNextSongCommand ||
+                              // A timed step ending shows itself: the next step's words and countdown.
+                              command is EndTimedPhaseCommand))
                 return;
             // In words, never the type's name: "SetLightCommand" reads "Set light".
             var words = System.Text.RegularExpressions.Regex.Replace(command.GetType().Name.Replace("Command", ""), "(?<=[a-z])(?=[A-Z])", " ").ToLowerInvariant();
-            var name = char.ToUpperInvariant(words[0]) + words.Substring(1);
+            var name = command is MoveCommand ? Ui.T("Move") : char.ToUpperInvariant(words[0]) + words.Substring(1);
             // A game's action by its own name, in the session's language ("Proponer este equipo: hecho").
             if (command is PerformActionCommand perform && _table.Engine?.State is { } rules && rules.Actions.FirstOrDefault(a => a.Id == perform.ActionId) is { } action)
                 name = Names.Action(rules, action);

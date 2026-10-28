@@ -48,6 +48,42 @@ namespace Core.Engine
             return playing.Where(named.Contains).ToList();
         }
 
+        /// <summary>
+        /// A ballot cast by the rules for a seat (<c>castBallot</c>: a piece laid down means a vote): checked as if the seat
+        /// had pressed the vote's button (phase, voters, option, preconditions), then recorded like one.
+        /// </summary>
+        private void CastBallot(CastBallotEffect ballot)
+        {
+            var action = State.Actions.FirstOrDefault(a => a.Id == ballot.Action && a.Vote != null)
+                ?? throw new RuleException("castBallot.action", ErrorCodes.UnknownAction, $"'{ballot.Action}' is not a vote.");
+            var seat = ResolveSeat(ballot.Seat, "castBallot.seat");
+            var choice = References.IsReference(ballot.Choice) ? ToValue(Resolve(ballot.Choice, "castBallot.choice"))?.ToString() : ballot.Choice;
+            if (CanAct(action, seat) is { } refusal)
+                throw refusal;
+            var param = ParamsOf(action).First(p => p.Name == VoteParam);
+            if (choice == null || !ParamValid(param, choice, seat))
+                throw new RuleException("castBallot.choice", ErrorCodes.InvalidParam, $"'{choice}' is not an option of '{action.Id}'.");
+            var parameters = new Dictionary<string, string> { [VoteParam] = choice };
+            var outer = _ctx;
+            try
+            {
+                _ctx = new Context { Actor = seat, Params = parameters };
+                for (var i = 0; i < action.Preconditions.Count; i++)
+                    if (!Holds(action.Preconditions[i]))
+                        throw new RuleException($"preconditions[{i}]", ErrorCodes.PreconditionFailed,
+                            $"Action '{action.Id}' is not possible now: precondition {i} ({action.Preconditions[i].Kind}) does not hold.")
+                            .Text("refusal.notPossible", ("action", ActionName(action)));
+            }
+            finally
+            {
+                _ctx = outer;
+            }
+            CastVote(action, seat, parameters);
+            var session = Session!;
+            if (!session.Acted.Contains(seat))
+                session.Acted.Add(seat);
+        }
+
         /// <summary>Records <paramref name="seat"/>'s vote; the last voter's counts them all.</summary>
         private void CastVote(ActionDef action, string seat, Dictionary<string, string> choice)
         {

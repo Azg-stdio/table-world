@@ -19,7 +19,17 @@ Five examples ship in `games/`, each built through the MCP tools from a plain-te
   voted (you: approve)"; nobody sees a choice before the count. Then the game shows what the vote's rules say: who
   voted what, only the numbers (face-down mission cards), or only the result.
 - **Nights.** When your eyes are closed, your screen goes dark with the phase's words, and you neither see nor hear
-  the players who are awake. The awake players see your chalker asleep, head down.
+  the players who are awake. The awake players see your chalker asleep, head down. Timed steps show a countdown, and
+  the host has a **Next** button to move on sooner.
+- **Thumbs.** **Y** raises your chalker's fist, thumb up, even with your eyes closed: whoever is awake sees it. It drops
+  by itself when the step ends.
+- **Avalon at the table.** Your role card arrives in your hand (raise your cards to read it). Then the ritual, a few
+  seconds each: everyone closes their eyes; the minions open theirs and find each other by their open eyes; the minions
+  raise their thumbs (not Mordred) while Merlin looks; Merlin and Morgana raise theirs while Percival looks; everyone
+  opens their eyes. The leader drags silver shields in front of the players they choose (the crown shows who leads),
+  then presses Propose. Everyone gets an Approve and a Reject card: lay one face down on the spot in front of you; when
+  the last is down they turn over together. The team gets Success and Fail cards: lay one on the quest pile in the middle;
+  the pile is shuffled and turned over one by one. At the end every role card turns over.
 - **Out of the game.** A lynched or executed player is out: no more actions or votes, and the others no longer hear
   them.
 - **Faces.** You play from your chair in first person, eye to eye with the others; **O** lifts you out over the table and sits you back. Press **K** to
@@ -38,7 +48,8 @@ The pieces, each in [the rules format](../rules-schema.md):
 | [Roles](../rules-schema.md#roles) | Teams, roles dealt at random, team sizes per player count, optional roles, who knows whom (also by player count), extra hidden traits (`set`) |
 | `revealRole`, `setRole`, `swapRoles`, `setTeam` | Show a role later, convert a player, swap two, change a side; each can tell the player |
 | `message` with `to` | A line only a seat, a team (`team:wolves`) or a role (`role:seer`) reads |
-| [Votes](../rules-schema.md#votes) | Who votes, how it is shown and decided, what follows; private votes for a night's choice |
+| [Votes](../rules-schema.md#votes) | Who votes, how it is shown and decided, what follows; private votes for a night's choice; `castBallot`: a card laid on a spot is a vote |
+| Timed phases (`seconds`, `next`, `banner`) | A ritual's steps: each ends by itself, leads to the next, and shows big words to the awake |
 | [Eyes closed and voice](../rules-schema.md#eyes-closed-and-voice) | Who is awake in a phase, what the sleepers read, who hears whom |
 | [Gestures](../rules-schema.md#gestures) | `onGesture`: a wink or emote aimed at someone, and what it means |
 | `eliminate`, `$alive` | Players out of the game, and how many of each team are left |

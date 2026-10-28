@@ -6,6 +6,13 @@
         <ui:VisualElement name="sleepOverlay" class="sleep-overlay hidden">
             <ui:Label name="sleepText" class="sleep-text" />
         </ui:VisualElement>
+        <ui:VisualElement name="phaseBar" class="phase-bar hidden" picking-mode="Ignore">
+            <ui:Label name="phaseBanner" class="phase-banner" picking-mode="Ignore" />
+            <ui:VisualElement class="phase-row" picking-mode="Ignore">
+                <ui:Label name="phaseTimer" class="phase-timer" picking-mode="Ignore" />
+                <ui:Button name="phaseNext" class="hud-button phase-next" text="Next" />
+            </ui:VisualElement>
+        </ui:VisualElement>
         <ui:VisualElement name="overlay" class="overlay" picking-mode="Ignore">
             <ui:VisualElement name="boxRect" class="box-rect hidden" picking-mode="Ignore" />
             <ui:Label name="tooltip" class="tooltip hidden" picking-mode="Ignore" />

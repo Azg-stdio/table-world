@@ -96,6 +96,9 @@ namespace TableWorld.View.Chalkers
         /// </summary>
         public bool Microphone { get; set; }
 
+        /// <summary>The right fist raised, thumb up (its player pressed Y): shown even while it sleeps, to whoever is awake.</summary>
+        public bool ThumbUp { get; set; }
+
         /// <summary>
         /// Standing on its own legs (a room people walk in) rather than seated: <see cref="Pose"/> then takes the origin from
         /// <see cref="StandingOrigin"/> and the arms hang.
@@ -536,11 +539,14 @@ namespace TableWorld.View.Chalkers
                 var hold = HandHold.For(root, _torso, root.TransformPoint(new Vector3(0f, EyeHeight, 0.03f)), _raise, face);
                 CardHold = hold;
                 Arm(0, hold.LeftHand);
-                if (!Microphone)
+                if (!Microphone && !ThumbUp)
                     Arm(1, hold.RightHand);
             }
-            if (ReachFor is { } target && !Microphone)
+            if (ReachFor is { } target && !Microphone && !ThumbUp)
                 Arm(1, target);
+            // The thumb: the right fist up beside the head, where every face around the table sees it.
+            if (ThumbUp && !Microphone)
+                Arm(1, _shoulders[1].position + root.up * 0.2f + root.forward * 0.1f + root.right * 0.06f);
         }
 
         /// <summary>One shape arm to <paramref name="target"/>, the elbow out and down (a model's arm follows the shape's hand).</summary>

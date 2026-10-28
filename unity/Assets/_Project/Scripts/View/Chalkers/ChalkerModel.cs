@@ -327,7 +327,7 @@ namespace TableWorld.View.Chalkers
                 }
                 // Holding cards: the fingers at the fan's foot (the wrist below it), lying up the cards' backs. The hold's own
                 // places, not the shapes' hands: this model's arms may reach where the shapes' stop short.
-                var holds = chalker.CardHold is { } hold && (side == 0 || chalker.ReachFor == null && !chalker.Microphone);
+                var holds = chalker.CardHold is { } hold && (side == 0 || chalker.ReachFor == null && !chalker.Microphone && !chalker.ThumbUp);
                 if (holds)
                 {
                     var grip = chalker.CardHold.Value;
@@ -337,7 +337,7 @@ namespace TableWorld.View.Chalkers
                 }
                 // Resting on the table (seated, the hand down at the table's height, doing nothing else): the hand lies flat,
                 // palm down and fingers forward, lifted by its own thickness so it does not sink into the table.
-                var rests = !holds && !chalker.Standing && !(side == 1 && (chalker.ReachFor != null || chalker.Microphone)) &&
+                var rests = !holds && !chalker.Standing && !(side == 1 && (chalker.ReachFor != null || chalker.Microphone || chalker.ThumbUp)) &&
                             !TableGeometry.Hidden && root.InverseTransformPoint(hand).y < RestHeight;
                 if (rests)
                     target = hand + root.up * (_handLength[side] * 0.3f) + root.forward * 0.015f;

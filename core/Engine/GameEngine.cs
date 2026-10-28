@@ -50,6 +50,8 @@ namespace Core.Engine
                     return Transaction(() => StartGame(start));
                 case GestureCommand gesture:
                     return Gesture(gesture);
+                case EndTimedPhaseCommand timed:
+                    return EndTimedPhase(timed);
                 case CloseVoteCommand close:
                     return Transaction(() =>
                     {
@@ -231,7 +233,10 @@ namespace Core.Engine
 
             RunEvent(GameEvents.OnGameStart);
             RunEvent(GameEvents.OnTurnStart);
-            EnterPhase(turn.Phases[0]);
+            // A game that opens with a phase of its own (a setup, a ritual) goes there from onGameStart.
+            var opening = _pendingGoto ?? turn.Phases[0];
+            _pendingGoto = null;
+            EnterPhase(opening);
             AdvanceLoop();
             CheckWins(WinCheck.AnyCommand);
         }
@@ -326,10 +331,24 @@ namespace Core.Engine
         {
             var session = Session!;
             session.Phase = phaseId;
+            session.PhaseVisit++;
             session.Acted.Clear();
             session.ActionCounts.Clear();
+            session.Awake = null;
             var phase = CurrentPhase()!;
             WithContext(new Context { Actor = session.CurrentSeat }, () => RunEffects(phase.OnEnter));
+        }
+
+        /// <summary>
+        /// Who is awake, worked out on the host whenever the rules settle (a phase began, or a rule changed what its
+        /// <c>awake</c> reads: someone woken mid-phase); null outside an eyes-closed phase.
+        /// </summary>
+        private void RefreshAwake()
+        {
+            var session = Session!;
+            session.Awake = null;
+            if (CurrentPhase()?.Awake != null)
+                session.Awake = Playing.Where(s => AwakeByRule(s.Id, null)).Select(s => s.Id).ToList();
         }
 
         private void ExitPhase()
@@ -368,9 +387,17 @@ namespace Core.Engine
                         || rule.AllPlayersActed && Playing.All(s => session.Acted.Contains(s.Id))
                         || rule.Condition != null && WithContext(new Context { Actor = session.CurrentSeat }, () => Holds(rule.Condition)));
                 if (!advance)
+                {
+                    RefreshAwake();
                     return;
+                }
                 _pendingEndPhase = false;
                 ExitPhase();
+                if (phase.Next != null)
+                {
+                    EnterPhase(phase.Next);
+                    continue;
+                }
                 var phases = State.Turn!.Phases;
                 var next = phases.IndexOf(phase.Id) + 1;
                 if (next < phases.Count)
@@ -555,6 +582,7 @@ namespace Core.Engine
                 case MessageEffect message: Log(Template(message.Text)); break;
                 case RevealEffect reveal: Reveal(reveal.Action); break;
                 case CloseVoteEffect close: CloseVote(close.Action); break;
+                case CastBallotEffect ballot: CastBallot(ballot); break;
                 case EliminateEffect gone: Eliminate(ResolveSeat(gone.Seat, "eliminate.seat"), gone.RevealRole); break;
                 case RevealRoleEffect show:
                     RevealRole(ResolveSeat(show.Seat, "revealRole.seat"), Audience(show.To, "revealRole.to"), show.TeamOnly, show.Set);
@@ -1001,6 +1029,9 @@ namespace Core.Engine
         {
             var action = State.Actions.FirstOrDefault(a => a.Id == actionId);
             var def = action == null ? null : ParamsOf(action).FirstOrDefault(p => p.Name == param);
+            // A vote's options read as the vote's labels, in the session's language ("Aprobar").
+            if (param == VoteParam && action?.Vote is { Seats: false } vote && vote.Options.Contains(value))
+                return VoteLabel(vote, value);
             if (def?.Type == ParamType.Choice && def.Options.Contains(value))
                 return Translations.Text(State, $"params.{actionId}.{param}.{value}",
                     def.Labels != null && def.Labels.TryGetValue(value, out var written) && !string.IsNullOrWhiteSpace(written) ? written : value)!;

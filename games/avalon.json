@@ -49,9 +49,9 @@
       "name": "Quest cards",
       "transform": {
         "position": [
-          0.62,
+          0.5,
           0.0,
-          -0.3
+          0.25
         ]
       },
       "tint": [
@@ -67,9 +67,9 @@
       "locked": true,
       "transform": {
         "position": [
-          0.62,
+          0.5,
           0.0,
-          -0.3
+          0.25
         ]
       },
       "container": "quest_box",
@@ -109,9 +109,9 @@
       "locked": true,
       "transform": {
         "position": [
-          0.62,
+          0.5,
           0.0,
-          -0.3
+          0.25
         ]
       },
       "container": "quest_box",
@@ -151,9 +151,9 @@
       "locked": true,
       "transform": {
         "position": [
-          0.62,
+          0.5,
           0.0,
-          -0.3
+          0.25
         ]
       },
       "container": "quest_box",
@@ -193,9 +193,9 @@
       "locked": true,
       "transform": {
         "position": [
-          0.62,
+          0.5,
           0.0,
-          -0.3
+          0.25
         ]
       },
       "container": "quest_box",
@@ -235,9 +235,9 @@
       "locked": true,
       "transform": {
         "position": [
-          0.62,
+          0.5,
           0.0,
-          -0.3
+          0.25
         ]
       },
       "container": "quest_box",
@@ -277,9 +277,9 @@
       "locked": true,
       "transform": {
         "position": [
-          0.62,
+          0.5,
           0.0,
-          -0.3
+          0.25
         ]
       },
       "container": "quest_box",
@@ -319,9 +319,9 @@
       "locked": true,
       "transform": {
         "position": [
-          0.62,
+          0.5,
           0.0,
-          -0.3
+          0.25
         ]
       },
       "container": "quest_box",
@@ -361,9 +361,9 @@
       "locked": true,
       "transform": {
         "position": [
-          0.62,
+          0.5,
           0.0,
-          -0.3
+          0.25
         ]
       },
       "container": "quest_box",
@@ -403,9 +403,9 @@
       "locked": true,
       "transform": {
         "position": [
-          0.62,
+          0.5,
           0.0,
-          -0.3
+          0.25
         ]
       },
       "container": "quest_box",
@@ -445,9 +445,9 @@
       "locked": true,
       "transform": {
         "position": [
-          0.62,
+          0.5,
           0.0,
-          -0.3
+          0.25
         ]
       },
       "container": "quest_box",
@@ -487,9 +487,9 @@
       "locked": true,
       "transform": {
         "position": [
-          0.62,
+          0.5,
           0.0,
-          -0.3
+          0.25
         ]
       },
       "container": "quest_box",
@@ -529,9 +529,9 @@
       "locked": true,
       "transform": {
         "position": [
-          0.62,
+          0.5,
           0.0,
-          -0.3
+          0.25
         ]
       },
       "container": "quest_box",
@@ -571,9 +571,9 @@
       "locked": true,
       "transform": {
         "position": [
-          0.62,
+          0.5,
           0.0,
-          -0.3
+          0.25
         ]
       },
       "container": "quest_box",
@@ -613,9 +613,9 @@
       "locked": true,
       "transform": {
         "position": [
-          0.62,
+          0.5,
           0.0,
-          -0.3
+          0.25
         ]
       },
       "container": "quest_box",
@@ -656,9 +656,9 @@
       "locked": true,
       "transform": {
         "position": [
-          0.62,
+          0.5,
           0.0,
-          -0.3
+          0.25
         ]
       },
       "container": "quest_box",
@@ -698,9 +698,9 @@
       "locked": true,
       "transform": {
         "position": [
-          0.62,
+          0.5,
           0.0,
-          -0.3
+          0.25
         ]
       },
       "container": "quest_box",
@@ -740,9 +740,9 @@
       "locked": true,
       "transform": {
         "position": [
-          0.62,
+          0.5,
           0.0,
-          -0.3
+          0.25
         ]
       },
       "container": "quest_box",
@@ -782,9 +782,9 @@
       "locked": true,
       "transform": {
         "position": [
-          0.62,
+          0.5,
           0.0,
-          -0.3
+          0.25
         ]
       },
       "container": "quest_box",
@@ -824,9 +824,9 @@
       "locked": true,
       "transform": {
         "position": [
-          0.62,
+          0.5,
           0.0,
-          -0.3
+          0.25
         ]
       },
       "container": "quest_box",
@@ -867,9 +867,9 @@
       "locked": true,
       "transform": {
         "position": [
-          0.62,
+          0.5,
           0.0,
-          -0.3
+          0.25
         ]
       },
       "container": "quest_box",
@@ -911,7 +911,7 @@
         "position": [
           -0.16,
           0.0,
-          -0.17
+          -0.13
         ],
         "rotation": [
           0.0,
@@ -956,7 +956,7 @@
         "position": [
           -0.08,
           0.0,
-          -0.17
+          -0.13
         ],
         "rotation": [
           0.0,
@@ -1001,7 +1001,7 @@
         "position": [
           0.0,
           0.0,
-          -0.17
+          -0.13
         ],
         "rotation": [
           0.0,
@@ -1046,7 +1046,7 @@
         "position": [
           0.08,
           0.0,
-          -0.17
+          -0.13
         ],
         "rotation": [
           0.0,
@@ -1091,7 +1091,7 @@
         "position": [
           0.16,
           0.0,
-          -0.17
+          -0.13
         ],
         "rotation": [
           0.0,
@@ -1133,9 +1133,9 @@
       "name": "Rejections",
       "transform": {
         "position": [
-          -0.26,
+          -0.25,
           0.0,
-          -0.17
+          -0.13
         ],
         "scale": [
           1.6,
@@ -1156,9 +1156,9 @@
       "name": "Leader",
       "transform": {
         "position": [
-          0.3,
+          0.36,
           0.0,
-          -0.3
+          -0.25
         ],
         "scale": [
           2.4,
@@ -1177,11 +1177,14 @@
       "id": "shield",
       "type": "Model",
       "name": "Team",
+      "tags": [
+        "shield"
+      ],
       "transform": {
         "position": [
-          -0.06,
+          0.13,
           0.0,
-          -0.3
+          -0.25
         ],
         "scale": [
           2.2,
@@ -1201,11 +1204,14 @@
       "id": "shield_2",
       "type": "Model",
       "name": "Team",
+      "tags": [
+        "shield"
+      ],
       "transform": {
         "position": [
-          -0.033999998,
+          0.15599999,
           0.0,
-          -0.3
+          -0.25
         ],
         "scale": [
           2.2,
@@ -1225,11 +1231,14 @@
       "id": "shield_3",
       "type": "Model",
       "name": "Team",
+      "tags": [
+        "shield"
+      ],
       "transform": {
         "position": [
-          -0.007999998,
+          0.182,
           0.0,
-          -0.3
+          -0.25
         ],
         "scale": [
           2.2,
@@ -1249,11 +1258,14 @@
       "id": "shield_4",
       "type": "Model",
       "name": "Team",
+      "tags": [
+        "shield"
+      ],
       "transform": {
         "position": [
-          0.018000003,
+          0.208,
           0.0,
-          -0.3
+          -0.25
         ],
         "scale": [
           2.2,
@@ -1273,11 +1285,14 @@
       "id": "shield_5",
       "type": "Model",
       "name": "Team",
+      "tags": [
+        "shield"
+      ],
       "transform": {
         "position": [
-          0.044000003,
+          0.234,
           0.0,
-          -0.3
+          -0.25
         ],
         "scale": [
           2.2,
@@ -1299,9 +1314,9 @@
       "name": "Quest succeeded",
       "transform": {
         "position": [
-          -0.62,
+          -0.52,
           0.0,
-          0.06
+          -0.03
         ],
         "scale": [
           1.8,
@@ -1323,9 +1338,9 @@
       "name": "Quest succeeded",
       "transform": {
         "position": [
-          -0.594,
+          -0.494,
           0.0,
-          0.06
+          -0.03
         ],
         "scale": [
           1.8,
@@ -1347,9 +1362,9 @@
       "name": "Quest succeeded",
       "transform": {
         "position": [
-          -0.568,
+          -0.468,
           0.0,
-          0.06
+          -0.03
         ],
         "scale": [
           1.8,
@@ -1371,9 +1386,9 @@
       "name": "Quest failed",
       "transform": {
         "position": [
-          0.56,
+          0.47,
           0.0,
-          0.06
+          -0.03
         ],
         "scale": [
           1.8,
@@ -1395,9 +1410,9 @@
       "name": "Quest failed",
       "transform": {
         "position": [
-          0.586,
+          0.496,
           0.0,
-          0.06
+          -0.03
         ],
         "scale": [
           1.8,
@@ -1419,9 +1434,9 @@
       "name": "Quest failed",
       "transform": {
         "position": [
-          0.612,
+          0.522,
           0.0,
-          0.06
+          -0.03
         ],
         "scale": [
           1.8,
@@ -1436,6 +1451,1844 @@
       ],
       "asset": "piece_checker",
       "kind": "chip"
+    },
+    {
+      "id": "role_deck",
+      "type": "Deck",
+      "name": "Roles",
+      "locked": true,
+      "transform": {
+        "position": [
+          -0.18,
+          0.0,
+          0.25
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          180.0
+        ]
+      },
+      "faceAsset": "",
+      "backAsset": "",
+      "style": {
+        "backPaper": [
+          0.16,
+          0.12,
+          0.1
+        ],
+        "backInk": [
+          0.85,
+          0.7,
+          0.4
+        ],
+        "backLabel": "AVALON"
+      },
+      "cards": [
+        {
+          "id": "role_merlin",
+          "name": "Merlin",
+          "description": "You see the minions' thumbs (not Mordred's). Stay hidden from the Assassin.",
+          "tags": [
+            "role"
+          ],
+          "text": {
+            "title": "Merlin",
+            "kind": "Loyal servants of Arthur",
+            "body": "You see the minions' thumbs (not Mordred's). Stay hidden from the Assassin."
+          },
+          "style": {
+            "paper": [
+              0.88,
+              0.92,
+              0.98
+            ],
+            "ink": [
+              0.1,
+              0.16,
+              0.3
+            ],
+            "accent": [
+              0.2,
+              0.36,
+              0.7
+            ]
+          }
+        },
+        {
+          "id": "role_percival",
+          "name": "Percival",
+          "description": "You see two thumbs: Merlin's and Morgana's, not which is which.",
+          "tags": [
+            "role"
+          ],
+          "text": {
+            "title": "Percival",
+            "kind": "Loyal servants of Arthur",
+            "body": "You see two thumbs: Merlin's and Morgana's, not which is which."
+          },
+          "style": {
+            "paper": [
+              0.88,
+              0.92,
+              0.98
+            ],
+            "ink": [
+              0.1,
+              0.16,
+              0.3
+            ],
+            "accent": [
+              0.2,
+              0.36,
+              0.7
+            ]
+          }
+        },
+        {
+          "id": "role_servant",
+          "name": "Loyal servant",
+          "description": "Play Success, find the minions.",
+          "tags": [
+            "role"
+          ],
+          "text": {
+            "title": "Loyal servant",
+            "kind": "Loyal servants of Arthur",
+            "body": "Play Success, find the minions."
+          },
+          "style": {
+            "paper": [
+              0.88,
+              0.92,
+              0.98
+            ],
+            "ink": [
+              0.1,
+              0.16,
+              0.3
+            ],
+            "accent": [
+              0.2,
+              0.36,
+              0.7
+            ]
+          }
+        },
+        {
+          "id": "role_servant_2",
+          "name": "Loyal servant",
+          "description": "Play Success, find the minions.",
+          "tags": [
+            "role"
+          ],
+          "text": {
+            "title": "Loyal servant",
+            "kind": "Loyal servants of Arthur",
+            "body": "Play Success, find the minions."
+          },
+          "style": {
+            "paper": [
+              0.88,
+              0.92,
+              0.98
+            ],
+            "ink": [
+              0.1,
+              0.16,
+              0.3
+            ],
+            "accent": [
+              0.2,
+              0.36,
+              0.7
+            ]
+          }
+        },
+        {
+          "id": "role_servant_3",
+          "name": "Loyal servant",
+          "description": "Play Success, find the minions.",
+          "tags": [
+            "role"
+          ],
+          "text": {
+            "title": "Loyal servant",
+            "kind": "Loyal servants of Arthur",
+            "body": "Play Success, find the minions."
+          },
+          "style": {
+            "paper": [
+              0.88,
+              0.92,
+              0.98
+            ],
+            "ink": [
+              0.1,
+              0.16,
+              0.3
+            ],
+            "accent": [
+              0.2,
+              0.36,
+              0.7
+            ]
+          }
+        },
+        {
+          "id": "role_servant_4",
+          "name": "Loyal servant",
+          "description": "Play Success, find the minions.",
+          "tags": [
+            "role"
+          ],
+          "text": {
+            "title": "Loyal servant",
+            "kind": "Loyal servants of Arthur",
+            "body": "Play Success, find the minions."
+          },
+          "style": {
+            "paper": [
+              0.88,
+              0.92,
+              0.98
+            ],
+            "ink": [
+              0.1,
+              0.16,
+              0.3
+            ],
+            "accent": [
+              0.2,
+              0.36,
+              0.7
+            ]
+          }
+        },
+        {
+          "id": "role_servant_5",
+          "name": "Loyal servant",
+          "description": "Play Success, find the minions.",
+          "tags": [
+            "role"
+          ],
+          "text": {
+            "title": "Loyal servant",
+            "kind": "Loyal servants of Arthur",
+            "body": "Play Success, find the minions."
+          },
+          "style": {
+            "paper": [
+              0.88,
+              0.92,
+              0.98
+            ],
+            "ink": [
+              0.1,
+              0.16,
+              0.3
+            ],
+            "accent": [
+              0.2,
+              0.36,
+              0.7
+            ]
+          }
+        },
+        {
+          "id": "role_assassin",
+          "name": "Assassin",
+          "description": "If good completes three quests, name Merlin: evil wins.",
+          "tags": [
+            "role"
+          ],
+          "text": {
+            "title": "Assassin",
+            "kind": "Minions of Mordred",
+            "body": "If good completes three quests, name Merlin: evil wins."
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.9,
+              0.88
+            ],
+            "ink": [
+              0.3,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "role_morgana",
+          "name": "Morgana",
+          "description": "You raise your thumb for Percival, as Merlin does.",
+          "tags": [
+            "role"
+          ],
+          "text": {
+            "title": "Morgana",
+            "kind": "Minions of Mordred",
+            "body": "You raise your thumb for Percival, as Merlin does."
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.9,
+              0.88
+            ],
+            "ink": [
+              0.3,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "role_mordred",
+          "name": "Mordred",
+          "description": "Keep your thumb down: Merlin does not see you.",
+          "tags": [
+            "role"
+          ],
+          "text": {
+            "title": "Mordred",
+            "kind": "Minions of Mordred",
+            "body": "Keep your thumb down: Merlin does not see you."
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.9,
+              0.88
+            ],
+            "ink": [
+              0.3,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "role_oberon",
+          "name": "Oberon",
+          "description": "Keep your eyes closed with the minions: they do not know you.",
+          "tags": [
+            "role"
+          ],
+          "text": {
+            "title": "Oberon",
+            "kind": "Minions of Mordred",
+            "body": "Keep your eyes closed with the minions: they do not know you."
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.9,
+              0.88
+            ],
+            "ink": [
+              0.3,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "role_minion",
+          "name": "Minion of Mordred",
+          "description": "Play Fail when it suits you; hide among the loyal.",
+          "tags": [
+            "role"
+          ],
+          "text": {
+            "title": "Minion of Mordred",
+            "kind": "Minions of Mordred",
+            "body": "Play Fail when it suits you; hide among the loyal."
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.9,
+              0.88
+            ],
+            "ink": [
+              0.3,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "role_minion_2",
+          "name": "Minion of Mordred",
+          "description": "Play Fail when it suits you; hide among the loyal.",
+          "tags": [
+            "role"
+          ],
+          "text": {
+            "title": "Minion of Mordred",
+            "kind": "Minions of Mordred",
+            "body": "Play Fail when it suits you; hide among the loyal."
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.9,
+              0.88
+            ],
+            "ink": [
+              0.3,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "role_minion_3",
+          "name": "Minion of Mordred",
+          "description": "Play Fail when it suits you; hide among the loyal.",
+          "tags": [
+            "role"
+          ],
+          "text": {
+            "title": "Minion of Mordred",
+            "kind": "Minions of Mordred",
+            "body": "Play Fail when it suits you; hide among the loyal."
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.9,
+              0.88
+            ],
+            "ink": [
+              0.3,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "vote_deck",
+      "type": "Deck",
+      "name": "Votes",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.34,
+          0.0,
+          0.25
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          180.0
+        ]
+      },
+      "faceAsset": "",
+      "backAsset": "",
+      "style": {
+        "backPaper": [
+          0.16,
+          0.12,
+          0.1
+        ],
+        "backInk": [
+          0.85,
+          0.7,
+          0.4
+        ],
+        "backLabel": "VOTE"
+      },
+      "cards": [
+        {
+          "id": "aye",
+          "name": "Approve",
+          "description": "Yes",
+          "tags": [
+            "vote"
+          ],
+          "meta": {
+            "vote": "approve"
+          },
+          "text": {
+            "title": "Approve",
+            "body": "Yes"
+          },
+          "style": {
+            "paper": [
+              0.86,
+              0.95,
+              0.86
+            ],
+            "ink": [
+              0.08,
+              0.3,
+              0.1
+            ],
+            "accent": [
+              0.2,
+              0.55,
+              0.25
+            ]
+          }
+        },
+        {
+          "id": "aye_2",
+          "name": "Approve",
+          "description": "Yes",
+          "tags": [
+            "vote"
+          ],
+          "meta": {
+            "vote": "approve"
+          },
+          "text": {
+            "title": "Approve",
+            "body": "Yes"
+          },
+          "style": {
+            "paper": [
+              0.86,
+              0.95,
+              0.86
+            ],
+            "ink": [
+              0.08,
+              0.3,
+              0.1
+            ],
+            "accent": [
+              0.2,
+              0.55,
+              0.25
+            ]
+          }
+        },
+        {
+          "id": "aye_3",
+          "name": "Approve",
+          "description": "Yes",
+          "tags": [
+            "vote"
+          ],
+          "meta": {
+            "vote": "approve"
+          },
+          "text": {
+            "title": "Approve",
+            "body": "Yes"
+          },
+          "style": {
+            "paper": [
+              0.86,
+              0.95,
+              0.86
+            ],
+            "ink": [
+              0.08,
+              0.3,
+              0.1
+            ],
+            "accent": [
+              0.2,
+              0.55,
+              0.25
+            ]
+          }
+        },
+        {
+          "id": "aye_4",
+          "name": "Approve",
+          "description": "Yes",
+          "tags": [
+            "vote"
+          ],
+          "meta": {
+            "vote": "approve"
+          },
+          "text": {
+            "title": "Approve",
+            "body": "Yes"
+          },
+          "style": {
+            "paper": [
+              0.86,
+              0.95,
+              0.86
+            ],
+            "ink": [
+              0.08,
+              0.3,
+              0.1
+            ],
+            "accent": [
+              0.2,
+              0.55,
+              0.25
+            ]
+          }
+        },
+        {
+          "id": "aye_5",
+          "name": "Approve",
+          "description": "Yes",
+          "tags": [
+            "vote"
+          ],
+          "meta": {
+            "vote": "approve"
+          },
+          "text": {
+            "title": "Approve",
+            "body": "Yes"
+          },
+          "style": {
+            "paper": [
+              0.86,
+              0.95,
+              0.86
+            ],
+            "ink": [
+              0.08,
+              0.3,
+              0.1
+            ],
+            "accent": [
+              0.2,
+              0.55,
+              0.25
+            ]
+          }
+        },
+        {
+          "id": "aye_6",
+          "name": "Approve",
+          "description": "Yes",
+          "tags": [
+            "vote"
+          ],
+          "meta": {
+            "vote": "approve"
+          },
+          "text": {
+            "title": "Approve",
+            "body": "Yes"
+          },
+          "style": {
+            "paper": [
+              0.86,
+              0.95,
+              0.86
+            ],
+            "ink": [
+              0.08,
+              0.3,
+              0.1
+            ],
+            "accent": [
+              0.2,
+              0.55,
+              0.25
+            ]
+          }
+        },
+        {
+          "id": "aye_7",
+          "name": "Approve",
+          "description": "Yes",
+          "tags": [
+            "vote"
+          ],
+          "meta": {
+            "vote": "approve"
+          },
+          "text": {
+            "title": "Approve",
+            "body": "Yes"
+          },
+          "style": {
+            "paper": [
+              0.86,
+              0.95,
+              0.86
+            ],
+            "ink": [
+              0.08,
+              0.3,
+              0.1
+            ],
+            "accent": [
+              0.2,
+              0.55,
+              0.25
+            ]
+          }
+        },
+        {
+          "id": "aye_8",
+          "name": "Approve",
+          "description": "Yes",
+          "tags": [
+            "vote"
+          ],
+          "meta": {
+            "vote": "approve"
+          },
+          "text": {
+            "title": "Approve",
+            "body": "Yes"
+          },
+          "style": {
+            "paper": [
+              0.86,
+              0.95,
+              0.86
+            ],
+            "ink": [
+              0.08,
+              0.3,
+              0.1
+            ],
+            "accent": [
+              0.2,
+              0.55,
+              0.25
+            ]
+          }
+        },
+        {
+          "id": "aye_9",
+          "name": "Approve",
+          "description": "Yes",
+          "tags": [
+            "vote"
+          ],
+          "meta": {
+            "vote": "approve"
+          },
+          "text": {
+            "title": "Approve",
+            "body": "Yes"
+          },
+          "style": {
+            "paper": [
+              0.86,
+              0.95,
+              0.86
+            ],
+            "ink": [
+              0.08,
+              0.3,
+              0.1
+            ],
+            "accent": [
+              0.2,
+              0.55,
+              0.25
+            ]
+          }
+        },
+        {
+          "id": "aye_10",
+          "name": "Approve",
+          "description": "Yes",
+          "tags": [
+            "vote"
+          ],
+          "meta": {
+            "vote": "approve"
+          },
+          "text": {
+            "title": "Approve",
+            "body": "Yes"
+          },
+          "style": {
+            "paper": [
+              0.86,
+              0.95,
+              0.86
+            ],
+            "ink": [
+              0.08,
+              0.3,
+              0.1
+            ],
+            "accent": [
+              0.2,
+              0.55,
+              0.25
+            ]
+          }
+        },
+        {
+          "id": "nay",
+          "name": "Reject",
+          "description": "No",
+          "tags": [
+            "vote"
+          ],
+          "meta": {
+            "vote": "reject"
+          },
+          "text": {
+            "title": "Reject",
+            "body": "No"
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.88,
+              0.86
+            ],
+            "ink": [
+              0.35,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "nay_2",
+          "name": "Reject",
+          "description": "No",
+          "tags": [
+            "vote"
+          ],
+          "meta": {
+            "vote": "reject"
+          },
+          "text": {
+            "title": "Reject",
+            "body": "No"
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.88,
+              0.86
+            ],
+            "ink": [
+              0.35,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "nay_3",
+          "name": "Reject",
+          "description": "No",
+          "tags": [
+            "vote"
+          ],
+          "meta": {
+            "vote": "reject"
+          },
+          "text": {
+            "title": "Reject",
+            "body": "No"
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.88,
+              0.86
+            ],
+            "ink": [
+              0.35,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "nay_4",
+          "name": "Reject",
+          "description": "No",
+          "tags": [
+            "vote"
+          ],
+          "meta": {
+            "vote": "reject"
+          },
+          "text": {
+            "title": "Reject",
+            "body": "No"
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.88,
+              0.86
+            ],
+            "ink": [
+              0.35,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "nay_5",
+          "name": "Reject",
+          "description": "No",
+          "tags": [
+            "vote"
+          ],
+          "meta": {
+            "vote": "reject"
+          },
+          "text": {
+            "title": "Reject",
+            "body": "No"
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.88,
+              0.86
+            ],
+            "ink": [
+              0.35,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "nay_6",
+          "name": "Reject",
+          "description": "No",
+          "tags": [
+            "vote"
+          ],
+          "meta": {
+            "vote": "reject"
+          },
+          "text": {
+            "title": "Reject",
+            "body": "No"
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.88,
+              0.86
+            ],
+            "ink": [
+              0.35,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "nay_7",
+          "name": "Reject",
+          "description": "No",
+          "tags": [
+            "vote"
+          ],
+          "meta": {
+            "vote": "reject"
+          },
+          "text": {
+            "title": "Reject",
+            "body": "No"
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.88,
+              0.86
+            ],
+            "ink": [
+              0.35,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "nay_8",
+          "name": "Reject",
+          "description": "No",
+          "tags": [
+            "vote"
+          ],
+          "meta": {
+            "vote": "reject"
+          },
+          "text": {
+            "title": "Reject",
+            "body": "No"
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.88,
+              0.86
+            ],
+            "ink": [
+              0.35,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "nay_9",
+          "name": "Reject",
+          "description": "No",
+          "tags": [
+            "vote"
+          ],
+          "meta": {
+            "vote": "reject"
+          },
+          "text": {
+            "title": "Reject",
+            "body": "No"
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.88,
+              0.86
+            ],
+            "ink": [
+              0.35,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "nay_10",
+          "name": "Reject",
+          "description": "No",
+          "tags": [
+            "vote"
+          ],
+          "meta": {
+            "vote": "reject"
+          },
+          "text": {
+            "title": "Reject",
+            "body": "No"
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.88,
+              0.86
+            ],
+            "ink": [
+              0.35,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "quest_deck",
+      "type": "Deck",
+      "name": "Quest cards",
+      "locked": true,
+      "transform": {
+        "position": [
+          -0.34,
+          0.0,
+          0.25
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          180.0
+        ]
+      },
+      "faceAsset": "",
+      "backAsset": "",
+      "style": {
+        "backPaper": [
+          0.16,
+          0.12,
+          0.1
+        ],
+        "backInk": [
+          0.85,
+          0.7,
+          0.4
+        ],
+        "backLabel": "QUEST"
+      },
+      "cards": [
+        {
+          "id": "success",
+          "name": "Success",
+          "description": "OK",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "success"
+          },
+          "text": {
+            "title": "Success",
+            "body": "OK"
+          },
+          "style": {
+            "paper": [
+              0.88,
+              0.92,
+              0.98
+            ],
+            "ink": [
+              0.1,
+              0.16,
+              0.3
+            ],
+            "accent": [
+              0.2,
+              0.36,
+              0.7
+            ]
+          }
+        },
+        {
+          "id": "success_2",
+          "name": "Success",
+          "description": "OK",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "success"
+          },
+          "text": {
+            "title": "Success",
+            "body": "OK"
+          },
+          "style": {
+            "paper": [
+              0.88,
+              0.92,
+              0.98
+            ],
+            "ink": [
+              0.1,
+              0.16,
+              0.3
+            ],
+            "accent": [
+              0.2,
+              0.36,
+              0.7
+            ]
+          }
+        },
+        {
+          "id": "success_3",
+          "name": "Success",
+          "description": "OK",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "success"
+          },
+          "text": {
+            "title": "Success",
+            "body": "OK"
+          },
+          "style": {
+            "paper": [
+              0.88,
+              0.92,
+              0.98
+            ],
+            "ink": [
+              0.1,
+              0.16,
+              0.3
+            ],
+            "accent": [
+              0.2,
+              0.36,
+              0.7
+            ]
+          }
+        },
+        {
+          "id": "success_4",
+          "name": "Success",
+          "description": "OK",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "success"
+          },
+          "text": {
+            "title": "Success",
+            "body": "OK"
+          },
+          "style": {
+            "paper": [
+              0.88,
+              0.92,
+              0.98
+            ],
+            "ink": [
+              0.1,
+              0.16,
+              0.3
+            ],
+            "accent": [
+              0.2,
+              0.36,
+              0.7
+            ]
+          }
+        },
+        {
+          "id": "success_5",
+          "name": "Success",
+          "description": "OK",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "success"
+          },
+          "text": {
+            "title": "Success",
+            "body": "OK"
+          },
+          "style": {
+            "paper": [
+              0.88,
+              0.92,
+              0.98
+            ],
+            "ink": [
+              0.1,
+              0.16,
+              0.3
+            ],
+            "accent": [
+              0.2,
+              0.36,
+              0.7
+            ]
+          }
+        },
+        {
+          "id": "success_6",
+          "name": "Success",
+          "description": "OK",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "success"
+          },
+          "text": {
+            "title": "Success",
+            "body": "OK"
+          },
+          "style": {
+            "paper": [
+              0.88,
+              0.92,
+              0.98
+            ],
+            "ink": [
+              0.1,
+              0.16,
+              0.3
+            ],
+            "accent": [
+              0.2,
+              0.36,
+              0.7
+            ]
+          }
+        },
+        {
+          "id": "success_7",
+          "name": "Success",
+          "description": "OK",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "success"
+          },
+          "text": {
+            "title": "Success",
+            "body": "OK"
+          },
+          "style": {
+            "paper": [
+              0.88,
+              0.92,
+              0.98
+            ],
+            "ink": [
+              0.1,
+              0.16,
+              0.3
+            ],
+            "accent": [
+              0.2,
+              0.36,
+              0.7
+            ]
+          }
+        },
+        {
+          "id": "success_8",
+          "name": "Success",
+          "description": "OK",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "success"
+          },
+          "text": {
+            "title": "Success",
+            "body": "OK"
+          },
+          "style": {
+            "paper": [
+              0.88,
+              0.92,
+              0.98
+            ],
+            "ink": [
+              0.1,
+              0.16,
+              0.3
+            ],
+            "accent": [
+              0.2,
+              0.36,
+              0.7
+            ]
+          }
+        },
+        {
+          "id": "success_9",
+          "name": "Success",
+          "description": "OK",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "success"
+          },
+          "text": {
+            "title": "Success",
+            "body": "OK"
+          },
+          "style": {
+            "paper": [
+              0.88,
+              0.92,
+              0.98
+            ],
+            "ink": [
+              0.1,
+              0.16,
+              0.3
+            ],
+            "accent": [
+              0.2,
+              0.36,
+              0.7
+            ]
+          }
+        },
+        {
+          "id": "success_10",
+          "name": "Success",
+          "description": "OK",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "success"
+          },
+          "text": {
+            "title": "Success",
+            "body": "OK"
+          },
+          "style": {
+            "paper": [
+              0.88,
+              0.92,
+              0.98
+            ],
+            "ink": [
+              0.1,
+              0.16,
+              0.3
+            ],
+            "accent": [
+              0.2,
+              0.36,
+              0.7
+            ]
+          }
+        },
+        {
+          "id": "fail",
+          "name": "Fail",
+          "description": "X",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "fail"
+          },
+          "text": {
+            "title": "Fail",
+            "body": "X"
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.9,
+              0.88
+            ],
+            "ink": [
+              0.3,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "fail_2",
+          "name": "Fail",
+          "description": "X",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "fail"
+          },
+          "text": {
+            "title": "Fail",
+            "body": "X"
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.9,
+              0.88
+            ],
+            "ink": [
+              0.3,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "fail_3",
+          "name": "Fail",
+          "description": "X",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "fail"
+          },
+          "text": {
+            "title": "Fail",
+            "body": "X"
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.9,
+              0.88
+            ],
+            "ink": [
+              0.3,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "fail_4",
+          "name": "Fail",
+          "description": "X",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "fail"
+          },
+          "text": {
+            "title": "Fail",
+            "body": "X"
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.9,
+              0.88
+            ],
+            "ink": [
+              0.3,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "fail_5",
+          "name": "Fail",
+          "description": "X",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "fail"
+          },
+          "text": {
+            "title": "Fail",
+            "body": "X"
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.9,
+              0.88
+            ],
+            "ink": [
+              0.3,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "fail_6",
+          "name": "Fail",
+          "description": "X",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "fail"
+          },
+          "text": {
+            "title": "Fail",
+            "body": "X"
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.9,
+              0.88
+            ],
+            "ink": [
+              0.3,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "fail_7",
+          "name": "Fail",
+          "description": "X",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "fail"
+          },
+          "text": {
+            "title": "Fail",
+            "body": "X"
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.9,
+              0.88
+            ],
+            "ink": [
+              0.3,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "fail_8",
+          "name": "Fail",
+          "description": "X",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "fail"
+          },
+          "text": {
+            "title": "Fail",
+            "body": "X"
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.9,
+              0.88
+            ],
+            "ink": [
+              0.3,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "fail_9",
+          "name": "Fail",
+          "description": "X",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "fail"
+          },
+          "text": {
+            "title": "Fail",
+            "body": "X"
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.9,
+              0.88
+            ],
+            "ink": [
+              0.3,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        },
+        {
+          "id": "fail_10",
+          "name": "Fail",
+          "description": "X",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "fail"
+          },
+          "text": {
+            "title": "Fail",
+            "body": "X"
+          },
+          "style": {
+            "paper": [
+              0.98,
+              0.9,
+              0.88
+            ],
+            "ink": [
+              0.3,
+              0.08,
+              0.06
+            ],
+            "accent": [
+              0.66,
+              0.14,
+              0.12
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "quest_pile",
+      "type": "Deck",
+      "name": "Quest pile",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.17,
+          0.0,
+          0.25
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          180.0
+        ]
+      },
+      "faceAsset": "",
+      "backAsset": "",
+      "style": {
+        "backPaper": [
+          0.16,
+          0.12,
+          0.1
+        ],
+        "backInk": [
+          0.85,
+          0.7,
+          0.4
+        ],
+        "backLabel": "QUEST"
+      }
     }
   ],
   "zones": [
@@ -1643,6 +3496,2859 @@
         0.12
       ],
       "owner": "seat_10"
+    },
+    {
+      "id": "quest_drop",
+      "type": "LayoutZone",
+      "name": "Quest pile",
+      "transform": {
+        "position": [
+          0.04,
+          0.05,
+          0.25
+        ]
+      },
+      "size": [
+        0.12,
+        0.1,
+        0.13
+      ],
+      "onEnter": [
+        {
+          "if": {
+            "condition": {
+              "hasTag": {
+                "object": "$it",
+                "tag": "quest"
+              }
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "inList": {
+                      "list": "$var.played",
+                      "value": "$actor"
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@onePlayed"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "and": [
+                      {
+                        "compare": {
+                          "left": "$it.meta.quest",
+                          "op": "==",
+                          "right": "fail"
+                        }
+                      },
+                      {
+                        "compare": {
+                          "left": "$actor.team",
+                          "op": "!=",
+                          "right": "evil"
+                        }
+                      }
+                    ]
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@loyalSucceed"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "castBallot": {
+                  "action": "quest",
+                  "seat": "$actor",
+                  "choice": "$it.meta.quest"
+                }
+              },
+              {
+                "setVariable": {
+                  "name": "played",
+                  "add": "$actor"
+                }
+              },
+              {
+                "lua": {
+                  "call": "toPile"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "facing": "faceDown"
+    },
+    {
+      "id": "reveal_row",
+      "type": "ScriptingZone",
+      "name": "Quest cards shown",
+      "transform": {
+        "position": [
+          -0.12,
+          0.05,
+          -0.25
+        ]
+      },
+      "size": [
+        0.42,
+        0.1,
+        0.12
+      ]
+    },
+    {
+      "id": "team_1",
+      "type": "ScriptingZone",
+      "name": "Team",
+      "transform": {
+        "position": [
+          0.308,
+          0.05,
+          -0.375
+        ]
+      },
+      "size": [
+        0.16,
+        0.1,
+        0.12
+      ],
+      "onEnter": [
+        {
+          "if": {
+            "condition": {
+              "hasTag": {
+                "object": "$it",
+                "tag": "shield"
+              }
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "and": [
+                        {
+                          "compare": {
+                            "left": "$var.picking",
+                            "op": "==",
+                            "right": true
+                          }
+                        },
+                        {
+                          "isCurrentPlayer": {
+                            "player": "$actor"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@onlyLeader"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "inList": {
+                        "list": "$var.team",
+                        "value": "seat_1"
+                      }
+                    }
+                  },
+                  "then": [
+                    {
+                      "if": {
+                        "condition": {
+                          "compare": {
+                            "left": "$var.team.count",
+                            "op": ">=",
+                            "right": "$var.size"
+                          }
+                        },
+                        "then": [
+                          {
+                            "refuse": {
+                              "reason": "@teamFull"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "setVariable": {
+                        "name": "team",
+                        "add": "seat_1"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "onLeave": [
+        {
+          "if": {
+            "condition": {
+              "and": [
+                {
+                  "hasTag": {
+                    "object": "$it",
+                    "tag": "shield"
+                  }
+                },
+                {
+                  "inList": {
+                    "list": "$var.team",
+                    "value": "seat_1"
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "and": [
+                        {
+                          "compare": {
+                            "left": "$var.picking",
+                            "op": "==",
+                            "right": true
+                          }
+                        },
+                        {
+                          "isCurrentPlayer": {
+                            "player": "$actor"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@onlyLeader"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "setVariable": {
+                  "name": "team",
+                  "remove": "seat_1"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "vote_1",
+      "type": "LayoutZone",
+      "name": "Vote",
+      "transform": {
+        "position": [
+          0.418,
+          0.05,
+          -0.509
+        ]
+      },
+      "size": [
+        0.11,
+        0.1,
+        0.13
+      ],
+      "onEnter": [
+        {
+          "if": {
+            "condition": {
+              "hasTag": {
+                "object": "$it",
+                "tag": "vote"
+              }
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "compare": {
+                      "left": "$actor.id",
+                      "op": "!=",
+                      "right": "seat_1"
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@notYourSpot"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "inList": {
+                      "list": "$var.voted",
+                      "value": "seat_1"
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@oneVote"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "castBallot": {
+                  "action": "team_vote",
+                  "seat": "seat_1",
+                  "choice": "$it.meta.vote"
+                }
+              },
+              {
+                "setVariable": {
+                  "name": "voted",
+                  "add": "seat_1"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "onLeave": [
+        {
+          "if": {
+            "condition": {
+              "and": [
+                {
+                  "hasTag": {
+                    "object": "$it",
+                    "tag": "vote"
+                  }
+                },
+                {
+                  "inList": {
+                    "list": "$var.voted",
+                    "value": "seat_1"
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "setVariable": {
+                  "name": "voted",
+                  "remove": "seat_1"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "facing": "faceDown"
+    },
+    {
+      "id": "team_2",
+      "type": "ScriptingZone",
+      "name": "Team",
+      "transform": {
+        "position": [
+          -0.0,
+          0.05,
+          -0.375
+        ]
+      },
+      "size": [
+        0.16,
+        0.1,
+        0.12
+      ],
+      "onEnter": [
+        {
+          "if": {
+            "condition": {
+              "hasTag": {
+                "object": "$it",
+                "tag": "shield"
+              }
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "and": [
+                        {
+                          "compare": {
+                            "left": "$var.picking",
+                            "op": "==",
+                            "right": true
+                          }
+                        },
+                        {
+                          "isCurrentPlayer": {
+                            "player": "$actor"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@onlyLeader"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "inList": {
+                        "list": "$var.team",
+                        "value": "seat_2"
+                      }
+                    }
+                  },
+                  "then": [
+                    {
+                      "if": {
+                        "condition": {
+                          "compare": {
+                            "left": "$var.team.count",
+                            "op": ">=",
+                            "right": "$var.size"
+                          }
+                        },
+                        "then": [
+                          {
+                            "refuse": {
+                              "reason": "@teamFull"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "setVariable": {
+                        "name": "team",
+                        "add": "seat_2"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "onLeave": [
+        {
+          "if": {
+            "condition": {
+              "and": [
+                {
+                  "hasTag": {
+                    "object": "$it",
+                    "tag": "shield"
+                  }
+                },
+                {
+                  "inList": {
+                    "list": "$var.team",
+                    "value": "seat_2"
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "and": [
+                        {
+                          "compare": {
+                            "left": "$var.picking",
+                            "op": "==",
+                            "right": true
+                          }
+                        },
+                        {
+                          "isCurrentPlayer": {
+                            "player": "$actor"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@onlyLeader"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "setVariable": {
+                  "name": "team",
+                  "remove": "seat_2"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "vote_2",
+      "type": "LayoutZone",
+      "name": "Vote",
+      "transform": {
+        "position": [
+          -0.0,
+          0.05,
+          -0.509
+        ]
+      },
+      "size": [
+        0.11,
+        0.1,
+        0.13
+      ],
+      "onEnter": [
+        {
+          "if": {
+            "condition": {
+              "hasTag": {
+                "object": "$it",
+                "tag": "vote"
+              }
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "compare": {
+                      "left": "$actor.id",
+                      "op": "!=",
+                      "right": "seat_2"
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@notYourSpot"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "inList": {
+                      "list": "$var.voted",
+                      "value": "seat_2"
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@oneVote"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "castBallot": {
+                  "action": "team_vote",
+                  "seat": "seat_2",
+                  "choice": "$it.meta.vote"
+                }
+              },
+              {
+                "setVariable": {
+                  "name": "voted",
+                  "add": "seat_2"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "onLeave": [
+        {
+          "if": {
+            "condition": {
+              "and": [
+                {
+                  "hasTag": {
+                    "object": "$it",
+                    "tag": "vote"
+                  }
+                },
+                {
+                  "inList": {
+                    "list": "$var.voted",
+                    "value": "seat_2"
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "setVariable": {
+                  "name": "voted",
+                  "remove": "seat_2"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "facing": "faceDown"
+    },
+    {
+      "id": "team_3",
+      "type": "ScriptingZone",
+      "name": "Team",
+      "transform": {
+        "position": [
+          -0.308,
+          0.05,
+          -0.375
+        ]
+      },
+      "size": [
+        0.16,
+        0.1,
+        0.12
+      ],
+      "onEnter": [
+        {
+          "if": {
+            "condition": {
+              "hasTag": {
+                "object": "$it",
+                "tag": "shield"
+              }
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "and": [
+                        {
+                          "compare": {
+                            "left": "$var.picking",
+                            "op": "==",
+                            "right": true
+                          }
+                        },
+                        {
+                          "isCurrentPlayer": {
+                            "player": "$actor"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@onlyLeader"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "inList": {
+                        "list": "$var.team",
+                        "value": "seat_3"
+                      }
+                    }
+                  },
+                  "then": [
+                    {
+                      "if": {
+                        "condition": {
+                          "compare": {
+                            "left": "$var.team.count",
+                            "op": ">=",
+                            "right": "$var.size"
+                          }
+                        },
+                        "then": [
+                          {
+                            "refuse": {
+                              "reason": "@teamFull"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "setVariable": {
+                        "name": "team",
+                        "add": "seat_3"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "onLeave": [
+        {
+          "if": {
+            "condition": {
+              "and": [
+                {
+                  "hasTag": {
+                    "object": "$it",
+                    "tag": "shield"
+                  }
+                },
+                {
+                  "inList": {
+                    "list": "$var.team",
+                    "value": "seat_3"
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "and": [
+                        {
+                          "compare": {
+                            "left": "$var.picking",
+                            "op": "==",
+                            "right": true
+                          }
+                        },
+                        {
+                          "isCurrentPlayer": {
+                            "player": "$actor"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@onlyLeader"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "setVariable": {
+                  "name": "team",
+                  "remove": "seat_3"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "vote_3",
+      "type": "LayoutZone",
+      "name": "Vote",
+      "transform": {
+        "position": [
+          -0.418,
+          0.05,
+          -0.509
+        ]
+      },
+      "size": [
+        0.11,
+        0.1,
+        0.13
+      ],
+      "onEnter": [
+        {
+          "if": {
+            "condition": {
+              "hasTag": {
+                "object": "$it",
+                "tag": "vote"
+              }
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "compare": {
+                      "left": "$actor.id",
+                      "op": "!=",
+                      "right": "seat_3"
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@notYourSpot"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "inList": {
+                      "list": "$var.voted",
+                      "value": "seat_3"
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@oneVote"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "castBallot": {
+                  "action": "team_vote",
+                  "seat": "seat_3",
+                  "choice": "$it.meta.vote"
+                }
+              },
+              {
+                "setVariable": {
+                  "name": "voted",
+                  "add": "seat_3"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "onLeave": [
+        {
+          "if": {
+            "condition": {
+              "and": [
+                {
+                  "hasTag": {
+                    "object": "$it",
+                    "tag": "vote"
+                  }
+                },
+                {
+                  "inList": {
+                    "list": "$var.voted",
+                    "value": "seat_3"
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "setVariable": {
+                  "name": "voted",
+                  "remove": "seat_3"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "facing": "faceDown"
+    },
+    {
+      "id": "team_4",
+      "type": "ScriptingZone",
+      "name": "Team",
+      "transform": {
+        "position": [
+          -0.605,
+          0.05,
+          -0.154
+        ],
+        "rotation": [
+          0.0,
+          90.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.16,
+        0.1,
+        0.12
+      ],
+      "onEnter": [
+        {
+          "if": {
+            "condition": {
+              "hasTag": {
+                "object": "$it",
+                "tag": "shield"
+              }
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "and": [
+                        {
+                          "compare": {
+                            "left": "$var.picking",
+                            "op": "==",
+                            "right": true
+                          }
+                        },
+                        {
+                          "isCurrentPlayer": {
+                            "player": "$actor"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@onlyLeader"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "inList": {
+                        "list": "$var.team",
+                        "value": "seat_4"
+                      }
+                    }
+                  },
+                  "then": [
+                    {
+                      "if": {
+                        "condition": {
+                          "compare": {
+                            "left": "$var.team.count",
+                            "op": ">=",
+                            "right": "$var.size"
+                          }
+                        },
+                        "then": [
+                          {
+                            "refuse": {
+                              "reason": "@teamFull"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "setVariable": {
+                        "name": "team",
+                        "add": "seat_4"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "onLeave": [
+        {
+          "if": {
+            "condition": {
+              "and": [
+                {
+                  "hasTag": {
+                    "object": "$it",
+                    "tag": "shield"
+                  }
+                },
+                {
+                  "inList": {
+                    "list": "$var.team",
+                    "value": "seat_4"
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "and": [
+                        {
+                          "compare": {
+                            "left": "$var.picking",
+                            "op": "==",
+                            "right": true
+                          }
+                        },
+                        {
+                          "isCurrentPlayer": {
+                            "player": "$actor"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@onlyLeader"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "setVariable": {
+                  "name": "team",
+                  "remove": "seat_4"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "vote_4",
+      "type": "LayoutZone",
+      "name": "Vote",
+      "transform": {
+        "position": [
+          -0.821,
+          0.05,
+          -0.209
+        ],
+        "rotation": [
+          0.0,
+          90.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.11,
+        0.1,
+        0.13
+      ],
+      "onEnter": [
+        {
+          "if": {
+            "condition": {
+              "hasTag": {
+                "object": "$it",
+                "tag": "vote"
+              }
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "compare": {
+                      "left": "$actor.id",
+                      "op": "!=",
+                      "right": "seat_4"
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@notYourSpot"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "inList": {
+                      "list": "$var.voted",
+                      "value": "seat_4"
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@oneVote"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "castBallot": {
+                  "action": "team_vote",
+                  "seat": "seat_4",
+                  "choice": "$it.meta.vote"
+                }
+              },
+              {
+                "setVariable": {
+                  "name": "voted",
+                  "add": "seat_4"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "onLeave": [
+        {
+          "if": {
+            "condition": {
+              "and": [
+                {
+                  "hasTag": {
+                    "object": "$it",
+                    "tag": "vote"
+                  }
+                },
+                {
+                  "inList": {
+                    "list": "$var.voted",
+                    "value": "seat_4"
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "setVariable": {
+                  "name": "voted",
+                  "remove": "seat_4"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "facing": "faceDown"
+    },
+    {
+      "id": "team_5",
+      "type": "ScriptingZone",
+      "name": "Team",
+      "transform": {
+        "position": [
+          -0.605,
+          0.05,
+          0.154
+        ],
+        "rotation": [
+          0.0,
+          90.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.16,
+        0.1,
+        0.12
+      ],
+      "onEnter": [
+        {
+          "if": {
+            "condition": {
+              "hasTag": {
+                "object": "$it",
+                "tag": "shield"
+              }
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "and": [
+                        {
+                          "compare": {
+                            "left": "$var.picking",
+                            "op": "==",
+                            "right": true
+                          }
+                        },
+                        {
+                          "isCurrentPlayer": {
+                            "player": "$actor"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@onlyLeader"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "inList": {
+                        "list": "$var.team",
+                        "value": "seat_5"
+                      }
+                    }
+                  },
+                  "then": [
+                    {
+                      "if": {
+                        "condition": {
+                          "compare": {
+                            "left": "$var.team.count",
+                            "op": ">=",
+                            "right": "$var.size"
+                          }
+                        },
+                        "then": [
+                          {
+                            "refuse": {
+                              "reason": "@teamFull"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "setVariable": {
+                        "name": "team",
+                        "add": "seat_5"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "onLeave": [
+        {
+          "if": {
+            "condition": {
+              "and": [
+                {
+                  "hasTag": {
+                    "object": "$it",
+                    "tag": "shield"
+                  }
+                },
+                {
+                  "inList": {
+                    "list": "$var.team",
+                    "value": "seat_5"
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "and": [
+                        {
+                          "compare": {
+                            "left": "$var.picking",
+                            "op": "==",
+                            "right": true
+                          }
+                        },
+                        {
+                          "isCurrentPlayer": {
+                            "player": "$actor"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@onlyLeader"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "setVariable": {
+                  "name": "team",
+                  "remove": "seat_5"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "vote_5",
+      "type": "LayoutZone",
+      "name": "Vote",
+      "transform": {
+        "position": [
+          -0.821,
+          0.05,
+          0.209
+        ],
+        "rotation": [
+          0.0,
+          90.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.11,
+        0.1,
+        0.13
+      ],
+      "onEnter": [
+        {
+          "if": {
+            "condition": {
+              "hasTag": {
+                "object": "$it",
+                "tag": "vote"
+              }
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "compare": {
+                      "left": "$actor.id",
+                      "op": "!=",
+                      "right": "seat_5"
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@notYourSpot"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "inList": {
+                      "list": "$var.voted",
+                      "value": "seat_5"
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@oneVote"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "castBallot": {
+                  "action": "team_vote",
+                  "seat": "seat_5",
+                  "choice": "$it.meta.vote"
+                }
+              },
+              {
+                "setVariable": {
+                  "name": "voted",
+                  "add": "seat_5"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "onLeave": [
+        {
+          "if": {
+            "condition": {
+              "and": [
+                {
+                  "hasTag": {
+                    "object": "$it",
+                    "tag": "vote"
+                  }
+                },
+                {
+                  "inList": {
+                    "list": "$var.voted",
+                    "value": "seat_5"
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "setVariable": {
+                  "name": "voted",
+                  "remove": "seat_5"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "facing": "faceDown"
+    },
+    {
+      "id": "team_6",
+      "type": "ScriptingZone",
+      "name": "Team",
+      "transform": {
+        "position": [
+          -0.308,
+          0.05,
+          0.375
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.16,
+        0.1,
+        0.12
+      ],
+      "onEnter": [
+        {
+          "if": {
+            "condition": {
+              "hasTag": {
+                "object": "$it",
+                "tag": "shield"
+              }
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "and": [
+                        {
+                          "compare": {
+                            "left": "$var.picking",
+                            "op": "==",
+                            "right": true
+                          }
+                        },
+                        {
+                          "isCurrentPlayer": {
+                            "player": "$actor"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@onlyLeader"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "inList": {
+                        "list": "$var.team",
+                        "value": "seat_6"
+                      }
+                    }
+                  },
+                  "then": [
+                    {
+                      "if": {
+                        "condition": {
+                          "compare": {
+                            "left": "$var.team.count",
+                            "op": ">=",
+                            "right": "$var.size"
+                          }
+                        },
+                        "then": [
+                          {
+                            "refuse": {
+                              "reason": "@teamFull"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "setVariable": {
+                        "name": "team",
+                        "add": "seat_6"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "onLeave": [
+        {
+          "if": {
+            "condition": {
+              "and": [
+                {
+                  "hasTag": {
+                    "object": "$it",
+                    "tag": "shield"
+                  }
+                },
+                {
+                  "inList": {
+                    "list": "$var.team",
+                    "value": "seat_6"
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "and": [
+                        {
+                          "compare": {
+                            "left": "$var.picking",
+                            "op": "==",
+                            "right": true
+                          }
+                        },
+                        {
+                          "isCurrentPlayer": {
+                            "player": "$actor"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@onlyLeader"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "setVariable": {
+                  "name": "team",
+                  "remove": "seat_6"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "vote_6",
+      "type": "LayoutZone",
+      "name": "Vote",
+      "transform": {
+        "position": [
+          -0.418,
+          0.05,
+          0.509
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.11,
+        0.1,
+        0.13
+      ],
+      "onEnter": [
+        {
+          "if": {
+            "condition": {
+              "hasTag": {
+                "object": "$it",
+                "tag": "vote"
+              }
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "compare": {
+                      "left": "$actor.id",
+                      "op": "!=",
+                      "right": "seat_6"
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@notYourSpot"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "inList": {
+                      "list": "$var.voted",
+                      "value": "seat_6"
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@oneVote"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "castBallot": {
+                  "action": "team_vote",
+                  "seat": "seat_6",
+                  "choice": "$it.meta.vote"
+                }
+              },
+              {
+                "setVariable": {
+                  "name": "voted",
+                  "add": "seat_6"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "onLeave": [
+        {
+          "if": {
+            "condition": {
+              "and": [
+                {
+                  "hasTag": {
+                    "object": "$it",
+                    "tag": "vote"
+                  }
+                },
+                {
+                  "inList": {
+                    "list": "$var.voted",
+                    "value": "seat_6"
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "setVariable": {
+                  "name": "voted",
+                  "remove": "seat_6"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "facing": "faceDown"
+    },
+    {
+      "id": "team_7",
+      "type": "ScriptingZone",
+      "name": "Team",
+      "transform": {
+        "position": [
+          0.0,
+          0.05,
+          0.375
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.16,
+        0.1,
+        0.12
+      ],
+      "onEnter": [
+        {
+          "if": {
+            "condition": {
+              "hasTag": {
+                "object": "$it",
+                "tag": "shield"
+              }
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "and": [
+                        {
+                          "compare": {
+                            "left": "$var.picking",
+                            "op": "==",
+                            "right": true
+                          }
+                        },
+                        {
+                          "isCurrentPlayer": {
+                            "player": "$actor"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@onlyLeader"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "inList": {
+                        "list": "$var.team",
+                        "value": "seat_7"
+                      }
+                    }
+                  },
+                  "then": [
+                    {
+                      "if": {
+                        "condition": {
+                          "compare": {
+                            "left": "$var.team.count",
+                            "op": ">=",
+                            "right": "$var.size"
+                          }
+                        },
+                        "then": [
+                          {
+                            "refuse": {
+                              "reason": "@teamFull"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "setVariable": {
+                        "name": "team",
+                        "add": "seat_7"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "onLeave": [
+        {
+          "if": {
+            "condition": {
+              "and": [
+                {
+                  "hasTag": {
+                    "object": "$it",
+                    "tag": "shield"
+                  }
+                },
+                {
+                  "inList": {
+                    "list": "$var.team",
+                    "value": "seat_7"
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "and": [
+                        {
+                          "compare": {
+                            "left": "$var.picking",
+                            "op": "==",
+                            "right": true
+                          }
+                        },
+                        {
+                          "isCurrentPlayer": {
+                            "player": "$actor"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@onlyLeader"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "setVariable": {
+                  "name": "team",
+                  "remove": "seat_7"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "vote_7",
+      "type": "LayoutZone",
+      "name": "Vote",
+      "transform": {
+        "position": [
+          0.0,
+          0.05,
+          0.509
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.11,
+        0.1,
+        0.13
+      ],
+      "onEnter": [
+        {
+          "if": {
+            "condition": {
+              "hasTag": {
+                "object": "$it",
+                "tag": "vote"
+              }
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "compare": {
+                      "left": "$actor.id",
+                      "op": "!=",
+                      "right": "seat_7"
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@notYourSpot"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "inList": {
+                      "list": "$var.voted",
+                      "value": "seat_7"
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@oneVote"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "castBallot": {
+                  "action": "team_vote",
+                  "seat": "seat_7",
+                  "choice": "$it.meta.vote"
+                }
+              },
+              {
+                "setVariable": {
+                  "name": "voted",
+                  "add": "seat_7"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "onLeave": [
+        {
+          "if": {
+            "condition": {
+              "and": [
+                {
+                  "hasTag": {
+                    "object": "$it",
+                    "tag": "vote"
+                  }
+                },
+                {
+                  "inList": {
+                    "list": "$var.voted",
+                    "value": "seat_7"
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "setVariable": {
+                  "name": "voted",
+                  "remove": "seat_7"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "facing": "faceDown"
+    },
+    {
+      "id": "team_8",
+      "type": "ScriptingZone",
+      "name": "Team",
+      "transform": {
+        "position": [
+          0.308,
+          0.05,
+          0.375
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.16,
+        0.1,
+        0.12
+      ],
+      "onEnter": [
+        {
+          "if": {
+            "condition": {
+              "hasTag": {
+                "object": "$it",
+                "tag": "shield"
+              }
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "and": [
+                        {
+                          "compare": {
+                            "left": "$var.picking",
+                            "op": "==",
+                            "right": true
+                          }
+                        },
+                        {
+                          "isCurrentPlayer": {
+                            "player": "$actor"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@onlyLeader"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "inList": {
+                        "list": "$var.team",
+                        "value": "seat_8"
+                      }
+                    }
+                  },
+                  "then": [
+                    {
+                      "if": {
+                        "condition": {
+                          "compare": {
+                            "left": "$var.team.count",
+                            "op": ">=",
+                            "right": "$var.size"
+                          }
+                        },
+                        "then": [
+                          {
+                            "refuse": {
+                              "reason": "@teamFull"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "setVariable": {
+                        "name": "team",
+                        "add": "seat_8"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "onLeave": [
+        {
+          "if": {
+            "condition": {
+              "and": [
+                {
+                  "hasTag": {
+                    "object": "$it",
+                    "tag": "shield"
+                  }
+                },
+                {
+                  "inList": {
+                    "list": "$var.team",
+                    "value": "seat_8"
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "and": [
+                        {
+                          "compare": {
+                            "left": "$var.picking",
+                            "op": "==",
+                            "right": true
+                          }
+                        },
+                        {
+                          "isCurrentPlayer": {
+                            "player": "$actor"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@onlyLeader"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "setVariable": {
+                  "name": "team",
+                  "remove": "seat_8"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "vote_8",
+      "type": "LayoutZone",
+      "name": "Vote",
+      "transform": {
+        "position": [
+          0.418,
+          0.05,
+          0.509
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.11,
+        0.1,
+        0.13
+      ],
+      "onEnter": [
+        {
+          "if": {
+            "condition": {
+              "hasTag": {
+                "object": "$it",
+                "tag": "vote"
+              }
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "compare": {
+                      "left": "$actor.id",
+                      "op": "!=",
+                      "right": "seat_8"
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@notYourSpot"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "inList": {
+                      "list": "$var.voted",
+                      "value": "seat_8"
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@oneVote"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "castBallot": {
+                  "action": "team_vote",
+                  "seat": "seat_8",
+                  "choice": "$it.meta.vote"
+                }
+              },
+              {
+                "setVariable": {
+                  "name": "voted",
+                  "add": "seat_8"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "onLeave": [
+        {
+          "if": {
+            "condition": {
+              "and": [
+                {
+                  "hasTag": {
+                    "object": "$it",
+                    "tag": "vote"
+                  }
+                },
+                {
+                  "inList": {
+                    "list": "$var.voted",
+                    "value": "seat_8"
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "setVariable": {
+                  "name": "voted",
+                  "remove": "seat_8"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "facing": "faceDown"
+    },
+    {
+      "id": "team_9",
+      "type": "ScriptingZone",
+      "name": "Team",
+      "transform": {
+        "position": [
+          0.605,
+          0.05,
+          0.154
+        ],
+        "rotation": [
+          0.0,
+          270.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.16,
+        0.1,
+        0.12
+      ],
+      "onEnter": [
+        {
+          "if": {
+            "condition": {
+              "hasTag": {
+                "object": "$it",
+                "tag": "shield"
+              }
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "and": [
+                        {
+                          "compare": {
+                            "left": "$var.picking",
+                            "op": "==",
+                            "right": true
+                          }
+                        },
+                        {
+                          "isCurrentPlayer": {
+                            "player": "$actor"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@onlyLeader"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "inList": {
+                        "list": "$var.team",
+                        "value": "seat_9"
+                      }
+                    }
+                  },
+                  "then": [
+                    {
+                      "if": {
+                        "condition": {
+                          "compare": {
+                            "left": "$var.team.count",
+                            "op": ">=",
+                            "right": "$var.size"
+                          }
+                        },
+                        "then": [
+                          {
+                            "refuse": {
+                              "reason": "@teamFull"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "setVariable": {
+                        "name": "team",
+                        "add": "seat_9"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "onLeave": [
+        {
+          "if": {
+            "condition": {
+              "and": [
+                {
+                  "hasTag": {
+                    "object": "$it",
+                    "tag": "shield"
+                  }
+                },
+                {
+                  "inList": {
+                    "list": "$var.team",
+                    "value": "seat_9"
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "and": [
+                        {
+                          "compare": {
+                            "left": "$var.picking",
+                            "op": "==",
+                            "right": true
+                          }
+                        },
+                        {
+                          "isCurrentPlayer": {
+                            "player": "$actor"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@onlyLeader"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "setVariable": {
+                  "name": "team",
+                  "remove": "seat_9"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "vote_9",
+      "type": "LayoutZone",
+      "name": "Vote",
+      "transform": {
+        "position": [
+          0.821,
+          0.05,
+          0.209
+        ],
+        "rotation": [
+          0.0,
+          270.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.11,
+        0.1,
+        0.13
+      ],
+      "onEnter": [
+        {
+          "if": {
+            "condition": {
+              "hasTag": {
+                "object": "$it",
+                "tag": "vote"
+              }
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "compare": {
+                      "left": "$actor.id",
+                      "op": "!=",
+                      "right": "seat_9"
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@notYourSpot"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "inList": {
+                      "list": "$var.voted",
+                      "value": "seat_9"
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@oneVote"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "castBallot": {
+                  "action": "team_vote",
+                  "seat": "seat_9",
+                  "choice": "$it.meta.vote"
+                }
+              },
+              {
+                "setVariable": {
+                  "name": "voted",
+                  "add": "seat_9"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "onLeave": [
+        {
+          "if": {
+            "condition": {
+              "and": [
+                {
+                  "hasTag": {
+                    "object": "$it",
+                    "tag": "vote"
+                  }
+                },
+                {
+                  "inList": {
+                    "list": "$var.voted",
+                    "value": "seat_9"
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "setVariable": {
+                  "name": "voted",
+                  "remove": "seat_9"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "facing": "faceDown"
+    },
+    {
+      "id": "team_10",
+      "type": "ScriptingZone",
+      "name": "Team",
+      "transform": {
+        "position": [
+          0.605,
+          0.05,
+          -0.154
+        ],
+        "rotation": [
+          0.0,
+          270.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.16,
+        0.1,
+        0.12
+      ],
+      "onEnter": [
+        {
+          "if": {
+            "condition": {
+              "hasTag": {
+                "object": "$it",
+                "tag": "shield"
+              }
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "and": [
+                        {
+                          "compare": {
+                            "left": "$var.picking",
+                            "op": "==",
+                            "right": true
+                          }
+                        },
+                        {
+                          "isCurrentPlayer": {
+                            "player": "$actor"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@onlyLeader"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "inList": {
+                        "list": "$var.team",
+                        "value": "seat_10"
+                      }
+                    }
+                  },
+                  "then": [
+                    {
+                      "if": {
+                        "condition": {
+                          "compare": {
+                            "left": "$var.team.count",
+                            "op": ">=",
+                            "right": "$var.size"
+                          }
+                        },
+                        "then": [
+                          {
+                            "refuse": {
+                              "reason": "@teamFull"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "setVariable": {
+                        "name": "team",
+                        "add": "seat_10"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "onLeave": [
+        {
+          "if": {
+            "condition": {
+              "and": [
+                {
+                  "hasTag": {
+                    "object": "$it",
+                    "tag": "shield"
+                  }
+                },
+                {
+                  "inList": {
+                    "list": "$var.team",
+                    "value": "seat_10"
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "and": [
+                        {
+                          "compare": {
+                            "left": "$var.picking",
+                            "op": "==",
+                            "right": true
+                          }
+                        },
+                        {
+                          "isCurrentPlayer": {
+                            "player": "$actor"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@onlyLeader"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "setVariable": {
+                  "name": "team",
+                  "remove": "seat_10"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "vote_10",
+      "type": "LayoutZone",
+      "name": "Vote",
+      "transform": {
+        "position": [
+          0.821,
+          0.05,
+          -0.209
+        ],
+        "rotation": [
+          0.0,
+          270.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.11,
+        0.1,
+        0.13
+      ],
+      "onEnter": [
+        {
+          "if": {
+            "condition": {
+              "hasTag": {
+                "object": "$it",
+                "tag": "vote"
+              }
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "compare": {
+                      "left": "$actor.id",
+                      "op": "!=",
+                      "right": "seat_10"
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@notYourSpot"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "inList": {
+                      "list": "$var.voted",
+                      "value": "seat_10"
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@oneVote"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "castBallot": {
+                  "action": "team_vote",
+                  "seat": "seat_10",
+                  "choice": "$it.meta.vote"
+                }
+              },
+              {
+                "setVariable": {
+                  "name": "voted",
+                  "add": "seat_10"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "onLeave": [
+        {
+          "if": {
+            "condition": {
+              "and": [
+                {
+                  "hasTag": {
+                    "object": "$it",
+                    "tag": "vote"
+                  }
+                },
+                {
+                  "inList": {
+                    "list": "$var.voted",
+                    "value": "seat_10"
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "setVariable": {
+                  "name": "voted",
+                  "remove": "seat_10"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "facing": "faceDown"
     }
   ],
   "players": {
@@ -1723,8 +6429,16 @@
     "team": [],
     "successes": 0,
     "fails": 0,
-    "rejections": 0
+    "rejections": 0,
+    "picking": false,
+    "played": [],
+    "voted": [],
+    "percival": false,
+    "minionEyes": []
   },
+  "secretVariables": [
+    "minionEyes"
+  ],
   "turn": {
     "startingPlayer": "random",
     "phases": [
@@ -1736,11 +6450,71 @@
   },
   "phases": [
     {
+      "id": "ritual_look",
+      "name": "Your role",
+      "seconds": 12,
+      "next": "ritual_close",
+      "banner": "Look at your role card: it is in your hand. Keep it to yourself."
+    },
+    {
+      "id": "ritual_close",
+      "name": "Eyes closed",
+      "awake": "nobody",
+      "sleepText": "Everyone, close your eyes.",
+      "voice": "none",
+      "seconds": 4,
+      "next": "ritual_minions"
+    },
+    {
+      "id": "ritual_minions",
+      "name": "The minions",
+      "awake": "$var.minionEyes",
+      "sleepText": "Minions of Mordred, open your eyes and find each other.",
+      "voice": "none",
+      "seconds": 10,
+      "next": "ritual_merlin",
+      "banner": "Minions of Mordred: whoever has their eyes open is on your side. Look around!"
+    },
+    {
+      "id": "ritual_merlin",
+      "name": "Merlin",
+      "awake": "role:merlin",
+      "sleepText": "Minions (not Mordred, Oberon too): raise your thumb with Y. Merlin, open your eyes.",
+      "voice": "none",
+      "seconds": 10,
+      "next": "ritual_percival",
+      "banner": "Merlin: the raised thumbs are the minions (Mordred keeps his down)."
+    },
+    {
+      "id": "ritual_percival",
+      "name": "Percival",
+      "advanceWhen": {
+        "condition": {
+          "compare": {
+            "left": "$var.percival",
+            "op": "==",
+            "right": false
+          }
+        }
+      },
+      "awake": "role:percival",
+      "sleepText": "Merlin and Morgana: raise your thumb with Y. Percival, open your eyes.",
+      "voice": "none",
+      "seconds": 10,
+      "next": "ritual_open",
+      "banner": "Percival: one raised thumb is Merlin, the other Morgana."
+    },
+    {
+      "id": "ritual_open",
+      "name": "Eyes open",
+      "seconds": 4,
+      "next": "propose",
+      "banner": "Everyone, open your eyes."
+    },
+    {
       "id": "propose",
       "name": "Pick the team",
       "actions": [
-        "pick",
-        "unpick",
         "propose"
       ],
       "onEnter": [
@@ -1757,12 +6531,18 @@
         },
         {
           "lua": {
-            "call": "crownToLeader"
+            "call": "shieldsHome"
+          }
+        },
+        {
+          "setVariable": {
+            "name": "picking",
+            "value": true
           }
         },
         {
           "lua": {
-            "call": "shieldsToTeam"
+            "call": "crownToLeader"
           }
         },
         {
@@ -1777,6 +6557,19 @@
       "name": "Vote on the team",
       "actions": [
         "team_vote"
+      ],
+      "onEnter": [
+        {
+          "setVariable": {
+            "name": "voted",
+            "value": []
+          }
+        },
+        {
+          "lua": {
+            "call": "votesOut"
+          }
+        }
       ]
     },
     {
@@ -1784,6 +6577,24 @@
       "name": "Quest",
       "actions": [
         "quest"
+      ],
+      "onEnter": [
+        {
+          "setVariable": {
+            "name": "played",
+            "value": []
+          }
+        },
+        {
+          "lua": {
+            "call": "questOut"
+          }
+        },
+        {
+          "message": {
+            "text": "@questStarts"
+          }
+        }
       ]
     },
     {
@@ -1795,87 +6606,6 @@
     }
   ],
   "actions": [
-    {
-      "id": "pick",
-      "name": "Pick",
-      "params": [
-        {
-          "name": "member",
-          "type": "seat"
-        }
-      ],
-      "preconditions": [
-        {
-          "not": {
-            "inList": {
-              "list": "$var.team",
-              "value": "$param.member"
-            }
-          }
-        },
-        {
-          "compare": {
-            "left": "$var.team.count",
-            "op": "<",
-            "right": "$var.size"
-          }
-        }
-      ],
-      "effects": [
-        {
-          "setVariable": {
-            "name": "team",
-            "add": "$param.member"
-          }
-        },
-        {
-          "lua": {
-            "call": "shieldsToTeam"
-          }
-        },
-        {
-          "message": {
-            "text": "@picks"
-          }
-        }
-      ]
-    },
-    {
-      "id": "unpick",
-      "name": "Take off the team",
-      "params": [
-        {
-          "name": "member",
-          "type": "seat"
-        }
-      ],
-      "preconditions": [
-        {
-          "inList": {
-            "list": "$var.team",
-            "value": "$param.member"
-          }
-        }
-      ],
-      "effects": [
-        {
-          "setVariable": {
-            "name": "team",
-            "remove": "$param.member"
-          }
-        },
-        {
-          "lua": {
-            "call": "shieldsToTeam"
-          }
-        },
-        {
-          "message": {
-            "text": "@unpicks"
-          }
-        }
-      ]
-    },
     {
       "id": "propose",
       "name": "Propose this team",
@@ -1889,6 +6619,12 @@
         }
       ],
       "effects": [
+        {
+          "setVariable": {
+            "name": "picking",
+            "value": false
+          }
+        },
         {
           "message": {
             "text": "@proposes"
@@ -1915,6 +6651,11 @@
         "decide": "majority",
         "otherwise": "reject",
         "onResult": [
+          {
+            "lua": {
+              "call": "votesShown"
+            }
+          },
           {
             "if": {
               "condition": {
@@ -1970,6 +6711,11 @@
                         }
                       },
                       {
+                        "lua": {
+                          "call": "rolesShown"
+                        }
+                      },
+                      {
                         "forEach": {
                           "players": true,
                           "do": [
@@ -1999,7 +6745,8 @@
             }
           }
         ]
-      }
+      },
+      "button": false
     },
     {
       "id": "quest",
@@ -2038,6 +6785,11 @@
         "reveal": "count",
         "decide": "none",
         "onResult": [
+          {
+            "lua": {
+              "call": "questShown"
+            }
+          },
           {
             "if": {
               "condition": {
@@ -2107,6 +6859,11 @@
                   }
                 },
                 {
+                  "lua": {
+                    "call": "rolesShown"
+                  }
+                },
+                {
                   "forEach": {
                     "players": true,
                     "do": [
@@ -2164,7 +6921,8 @@
             }
           }
         ]
-      }
+      },
+      "button": false
     },
     {
       "id": "assassinate",
@@ -2216,6 +6974,11 @@
                 }
               },
               {
+                "lua": {
+                  "call": "rolesShown"
+                }
+              },
+              {
                 "forEach": {
                   "players": true,
                   "do": [
@@ -2238,6 +7001,11 @@
               {
                 "message": {
                   "text": "@wasNotMerlin"
+                }
+              },
+              {
+                "lua": {
+                  "call": "rolesShown"
                 }
               },
               {
@@ -2268,7 +7036,17 @@
     "onGameStart": [
       {
         "lua": {
+          "call": "setUp"
+        }
+      },
+      {
+        "lua": {
           "call": "layQuests"
+        }
+      },
+      {
+        "gotoPhase": {
+          "phase": "ritual_look"
         }
       }
     ]
@@ -2303,7 +7081,7 @@
     ]
   },
   "scripts": {
-    "global": "\nSIZES = { [5] = {2, 3, 2, 3, 3}, [6] = {2, 3, 4, 3, 4}, [7] = {2, 3, 3, 4, 4},\n          [8] = {3, 4, 4, 5, 5}, [9] = {3, 4, 4, 5, 5}, [10] = {3, 4, 4, 5, 5} }\n\n-- The team size and the fails it takes for the quest about to be played.\nfunction setQuest(ctx)\n  local players = #Game.getSeats()\n  local quest = Game.getVariable(\"quest\")\n  Game.setVariable(\"size\", SIZES[players][quest])\n  if quest == 4 and players >= 7 then Game.setVariable(\"needFails\", 2) else Game.setVariable(\"needFails\", 1) end\nend\n\n-- The pieces on the table follow the game: the crown before the leader, a shield before each member of the team,\n-- a blue or red checker on each quest card once played, the marker on the rejection track.\nSHIELDS = {\"shield\", \"shield_2\", \"shield_3\", \"shield_4\", \"shield_5\"}\nHOME = {}\n\nlocal function at(id)\n  local o = getObjectFromGUID(id)\n  return o and o.getPosition()\nend\n\nlocal function put(id, p)\n  local o = getObjectFromGUID(id)\n  if HOME[id] == nil and o then HOME[id] = o.getPosition() end\n  if o and p then o.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z}) end\nend\n\n-- Before a seat, between its edge of the table and the middle (share of the way from the middle to its hand).\nlocal function before(seat, share)\n  local p = at(\"hand_\" .. seat:match(\"(%d+)$\"))\n  return {x = p.x * share, y = p.y, z = p.z * share}\nend\n\nfunction crownToLeader(ctx)\n  put(\"crown\", before(Game.getCurrentSeat(), 0.8))\nend\n\nfunction shieldsToTeam(ctx)\n  local team = Game.getVariable(\"team\") or {}\n  for i, id in ipairs(SHIELDS) do\n    put(id, nil)\n    if team[i] then put(id, before(team[i], 0.62)) else put(id, HOME[id]) end\n  end\nend\n\n-- The five quest cards for this many players, out of the box onto the middle of the table; the box goes with the rest.\nQUESTS = {}\nfunction layQuests(ctx)\n  local players = #Game.getSeats()\n  local group = players >= 8 and 8 or players\n  local left, right = at(\"reject_1\"), at(\"reject_5\")\n  local unit = (right.x - left.x) / 0.32   -- the track's ends are 0.32 m apart: table units per metre\n  local box = getObjectFromGUID(\"quest_box\")\n  for q = 1, 5 do\n    local card = box.takeObject({guid = \"quest_\" .. q .. \"_\" .. group,\n      position = {x = (-0.36 + 0.18 * (q - 1)) * unit, y = left.y + 0.3, z = 0.08 * unit}, rotation = {x = 0, y = 180, z = 0}})\n    QUESTS[q] = card and card.getGUID()\n  end\n  box.destruct()\nend\n\nfunction markQuest(ctx)\n  local quest = math.floor(Game.getVariable(\"quest\"))\n  if ctx.args.result == \"fail\" then\n    local n = math.floor(Game.getVariable(\"fails\"))\n    put(n == 1 and \"evil\" or (\"evil_\" .. n), at(QUESTS[quest]))\n  else\n    local n = math.floor(Game.getVariable(\"successes\"))\n    put(n == 1 and \"good\" or (\"good_\" .. n), at(QUESTS[quest]))\n  end\nend\n\nfunction rejectTrack(ctx)\n  local n = math.floor(Game.getVariable(\"rejections\"))\n  put(\"reject_marker\", nil)\n  if n == 0 then put(\"reject_marker\", HOME[\"reject_marker\"]) else put(\"reject_marker\", at(\"reject_\" .. n)) end\nend\n"
+    "global": "\nSIZES = { [5] = {2, 3, 2, 3, 3}, [6] = {2, 3, 4, 3, 4}, [7] = {2, 3, 3, 4, 4},\n          [8] = {3, 4, 4, 5, 5}, [9] = {3, 4, 4, 5, 5}, [10] = {3, 4, 4, 5, 5} }\n\n-- The team size and the fails it takes for the quest about to be played.\nfunction setQuest(ctx)\n  local players = #Game.getSeats()\n  local quest = Game.getVariable(\"quest\")\n  Game.setVariable(\"size\", SIZES[players][quest])\n  if quest == 4 and players >= 7 then Game.setVariable(\"needFails\", 2) else Game.setVariable(\"needFails\", 1) end\nend\n\n-- ---- where things are -------------------------------------------------------------------------------------------\n\nHOME = {}\n\nlocal function at(id)\n  local o = getObjectFromGUID(id)\n  return o and o.getPosition()\nend\n\nlocal function put(id, p)\n  local o = getObjectFromGUID(id)\n  if o and p then o.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z}) end\nend\n\nlocal function number(seat) return seat:match(\"(%d+)$\") end\n\n-- Before a seat: a share of the way from the middle of the table to its hand, and to the player's left by `left`.\nlocal function before(seat, share, left)\n  local p = at(\"hand_\" .. number(seat))\n  local x, z = p.x * share, p.z * share\n  if left then\n    local length = math.sqrt(p.x * p.x + p.z * p.z)\n    x, z = x + p.z / length * left, z - p.x / length * left\n  end\n  return {x = x, y = p.y, z = z}\nend\n\nlocal function startsWith(text, prefix) return text and text:sub(1, #prefix) == prefix end\n\n-- Every card on the table whose own id starts with one of `prefixes`, in hands and on the given zones.\nlocal function cardsIn(zones, prefixes)\n  local found = {}\n  for _, zone in ipairs(zones) do\n    local z = getObjectFromGUID(zone)\n    if z then\n      for _, o in ipairs(z.getObjects()) do\n        for _, prefix in ipairs(prefixes) do\n          if startsWith(o.getGUID(), prefix) then found[#found + 1] = o end\n        end\n      end\n    end\n  end\n  return found\nend\n\nlocal function hands()\n  local list = {}\n  for _, seat in ipairs(Game.getSeats()) do list[#list + 1] = \"hand_\" .. number(seat) end\n  return list\nend\n\n-- A card of a deck into a seat's hand (the deck names it by the card's own id).\nlocal function deal(deck, id, seat)\n  getObjectFromGUID(deck).takeObject({guid = id, position = at(\"hand_\" .. number(seat)), rotation = {x = 0, y = 0, z = 0}})\nend\n\n-- ---- the start ------------------------------------------------------------------------------------------------------\n\nPIECES = {\"crown\", \"reject_marker\", \"shield\", \"shield_2\", \"shield_3\", \"shield_4\", \"shield_5\"}\n\n-- Each player's role card into their hand, the minions' eyes for the ritual, where every piece starts.\nfunction setUp(ctx)\n  for _, id in ipairs(PIECES) do HOME[id] = at(id) end\n  local next = {}\n  local eyes = {}\n  for _, seat in ipairs(Game.getSeats()) do\n    local role = Game.getRole(seat)\n    next[role] = (next[role] or 0) + 1\n    local id = \"role_\" .. role\n    if next[role] > 1 then id = id .. \"_\" .. next[role] end\n    deal(\"role_deck\", id, seat)\n    if Game.getTeam(seat) == \"evil\" and role ~= \"oberon\" then eyes[#eyes + 1] = seat end\n    if role == \"percival\" then Game.setVariable(\"percival\", true) end\n  end\n  Game.setVariable(\"minionEyes\", eyes)\nend\n\n-- The five quest cards for this many players, out of the box onto the middle of the table; the box goes with the rest.\nQUESTS = {}\nfunction layQuests(ctx)\n  local players = #Game.getSeats()\n  local group = players >= 8 and 8 or players\n  local left, right = at(\"reject_1\"), at(\"reject_5\")\n  local unit = (right.x - left.x) / 0.32   -- the track's ends are 0.32 m apart: table units per metre\n  local box = getObjectFromGUID(\"quest_box\")\n  for q = 1, 5 do\n    local card = box.takeObject({guid = \"quest_\" .. q .. \"_\" .. group,\n      position = {x = (-0.36 + 0.18 * (q - 1)) * unit, y = left.y + 0.3, z = 0.05 * unit}, rotation = {x = 0, y = 180, z = 0}})\n    QUESTS[q] = card and card.getGUID()\n  end\n  box.destruct()\nend\n\n-- ---- choosing the team ------------------------------------------------------------------------------------------\n\nfunction crownToLeader(ctx)\n  put(\"crown\", before(Game.getCurrentSeat(), 0.88, 0.15))\nend\n\nfunction shieldsHome(ctx)\n  for _, id in ipairs(PIECES) do\n    if startsWith(id, \"shield\") then put(id, HOME[id]) end\n  end\nend\n\n-- ---- the team vote: Approve and Reject cards ----------------------------------------------------------------------\n\nlocal function spots()\n  local list = {}\n  for _, seat in ipairs(Game.getSeats()) do list[#list + 1] = \"vote_\" .. number(seat) end\n  return list\nend\n\n-- Every vote card back into its deck: those on the spots and those left in hands.\nVOTES_SHOWN = 0\nlocal function collectVotes()\n  VOTES_SHOWN = VOTES_SHOWN + 1\n  local deck = getObjectFromGUID(\"vote_deck\")\n  local all = cardsIn(spots(), {\"aye\", \"nay\"})\n  for _, card in ipairs(cardsIn(hands(), {\"aye\", \"nay\"})) do all[#all + 1] = card end\n  for _, card in ipairs(all) do deck.putObject(card) end\nend\n\nfunction votesOut(ctx)\n  -- A quick new vote: last one's cards come back first.\n  collectVotes()\n  for k, seat in ipairs(Game.getSeats()) do\n    deal(\"vote_deck\", k == 1 and \"aye\" or (\"aye_\" .. k), seat)\n    deal(\"vote_deck\", k == 1 and \"nay\" or (\"nay_\" .. k), seat)\n  end\nend\n\n-- The cards laid down turn over together, and go back to their deck a moment later with those left in hands.\nfunction votesShown(ctx)\n  for _, card in ipairs(cardsIn(spots(), {\"aye\", \"nay\"})) do card.flip() end\n  local shown = VOTES_SHOWN\n  Wait.time(function() if VOTES_SHOWN == shown then collectVotes() end end, 5)\nend\n\n-- ---- the quest: Success and Fail cards ------------------------------------------------------------------------------\n\n-- Every quest card back into its deck: from the pile, turned over, or left in hands. A turning-over still running stops.\nQUEST_SHOWN = 0\nSHOWN = {}\nlocal function collectQuest()\n  QUEST_SHOWN = QUEST_SHOWN + 1\n  local deck = getObjectFromGUID(\"quest_deck\")\n  local pile = getObjectFromGUID(\"quest_pile\")\n  for _ = 1, #pile.getObjects() do\n    local card = pile.takeObject({position = at(\"quest_drop\")})\n    if card then deck.putObject(card) end\n  end\n  for _, card in ipairs(SHOWN) do deck.putObject(card) end\n  SHOWN = {}\n  for _, card in ipairs(cardsIn(hands(), {\"success\", \"fail\"})) do deck.putObject(card) end\nend\n\nfunction questOut(ctx)\n  collectQuest()\n  local team = Game.getVariable(\"team\") or {}\n  for k, seat in ipairs(team) do\n    deal(\"quest_deck\", k == 1 and \"success\" or (\"success_\" .. k), seat)\n    deal(\"quest_deck\", k == 1 and \"fail\" or (\"fail_\" .. k), seat)\n  end\nend\n\n-- A card laid on the quest pile goes into it, face down: nobody can tell later whose it was.\nfunction toPile(ctx)\n  local card = getObjectFromGUID(ctx.it)\n  if card then getObjectFromGUID(\"quest_pile\").putObject(card) end\nend\n\n-- The pile is shuffled and its cards turned over one by one; then they and the cards not played go back.\nfunction questShown(ctx)\n  local shown = QUEST_SHOWN\n  Wait.time(function()\n    if QUEST_SHOWN ~= shown then return end\n    local pile = getObjectFromGUID(\"quest_pile\")\n    pile.shuffle()\n    local count = #pile.getObjects()\n    local row = at(\"reveal_row\")\n    local unit = (at(\"reject_5\").x - at(\"reject_1\").x) / 0.32\n    for i = 1, count do\n      Wait.time(function()\n        if QUEST_SHOWN ~= shown then return end\n        local card = getObjectFromGUID(\"quest_pile\").takeObject({\n          position = {x = row.x + (i - (count + 1) / 2) * 0.08 * unit, y = row.y + 0.3, z = row.z},\n          rotation = {x = 0, y = 0, z = 0}})\n        if card then SHOWN[#SHOWN + 1] = card end\n      end, 0.9 * i)\n    end\n    Wait.time(function() if QUEST_SHOWN == shown then collectQuest() end end, 0.9 * count + 5)\n  end, 0.5)\nend\n\nfunction markQuest(ctx)\n  local quest = math.floor(Game.getVariable(\"quest\"))\n  if ctx.args.result == \"fail\" then\n    local n = math.floor(Game.getVariable(\"fails\"))\n    put(n == 1 and \"evil\" or (\"evil_\" .. n), at(QUESTS[quest]))\n  else\n    local n = math.floor(Game.getVariable(\"successes\"))\n    put(n == 1 and \"good\" or (\"good_\" .. n), at(QUESTS[quest]))\n  end\nend\n\nfunction rejectTrack(ctx)\n  local n = math.floor(Game.getVariable(\"rejections\"))\n  if n == 0 then put(\"reject_marker\", HOME[\"reject_marker\"]) else put(\"reject_marker\", at(\"reject_\" .. n)) end\nend\n\n-- ---- the end ----------------------------------------------------------------------------------------------------------\n\n-- Every role card turned over in front of its player.\nfunction rolesShown(ctx)\n  for _, seat in ipairs(Game.getSeats()) do\n    for _, card in ipairs(cardsIn({\"hand_\" .. number(seat)}, {\"role_\"})) do\n      local p = before(seat, 0.56)\n      card.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z})\n      card.setRotationSmooth({x = 0, y = 0, z = 0})\n    end\n  end\nend\n"
   },
   "roles": {
     "teams": [
@@ -2321,53 +7099,55 @@
         "id": "merlin",
         "name": "Merlin",
         "team": "good",
-        "description": "Knows the evil players, except Mordred. Must stay hidden from the Assassin."
+        "description": "You see the minions' thumbs (not Mordred's). Stay hidden from the Assassin."
       },
       {
         "id": "percival",
         "name": "Percival",
         "team": "good",
         "optional": true,
-        "description": "Sees Merlin and Morgana, not which is which."
+        "description": "You see two thumbs: Merlin's and Morgana's, not which is which."
       },
       {
         "id": "servant",
         "name": "Loyal servant",
         "team": "good",
-        "count": "fill"
+        "count": "fill",
+        "description": "Play Success, find the minions."
       },
       {
         "id": "assassin",
         "name": "Assassin",
         "team": "evil",
-        "description": "Names one good player at the end: Merlin means evil wins."
+        "description": "If good completes three quests, name Merlin: evil wins."
       },
       {
         "id": "morgana",
         "name": "Morgana",
         "team": "evil",
         "optional": true,
-        "description": "Appears as Merlin to Percival."
+        "description": "You raise your thumb for Percival, as Merlin does."
       },
       {
         "id": "mordred",
         "name": "Mordred",
         "team": "evil",
         "optional": true,
-        "description": "Hidden from Merlin."
+        "description": "Keep your thumb down: Merlin does not see you."
       },
       {
         "id": "oberon",
         "name": "Oberon",
         "team": "evil",
         "optional": true,
-        "description": "Unknown to the other minions, and knows none of them."
+        "description": "Keep your eyes closed with the minions: they do not know you."
       },
       {
         "id": "minion",
         "name": "Minion of Mordred",
         "team": "evil",
-        "count": "fill"
+        "count": "fill",
+        "description": "Play Fail when it suits you; hide among the loyal."
       }
     ],
     "byPlayers": {
@@ -2395,48 +7175,19 @@
         "good": 6,
         "evil": 4
       }
-    },
-    "knows": [
-      {
-        "role": "merlin",
-        "sees": {
-          "team": "evil",
-          "except": [
-            "mordred"
-          ]
-        }
-      },
-      {
-        "team": "evil",
-        "sees": {
-          "team": "evil",
-          "except": [
-            "oberon"
-          ]
-        }
-      },
-      {
-        "role": "oberon",
-        "sees": {}
-      },
-      {
-        "role": "percival",
-        "sees": {
-          "roles": [
-            "merlin",
-            "morgana"
-          ]
-        },
-        "as": "oneOf"
-      }
-    ]
+    }
   },
   "translations": {
     "en": {
-      "strings.leads": "{$current.name} leads quest {$var.quest}: pick {$var.size} players.",
-      "strings.picks": "{$actor.name} picks {$param.member.name}.",
-      "strings.unpicks": "{$actor.name} takes {$param.member.name} off the team.",
-      "strings.proposes": "{$actor.name} proposes {$var.team}. Vote on the team.",
+      "strings.leads": "{$current.name} leads quest {$var.quest}: drag {$var.size} shields in front of the team, then propose it.",
+      "strings.proposes": "{$actor.name} proposes {$var.team}. Lay Approve or Reject face down on your spot.",
+      "strings.questStarts": "{$var.team}: lay Success or Fail face down on the quest pile.",
+      "strings.onlyLeader": "Only the leader moves the shields, while choosing the team.",
+      "strings.teamFull": "The team already has {$var.size} players: take a shield back first.",
+      "strings.notYourSpot": "That is another player's spot.",
+      "strings.oneVote": "There is a card on your spot already: take it back to change your vote.",
+      "strings.onePlayed": "You have played your card for this quest.",
+      "strings.loyalSucceed": "The loyal servants of Arthur can only play Success.",
       "strings.fiveRejected": "Five teams rejected in a row.",
       "strings.questFails": "Quest {$var.quest} fails.",
       "strings.questSucceeds": "Quest {$var.quest} succeeds.",
@@ -2448,8 +7199,6 @@
     "es": {
       "game.name": "Avalon",
       "game.description": "Lealtades ocultas: el bien completa tres misiones; el mal hace fracasar tres o encuentra a Merlín al final. Un líder elige el equipo de cada misión, todos lo votan y el equipo la cumple o la sabotea en secreto.",
-      "actions.pick.name": "Elegir",
-      "actions.unpick.name": "Sacar del equipo",
       "actions.propose.name": "Proponer este equipo",
       "actions.team_vote.name": "Voto del equipo",
       "votes.team_vote.approve": "Aprobar",
@@ -2458,6 +7207,21 @@
       "votes.quest.success": "Éxito",
       "votes.quest.fail": "Fracaso",
       "actions.assassinate.name": "Nombrar a Merlín",
+      "phases.ritual_look.name": "Tu rol",
+      "phases.ritual_look.banner": "Mira tu carta de rol: la tienes en la mano. No se la muestres a nadie.",
+      "phases.ritual_close.name": "Ojos cerrados",
+      "phases.ritual_close.sleepText": "Todos, cierren los ojos.",
+      "phases.ritual_minions.name": "Los esbirros",
+      "phases.ritual_minions.sleepText": "Esbirros de Mordred, abran los ojos y reconózcanse.",
+      "phases.ritual_minions.banner": "Esbirros de Mordred: quien tenga los ojos abiertos es de tu bando. ¡Miren alrededor!",
+      "phases.ritual_merlin.name": "Merlín",
+      "phases.ritual_merlin.sleepText": "Esbirros (menos Mordred, Oberón también): levanten el pulgar con la Y. Merlín, abre los ojos.",
+      "phases.ritual_merlin.banner": "Merlín: los pulgares levantados son los esbirros (Mordred no lo levanta).",
+      "phases.ritual_percival.name": "Percival",
+      "phases.ritual_percival.sleepText": "Merlín y Morgana: levanten el pulgar con la Y. Percival, abre los ojos.",
+      "phases.ritual_percival.banner": "Percival: uno de los pulgares es Merlín; el otro, Morgana.",
+      "phases.ritual_open.name": "Ojos abiertos",
+      "phases.ritual_open.banner": "Todos, abran los ojos.",
       "phases.propose.name": "Elegir el equipo",
       "phases.team_vote.name": "Votar el equipo",
       "phases.quest.name": "Misión",
@@ -2472,23 +7236,260 @@
       "teams.good.name": "Leales servidores de Arturo",
       "teams.evil.name": "Esbirros de Mordred",
       "roles.merlin.name": "Merlín",
-      "roles.merlin.description": "Conoce a los malvados, salvo a Mordred. Debe esconderse del Asesino.",
+      "roles.merlin.description": "Ves los pulgares de los esbirros (no el de Mordred). Escóndete del Asesino.",
+      "cards.role_merlin.text.title": "Merlín",
+      "cards.role_merlin.text.kind": "Leales servidores de Arturo",
+      "cards.role_merlin.text.body": "Ves los pulgares de los esbirros (no el de Mordred). Escóndete del Asesino.",
       "roles.percival.name": "Percival",
-      "roles.percival.description": "Ve a Merlín y a Morgana, sin saber quién es quién.",
+      "roles.percival.description": "Ves dos pulgares: el de Merlín y el de Morgana, sin saber cuál es cuál.",
+      "cards.role_percival.text.title": "Percival",
+      "cards.role_percival.text.kind": "Leales servidores de Arturo",
+      "cards.role_percival.text.body": "Ves dos pulgares: el de Merlín y el de Morgana, sin saber cuál es cuál.",
       "roles.servant.name": "Leal servidor",
+      "roles.servant.description": "Juega Éxito y descubre a los esbirros.",
+      "cards.role_servant.text.title": "Leal servidor",
+      "cards.role_servant.text.kind": "Leales servidores de Arturo",
+      "cards.role_servant.text.body": "Juega Éxito y descubre a los esbirros.",
+      "cards.role_servant_2.text.title": "Leal servidor",
+      "cards.role_servant_2.text.kind": "Leales servidores de Arturo",
+      "cards.role_servant_2.text.body": "Juega Éxito y descubre a los esbirros.",
+      "cards.role_servant_3.text.title": "Leal servidor",
+      "cards.role_servant_3.text.kind": "Leales servidores de Arturo",
+      "cards.role_servant_3.text.body": "Juega Éxito y descubre a los esbirros.",
+      "cards.role_servant_4.text.title": "Leal servidor",
+      "cards.role_servant_4.text.kind": "Leales servidores de Arturo",
+      "cards.role_servant_4.text.body": "Juega Éxito y descubre a los esbirros.",
+      "cards.role_servant_5.text.title": "Leal servidor",
+      "cards.role_servant_5.text.kind": "Leales servidores de Arturo",
+      "cards.role_servant_5.text.body": "Juega Éxito y descubre a los esbirros.",
       "roles.assassin.name": "Asesino",
-      "roles.assassin.description": "Al final nombra a un jugador bueno: si es Merlín, gana el mal.",
+      "roles.assassin.description": "Si el bien cumple tres misiones, nombra a Merlín: gana el mal.",
+      "cards.role_assassin.text.title": "Asesino",
+      "cards.role_assassin.text.kind": "Esbirros de Mordred",
+      "cards.role_assassin.text.body": "Si el bien cumple tres misiones, nombra a Merlín: gana el mal.",
       "roles.morgana.name": "Morgana",
-      "roles.morgana.description": "Ante Percival parece Merlín.",
+      "roles.morgana.description": "Levantas el pulgar para Percival, igual que Merlín.",
+      "cards.role_morgana.text.title": "Morgana",
+      "cards.role_morgana.text.kind": "Esbirros de Mordred",
+      "cards.role_morgana.text.body": "Levantas el pulgar para Percival, igual que Merlín.",
       "roles.mordred.name": "Mordred",
-      "roles.mordred.description": "Oculto para Merlín.",
+      "roles.mordred.description": "No levantes el pulgar: Merlín no te ve.",
+      "cards.role_mordred.text.title": "Mordred",
+      "cards.role_mordred.text.kind": "Esbirros de Mordred",
+      "cards.role_mordred.text.body": "No levantes el pulgar: Merlín no te ve.",
       "roles.oberon.name": "Oberón",
-      "roles.oberon.description": "Los demás esbirros no lo conocen, y él no conoce a ninguno.",
+      "roles.oberon.description": "Mantén los ojos cerrados con los esbirros: ellos no te conocen.",
+      "cards.role_oberon.text.title": "Oberón",
+      "cards.role_oberon.text.kind": "Esbirros de Mordred",
+      "cards.role_oberon.text.body": "Mantén los ojos cerrados con los esbirros: ellos no te conocen.",
       "roles.minion.name": "Esbirro de Mordred",
-      "strings.leads": "{$current.name} lidera la misión {$var.quest}: elige {$var.size} jugadores.",
-      "strings.picks": "{$actor.name} elige a {$param.member.name}.",
-      "strings.unpicks": "{$actor.name} saca a {$param.member.name} del equipo.",
-      "strings.proposes": "{$actor.name} propone a {$var.team}. Voten el equipo.",
+      "roles.minion.description": "Juega Fracaso cuando te convenga; escóndete entre los leales.",
+      "cards.role_minion.text.title": "Esbirro de Mordred",
+      "cards.role_minion.text.kind": "Esbirros de Mordred",
+      "cards.role_minion.text.body": "Juega Fracaso cuando te convenga; escóndete entre los leales.",
+      "cards.role_minion_2.text.title": "Esbirro de Mordred",
+      "cards.role_minion_2.text.kind": "Esbirros de Mordred",
+      "cards.role_minion_2.text.body": "Juega Fracaso cuando te convenga; escóndete entre los leales.",
+      "cards.role_minion_3.text.title": "Esbirro de Mordred",
+      "cards.role_minion_3.text.kind": "Esbirros de Mordred",
+      "cards.role_minion_3.text.body": "Juega Fracaso cuando te convenga; escóndete entre los leales.",
+      "cards.aye.text.title": "Aprobar",
+      "cards.aye.text.body": "Sí",
+      "cards.nay.text.title": "Rechazar",
+      "cards.nay.text.body": "No",
+      "cards.success.text.title": "Éxito",
+      "cards.success.text.body": "OK",
+      "cards.fail.text.title": "Fracaso",
+      "cards.fail.text.body": "X",
+      "cards.aye_2.text.title": "Aprobar",
+      "cards.aye_2.text.body": "Sí",
+      "cards.nay_2.text.title": "Rechazar",
+      "cards.nay_2.text.body": "No",
+      "cards.success_2.text.title": "Éxito",
+      "cards.success_2.text.body": "OK",
+      "cards.fail_2.text.title": "Fracaso",
+      "cards.fail_2.text.body": "X",
+      "cards.aye_3.text.title": "Aprobar",
+      "cards.aye_3.text.body": "Sí",
+      "cards.nay_3.text.title": "Rechazar",
+      "cards.nay_3.text.body": "No",
+      "cards.success_3.text.title": "Éxito",
+      "cards.success_3.text.body": "OK",
+      "cards.fail_3.text.title": "Fracaso",
+      "cards.fail_3.text.body": "X",
+      "cards.aye_4.text.title": "Aprobar",
+      "cards.aye_4.text.body": "Sí",
+      "cards.nay_4.text.title": "Rechazar",
+      "cards.nay_4.text.body": "No",
+      "cards.success_4.text.title": "Éxito",
+      "cards.success_4.text.body": "OK",
+      "cards.fail_4.text.title": "Fracaso",
+      "cards.fail_4.text.body": "X",
+      "cards.aye_5.text.title": "Aprobar",
+      "cards.aye_5.text.body": "Sí",
+      "cards.nay_5.text.title": "Rechazar",
+      "cards.nay_5.text.body": "No",
+      "cards.success_5.text.title": "Éxito",
+      "cards.success_5.text.body": "OK",
+      "cards.fail_5.text.title": "Fracaso",
+      "cards.fail_5.text.body": "X",
+      "cards.aye_6.text.title": "Aprobar",
+      "cards.aye_6.text.body": "Sí",
+      "cards.nay_6.text.title": "Rechazar",
+      "cards.nay_6.text.body": "No",
+      "cards.success_6.text.title": "Éxito",
+      "cards.success_6.text.body": "OK",
+      "cards.fail_6.text.title": "Fracaso",
+      "cards.fail_6.text.body": "X",
+      "cards.aye_7.text.title": "Aprobar",
+      "cards.aye_7.text.body": "Sí",
+      "cards.nay_7.text.title": "Rechazar",
+      "cards.nay_7.text.body": "No",
+      "cards.success_7.text.title": "Éxito",
+      "cards.success_7.text.body": "OK",
+      "cards.fail_7.text.title": "Fracaso",
+      "cards.fail_7.text.body": "X",
+      "cards.aye_8.text.title": "Aprobar",
+      "cards.aye_8.text.body": "Sí",
+      "cards.nay_8.text.title": "Rechazar",
+      "cards.nay_8.text.body": "No",
+      "cards.success_8.text.title": "Éxito",
+      "cards.success_8.text.body": "OK",
+      "cards.fail_8.text.title": "Fracaso",
+      "cards.fail_8.text.body": "X",
+      "cards.aye_9.text.title": "Aprobar",
+      "cards.aye_9.text.body": "Sí",
+      "cards.nay_9.text.title": "Rechazar",
+      "cards.nay_9.text.body": "No",
+      "cards.success_9.text.title": "Éxito",
+      "cards.success_9.text.body": "OK",
+      "cards.fail_9.text.title": "Fracaso",
+      "cards.fail_9.text.body": "X",
+      "cards.aye_10.text.title": "Aprobar",
+      "cards.aye_10.text.body": "Sí",
+      "cards.nay_10.text.title": "Rechazar",
+      "cards.nay_10.text.body": "No",
+      "cards.success_10.text.title": "Éxito",
+      "cards.success_10.text.body": "OK",
+      "cards.fail_10.text.title": "Fracaso",
+      "cards.fail_10.text.body": "X",
+      "cards.role_merlin.name": "Merlín",
+      "cards.role_percival.name": "Percival",
+      "cards.role_servant.name": "Leal servidor",
+      "cards.role_servant_2.name": "Leal servidor",
+      "cards.role_servant_3.name": "Leal servidor",
+      "cards.role_servant_4.name": "Leal servidor",
+      "cards.role_servant_5.name": "Leal servidor",
+      "cards.role_assassin.name": "Asesino",
+      "cards.role_morgana.name": "Morgana",
+      "cards.role_mordred.name": "Mordred",
+      "cards.role_oberon.name": "Oberón",
+      "cards.role_minion.name": "Esbirro de Mordred",
+      "cards.role_minion_2.name": "Esbirro de Mordred",
+      "cards.role_minion_3.name": "Esbirro de Mordred",
+      "cards.aye.name": "Aprobar",
+      "cards.nay.name": "Rechazar",
+      "cards.success.name": "Éxito",
+      "cards.fail.name": "Fracaso",
+      "cards.aye_2.name": "Aprobar",
+      "cards.nay_2.name": "Rechazar",
+      "cards.success_2.name": "Éxito",
+      "cards.fail_2.name": "Fracaso",
+      "cards.aye_3.name": "Aprobar",
+      "cards.nay_3.name": "Rechazar",
+      "cards.success_3.name": "Éxito",
+      "cards.fail_3.name": "Fracaso",
+      "cards.aye_4.name": "Aprobar",
+      "cards.nay_4.name": "Rechazar",
+      "cards.success_4.name": "Éxito",
+      "cards.fail_4.name": "Fracaso",
+      "cards.aye_5.name": "Aprobar",
+      "cards.nay_5.name": "Rechazar",
+      "cards.success_5.name": "Éxito",
+      "cards.fail_5.name": "Fracaso",
+      "cards.aye_6.name": "Aprobar",
+      "cards.nay_6.name": "Rechazar",
+      "cards.success_6.name": "Éxito",
+      "cards.fail_6.name": "Fracaso",
+      "cards.aye_7.name": "Aprobar",
+      "cards.nay_7.name": "Rechazar",
+      "cards.success_7.name": "Éxito",
+      "cards.fail_7.name": "Fracaso",
+      "cards.aye_8.name": "Aprobar",
+      "cards.nay_8.name": "Rechazar",
+      "cards.success_8.name": "Éxito",
+      "cards.fail_8.name": "Fracaso",
+      "cards.aye_9.name": "Aprobar",
+      "cards.nay_9.name": "Rechazar",
+      "cards.success_9.name": "Éxito",
+      "cards.fail_9.name": "Fracaso",
+      "cards.aye_10.name": "Aprobar",
+      "cards.nay_10.name": "Rechazar",
+      "cards.success_10.name": "Éxito",
+      "cards.fail_10.name": "Fracaso",
+      "cards.role_merlin.description": "Ves los pulgares de los esbirros (no el de Mordred). Escóndete del Asesino.",
+      "cards.role_percival.description": "Ves dos pulgares: el de Merlín y el de Morgana, sin saber cuál es cuál.",
+      "cards.role_servant.description": "Juega Éxito y descubre a los esbirros.",
+      "cards.role_servant_2.description": "Juega Éxito y descubre a los esbirros.",
+      "cards.role_servant_3.description": "Juega Éxito y descubre a los esbirros.",
+      "cards.role_servant_4.description": "Juega Éxito y descubre a los esbirros.",
+      "cards.role_servant_5.description": "Juega Éxito y descubre a los esbirros.",
+      "cards.role_assassin.description": "Si el bien cumple tres misiones, nombra a Merlín: gana el mal.",
+      "cards.role_morgana.description": "Levantas el pulgar para Percival, igual que Merlín.",
+      "cards.role_mordred.description": "No levantes el pulgar: Merlín no te ve.",
+      "cards.role_oberon.description": "Mantén los ojos cerrados con los esbirros: ellos no te conocen.",
+      "cards.role_minion.description": "Juega Fracaso cuando te convenga; escóndete entre los leales.",
+      "cards.role_minion_2.description": "Juega Fracaso cuando te convenga; escóndete entre los leales.",
+      "cards.role_minion_3.description": "Juega Fracaso cuando te convenga; escóndete entre los leales.",
+      "cards.aye.description": "Sí",
+      "cards.nay.description": "No",
+      "cards.success.description": "OK",
+      "cards.fail.description": "X",
+      "cards.aye_2.description": "Sí",
+      "cards.nay_2.description": "No",
+      "cards.success_2.description": "OK",
+      "cards.fail_2.description": "X",
+      "cards.aye_3.description": "Sí",
+      "cards.nay_3.description": "No",
+      "cards.success_3.description": "OK",
+      "cards.fail_3.description": "X",
+      "cards.aye_4.description": "Sí",
+      "cards.nay_4.description": "No",
+      "cards.success_4.description": "OK",
+      "cards.fail_4.description": "X",
+      "cards.aye_5.description": "Sí",
+      "cards.nay_5.description": "No",
+      "cards.success_5.description": "OK",
+      "cards.fail_5.description": "X",
+      "cards.aye_6.description": "Sí",
+      "cards.nay_6.description": "No",
+      "cards.success_6.description": "OK",
+      "cards.fail_6.description": "X",
+      "cards.aye_7.description": "Sí",
+      "cards.nay_7.description": "No",
+      "cards.success_7.description": "OK",
+      "cards.fail_7.description": "X",
+      "cards.aye_8.description": "Sí",
+      "cards.nay_8.description": "No",
+      "cards.success_8.description": "OK",
+      "cards.fail_8.description": "X",
+      "cards.aye_9.description": "Sí",
+      "cards.nay_9.description": "No",
+      "cards.success_9.description": "OK",
+      "cards.fail_9.description": "X",
+      "cards.aye_10.description": "Sí",
+      "cards.nay_10.description": "No",
+      "cards.success_10.description": "OK",
+      "cards.fail_10.description": "X",
+      "strings.leads": "{$current.name} lidera la misión {$var.quest}: arrastra {$var.size} escudos frente al equipo y propónlo.",
+      "strings.proposes": "{$actor.name} propone a {$var.team}. Pon Aprobar o Rechazar boca abajo en tu lugar.",
+      "strings.questStarts": "{$var.team}: pongan Éxito o Fracaso boca abajo en el montón de la misión.",
+      "strings.onlyLeader": "Solo el líder mueve los escudos, mientras elige el equipo.",
+      "strings.teamFull": "El equipo ya tiene {$var.size} jugadores: retira antes un escudo.",
+      "strings.notYourSpot": "Ese es el lugar de otro jugador.",
+      "strings.oneVote": "Ya hay una carta en tu lugar: retírala para cambiar tu voto.",
+      "strings.onePlayed": "Ya jugaste tu carta en esta misión.",
+      "strings.loyalSucceed": "Los leales servidores de Arturo solo pueden jugar Éxito.",
       "strings.fiveRejected": "Cinco equipos rechazados seguidos.",
       "strings.questFails": "La misión {$var.quest} fracasa.",
       "strings.questSucceeds": "La misión {$var.quest} tiene éxito.",
@@ -2606,7 +7607,33 @@
       "objects.good_2.name": "Misión cumplida",
       "objects.evil_2.name": "Misión fracasada",
       "objects.good_3.name": "Misión cumplida",
-      "objects.evil_3.name": "Misión fracasada"
+      "objects.evil_3.name": "Misión fracasada",
+      "objects.role_deck.name": "Roles",
+      "objects.vote_deck.name": "Votos",
+      "objects.quest_deck.name": "Cartas de misión",
+      "objects.quest_pile.name": "Montón de la misión",
+      "zones.quest_drop.name": "Montón de la misión",
+      "zones.reveal_row.name": "Cartas de la misión",
+      "zones.team_1.name": "Equipo",
+      "zones.vote_1.name": "Voto",
+      "zones.team_2.name": "Equipo",
+      "zones.vote_2.name": "Voto",
+      "zones.team_3.name": "Equipo",
+      "zones.vote_3.name": "Voto",
+      "zones.team_4.name": "Equipo",
+      "zones.vote_4.name": "Voto",
+      "zones.team_5.name": "Equipo",
+      "zones.vote_5.name": "Voto",
+      "zones.team_6.name": "Equipo",
+      "zones.vote_6.name": "Voto",
+      "zones.team_7.name": "Equipo",
+      "zones.vote_7.name": "Voto",
+      "zones.team_8.name": "Equipo",
+      "zones.vote_8.name": "Voto",
+      "zones.team_9.name": "Equipo",
+      "zones.vote_9.name": "Voto",
+      "zones.team_10.name": "Equipo",
+      "zones.vote_10.name": "Voto"
     }
   }
 }

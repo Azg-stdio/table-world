@@ -195,6 +195,11 @@ namespace Core.Net
             var votes = session.Votes;
             var lastVote = session.LastVote;
             var variables = session.Variables;
+            var awake = session.Awake;
+            // Who is awake reaches only the awake (they see each other); a sleeper's machine holds an empty list, and the
+            // public view (the hash every machine compares) none.
+            if (awake != null)
+                session.Awake = seat == null ? null : awake.Contains(seat) ? awake : new List<string>();
             if (state.SecretVariables.Count > 0)
                 session.Variables = variables.Where(p => !state.SecretVariables.Contains(p.Key)).ToDictionary(p => p.Key, p => p.Value);
             session.RandomState = 0;
@@ -226,6 +231,7 @@ namespace Core.Net
                 session.Votes = votes;
                 session.LastVote = lastVote;
                 session.Variables = variables;
+                session.Awake = awake;
             }
         }
     }

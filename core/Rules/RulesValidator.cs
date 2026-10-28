@@ -81,6 +81,10 @@ namespace Core.Rules
                     else
                         Audience(awake, $"{path}.awake");
                 }
+                if (phase.Next is { } nextPhase && !phaseIds.Contains(nextPhase))
+                    Add($"{path}.next", ErrorCodes.UnknownPhase, $"Phase '{nextPhase}' does not exist.", Suggest.OneOf(nextPhase, phaseIds, "a phase id"));
+                if (phase.Seconds is { } seconds && (seconds < 1 || seconds > 3600))
+                    Add($"{path}.seconds", ErrorCodes.InvalidValue, $"A timed phase lasts 1 to 3600 seconds, not {seconds}.");
                 if (phase.Voice == PhaseVoice.Team && _state.Roles == null)
                     Add($"{path}.voice", ErrorCodes.UnknownTeam, "Team voice needs teams.", "Add roles with teams (set_roles), or use all, awake or none.");
                 Effects(phase.OnEnter, $"{path}.onEnter", phaseIds);
@@ -445,6 +449,12 @@ namespace Core.Rules
                 case CloseVoteEffect close when _state.Actions.All(a => a.Id != close.Action || a.Vote == null):
                     Add($"{path}.action", ErrorCodes.UnknownAction, $"'{close.Action}' is not a vote.",
                         Suggest.OneOf(close.Action, _state.Actions.Where(a => a.Vote != null).Select(a => a.Id), "a vote"));
+                    break;
+                case CastBallotEffect ballot:
+                    if (_state.Actions.All(a => a.Id != ballot.Action || a.Vote == null))
+                        Add($"{path}.action", ErrorCodes.UnknownAction, $"'{ballot.Action}' is not a vote.",
+                            Suggest.OneOf(ballot.Action, _state.Actions.Where(a => a.Vote != null).Select(a => a.Id), "a vote"));
+                    Seat(ballot.Seat, $"{path}.seat");
                     break;
                 case MessageEffect message when message.To != null:
                     Audience(message.To, $"{path}.to");

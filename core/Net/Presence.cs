@@ -57,6 +57,11 @@ namespace Core.Net
         public AvatarPose? Body { get; set; }
         /// <summary>The player holds their cards up to read them (their chalker raises its hand).</summary>
         public bool HandUp { get; set; }
+        /// <summary>
+        /// The player's thumb is up (Avalon's "minions, raise your thumb"): their chalker raises a fist, seen even while it
+        /// sleeps, by whoever is awake.
+        /// </summary>
+        public bool Thumb { get; set; }
         /// <summary>How far the player leans in over the table from their chair, 0 (sitting back) to 1.</summary>
         public float Lean { get; set; }
     }
@@ -91,6 +96,7 @@ namespace Core.Net
                 }
                 : null,
             ["hand"] = frame.HandUp ? true : (bool?)null,
+            ["thumb"] = frame.Thumb ? true : (bool?)null,
             ["lean"] = frame.Lean > 0f ? frame.Lean : (float?)null,
             ["held"] = new JArray(frame.Held.Select(h => new JObject
             {
@@ -160,6 +166,7 @@ namespace Core.Net
                 frame.Body = new AvatarPose { Position = feet, Yaw = turned, Place = place, Moving = body["moving"]?.Type == JTokenType.Boolean && (bool)body["moving"]! };
             }
             frame.HandUp = message["hand"]?.Type == JTokenType.Boolean && (bool)message["hand"]!;
+            frame.Thumb = message["thumb"]?.Type == JTokenType.Boolean && (bool)message["thumb"]!;
             if (message["lean"] is JValue { Type: JTokenType.Float or JTokenType.Integer } lean)
             {
                 var amount = (float)lean;

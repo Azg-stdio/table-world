@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 
@@ -86,6 +87,18 @@ namespace Core.Rules
 
         /// <summary>Who hears whom in this phase; null is <c>all</c>, or <c>awake</c> in an eyes-closed phase.</summary>
         public PhaseVoice? Voice { get; set; }
+
+        /// <summary>
+        /// A timed phase: it ends this many seconds after it begins (the host's game window keeps the time and ends it;
+        /// everyone sees the countdown, and the host can end it sooner). Null: it waits for the players.
+        /// </summary>
+        public int? Seconds { get; set; }
+
+        /// <summary>The phase that follows this one when it ends, instead of the next in the turn (a sequence such as a ritual).</summary>
+        public string? Next { get; set; }
+
+        /// <summary>Big words for the players awake in this phase ("Minions, open your eyes"); <c>{$ref}</c> parts are filled in.</summary>
+        public string? Banner { get; set; }
     }
 
     /// <summary>
@@ -174,6 +187,12 @@ namespace Core.Rules
     }
 
     /// <summary>Game progress. Written by the engine, saved with the table; an authored game has none.</summary>
+    /// <summary>A collection written even when empty, because empty says something null does not (nobody awake, as told to a sleeper).</summary>
+    [AttributeUsage(AttributeTargets.Property)]
+    public sealed class KeepEmptyAttribute : Attribute
+    {
+    }
+
     public sealed class Session
     {
         /// <summary>
@@ -191,6 +210,14 @@ namespace Core.Rules
         public List<string> Players { get; set; } = new List<string>();
         public string? CurrentSeat { get; set; }
         public string? Phase { get; set; }
+        /// <summary>Counts every phase entered, so a timed phase's end is not mistaken for a later visit of the same phase.</summary>
+        public int PhaseVisit { get; set; }
+        /// <summary>
+        /// In an eyes-closed phase, the seats awake, as the host worked them out when it began; null otherwise. A seat's
+        /// machine receives it only while that seat is awake (the awake see each other; a sleeper learns nothing).
+        /// </summary>
+        [KeepEmpty]
+        public List<string>? Awake { get; set; }
         /// <summary>Seats that acted in the current phase visit.</summary>
         public List<string> Acted { get; set; } = new List<string>();
         /// <summary>Actions performed this phase visit, keyed <c>seat/action</c>.</summary>

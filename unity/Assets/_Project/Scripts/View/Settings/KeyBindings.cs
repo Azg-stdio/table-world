@@ -13,7 +13,7 @@ namespace TableWorld.View.Settings
     {
         Flip, RotateLeft, RotateRight, Roll, Lock, Group, PlaceUnder, Nudge, Grow, Shrink, Delete,
         PanForward, PanBack, PanLeft, PanRight, ResetCamera, QuickZoom, TopDown, Blindfold, QuickSave, QuickLoad,
-        Talk, Emotes, SeatView, Wink, Sit, HandUp,
+        Talk, Emotes, SeatView, Wink, Sit, HandUp, ThumbUp,
     }
 
     /// <summary>
@@ -32,7 +32,7 @@ namespace TableWorld.View.Settings
             [GameAction.ResetCamera] = Key.Space, [GameAction.QuickZoom] = Key.Z, [GameAction.TopDown] = Key.P,
             [GameAction.Blindfold] = Key.B, [GameAction.QuickSave] = Key.F5, [GameAction.QuickLoad] = Key.F9,
             [GameAction.Talk] = Key.T, [GameAction.Emotes] = Key.X, [GameAction.SeatView] = Key.O, [GameAction.Wink] = Key.K,
-            [GameAction.Sit] = Key.C, [GameAction.HandUp] = Key.H,
+            [GameAction.Sit] = Key.C, [GameAction.HandUp] = Key.H, [GameAction.ThumbUp] = Key.Y,
         };
 
         /// <summary>Keys that keep their own meaning and cannot take an action.</summary>
@@ -152,6 +152,7 @@ namespace TableWorld.View.Settings
             GameAction.Emotes => Ui.T("Emote wheel (hold)"),
             GameAction.SeatView => Ui.T("Sit in first person / lift out"),
             GameAction.HandUp => Ui.T("Hold your cards up"),
+            GameAction.ThumbUp => Ui.T("Raise your thumb"),
             GameAction.Wink => Ui.T("Wink at the face you look at"),
             GameAction.Sit => Ui.T("Sit down / stand up (walking rooms)"),
             _ => action.ToString(),

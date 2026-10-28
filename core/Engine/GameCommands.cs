@@ -43,6 +43,16 @@ namespace Core.Engine
         public string Action { get; set; } = "";
     }
 
+    /// <summary>
+    /// Ends a timed phase (<c>PhaseDef.Seconds</c>): the host's game window sends it when the time is up or the host moves
+    /// on. <see cref="Visit"/> is the session's <c>PhaseVisit</c> it was meant for, so a late one ends nothing.
+    /// </summary>
+    public sealed class EndTimedPhaseCommand : Command, IHostCommand
+    {
+        public string Phase { get; set; } = "";
+        public int Visit { get; set; }
+    }
+
     /// <summary>Performs a rules action (docs/rules-schema.md, "Actions") as <see cref="Command.Actor"/>.</summary>
     public sealed class PerformActionCommand : Command
     {

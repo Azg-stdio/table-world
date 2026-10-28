@@ -116,6 +116,7 @@ namespace Core.Text
             {
                 Add($"phases.{phase.Id}.name", phase.Name);
                 Add($"phases.{phase.Id}.sleepText", phase.SleepText);
+                Add($"phases.{phase.Id}.banner", phase.Banner);
             }
             foreach (var panel in state.Ui?.Panels ?? new List<PanelDef>())
             {

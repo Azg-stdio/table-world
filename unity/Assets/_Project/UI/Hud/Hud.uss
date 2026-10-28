@@ -332,11 +332,46 @@
 }
 
 .sleep-text {
+    max-width: 70%;
     font-size: 30px;
     -unity-font-style: bold;
     color: rgb(170, 178, 200);
     white-space: normal;
     -unity-text-align: middle-center;
+}
+
+/* A timed phase (a ritual's step): big words for the awake, the seconds left, and the host's button to move on. */
+.phase-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 22%;
+    align-items: center;
+}
+
+.phase-banner {
+    max-width: 70%;
+    padding: 14px 28px;
+    border-radius: 10px;
+    background-color: rgba(10, 12, 18, 0.78);
+    font-size: 34px;
+    -unity-font-style: bold;
+    color: rgb(242, 214, 140);
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+.phase-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.phase-timer {
+    font-size: 22px;
+    -unity-font-style: bold;
+    color: rgb(200, 206, 222);
+    margin-right: 10px;
 }
 
 /* This player's hidden role and what it knows (ADR 0012). */

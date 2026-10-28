@@ -168,6 +168,12 @@ Effects can only set declared variables and resources; the validator rejects und
 - `actions` is a whitelist: only those actions can be performed during the phase.
 - Entering a phase resets who has acted and the per-phase action counts. `gotoPhase` re-enters a phase (War uses it for ties).
 - More than 200 phase changes without waiting for a player is reported as `rules_loop` and rolled back.
+- `seconds` makes a timed phase: it ends that many seconds after it begins. The host's game window keeps the time (the
+  rules have no clock) and ends it with an `EndTimedPhaseCommand`; everyone sees the countdown, and the host can move on
+  sooner with Next. `next` names the phase that follows when it ends, instead of the next in the turn: a sequence outside
+  the turn, such as a ritual before the first turn. `banner` is big text for the players awake in the phase ("Minions,
+  open your eyes"), with `{$ref}` parts filled in.
+- A `gotoPhase` in `onGameStart` opens the game in that phase (a setup or a ritual) instead of the turn's first.
 
 ### Eyes closed and voice
 
@@ -181,7 +187,9 @@ list such as `$var.night_order`); everyone else sleeps for the phase.
 
 - Sleepers take no actions, see a dark screen with `sleepText` (default "Eyes closed."), and do not see the awake
   players' pointers or held pieces; their chalkers sleep on the awake players' screens.
-- Each machine tells who is awake from what it knows: a villager cannot tell who the wolves are by who seems awake.
+- The host works out who is awake when the rules settle (a phase begins, a rule changes what `awake` reads) and keeps the
+  list in the session; a seat's machine receives it only while that seat is awake. So the awake see each other without
+  any `knows` (Avalon's minions find each other by their open eyes), and a sleeper learns nothing.
 - `voice`: `all` (default), `awake` (default in an eyes-closed phase: the awake hear each other, the sleepers hear and
   are heard by nobody), `team` (each team hears only itself), `none`. Spectators and a host without a seat see and
   hear everyone.
@@ -241,6 +249,10 @@ the votes are counted, the count is logged, and `onResult` runs.
 - `$vote.result`, `$vote.total`, `$vote.<option>` (how many chose it), `$vote.of.<seat>` (named votes only) read the
   vote counted last; `$vote.<action>.result` and so on read a given one.
 - `closeVote { action }` counts a vote now with the votes cast so far (a rule calling it).
+- `castBallot { action, seat, choice }` casts a seat's ballot as if it had voted: a piece laid down is a vote. Put it in
+  a zone's `onEnter` (`"choice": "$it.meta.vote"`, the card's own word) and players vote by laying a card face down on
+  their spot (a `LayoutZone` with `"facing": "faceDown"`). The vote's phase, voters, options and preconditions apply; a
+  ballot the vote refuses undoes the move. `decide: "none"` with the counts read in `onResult` suits a quest pile.
 - `"seconds": 30` closes the vote that long after its first ballot, counting what was cast; everyone reads the time
   left, and the host's game window keeps the clock.
 - `"decide": "none"` announces no result and leaves `$vote.result` empty: for votes whose outcome the rules work out

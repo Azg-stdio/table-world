@@ -27,6 +27,7 @@ namespace TableWorld.View.Hud
                 ("{SeatView}", Ui.T("Sit in first person, or lift out into the free camera")),
                 (Ui.T("Pointer on your cards, or {HandUp}"), Ui.T("Hold your cards up to read them ({HandUp} keeps them up)")),
                 ("{Wink}", Ui.T("Wink at the face you look at (games can react to it)")),
+                ("{ThumbUp}", Ui.T("Raise your thumb, even with your eyes closed (it drops when the step ends)")),
                 (Ui.T("{RotateLeft} / {RotateRight} over nothing"), Ui.T("Turn the camera")),
                 (Ui.T("Ctrl + 1–9 / Shift + 1–9"), Ui.T("Save / load a camera view")),
             }),

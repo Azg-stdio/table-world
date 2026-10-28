@@ -30,6 +30,19 @@ namespace Core.Engine
                 return false;
             if (!EyesClosedPhase)
                 return true;
+            // The list the host made when the phase began: a sleeping viewer's machine holds an empty one.
+            if (Session!.Awake is { } list)
+            {
+                // Who is awake comes from roles: whatever depends on it runs on the host.
+                _secretsRead = true;
+                return (viewer == null || list.Contains(viewer)) && list.Contains(seat);
+            }
+            return AwakeByRule(seat, viewer);
+        }
+
+        /// <summary>The phase's <c>awake</c> rule applied to <paramref name="seat"/>, with what <paramref name="viewer"/> knows (null: all).</summary>
+        private bool AwakeByRule(string seat, string? viewer)
+        {
             var awake = CurrentPhase()!.Awake!;
             switch (awake)
             {
@@ -51,6 +64,30 @@ namespace Core.Engine
                 JValue { Type: JTokenType.String } id => (string)id! == seat,
                 _ => false,
             };
+        }
+
+        /// <summary>The big words for the awake in the phase in play, or null.</summary>
+        public string? BannerText => Session is { Started: true, Over: false } && CurrentPhase() is { Banner: { Length: > 0 } text } phase
+            ? Template(Translations.Text(State, $"phases.{phase.Id}.banner", text)!)
+            : null;
+
+        /// <summary>
+        /// Ends a timed phase (<see cref="PhaseDef.Seconds"/>): the host's window sends it when the time is up, or when the
+        /// host moves on sooner. Nothing happens once that visit of the phase is over.
+        /// </summary>
+        private CommandResult EndTimedPhase(EndTimedPhaseCommand command)
+        {
+            var session = Session;
+            if (!(session is { Started: true, Over: false }) || session.Phase != command.Phase || session.PhaseVisit != command.Visit)
+                return CommandResult.Success(new List<StateEvent>());
+            var result = Transaction(() =>
+            {
+                _pendingEndPhase = true;
+                AdvanceLoop();
+                CheckWins(WinCheck.AnyCommand);
+            });
+            result.ReadsSecrets = true;
+            return result;
         }
 
         /// <summary>What a sleeping seat reads on its dark screen.</summary>

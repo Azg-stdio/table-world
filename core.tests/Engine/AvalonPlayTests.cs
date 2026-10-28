@@ -11,9 +11,11 @@ namespace Core.Tests.Engine
 {
     /// <summary>
     /// M10 T11.6 ⚗: games/avalon.json, built through the MCP tools by tools/mcp/build_avalon.py from
-    /// docs/rulebooks/avalon.txt, played by random players at every count from 5 to 10, with and without optional roles.
-    /// Every game must end with a team winning; over the protocol, no client may hold another seat's role it was not
-    /// shown, and nobody resyncs.
+    /// docs/rulebooks/avalon.txt, played by random players at every count from 5 to 10, with and without optional roles,
+    /// with their hands as at the table: the ritual's timed steps run out, the leader drags shields in front of players,
+    /// everyone lays a vote card face down on their spot, the team lays quest cards on the pile. Every game must end with a
+    /// team winning, without a Lua error; over the protocol, no client may hold another seat's role it was not shown, and
+    /// nobody resyncs.
     /// </summary>
     public class AvalonPlayTests
     {
@@ -24,13 +26,20 @@ namespace Core.Tests.Engine
             _output = output;
         }
 
-        private static GameEngine Load(int players, ulong seed, params string[] optional)
+        private static GameEngine Load(int players, ulong seed, params string[] optional) => Load(players, seed, out _, optional);
+
+        /// <summary>Over the protocol, the host's route for script commands (executed and sent to every client).</summary>
+        [System.ThreadStatic] private static System.Func<Command, CommandResult>? Route;
+
+        private static GameEngine Load(int players, ulong seed, out ScriptHost scripts, params string[] optional)
         {
             var state = TableJson.Parse(GameFixtures.GameJson("avalon")).State!;
             Assert.Empty(TableValidator.Validate(state));
             var game = new GameEngine(state, seed);
-            var host = new ScriptHost(() => game.Table, c => game.Execute(c)) { RulesEngine = () => game };
+            // What scripts do on their own (a Wait timer turning cards over) goes the host's way when there is one.
+            var host = new ScriptHost(() => game.Table, c => Route != null ? Route(c) : game.Execute(c)) { RulesEngine = () => game };
             game.Scripts = host;
+            scripts = host;
             host.Load(0);
             var seats = SeatLayout.Spread(state.Players.Seats.Select(s => s.Id).ToList(), players);
             var start = game.Execute(new StartGameCommand { Seats = seats, Roles = optional.ToList() });
@@ -38,22 +47,75 @@ namespace Core.Tests.Engine
             return game;
         }
 
-        /// <summary>Random legal moves to the end; returns the winning team and how many actions it took.</summary>
-        private static (string Winner, int Actions) Play(GameEngine game, ulong seed)
+        private static string Number(string seat) => seat.Substring(seat.LastIndexOf('_') + 1);
+
+        private static Vec3 At(GameEngine game, string zone) => game.State.Zones.Single(z => z.Id == zone).Transform.Position;
+
+        /// <summary>A card in <paramref name="seat"/>'s hand whose own id starts with <paramref name="prefix"/>, or null.</summary>
+        private static TableObject? InHand(GameEngine game, string seat, string prefix) =>
+            game.Table.ObjectsIn("hand_" + Number(seat)).FirstOrDefault(o => TableEngine.OwnId(o).StartsWith(prefix));
+
+        /// <summary>
+        /// What a player at the table does next, as a command from that seat (null: nobody has anything to do): a timed
+        /// step's time runs out, the leader drags a shield or proposes, a voter lays a vote card, a team member a quest
+        /// card, the Assassin names someone.
+        /// </summary>
+        private static (string? Seat, Command Command)? Next(GameEngine game, DeterministicRandom chooser)
+        {
+            var s = game.Session!;
+            var phase = game.Phase!;
+            if (phase.Seconds != null)
+                return (null, new EndTimedPhaseCommand { Phase = s.Phase!, Visit = s.PhaseVisit });
+            var playing = game.Playing.Select(p => p.Id).ToList();
+            switch (s.Phase)
+            {
+                case "propose":
+                    var team = ((JArray)s.Variables["team"]!).Select(t => (string)t!).ToList();
+                    if (team.Count >= (int)s.Variables["size"]!)
+                        return (s.CurrentSeat, new PerformActionCommand { Actor = s.CurrentSeat, ActionId = "propose" });
+                    var free = playing.Where(p => !team.Contains(p)).ToList();
+                    var member = free[chooser.Next(free.Count)];
+                    var inZones = new HashSet<string>(playing.SelectMany(p => game.Table.ObjectsIn("team_" + Number(p)).Select(o => o.Id)));
+                    var shield = game.State.Objects.First(o => o.Tags.Contains("shield") && !inZones.Contains(o.Id));
+                    return (s.CurrentSeat, new MoveCommand { Actor = s.CurrentSeat, ObjectId = shield.Id, Position = At(game, "team_" + Number(member)) });
+                case "team_vote":
+                    var voter = playing.First(p => s.Secrets.All(c => c.Seat != p || c.Action != "team_vote"));
+                    var vote = InHand(game, voter, chooser.Next(3) == 0 ? "nay" : "aye")!;
+                    return (voter, new MoveCommand { Actor = voter, ObjectId = vote.Id, Position = At(game, "vote_" + Number(voter)) });
+                case "quest":
+                    var played = ((JArray)s.Variables["played"]!).Select(t => (string)t!).ToList();
+                    var player = ((JArray)s.Variables["team"]!).Select(t => (string)t!).First(p => !played.Contains(p));
+                    var fail = game.TeamOf(player) == "evil" && chooser.Next(2) == 0;
+                    var card = InHand(game, player, fail ? "fail" : "success")!;
+                    return (player, new MoveCommand { Actor = player, ObjectId = card.Id, Position = At(game, "quest_drop") });
+                default:
+                    var options = playing.SelectMany(p => game.LegalActions(p).SelectMany(a => a.Choices.Select(c => (Seat: p, a.ActionId, Params: c)))).ToList();
+                    if (options.Count == 0)
+                        return null;
+                    var pick = options[chooser.Next(options.Count)];
+                    return (pick.Seat, new PerformActionCommand { Actor = pick.Seat, ActionId = pick.ActionId, Params = pick.Params });
+            }
+        }
+
+        /// <summary>Played with the hands to the end, two seconds between moves; returns the winning team and how many moves it took.</summary>
+        private static (string Winner, int Actions) Play(GameEngine game, ScriptHost scripts, ulong seed)
         {
             var chooser = new DeterministicRandom(seed * 7919);
+            var errors = new List<string>();
+            scripts.Log += line => { if (line.Contains("rror")) errors.Add(line); };
             var count = 0;
+            var now = 0.0;
             while (!game.Session!.Over)
             {
-                Assert.True(count++ < 3000, $"seed {seed}: no winner after 3000 actions (phase {game.Session.Phase}, quest {game.Session.Variables["quest"]}).");
-                var options = game.Playing
-                    .SelectMany(s => game.LegalActions(s.Id).SelectMany(a => a.Choices.Select(c => (Seat: s.Id, a.ActionId, Params: c))))
-                    .ToList();
-                Assert.True(options.Count > 0, $"seed {seed}: nobody can act in phase {game.Session.Phase}.");
-                var pick = options[chooser.Next(options.Count)];
-                var result = game.Execute(new PerformActionCommand { Actor = pick.Seat, ActionId = pick.ActionId, Params = pick.Params });
-                Assert.True(result.Ok, $"seed {seed}: legal {pick.ActionId} by {pick.Seat} failed: {result.Error}");
+                Assert.True(count++ < 3000, $"seed {seed}: no winner after 3000 moves (phase {game.Session.Phase}, quest {game.Session.Variables["quest"]}).");
+                now += 2;
+                scripts.Tick(now);
+                var next = Next(game, chooser);
+                Assert.True(next != null, $"seed {seed}: nobody can act in phase {game.Session.Phase}.");
+                var result = game.Execute(next!.Value.Command);
+                Assert.True(result.Ok, $"seed {seed}: {next.Value.Command.GetType().Name} by {next.Value.Seat} in {game.Session.Phase} failed: {result.Error}");
             }
+            Assert.Empty(errors);
             return (game.Session.WinnerTeam!, count);
         }
 
@@ -66,8 +128,8 @@ namespace Core.Tests.Engine
                 for (ulong seed = 1; seed <= 15; seed++)
                 {
                     var optional = seed % 3 == 0 ? new[] { "percival", "morgana" } : seed % 3 == 1 && players >= 7 ? new[] { "mordred", "oberon" } : new string[0];
-                    var game = Load(players, seed, optional);
-                    var (winner, count) = Play(game, seed);
+                    var game = Load(players, seed, out var scripts, optional);
+                    var (winner, count) = Play(game, scripts, seed);
                     Assert.Contains(winner, new[] { "good", "evil" });
                     wins[winner] = wins.TryGetValue(winner, out var w) ? w + 1 : 1;
                     actions.Add(count);
@@ -85,8 +147,7 @@ namespace Core.Tests.Engine
         {
             var game = Load(7, 4);
             var s = game.Session!;
-            Assert.Equal(2, (int)s.Variables["size"]!);
-            Assert.Equal("propose", s.Phase);
+            Assert.Equal("ritual_look", s.Phase);
             // Every good player's only quest choice is success.
             foreach (var seat in game.Playing.Select(p => p.Id).Where(id => game.TeamOf(id) == "good"))
             {
@@ -102,7 +163,7 @@ namespace Core.Tests.Engine
         {
             for (ulong seed = 1; seed <= 4; seed++)
             {
-                var game = Load(6, seed, "percival", "morgana");
+                var game = Load(6, seed, out var scripts, "percival", "morgana");
                 var host = new SessionHost(game);
                 var seats = game.Playing.Select(p => p.Id).ToList();
                 var clients = seats.ToDictionary(s => s, s => new SessionClient(s));
@@ -124,17 +185,42 @@ namespace Core.Tests.Engine
                 }
                 var chooser = new DeterministicRandom(seed * 31);
                 var steps = 0;
+                var now = 0.0;
+                // What each client had received before the move that ended the game (which turns every role card over).
+                var beforeEnd = seats.ToDictionary(s => s, s => 0);
+                Route = c =>
+                {
+                    var (done, messages) = host.ExecuteLocal(c);
+                    foreach (var outgoing in messages)
+                        Deliver(outgoing);
+                    return done;
+                };
                 while (!game.Session!.Over && steps++ < 3000)
                 {
-                    // Each client acts from its own view, as a player would.
-                    var options = seats.SelectMany(s => clients[s].Predicted!.LegalActions(s).SelectMany(a => a.Choices.Select(c => (Seat: s, a.ActionId, Params: c)))).ToList();
-                    var pick = options[chooser.Next(options.Count)];
-                    var (result, intent) = clients[pick.Seat].Submit(new PerformActionCommand { Actor = pick.Seat, ActionId = pick.ActionId, Params = pick.Params });
-                    if (intent == null)
+                    foreach (var seat in seats)
+                        beforeEnd[seat] = received[seat].Count;
+                    now += 2;
+                    scripts.Tick(now);
+                    // Each move made by its seat's client, as a player at the table would.
+                    var next = Next(game, chooser)!.Value;
+                    if (next.Seat == null)
+                    {
+                        // The host's own window ends the timed steps.
+                        foreach (var outgoing in host.ExecuteLocal(next.Command).Messages)
+                            Deliver(outgoing);
                         continue;
-                    foreach (var outgoing in host.Receive(pick.Seat, intent))
+                    }
+                    var by = next.Seat;
+                    var (result, intent) = clients[by].Submit(next.Command);
+                    if (intent == null)
+                    {
+                        _output.WriteLine($"step {steps}: {next.Command.GetType().Name} by {by} in {game.Session.Phase}: {result?.Error}");
+                        continue;
+                    }
+                    foreach (var outgoing in host.Receive(by, intent))
                         Deliver(outgoing);
                 }
+                Route = null;
                 Assert.True(game.Session.Over, $"seed {seed}: no end through the protocol");
                 foreach (var seat in seats)
                 {
@@ -147,6 +233,12 @@ namespace Core.Tests.Engine
                         if (!shown)
                             Assert.DoesNotContain(received[seat], m => m.Contains($"\"{other}\":\"{game.Session.Roles[other]}\""));
                     }
+                    // Nor another player's role card: until the end, a seat only ever learns its own card's id.
+                    var mine = "role_" + game.Session.Roles[seat];
+                    foreach (var message in received[seat].Take(beforeEnd[seat]))
+                        foreach (System.Text.RegularExpressions.Match card in System.Text.RegularExpressions.Regex.Matches(message, "entryId[^a-z]+(role_[a-z_0-9]+)"))
+                            Assert.StartsWith(mine, card.Groups[1].Value);
+                    Assert.Contains(received[seat].Take(beforeEnd[seat]), m => System.Text.RegularExpressions.Regex.IsMatch(m, "entryId[^a-z]+" + mine));
                 }
             }
         }

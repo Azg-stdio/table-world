@@ -197,7 +197,7 @@ namespace Core.Rules
             {
                 var property = base.CreateProperty(member, memberSerialization);
                 var type = property.PropertyType;
-                if (type != null && type != typeof(string) && typeof(ICollection).IsAssignableFrom(type))
+                if (type != null && type != typeof(string) && typeof(ICollection).IsAssignableFrom(type) && member.GetCustomAttribute<KeepEmptyAttribute>() == null)
                 {
                     var existing = property.ShouldSerialize;
                     property.ShouldSerialize = owner =>

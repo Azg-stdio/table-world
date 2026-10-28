@@ -141,6 +141,7 @@ namespace TableWorld.View.Chalkers
                     var pointer = frame.Pointer is { } p ? new Vector3(p.X, p.Y, p.Z) : (Vector3?)null;
                     var carried = frame.Held.Count > 0 ? new Vector3(frame.Held[0].Position.X, frame.Held[0].Position.Y, frame.Held[0].Position.Z) : (Vector3?)null;
                     Prepare(chalker, frame.Seat, frame.HandUp, frame.Lean, carried, place.Position);
+                    chalker.ThumbUp = frame.Thumb;
                     chalker.Pose(place.Position, place.Facing, gaze ?? pointer ?? Vector3.zero, pointer ?? gaze, _voice != null ? _voice.LevelOf(frame.Seat) : 0f, dt);
                     HoldCards(chalker, frame.Seat);
                     Carry(chalker, frame.Seat);
@@ -251,6 +252,7 @@ namespace TableWorld.View.Chalkers
             var gaze = seated ? ahead : pointer ?? ahead;
             var carried = _interaction != null && _interaction.Held != null ? _interaction.Held.transform.position : (Vector3?)null;
             Prepare(yours, me, _interaction != null && _interaction.HandUp, _tableCamera != null ? _tableCamera.Lean : 0f, carried, place.Position);
+            yours.ThumbUp = _interaction != null && _interaction.ThumbUp;
             // With the free camera setting your hand stands at your edge of the table as in TTS, read from above.
             yours.HoldingCards &= _tableCamera == null || _tableCamera.FirstPerson;
             yours.Pose(place.Position, place.Facing, gaze, pointer ?? gaze, _voice != null && _voice.Talking ? _voice.MicLevel : 0f, dt);
