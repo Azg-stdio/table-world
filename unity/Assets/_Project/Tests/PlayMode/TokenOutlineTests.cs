@@ -8,11 +8,11 @@ using UnityEngine.TestTools;
 
 namespace TableWorld.Tests.PlayMode
 {
-    /// <summary>Image tokens are cut along their image's transparent edges, as TTS cuts custom tokens.</summary>
+    /// <summary>Image tokens and figures are cut along their image's transparent edges, as TTS cuts custom tokens and figurines.</summary>
     public class TokenOutlineTests
     {
         [UnityTest]
-        public IEnumerator SeeThroughImage_CutsTheToken_OpaqueImageKeepsTheBox()
+        public IEnumerator SeeThroughImage_CutsTokensAndFigures_OpaqueImageKeepsTheBox()
         {
             yield return SceneManager.LoadSceneAsync("Table");
             yield return null;
@@ -31,7 +31,8 @@ namespace TableWorld.Tests.PlayMode
             const string json = @"{ ""schemaVersion"": ""0.1"",
   ""assets"": [ { ""id"": ""star"", ""type"": ""image"", ""path"": ""star.png"" }, { ""id"": ""square"", ""type"": ""image"", ""path"": ""square.png"" } ],
   ""objects"": [ { ""id"": ""s"", ""type"": ""Token"", ""shape"": ""image"", ""asset"": ""star"", ""size"": 0.05, ""transform"": { ""position"": [0, 0.02, 0] } },
-                 { ""id"": ""q"", ""type"": ""Token"", ""shape"": ""image"", ""asset"": ""square"", ""size"": 0.05, ""transform"": { ""position"": [0.1, 0.02, 0] } } ],
+                 { ""id"": ""q"", ""type"": ""Token"", ""shape"": ""image"", ""asset"": ""square"", ""size"": 0.05, ""transform"": { ""position"": [0.1, 0.02, 0] } },
+                 { ""id"": ""f"", ""type"": ""Figure"", ""asset"": ""star"", ""transform"": { ""position"": [-0.1, 0.04, 0] } } ],
   ""players"": { ""seats"": [ { ""id"": ""south"", ""color"": ""red"" } ] } }";
             Assert.IsTrue(table.Load(json, folder));
             var star = table.ViewOf("s");
@@ -50,6 +51,12 @@ namespace TableWorld.Tests.PlayMode
 
             var square = table.ViewOf("q").Filter.sharedMesh;
             StringAssert.StartsWith("ibox:", square.name, "an image with no transparency stays a box");
+
+            // A figure (TTS custom figurine) is cut too, and its stand sits under the cut's lowest point.
+            var figure = table.ViewOf("f");
+            StringAssert.StartsWith("isil:", figure.Filter.sharedMesh.name);
+            var lowest = figure.Renderer.bounds.min.y;
+            Assert.AreEqual(lowest, figure.Base.bounds.max.y, 0.004f, "the stand meets the figure's feet");
             Directory.Delete(folder, true);
         }
 

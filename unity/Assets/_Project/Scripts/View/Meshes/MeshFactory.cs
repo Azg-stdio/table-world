@@ -40,11 +40,12 @@ namespace TableWorld.View.Meshes
         /// <summary>
         /// A piece cut along its image's outline (TTS custom tokens): <paramref name="loops"/> in image UVs (from
         /// <see cref="Core.Models.Silhouette"/>) laid on a <paramref name="face"/> (x × z) rectangle and extruded to
-        /// <paramref name="height"/>, with the image turned 180° as <see cref="ImageBox"/> does and the same submeshes, so
-        /// the image lands where it does on the box. Cached by the outline itself (one list per traced image).
+        /// <paramref name="height"/>, with the image turned 180° as <see cref="ImageBox"/> does (or, not
+        /// <paramref name="turned"/>, as <see cref="Box"/> lays it) and the same submeshes, so the image lands where it does
+        /// on the box. Cached by the outline itself (one list per traced image).
         /// </summary>
-        public static Mesh ImageSilhouette(IReadOnlyList<Core.Models.Silhouette.Loop> loops, Vector2 face, float height) =>
-            Cached($"isil:{System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(loops)}:{loops.Count}:{face.x:F5}:{face.y:F5}:{height:F5}", () =>
+        public static Mesh ImageSilhouette(IReadOnlyList<Core.Models.Silhouette.Loop> loops, Vector2 face, float height, bool turned = true) =>
+            Cached($"isil:{System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(loops)}:{loops.Count}:{face.x:F5}:{face.y:F5}:{height:F5}:{turned}", () =>
             {
                 var vertices = new List<Vector3>();
                 var normals = new List<Vector3>();
@@ -54,8 +55,9 @@ namespace TableWorld.View.Meshes
                 var sideTris = new List<int>();
                 var top = height / 2f;
                 var bottom = -height / 2f;
-                // The image turned 180°: UV (u, v) sits at x = (0.5 − u)·width, z = (0.5 − v)·depth.
-                Vector2 At(Core.Rules.Vec2 uv) => new Vector2((0.5f - uv.X) * face.x, (0.5f - uv.Y) * face.y);
+                // The image turned 180°: UV (u, v) sits at x = (0.5 − u)·width, z = (0.5 − v)·depth; unturned at (u − 0.5, v − 0.5).
+                var sign = turned ? -1f : 1f;
+                Vector2 At(Core.Rules.Vec2 uv) => new Vector2(sign * (uv.X - 0.5f) * face.x, sign * (uv.Y - 0.5f) * face.y);
                 var perimeter = 0f;
                 foreach (var loop in loops)
                     for (var i = 0; i < loop.Points.Count; i++)

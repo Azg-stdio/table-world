@@ -1,3 +1,4 @@
+using System.Linq;
 using Core.Rules;
 using TableWorld.View.Meshes;
 using UnityEngine;
@@ -241,8 +242,14 @@ namespace TableWorld.View
                 {
                     var height = figure.Height ?? FigureDefaultHeight;
                     var face = assets.ImageMaterial(figure.Asset, model.Tint.ToColor(Ivory));
-                    SetPrism(view, MeshFactory.Box(new Vector3(FigureWidth, FigureThickness, height)), face, face, assets.Plain(Ivory), 0.005f);
-                    EnsureStand(view, height, assets.Plain(new Color(0.15f, 0.15f, 0.17f)));
+                    // A TTS custom figurine is cardboard cut along its image's transparent edges; its stand goes under the
+                    // cut's lowest point.
+                    var outline = figure.Asset != null ? assets.Silhouette(figure.Asset) : null;
+                    var cut = outline is { Count: > 0 };
+                    SetPrism(view, cut ? MeshFactory.ImageSilhouette(outline, new Vector2(FigureWidth, height), FigureThickness, turned: false)
+                        : MeshFactory.Box(new Vector3(FigureWidth, FigureThickness, height)), face, face, assets.Plain(Ivory), 0.005f);
+                    var lift = cut ? outline.Min(loop => loop.Points.Min(p => p.Y)) * height : 0f;
+                    EnsureStand(view, height, assets.Plain(new Color(0.15f, 0.15f, 0.17f)), lift);
                     view.Body.centerOfMass = new Vector3(0f, -height * 0.4f, 0f);
                     break;
                 }
@@ -538,7 +545,7 @@ namespace TableWorld.View
         }
 
         /// <summary>A round stand under a standee: its own renderer and convex collider, part of the object's rigidbody.</summary>
-        private static void EnsureStand(ObjectView view, float height, Material material)
+        private static void EnsureStand(ObjectView view, float height, Material material, float lift = 0f)
         {
             const float radius = 0.016f;
             const float thickness = 0.003f;
@@ -552,7 +559,7 @@ namespace TableWorld.View
                 collider.convex = true;
                 collider.sharedMesh = MeshFactory.Cylinder(radius, thickness, 24);
             }
-            view.Base.transform.localPosition = new Vector3(0f, -height / 2f + thickness / 2f, 0f);
+            view.Base.transform.localPosition = new Vector3(0f, -height / 2f + lift + thickness / 2f, 0f);
             view.Base.sharedMaterials = new[] { material, material, material };
         }
 

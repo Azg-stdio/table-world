@@ -73,8 +73,8 @@ sheets as you like.
 Every size can be changed per piece. An **image token is cut along its image's transparent edges**, as in Tabletop
 Simulator: draw a meeple, a coin or a rune on a transparent background and the piece takes that shape (holes inside
 the shape are filled; tiny specks are ignored). The size still counts the whole image, so trim empty margins or the
-piece comes out smaller than you meant. A figure is still the rectangle of its image: give it a background you are
-happy to see.
+piece comes out smaller than you meant. A figure (a cardboard standee) is cut the same way, and its stand goes under the
+lowest point of the cut.
 
 Stackable tokens and tiles (chips, coins, damage counters) are drawn as one counted stack, so a pile of 40 coins is one
 image, not 40.

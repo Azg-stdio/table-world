@@ -47,7 +47,7 @@ TTS `Name` → our `type`. Prefix `Custom_` means the mesh/image comes from a UR
 | `Custom_Assetbundle_Bag`, `Custom_Assetbundle_Infinite_Bag` | `Bag` / `InfiniteBag` with a bundle look | as above + `ContainedObjects` |
 | `Bag`, `Infinite_Bag` | `Bag` / `InfiniteBag` | `ContainedObjects` |
 | `Custom_Board` | `Board` | `CustomImage.ImageURL`, `WidthScale` |
-| `Figurine_Custom` | `Figure` | `CustomImage.ImageURL` (standee) |
+| `Figurine_Custom` | `Figure` (a standee cut along the image's alpha, stand under the cut's lowest point) | `CustomImage.ImageURL` (standee) |
 | `Counter` | `Counter` | `Counter.value` → `value` |
 | `Digital_Clock` | `Clock` | `Clock.ClockMode` (`Current` → `clock`, `Stopwatch`, `Timer`), `Clock.SecondsPassed` → `seconds`, `Clock.Paused` → `running` (negated) |
 | `Checker_*`, `Chess_*`, `BlockSquare`, `BlockRectangle`, `Bowl`, `Domino`, `Go_*` | `Token` / `Model` with built-in presets | map by name to the default asset kit |
