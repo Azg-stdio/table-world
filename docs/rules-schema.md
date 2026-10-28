@@ -172,7 +172,9 @@ Effects can only set declared variables and resources; the validator rejects und
   rules have no clock) and ends it with an `EndTimedPhaseCommand`; everyone sees the countdown, and the host can move on
   sooner with Next. `next` names the phase that follows when it ends, instead of the next in the turn: a sequence outside
   the turn, such as a ritual before the first turn. `banner` is big text for the players awake in the phase ("Minions,
-  open your eyes"), with `{$ref}` parts filled in. `hostEnds: true` makes a phase wait for the host's Next ("read your
+  open your eyes"), with `{$ref}` parts filled in. `raised` (an audience like `awake`: `team:`, `role:`, a seat, a list such as `$var.thumbs`)
+  raises those players' thumbs on their chalkers for the phase, seen only by the awake: the game does it, nobody presses
+  a key (Avalon's minions for Merlin). `hostEnds: true` makes a phase wait for the host's Next ("read your
   card; the host starts when everyone is ready"), with or without `seconds`.
 - A `gotoPhase` in `onGameStart` opens the game in that phase (a setup or a ritual) instead of the turn's first.
 

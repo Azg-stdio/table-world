@@ -1283,6 +1283,8 @@ object or object or object or object or object or object or object or object or 
 | `sleepText` | string |  |
 | `voice` | one of `all`, `awake`, `team`, `none` |  |
 | `seconds` | integer |  |
+| `hostEnds` | boolean |  |
+| `raised` | string |  |
 | `next` | string |  |
 | `banner` | string |  |
 
@@ -1443,6 +1445,7 @@ object or object or object or object or object or object or object or object or 
 | `phase` | string |  |
 | `phaseVisit` | integer |  |
 | `awake` | array of string |  |
+| `raised` | array of string |  |
 | `acted` | array of string |  |
 | `actionCounts` | map of integer |  |
 | `variables` | map of any |  |

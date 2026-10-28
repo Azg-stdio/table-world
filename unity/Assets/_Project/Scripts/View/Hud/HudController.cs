@@ -315,6 +315,46 @@ namespace TableWorld.View.Hud
         private void OnNotice(string text) => ShowStatus(text, error: true);
 
         /// <summary>Each other player's seat name, beside their pointer, in their colour.</summary>
+        /// <summary>Each player's name over their chalker's head, in their seat's colour.</summary>
+        private void UpdateNameplates()
+        {
+            _chalkersView ??= FindAnyObjectByType<TableWorld.View.Chalkers.ChalkersView>();
+            var layer = _root.Q("presenceLayer");
+            var camera = Camera.main;
+            if (layer == null || camera == null || _root.panel == null || _chalkersView == null)
+                return;
+            var plates = _chalkersView.Nameplates().ToList();
+            while (_nameplates.Count < plates.Count)
+            {
+                var label = new Label();
+                label.AddToClassList("nameplate");
+                label.pickingMode = PickingMode.Ignore;
+                layer.Add(label);
+                _nameplates.Add(label);
+            }
+            for (var i = 0; i < _nameplates.Count; i++)
+            {
+                var label = _nameplates[i];
+                var screen = i < plates.Count ? camera.WorldToScreenPoint(plates[i].Above) : Vector3.back;
+                label.EnableInClassList(Hidden, screen.z <= 0f);
+                if (screen.z <= 0f)
+                    continue;
+                var (seat, _, color) = plates[i];
+                label.text = _session?.NameAtSeat(seat) ?? Names.Seat(_table.Engine.State, seat);
+                var luminance = 0.2126f * color.r + 0.7152f * color.g + 0.0722f * color.b;
+                label.style.backgroundColor = new Color(color.r, color.g, color.b, 0.85f);
+                label.style.color = luminance > 0.5f ? new Color(0.08f, 0.08f, 0.1f) : Color.white;
+                var panel = RuntimePanelUtils.ScreenToPanel(_root.panel, new Vector2(screen.x, Screen.height - screen.y));
+                // Centred over the head (its width is known once laid out).
+                var width = float.IsNaN(label.resolvedStyle.width) ? 0f : label.resolvedStyle.width;
+                label.style.left = panel.x - width / 2f;
+                label.style.top = panel.y - 14f;
+            }
+        }
+
+        private readonly List<Label> _nameplates = new List<Label>();
+        private TableWorld.View.Chalkers.ChalkersView _chalkersView;
+
         private void UpdatePresenceLabels()
         {
             _presence ??= FindAnyObjectByType<TableWorld.View.Net.PresenceView>();
@@ -610,6 +650,7 @@ namespace TableWorld.View.Hud
             if (_saves?.Tick(_escape.Settings.AutosaveMinutes) is { } autosaved)
                 ShowStatus(Ui.T("Autosaved ({autosaved})", ("autosaved", autosaved)), error: false);
             UpdatePresenceLabels();
+            UpdateNameplates();
             if (_netStatus != null && _session != null)
                 _netStatus.text = _session.Status == "offline" ? "" : _session.Status;
             // K: a wink at the face this player looks at, seen by whoever looks back (ADR 0012 §6).

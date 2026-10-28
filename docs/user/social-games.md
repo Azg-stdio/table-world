@@ -21,11 +21,12 @@ Five examples ship in `games/`, each built through the MCP tools from a plain-te
 - **Nights.** When your eyes are closed, your screen goes dark with the phase's words, and you neither see nor hear
   the players who are awake. The awake players see your chalker asleep, head down. Timed steps show a countdown, and
   the host has a **Next** button to move on sooner.
-- **Thumbs.** **Y** raises your chalker's fist, thumb up, even with your eyes closed: whoever is awake sees it. It drops
-  by itself when the step ends.
+- **Thumbs.** A game can raise players' thumbs by itself (Avalon's ritual does); **Y** raises yours by hand, even with
+  your eyes closed: whoever is awake sees it. It drops by itself when the step ends.
+- **Names.** Each player's name floats over their chalker's head, in their seat's colour.
 - **Avalon at the table.** Your role card arrives in your hand (raise your cards to read it). Then the ritual, a few
   seconds each: everyone closes their eyes; the minions open theirs and find each other by their open eyes; the minions
-  raise their thumbs (not Mordred) while Merlin looks; Merlin and Morgana raise theirs while Percival looks; everyone
+  raise their thumbs (the game does it; not Mordred) while Merlin looks; Merlin and Morgana raise theirs while Percival looks; everyone
   opens their eyes. The leader drags silver shields in front of the players they choose (the crown shows who leads),
   then presses Propose. Everyone gets an Approve and a Reject card: lay one face down on the spot in front of you; when
   the last is down they turn over together. The team gets Success and Fail cards: lay one on the quest pile in the middle;

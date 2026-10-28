@@ -40,10 +40,25 @@ namespace Core.Engine
             return AwakeByRule(seat, viewer);
         }
 
-        /// <summary>The phase's <c>awake</c> rule applied to <paramref name="seat"/>, with what <paramref name="viewer"/> knows (null: all).</summary>
-        private bool AwakeByRule(string seat, string? viewer)
+        /// <summary>
+        /// Whether <paramref name="seat"/>'s thumb is up now, as <paramref name="viewer"/> sees it (null: the host): the
+        /// phase raises it, and only the awake see raised thumbs.
+        /// </summary>
+        public bool ThumbRaised(string seat, string? viewer = null)
         {
-            var awake = CurrentPhase()!.Awake!;
+            if (Session is not { Started: true, Over: false } session || session.Raised is not { } raised)
+                return false;
+            _secretsRead = true;
+            return raised.Contains(seat) && (viewer == null || IsAwake(viewer, viewer));
+        }
+
+        /// <summary>A seat named by an audience written as a phase's <c>awake</c> is (team, role, seat, list reference), as the host knows it.</summary>
+        private bool InAudience(string audience, string seat) => AwakeByRule(seat, null, audience);
+
+        /// <summary>The phase's <c>awake</c> rule applied to <paramref name="seat"/>, with what <paramref name="viewer"/> knows (null: all).</summary>
+        private bool AwakeByRule(string seat, string? viewer, string? rule = null)
+        {
+            var awake = rule ?? CurrentPhase()!.Awake!;
             switch (awake)
             {
                 case "all":

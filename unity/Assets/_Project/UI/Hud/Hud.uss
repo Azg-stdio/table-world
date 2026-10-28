@@ -996,6 +996,15 @@
     -unity-font-style: bold;
 }
 
+/* A player's name over their chalker's head; its colour is the seat's, set in code. */
+.nameplate {
+    position: absolute;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    -unity-font-style: bold;
+}
+
 /* Chat and selection stack at the bottom left. */
 .left-column {
     align-items: flex-start;

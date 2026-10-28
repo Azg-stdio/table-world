@@ -4355,6 +4355,9 @@
         "hostEnds": {
           "type": "boolean"
         },
+        "raised": {
+          "type": "string"
+        },
         "next": {
           "type": "string"
         },
@@ -4798,6 +4801,12 @@
           "type": "integer"
         },
         "awake": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "raised": {
           "type": "array",
           "items": {
             "type": "string"

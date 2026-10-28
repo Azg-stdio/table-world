@@ -97,6 +97,13 @@ namespace Core.Rules
         /// <summary>The phase waits for the host to move on (the host's Next button), with or without <see cref="Seconds"/>.</summary>
         public bool HostEnds { get; set; }
 
+        /// <summary>
+        /// Whose thumbs are up in this phase, shown on their chalkers to whoever is awake (the minions' thumbs for Merlin):
+        /// <c>team:&lt;id&gt;</c>, <c>role:&lt;id&gt;</c>, a seat or a list such as <c>$var.thumbs</c>. The game raises them;
+        /// the players need not.
+        /// </summary>
+        public string? Raised { get; set; }
+
         /// <summary>The phase that follows this one when it ends, instead of the next in the turn (a sequence such as a ritual).</summary>
         public string? Next { get; set; }
 
@@ -221,6 +228,9 @@ namespace Core.Rules
         /// </summary>
         [KeepEmpty]
         public List<string>? Awake { get; set; }
+        /// <summary>The seats whose thumbs the phase raises (<see cref="PhaseDef.Raised"/>); received like <see cref="Awake"/>, by the awake only.</summary>
+        [KeepEmpty]
+        public List<string>? Raised { get; set; }
         /// <summary>Seats that acted in the current phase visit.</summary>
         public List<string> Acted { get; set; } = new List<string>();
         /// <summary>Actions performed this phase visit, keyed <c>seat/action</c>.</summary>

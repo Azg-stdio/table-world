@@ -81,6 +81,16 @@ namespace Core.Rules
                     else
                         Audience(awake, $"{path}.awake");
                 }
+                if (phase.Raised is { } thumbs)
+                {
+                    if (References.IsReference(thumbs))
+                    {
+                        if (References.Check(thumbs, $"{path}.raised", _state, null) is { } thumbsError)
+                            _errors.Add(thumbsError);
+                    }
+                    else
+                        Audience(thumbs, $"{path}.raised");
+                }
                 if (phase.Next is { } nextPhase && !phaseIds.Contains(nextPhase))
                     Add($"{path}.next", ErrorCodes.UnknownPhase, $"Phase '{nextPhase}' does not exist.", Suggest.OneOf(nextPhase, phaseIds, "a phase id"));
                 if (phase.Seconds is { } seconds && (seconds < 1 || seconds > 3600))

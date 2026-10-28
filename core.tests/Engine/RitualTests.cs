@@ -24,8 +24,8 @@ namespace Core.Tests.Engine
   ""secretVariables"": [ ""eyes"" ],
   ""turn"": { ""phases"": [ ""talk"", ""vote"" ] },
   ""phases"": [
-    { ""id"": ""close"", ""awake"": ""nobody"", ""seconds"": 3, ""next"": ""evil"", ""sleepText"": ""Eyes closed."" },
-    { ""id"": ""evil"", ""awake"": ""$var.eyes"", ""seconds"": 8, ""next"": ""talk"", ""banner"": ""Minions, open your eyes."" },
+    { ""id"": ""close"", ""awake"": ""nobody"", ""seconds"": 3, ""next"": ""evil"", ""sleepText"": ""Eyes closed."", ""raised"": ""role:minion"" },
+    { ""id"": ""evil"", ""awake"": ""$var.eyes"", ""seconds"": 8, ""next"": ""talk"", ""banner"": ""Minions, open your eyes."", ""raised"": ""role:minion"" },
     { ""id"": ""talk"", ""actions"": [ ""next"" ] },
     { ""id"": ""vote"", ""actions"": [ ""ballot"" ] }
   ],
@@ -103,6 +103,25 @@ namespace Core.Tests.Engine
             Assert.False(asleep.IsAwake(loner, minion), "a sleeper cannot tell who is awake");
             Assert.False(asleep.Session.Variables.ContainsKey("eyes"));
             Assert.Null(TableJson.Parse(SeatView.Serialize(game.State, null)).State!.Session!.Awake);
+        }
+
+        [Fact]
+        public void RaisedThumbs_AreSeenByTheAwakeOnly()
+        {
+            var game = Start();
+            var minion = With(game, "minion");
+            var loner = With(game, "loner");
+            Assert.True(game.ThumbRaised(minion), "the host knows");
+            Assert.False(game.ThumbRaised(minion, minion), "nobody is awake to see it");
+            EndTimed(game);
+            Assert.False(game.ThumbRaised(loner));
+            var awake = new GameEngine(TableJson.Parse(SeatView.Serialize(game.State, loner)).State!, 1);
+            var asleep = new GameEngine(TableJson.Parse(SeatView.Serialize(game.State, minion)).State!, 1);
+            Assert.True(awake.ThumbRaised(minion, loner), "the awake see the minion's thumb");
+            Assert.False(asleep.ThumbRaised(minion, minion), "a sleeper's machine never learns whose thumbs are up");
+            Assert.Empty(asleep.Session!.Raised!);
+            EndTimed(game);
+            Assert.Null(game.Session!.Raised);
         }
 
         [Fact]

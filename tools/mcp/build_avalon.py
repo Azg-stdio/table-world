@@ -111,8 +111,8 @@ ROLES = [
     {"id": "percival", "name": "Percival", "team": "good", "optional": True, "description": "You see two thumbs: Merlin's and Morgana's, not which is which."},
     {"id": "servant", "name": "Loyal servant", "team": "good", "count": "fill", "description": "Play Success, find the minions."},
     {"id": "assassin", "name": "Assassin", "team": "evil", "description": "If good completes three quests, name Merlin: evil wins."},
-    {"id": "morgana", "name": "Morgana", "team": "evil", "optional": True, "description": "You raise your thumb for Percival, as Merlin does."},
-    {"id": "mordred", "name": "Mordred", "team": "evil", "optional": True, "description": "Keep your thumb down: Merlin does not see you."},
+    {"id": "morgana", "name": "Morgana", "team": "evil", "optional": True, "description": "Percival sees your thumb up, as Merlin's: he cannot tell you apart."},
+    {"id": "mordred", "name": "Mordred", "team": "evil", "optional": True, "description": "Merlin does not see you among the minions."},
     {"id": "oberon", "name": "Oberon", "team": "evil", "optional": True, "description": "Keep your eyes closed with the minions: they do not know you."},
     {"id": "minion", "name": "Minion of Mordred", "team": "evil", "count": "fill", "description": "Play Fail when it suits you; hide among the loyal."},
 ]
@@ -127,7 +127,8 @@ call("set_variables", variablesJson=json.dumps({
     "quest": 1, "size": 2, "needFails": 1, "team": [], "successes": 0, "fails": 0, "rejections": 0,
     "picking": False, "played": [], "voted": [], "percival": False}))
 # Who opens their eyes with the minions (all of them but Oberon): only the host's rules may hold it.
-call("set_variables", variablesJson=json.dumps({"minionEyes": []}), secret="minionEyes")
+call("set_variables", variablesJson=json.dumps({"minionEyes": [], "thumbsMerlin": [], "thumbsPercival": []}),
+     secret="minionEyes,thumbsMerlin,thumbsPercival")
 
 call("set_script", target="global", code=r"""
 SIZES = { [5] = {2, 3, 2, 3, 3}, [6] = {2, 3, 4, 3, 4}, [7] = {2, 3, 3, 4, 4},
@@ -206,6 +207,8 @@ function setUp(ctx)
   for _, id in ipairs(PIECES) do HOME[id] = at(id) end
   local next = {}
   local eyes = {}
+  local forMerlin = {}
+  local forPercival = {}
   for _, seat in ipairs(Game.getSeats()) do
     local role = Game.getRole(seat)
     next[role] = (next[role] or 0) + 1
@@ -213,9 +216,14 @@ function setUp(ctx)
     if next[role] > 1 then id = id .. "_" .. next[role] end
     deal("role_deck", id, seat)
     if Game.getTeam(seat) == "evil" and role ~= "oberon" then eyes[#eyes + 1] = seat end
+    -- The thumbs the game raises: every minion's but Mordred's for Merlin; Merlin's and Morgana's for Percival.
+    if Game.getTeam(seat) == "evil" and role ~= "mordred" then forMerlin[#forMerlin + 1] = seat end
+    if role == "merlin" or role == "morgana" then forPercival[#forPercival + 1] = seat end
     if role == "percival" then Game.setVariable("percival", true) end
   end
   Game.setVariable("minionEyes", eyes)
+  Game.setVariable("thumbsMerlin", forMerlin)
+  Game.setVariable("thumbsPercival", forPercival)
 end
 
 -- The five quest cards for this many players, out of the box onto the middle of the table; the box goes with the rest.
@@ -392,11 +400,12 @@ RITUAL = [
      "sleepText": "Minions of Mordred, open your eyes and find each other.",
      "banner": "Minions of Mordred: whoever has their eyes open is on your side. Look around!"},
     {"id": "ritual_merlin", "name": "Merlin", "seconds": 10, "next": "ritual_percival", "awake": "role:merlin", "voice": "none",
-     "sleepText": "Minions (not Mordred, Oberon too): raise your thumb with Y. Merlin, open your eyes.",
+     "raised": "$var.thumbsMerlin",
+     "sleepText": "The minions raise their thumbs (not Mordred). Merlin, open your eyes.",
      "banner": "Merlin: the raised thumbs are the minions (Mordred keeps his down)."},
     {"id": "ritual_percival", "name": "Percival", "seconds": 10, "next": "ritual_open", "awake": "role:percival", "voice": "none",
-     "advanceWhen": {"condition": compare("$var.percival", False)},
-     "sleepText": "Merlin and Morgana: raise your thumb with Y. Percival, open your eyes.",
+     "raised": "$var.thumbsPercival", "advanceWhen": {"condition": compare("$var.percival", False)},
+     "sleepText": "Merlin and Morgana raise their thumbs. Percival, open your eyes.",
      "banner": "Percival: one raised thumb is Merlin, the other Morgana."},
     {"id": "ritual_open", "name": "Eyes open", "seconds": 4, "next": "propose", "banner": "Everyone, open your eyes."},
 ]
@@ -634,10 +643,10 @@ ES = {
     'phases.ritual_minions.sleepText': 'Esbirros de Mordred, abran los ojos y reconózcanse.',
     'phases.ritual_minions.banner': 'Esbirros de Mordred: quien tenga los ojos abiertos es de tu bando. ¡Miren alrededor!',
     'phases.ritual_merlin.name': 'Merlín',
-    'phases.ritual_merlin.sleepText': 'Esbirros (menos Mordred, Oberón también): levanten el pulgar con la Y. Merlín, abre los ojos.',
+    'phases.ritual_merlin.sleepText': 'Los esbirros levantan el pulgar (menos Mordred). Merlín, abre los ojos.',
     'phases.ritual_merlin.banner': 'Merlín: los pulgares levantados son los esbirros (Mordred no lo levanta).',
     'phases.ritual_percival.name': 'Percival',
-    'phases.ritual_percival.sleepText': 'Merlín y Morgana: levanten el pulgar con la Y. Percival, abre los ojos.',
+    'phases.ritual_percival.sleepText': 'Merlín y Morgana levantan el pulgar. Percival, abre los ojos.',
     'phases.ritual_percival.banner': 'Percival: uno de los pulgares es Merlín; el otro, Morgana.',
     'phases.ritual_open.name': 'Ojos abiertos',
     'phases.ritual_open.banner': 'Todos, abran los ojos.',
@@ -660,8 +669,8 @@ ROLES_ES = {
     "percival": ("Percival", "Ves dos pulgares: el de Merlín y el de Morgana, sin saber cuál es cuál."),
     "servant": ("Leal servidor", "Juega Éxito y descubre a los esbirros."),
     "assassin": ("Asesino", "Si el bien cumple tres misiones, nombra a Merlín: gana el mal."),
-    "morgana": ("Morgana", "Levantas el pulgar para Percival, igual que Merlín."),
-    "mordred": ("Mordred", "No levantes el pulgar: Merlín no te ve."),
+    "morgana": ("Morgana", "Percival ve tu pulgar arriba, igual que el de Merlín: no sabe quién es quién."),
+    "mordred": ("Mordred", "Merlín no te ve entre los esbirros."),
     "oberon": ("Oberón", "Mantén los ojos cerrados con los esbirros: ellos no te conocen."),
     "minion": ("Esbirro de Mordred", "Juega Fracaso cuando te convenga; escóndete entre los leales."),
 }

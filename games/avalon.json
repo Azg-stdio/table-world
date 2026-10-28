@@ -1728,14 +1728,14 @@
         {
           "id": "role_morgana",
           "name": "Morgana",
-          "description": "You raise your thumb for Percival, as Merlin does.",
+          "description": "Percival sees your thumb up, as Merlin's: he cannot tell you apart.",
           "tags": [
             "role"
           ],
           "text": {
             "title": "Morgana",
             "kind": "Minions of Mordred",
-            "body": "You raise your thumb for Percival, as Merlin does."
+            "body": "Percival sees your thumb up, as Merlin's: he cannot tell you apart."
           },
           "style": {
             "paper": [
@@ -1758,14 +1758,14 @@
         {
           "id": "role_mordred",
           "name": "Mordred",
-          "description": "Keep your thumb down: Merlin does not see you.",
+          "description": "Merlin does not see you among the minions.",
           "tags": [
             "role"
           ],
           "text": {
             "title": "Mordred",
             "kind": "Minions of Mordred",
-            "body": "Keep your thumb down: Merlin does not see you."
+            "body": "Merlin does not see you among the minions."
           },
           "style": {
             "paper": [
@@ -6434,10 +6434,14 @@
     "played": [],
     "voted": [],
     "percival": false,
-    "minionEyes": []
+    "minionEyes": [],
+    "thumbsMerlin": [],
+    "thumbsPercival": []
   },
   "secretVariables": [
-    "minionEyes"
+    "minionEyes",
+    "thumbsMerlin",
+    "thumbsPercival"
   ],
   "turn": {
     "startingPlayer": "random",
@@ -6479,9 +6483,10 @@
       "id": "ritual_merlin",
       "name": "Merlin",
       "awake": "role:merlin",
-      "sleepText": "Minions (not Mordred, Oberon too): raise your thumb with Y. Merlin, open your eyes.",
+      "sleepText": "The minions raise their thumbs (not Mordred). Merlin, open your eyes.",
       "voice": "none",
       "seconds": 10,
+      "raised": "$var.thumbsMerlin",
       "next": "ritual_percival",
       "banner": "Merlin: the raised thumbs are the minions (Mordred keeps his down)."
     },
@@ -6498,9 +6503,10 @@
         }
       },
       "awake": "role:percival",
-      "sleepText": "Merlin and Morgana: raise your thumb with Y. Percival, open your eyes.",
+      "sleepText": "Merlin and Morgana raise their thumbs. Percival, open your eyes.",
       "voice": "none",
       "seconds": 10,
+      "raised": "$var.thumbsPercival",
       "next": "ritual_open",
       "banner": "Percival: one raised thumb is Merlin, the other Morgana."
     },
@@ -7081,7 +7087,7 @@
     ]
   },
   "scripts": {
-    "global": "\nSIZES = { [5] = {2, 3, 2, 3, 3}, [6] = {2, 3, 4, 3, 4}, [7] = {2, 3, 3, 4, 4},\n          [8] = {3, 4, 4, 5, 5}, [9] = {3, 4, 4, 5, 5}, [10] = {3, 4, 4, 5, 5} }\n\n-- The team size and the fails it takes for the quest about to be played.\nfunction setQuest(ctx)\n  local players = #Game.getSeats()\n  local quest = Game.getVariable(\"quest\")\n  Game.setVariable(\"size\", SIZES[players][quest])\n  if quest == 4 and players >= 7 then Game.setVariable(\"needFails\", 2) else Game.setVariable(\"needFails\", 1) end\nend\n\n-- ---- where things are -------------------------------------------------------------------------------------------\n\nHOME = {}\n\nlocal function at(id)\n  local o = getObjectFromGUID(id)\n  return o and o.getPosition()\nend\n\nlocal function put(id, p)\n  local o = getObjectFromGUID(id)\n  if o and p then o.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z}) end\nend\n\nlocal function number(seat) return seat:match(\"(%d+)$\") end\n\n-- Before a seat: a share of the way from the middle of the table to its hand, and to the player's left by `left`.\nlocal function before(seat, share, left)\n  local p = at(\"hand_\" .. number(seat))\n  local x, z = p.x * share, p.z * share\n  if left then\n    local length = math.sqrt(p.x * p.x + p.z * p.z)\n    x, z = x + p.z / length * left, z - p.x / length * left\n  end\n  return {x = x, y = p.y, z = z}\nend\n\nlocal function startsWith(text, prefix) return text and text:sub(1, #prefix) == prefix end\n\n-- Every card on the table whose own id starts with one of `prefixes`, in hands and on the given zones.\nlocal function cardsIn(zones, prefixes)\n  local found = {}\n  for _, zone in ipairs(zones) do\n    local z = getObjectFromGUID(zone)\n    if z then\n      for _, o in ipairs(z.getObjects()) do\n        for _, prefix in ipairs(prefixes) do\n          if startsWith(o.getGUID(), prefix) then found[#found + 1] = o end\n        end\n      end\n    end\n  end\n  return found\nend\n\nlocal function hands()\n  local list = {}\n  for _, seat in ipairs(Game.getSeats()) do list[#list + 1] = \"hand_\" .. number(seat) end\n  return list\nend\n\n-- A card of a deck into a seat's hand (the deck names it by the card's own id).\nlocal function deal(deck, id, seat)\n  getObjectFromGUID(deck).takeObject({guid = id, position = at(\"hand_\" .. number(seat)), rotation = {x = 0, y = 0, z = 0}})\nend\n\n-- ---- the start ------------------------------------------------------------------------------------------------------\n\nPIECES = {\"crown\", \"reject_marker\", \"shield\", \"shield_2\", \"shield_3\", \"shield_4\", \"shield_5\"}\n\n-- Each player's role card into their hand, the minions' eyes for the ritual, where every piece starts.\nfunction setUp(ctx)\n  for _, id in ipairs(PIECES) do HOME[id] = at(id) end\n  local next = {}\n  local eyes = {}\n  for _, seat in ipairs(Game.getSeats()) do\n    local role = Game.getRole(seat)\n    next[role] = (next[role] or 0) + 1\n    local id = \"role_\" .. role\n    if next[role] > 1 then id = id .. \"_\" .. next[role] end\n    deal(\"role_deck\", id, seat)\n    if Game.getTeam(seat) == \"evil\" and role ~= \"oberon\" then eyes[#eyes + 1] = seat end\n    if role == \"percival\" then Game.setVariable(\"percival\", true) end\n  end\n  Game.setVariable(\"minionEyes\", eyes)\nend\n\n-- The five quest cards for this many players, out of the box onto the middle of the table; the box goes with the rest.\nQUESTS = {}\nfunction layQuests(ctx)\n  local players = #Game.getSeats()\n  local group = players >= 8 and 8 or players\n  local left, right = at(\"reject_1\"), at(\"reject_5\")\n  local unit = (right.x - left.x) / 0.32   -- the track's ends are 0.32 m apart: table units per metre\n  local box = getObjectFromGUID(\"quest_box\")\n  for q = 1, 5 do\n    local card = box.takeObject({guid = \"quest_\" .. q .. \"_\" .. group,\n      position = {x = (-0.36 + 0.18 * (q - 1)) * unit, y = left.y + 0.3, z = 0.05 * unit}, rotation = {x = 0, y = 180, z = 0}})\n    QUESTS[q] = card and card.getGUID()\n  end\n  box.destruct()\nend\n\n-- ---- choosing the team ------------------------------------------------------------------------------------------\n\nfunction crownToLeader(ctx)\n  put(\"crown\", before(Game.getCurrentSeat(), 0.88, 0.15))\nend\n\nfunction shieldsHome(ctx)\n  for _, id in ipairs(PIECES) do\n    if startsWith(id, \"shield\") then put(id, HOME[id]) end\n  end\nend\n\n-- ---- the team vote: Approve and Reject cards ----------------------------------------------------------------------\n\nlocal function spots()\n  local list = {}\n  for _, seat in ipairs(Game.getSeats()) do list[#list + 1] = \"vote_\" .. number(seat) end\n  return list\nend\n\n-- Every vote card back into its deck: those on the spots and those left in hands.\nVOTES_SHOWN = 0\nlocal function collectVotes()\n  VOTES_SHOWN = VOTES_SHOWN + 1\n  local deck = getObjectFromGUID(\"vote_deck\")\n  local all = cardsIn(spots(), {\"aye\", \"nay\"})\n  for _, card in ipairs(cardsIn(hands(), {\"aye\", \"nay\"})) do all[#all + 1] = card end\n  for _, card in ipairs(all) do deck.putObject(card) end\nend\n\nfunction votesOut(ctx)\n  -- A quick new vote: last one's cards come back first.\n  collectVotes()\n  for k, seat in ipairs(Game.getSeats()) do\n    deal(\"vote_deck\", k == 1 and \"aye\" or (\"aye_\" .. k), seat)\n    deal(\"vote_deck\", k == 1 and \"nay\" or (\"nay_\" .. k), seat)\n  end\nend\n\n-- The cards laid down turn over together, and go back to their deck a moment later with those left in hands.\nfunction votesShown(ctx)\n  for _, card in ipairs(cardsIn(spots(), {\"aye\", \"nay\"})) do card.flip() end\n  local shown = VOTES_SHOWN\n  Wait.time(function() if VOTES_SHOWN == shown then collectVotes() end end, 5)\nend\n\n-- ---- the quest: Success and Fail cards ------------------------------------------------------------------------------\n\n-- Every quest card back into its deck: from the pile, turned over, or left in hands. A turning-over still running stops.\nQUEST_SHOWN = 0\nSHOWN = {}\nlocal function collectQuest()\n  QUEST_SHOWN = QUEST_SHOWN + 1\n  local deck = getObjectFromGUID(\"quest_deck\")\n  local pile = getObjectFromGUID(\"quest_pile\")\n  for _ = 1, #pile.getObjects() do\n    local card = pile.takeObject({position = at(\"quest_drop\")})\n    if card then deck.putObject(card) end\n  end\n  for _, card in ipairs(SHOWN) do deck.putObject(card) end\n  SHOWN = {}\n  for _, card in ipairs(cardsIn(hands(), {\"success\", \"fail\"})) do deck.putObject(card) end\nend\n\nfunction questOut(ctx)\n  collectQuest()\n  local team = Game.getVariable(\"team\") or {}\n  for k, seat in ipairs(team) do\n    deal(\"quest_deck\", k == 1 and \"success\" or (\"success_\" .. k), seat)\n    deal(\"quest_deck\", k == 1 and \"fail\" or (\"fail_\" .. k), seat)\n  end\nend\n\n-- A card laid on the quest pile goes into it, face down: nobody can tell later whose it was.\nfunction toPile(ctx)\n  local card = getObjectFromGUID(ctx.it)\n  if card then getObjectFromGUID(\"quest_pile\").putObject(card) end\nend\n\n-- The pile is shuffled and its cards turned over one by one; then they and the cards not played go back.\nfunction questShown(ctx)\n  local shown = QUEST_SHOWN\n  Wait.time(function()\n    if QUEST_SHOWN ~= shown then return end\n    local pile = getObjectFromGUID(\"quest_pile\")\n    pile.shuffle()\n    local count = #pile.getObjects()\n    local row = at(\"reveal_row\")\n    local unit = (at(\"reject_5\").x - at(\"reject_1\").x) / 0.32\n    for i = 1, count do\n      Wait.time(function()\n        if QUEST_SHOWN ~= shown then return end\n        local card = getObjectFromGUID(\"quest_pile\").takeObject({\n          position = {x = row.x + (i - (count + 1) / 2) * 0.08 * unit, y = row.y + 0.3, z = row.z},\n          rotation = {x = 0, y = 0, z = 0}})\n        if card then SHOWN[#SHOWN + 1] = card end\n      end, 0.9 * i)\n    end\n    Wait.time(function() if QUEST_SHOWN == shown then collectQuest() end end, 0.9 * count + 5)\n  end, 0.5)\nend\n\nfunction markQuest(ctx)\n  local quest = math.floor(Game.getVariable(\"quest\"))\n  if ctx.args.result == \"fail\" then\n    local n = math.floor(Game.getVariable(\"fails\"))\n    put(n == 1 and \"evil\" or (\"evil_\" .. n), at(QUESTS[quest]))\n  else\n    local n = math.floor(Game.getVariable(\"successes\"))\n    put(n == 1 and \"good\" or (\"good_\" .. n), at(QUESTS[quest]))\n  end\nend\n\nfunction rejectTrack(ctx)\n  local n = math.floor(Game.getVariable(\"rejections\"))\n  if n == 0 then put(\"reject_marker\", HOME[\"reject_marker\"]) else put(\"reject_marker\", at(\"reject_\" .. n)) end\nend\n\n-- ---- the end ----------------------------------------------------------------------------------------------------------\n\n-- Every role card turned over in front of its player.\nfunction rolesShown(ctx)\n  for _, seat in ipairs(Game.getSeats()) do\n    for _, card in ipairs(cardsIn({\"hand_\" .. number(seat)}, {\"role_\"})) do\n      local p = before(seat, 0.56)\n      card.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z})\n      card.setRotationSmooth({x = 0, y = 0, z = 0})\n    end\n  end\nend\n"
+    "global": "\nSIZES = { [5] = {2, 3, 2, 3, 3}, [6] = {2, 3, 4, 3, 4}, [7] = {2, 3, 3, 4, 4},\n          [8] = {3, 4, 4, 5, 5}, [9] = {3, 4, 4, 5, 5}, [10] = {3, 4, 4, 5, 5} }\n\n-- The team size and the fails it takes for the quest about to be played.\nfunction setQuest(ctx)\n  local players = #Game.getSeats()\n  local quest = Game.getVariable(\"quest\")\n  Game.setVariable(\"size\", SIZES[players][quest])\n  if quest == 4 and players >= 7 then Game.setVariable(\"needFails\", 2) else Game.setVariable(\"needFails\", 1) end\nend\n\n-- ---- where things are -------------------------------------------------------------------------------------------\n\nHOME = {}\n\nlocal function at(id)\n  local o = getObjectFromGUID(id)\n  return o and o.getPosition()\nend\n\nlocal function put(id, p)\n  local o = getObjectFromGUID(id)\n  if o and p then o.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z}) end\nend\n\nlocal function number(seat) return seat:match(\"(%d+)$\") end\n\n-- Before a seat: a share of the way from the middle of the table to its hand, and to the player's left by `left`.\nlocal function before(seat, share, left)\n  local p = at(\"hand_\" .. number(seat))\n  local x, z = p.x * share, p.z * share\n  if left then\n    local length = math.sqrt(p.x * p.x + p.z * p.z)\n    x, z = x + p.z / length * left, z - p.x / length * left\n  end\n  return {x = x, y = p.y, z = z}\nend\n\nlocal function startsWith(text, prefix) return text and text:sub(1, #prefix) == prefix end\n\n-- Every card on the table whose own id starts with one of `prefixes`, in hands and on the given zones.\nlocal function cardsIn(zones, prefixes)\n  local found = {}\n  for _, zone in ipairs(zones) do\n    local z = getObjectFromGUID(zone)\n    if z then\n      for _, o in ipairs(z.getObjects()) do\n        for _, prefix in ipairs(prefixes) do\n          if startsWith(o.getGUID(), prefix) then found[#found + 1] = o end\n        end\n      end\n    end\n  end\n  return found\nend\n\nlocal function hands()\n  local list = {}\n  for _, seat in ipairs(Game.getSeats()) do list[#list + 1] = \"hand_\" .. number(seat) end\n  return list\nend\n\n-- A card of a deck into a seat's hand (the deck names it by the card's own id).\nlocal function deal(deck, id, seat)\n  getObjectFromGUID(deck).takeObject({guid = id, position = at(\"hand_\" .. number(seat)), rotation = {x = 0, y = 0, z = 0}})\nend\n\n-- ---- the start ------------------------------------------------------------------------------------------------------\n\nPIECES = {\"crown\", \"reject_marker\", \"shield\", \"shield_2\", \"shield_3\", \"shield_4\", \"shield_5\"}\n\n-- Each player's role card into their hand, the minions' eyes for the ritual, where every piece starts.\nfunction setUp(ctx)\n  for _, id in ipairs(PIECES) do HOME[id] = at(id) end\n  local next = {}\n  local eyes = {}\n  local forMerlin = {}\n  local forPercival = {}\n  for _, seat in ipairs(Game.getSeats()) do\n    local role = Game.getRole(seat)\n    next[role] = (next[role] or 0) + 1\n    local id = \"role_\" .. role\n    if next[role] > 1 then id = id .. \"_\" .. next[role] end\n    deal(\"role_deck\", id, seat)\n    if Game.getTeam(seat) == \"evil\" and role ~= \"oberon\" then eyes[#eyes + 1] = seat end\n    -- The thumbs the game raises: every minion's but Mordred's for Merlin; Merlin's and Morgana's for Percival.\n    if Game.getTeam(seat) == \"evil\" and role ~= \"mordred\" then forMerlin[#forMerlin + 1] = seat end\n    if role == \"merlin\" or role == \"morgana\" then forPercival[#forPercival + 1] = seat end\n    if role == \"percival\" then Game.setVariable(\"percival\", true) end\n  end\n  Game.setVariable(\"minionEyes\", eyes)\n  Game.setVariable(\"thumbsMerlin\", forMerlin)\n  Game.setVariable(\"thumbsPercival\", forPercival)\nend\n\n-- The five quest cards for this many players, out of the box onto the middle of the table; the box goes with the rest.\nQUESTS = {}\nfunction layQuests(ctx)\n  local players = #Game.getSeats()\n  local group = players >= 8 and 8 or players\n  local left, right = at(\"reject_1\"), at(\"reject_5\")\n  local unit = (right.x - left.x) / 0.32   -- the track's ends are 0.32 m apart: table units per metre\n  local box = getObjectFromGUID(\"quest_box\")\n  for q = 1, 5 do\n    local card = box.takeObject({guid = \"quest_\" .. q .. \"_\" .. group,\n      position = {x = (-0.36 + 0.18 * (q - 1)) * unit, y = left.y + 0.3, z = 0.05 * unit}, rotation = {x = 0, y = 180, z = 0}})\n    QUESTS[q] = card and card.getGUID()\n  end\n  box.destruct()\nend\n\n-- ---- choosing the team ------------------------------------------------------------------------------------------\n\nfunction crownToLeader(ctx)\n  put(\"crown\", before(Game.getCurrentSeat(), 0.88, 0.15))\nend\n\nfunction shieldsHome(ctx)\n  for _, id in ipairs(PIECES) do\n    if startsWith(id, \"shield\") then put(id, HOME[id]) end\n  end\nend\n\n-- ---- the team vote: Approve and Reject cards ----------------------------------------------------------------------\n\nlocal function spots()\n  local list = {}\n  for _, seat in ipairs(Game.getSeats()) do list[#list + 1] = \"vote_\" .. number(seat) end\n  return list\nend\n\n-- Every vote card back into its deck: those on the spots and those left in hands.\nVOTES_SHOWN = 0\nlocal function collectVotes()\n  VOTES_SHOWN = VOTES_SHOWN + 1\n  local deck = getObjectFromGUID(\"vote_deck\")\n  local all = cardsIn(spots(), {\"aye\", \"nay\"})\n  for _, card in ipairs(cardsIn(hands(), {\"aye\", \"nay\"})) do all[#all + 1] = card end\n  for _, card in ipairs(all) do deck.putObject(card) end\nend\n\nfunction votesOut(ctx)\n  -- A quick new vote: last one's cards come back first.\n  collectVotes()\n  for k, seat in ipairs(Game.getSeats()) do\n    deal(\"vote_deck\", k == 1 and \"aye\" or (\"aye_\" .. k), seat)\n    deal(\"vote_deck\", k == 1 and \"nay\" or (\"nay_\" .. k), seat)\n  end\nend\n\n-- The cards laid down turn over together, and go back to their deck a moment later with those left in hands.\nfunction votesShown(ctx)\n  for _, card in ipairs(cardsIn(spots(), {\"aye\", \"nay\"})) do card.flip() end\n  local shown = VOTES_SHOWN\n  Wait.time(function() if VOTES_SHOWN == shown then collectVotes() end end, 5)\nend\n\n-- ---- the quest: Success and Fail cards ------------------------------------------------------------------------------\n\n-- Every quest card back into its deck: from the pile, turned over, or left in hands. A turning-over still running stops.\nQUEST_SHOWN = 0\nSHOWN = {}\nlocal function collectQuest()\n  QUEST_SHOWN = QUEST_SHOWN + 1\n  local deck = getObjectFromGUID(\"quest_deck\")\n  local pile = getObjectFromGUID(\"quest_pile\")\n  for _ = 1, #pile.getObjects() do\n    local card = pile.takeObject({position = at(\"quest_drop\")})\n    if card then deck.putObject(card) end\n  end\n  for _, card in ipairs(SHOWN) do deck.putObject(card) end\n  SHOWN = {}\n  for _, card in ipairs(cardsIn(hands(), {\"success\", \"fail\"})) do deck.putObject(card) end\nend\n\nfunction questOut(ctx)\n  collectQuest()\n  local team = Game.getVariable(\"team\") or {}\n  for k, seat in ipairs(team) do\n    deal(\"quest_deck\", k == 1 and \"success\" or (\"success_\" .. k), seat)\n    deal(\"quest_deck\", k == 1 and \"fail\" or (\"fail_\" .. k), seat)\n  end\nend\n\n-- A card laid on the quest pile goes into it, face down: nobody can tell later whose it was.\nfunction toPile(ctx)\n  local card = getObjectFromGUID(ctx.it)\n  if card then getObjectFromGUID(\"quest_pile\").putObject(card) end\nend\n\n-- The pile is shuffled and its cards turned over one by one; then they and the cards not played go back.\nfunction questShown(ctx)\n  local shown = QUEST_SHOWN\n  Wait.time(function()\n    if QUEST_SHOWN ~= shown then return end\n    local pile = getObjectFromGUID(\"quest_pile\")\n    pile.shuffle()\n    local count = #pile.getObjects()\n    local row = at(\"reveal_row\")\n    local unit = (at(\"reject_5\").x - at(\"reject_1\").x) / 0.32\n    for i = 1, count do\n      Wait.time(function()\n        if QUEST_SHOWN ~= shown then return end\n        local card = getObjectFromGUID(\"quest_pile\").takeObject({\n          position = {x = row.x + (i - (count + 1) / 2) * 0.08 * unit, y = row.y + 0.3, z = row.z},\n          rotation = {x = 0, y = 0, z = 0}})\n        if card then SHOWN[#SHOWN + 1] = card end\n      end, 0.9 * i)\n    end\n    Wait.time(function() if QUEST_SHOWN == shown then collectQuest() end end, 0.9 * count + 5)\n  end, 0.5)\nend\n\nfunction markQuest(ctx)\n  local quest = math.floor(Game.getVariable(\"quest\"))\n  if ctx.args.result == \"fail\" then\n    local n = math.floor(Game.getVariable(\"fails\"))\n    put(n == 1 and \"evil\" or (\"evil_\" .. n), at(QUESTS[quest]))\n  else\n    local n = math.floor(Game.getVariable(\"successes\"))\n    put(n == 1 and \"good\" or (\"good_\" .. n), at(QUESTS[quest]))\n  end\nend\n\nfunction rejectTrack(ctx)\n  local n = math.floor(Game.getVariable(\"rejections\"))\n  if n == 0 then put(\"reject_marker\", HOME[\"reject_marker\"]) else put(\"reject_marker\", at(\"reject_\" .. n)) end\nend\n\n-- ---- the end ----------------------------------------------------------------------------------------------------------\n\n-- Every role card turned over in front of its player.\nfunction rolesShown(ctx)\n  for _, seat in ipairs(Game.getSeats()) do\n    for _, card in ipairs(cardsIn({\"hand_\" .. number(seat)}, {\"role_\"})) do\n      local p = before(seat, 0.56)\n      card.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z})\n      card.setRotationSmooth({x = 0, y = 0, z = 0})\n    end\n  end\nend\n"
   },
   "roles": {
     "teams": [
@@ -7126,14 +7132,14 @@
         "name": "Morgana",
         "team": "evil",
         "optional": true,
-        "description": "You raise your thumb for Percival, as Merlin does."
+        "description": "Percival sees your thumb up, as Merlin's: he cannot tell you apart."
       },
       {
         "id": "mordred",
         "name": "Mordred",
         "team": "evil",
         "optional": true,
-        "description": "Keep your thumb down: Merlin does not see you."
+        "description": "Merlin does not see you among the minions."
       },
       {
         "id": "oberon",
@@ -7215,10 +7221,10 @@
       "phases.ritual_minions.sleepText": "Esbirros de Mordred, abran los ojos y reconózcanse.",
       "phases.ritual_minions.banner": "Esbirros de Mordred: quien tenga los ojos abiertos es de tu bando. ¡Miren alrededor!",
       "phases.ritual_merlin.name": "Merlín",
-      "phases.ritual_merlin.sleepText": "Esbirros (menos Mordred, Oberón también): levanten el pulgar con la Y. Merlín, abre los ojos.",
+      "phases.ritual_merlin.sleepText": "Los esbirros levantan el pulgar (menos Mordred). Merlín, abre los ojos.",
       "phases.ritual_merlin.banner": "Merlín: los pulgares levantados son los esbirros (Mordred no lo levanta).",
       "phases.ritual_percival.name": "Percival",
-      "phases.ritual_percival.sleepText": "Merlín y Morgana: levanten el pulgar con la Y. Percival, abre los ojos.",
+      "phases.ritual_percival.sleepText": "Merlín y Morgana levantan el pulgar. Percival, abre los ojos.",
       "phases.ritual_percival.banner": "Percival: uno de los pulgares es Merlín; el otro, Morgana.",
       "phases.ritual_open.name": "Ojos abiertos",
       "phases.ritual_open.banner": "Todos, abran los ojos.",
@@ -7268,15 +7274,15 @@
       "cards.role_assassin.text.kind": "Esbirros de Mordred",
       "cards.role_assassin.text.body": "Si el bien cumple tres misiones, nombra a Merlín: gana el mal.",
       "roles.morgana.name": "Morgana",
-      "roles.morgana.description": "Levantas el pulgar para Percival, igual que Merlín.",
+      "roles.morgana.description": "Percival ve tu pulgar arriba, igual que el de Merlín: no sabe quién es quién.",
       "cards.role_morgana.text.title": "Morgana",
       "cards.role_morgana.text.kind": "Esbirros de Mordred",
-      "cards.role_morgana.text.body": "Levantas el pulgar para Percival, igual que Merlín.",
+      "cards.role_morgana.text.body": "Percival ve tu pulgar arriba, igual que el de Merlín: no sabe quién es quién.",
       "roles.mordred.name": "Mordred",
-      "roles.mordred.description": "No levantes el pulgar: Merlín no te ve.",
+      "roles.mordred.description": "Merlín no te ve entre los esbirros.",
       "cards.role_mordred.text.title": "Mordred",
       "cards.role_mordred.text.kind": "Esbirros de Mordred",
-      "cards.role_mordred.text.body": "No levantes el pulgar: Merlín no te ve.",
+      "cards.role_mordred.text.body": "Merlín no te ve entre los esbirros.",
       "roles.oberon.name": "Oberón",
       "roles.oberon.description": "Mantén los ojos cerrados con los esbirros: ellos no te conocen.",
       "cards.role_oberon.text.title": "Oberón",
@@ -7435,8 +7441,8 @@
       "cards.role_servant_4.description": "Juega Éxito y descubre a los esbirros.",
       "cards.role_servant_5.description": "Juega Éxito y descubre a los esbirros.",
       "cards.role_assassin.description": "Si el bien cumple tres misiones, nombra a Merlín: gana el mal.",
-      "cards.role_morgana.description": "Levantas el pulgar para Percival, igual que Merlín.",
-      "cards.role_mordred.description": "No levantes el pulgar: Merlín no te ve.",
+      "cards.role_morgana.description": "Percival ve tu pulgar arriba, igual que el de Merlín: no sabe quién es quién.",
+      "cards.role_mordred.description": "Merlín no te ve entre los esbirros.",
       "cards.role_oberon.description": "Mantén los ojos cerrados con los esbirros: ellos no te conocen.",
       "cards.role_minion.description": "Juega Fracaso cuando te convenga; escóndete entre los leales.",
       "cards.role_minion_2.description": "Juega Fracaso cuando te convenga; escóndete entre los leales.",

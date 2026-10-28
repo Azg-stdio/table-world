@@ -492,9 +492,8 @@ namespace TableWorld.View.Chalkers
                 var face = _model != null && !_headHidden ? _model.FaceDepth : 0.03f;
                 var hold = HandHold.For(root, _torso, root.TransformPoint(new Vector3(0f, EyeHeight, 0.03f)), _raise, face);
                 CardHold = hold;
-                Arm(0, hold.LeftHand);
-                if (!Microphone && !ThumbUp)
-                    Arm(1, hold.RightHand);
+                // One hand holds the fan; the other is free.
+                Arm(0, hold.Grip);
             }
             if (ReachFor is { } target && !Microphone && !ThumbUp)
                 Arm(1, target);

@@ -25,7 +25,7 @@ namespace TableWorld.View.Chalkers
         public const float MaxSpread = 64f;
         public const float CardTurn = 9f;
 
-        /// <summary>The bottom centre of the fan, where the cards meet.</summary>
+        /// <summary>The bottom centre of the fan, where the cards meet: the holding (left) hand is there.</summary>
         public readonly Vector3 Grip;
         /// <summary>Up the cards (toward their tops, before the fan turns them).</summary>
         public readonly Vector3 Up;
@@ -77,8 +77,5 @@ namespace TableWorld.View.Chalkers
             return (position, Quaternion.LookRotation(-up, Face));
         }
 
-        /// <summary>Where the holder's hands go: the left closes on the fan's foot, the right steadies it just beside, the cards showing above both.</summary>
-        public Vector3 LeftHand => Grip - Right * 0.03f + Face * 0.018f - Up * 0.012f;
-        public Vector3 RightHand => Grip + Right * 0.042f + Face * 0.016f - Up * 0.02f;
     }
 }

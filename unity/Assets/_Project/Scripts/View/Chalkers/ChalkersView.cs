@@ -141,7 +141,7 @@ namespace TableWorld.View.Chalkers
                     var pointer = frame.Pointer is { } p ? new Vector3(p.X, p.Y, p.Z) : (Vector3?)null;
                     var carried = frame.Held.Count > 0 ? new Vector3(frame.Held[0].Position.X, frame.Held[0].Position.Y, frame.Held[0].Position.Z) : (Vector3?)null;
                     Prepare(chalker, frame.Seat, frame.HandUp, frame.Lean, carried, place.Position);
-                    chalker.ThumbUp = frame.Thumb;
+                    chalker.ThumbUp = frame.Thumb || Raised(frame.Seat);
                     chalker.Pose(place.Position, place.Facing, gaze ?? pointer ?? Vector3.zero, pointer ?? gaze, _voice != null ? _voice.LevelOf(frame.Seat) : 0f, dt);
                     HoldCards(chalker, frame.Seat);
                     Carry(chalker, frame.Seat);
@@ -158,6 +158,7 @@ namespace TableWorld.View.Chalkers
                 chalker.EyesClosed = _table.Game is { EyesClosedPhase: true } nightGame && !nightGame.IsAwake(seat, _table.LocalSeat);
                 chalker.Microphone = Singer != null && Singer == seat;
                 Prepare(chalker, seat, false, 0f, null, place.Position);
+                chalker.ThumbUp = Raised(seat);
                 chalker.Pose(place.Position, place.Facing, Vector3.zero, null, 0f, dt);
                 HoldCards(chalker, seat);
             }
@@ -252,7 +253,7 @@ namespace TableWorld.View.Chalkers
             var gaze = seated ? ahead : pointer ?? ahead;
             var carried = _interaction != null && _interaction.Held != null ? _interaction.Held.transform.position : (Vector3?)null;
             Prepare(yours, me, _interaction != null && _interaction.HandUp, _tableCamera != null ? _tableCamera.Lean : 0f, carried, place.Position);
-            yours.ThumbUp = _interaction != null && _interaction.ThumbUp;
+            yours.ThumbUp = _interaction != null && _interaction.ThumbUp || Raised(me);
             // On your own screen your cards stay in the hand bar and at your edge of the table, as in TTS, where they read
             // easily; the other players see your chalker hold them (their machines pose it from your hand).
             yours.HoldingCards = false;
@@ -306,6 +307,9 @@ namespace TableWorld.View.Chalkers
 
         /// <summary>A seated chalker's body for <see cref="Covers"/>: half its width, its height, its reach forward, in metres.</summary>
         private static readonly Vector3 BodyBox = new Vector3(0.25f, 0.72f, 0.35f);
+
+        /// <summary>A thumb the phase raises (Avalon's minions for Merlin), as this machine may see it.</summary>
+        private bool Raised(string seat) => _table.Game is { } game && game.ThumbRaised(seat, _table.Spectating ? null : _table.LocalSeat);
 
         /// <summary>What a seated chalker does with its hands this frame: hold its seat's cards (raised or not), reach for what its player carries.</summary>
         private void Prepare(Chalker chalker, string seat, bool raise, float lean, Vector3? carried, Vector3 at)
@@ -588,6 +592,23 @@ namespace TableWorld.View.Chalkers
             if (speaker != null)
                 speaker.transform.position = chalker.Mouth;
         }
+
+        /// <summary>
+        /// Where each player's name goes: over the head of every chalker at the table (not yours while you look out of
+        /// it, nor the mirror), with its seat and colour.
+        /// </summary>
+        public IEnumerable<(string Seat, Vector3 Above, Color Color)> Nameplates()
+        {
+            foreach (var pair in _chalkers)
+            {
+                if (pair.Key == MirrorKey || pair.Value.HeadHidden || _table.Engine == null)
+                    continue;
+                yield return (pair.Key, pair.Value.Eyes + pair.Value.Root.transform.up * NameAbove, ColorOf(pair.Key));
+            }
+        }
+
+        /// <summary>How far above a chalker's eyes its name sits, in metres (above the placeholder's eyeballs).</summary>
+        public const float NameAbove = 0.3f;
 
         private Chalker ChalkerFor(string key, Color color)
         {

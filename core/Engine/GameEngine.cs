@@ -347,8 +347,11 @@ namespace Core.Engine
         {
             var session = Session!;
             session.Awake = null;
+            session.Raised = null;
             if (CurrentPhase()?.Awake != null)
                 session.Awake = Playing.Where(s => AwakeByRule(s.Id, null)).Select(s => s.Id).ToList();
+            if (CurrentPhase()?.Raised is { } raised)
+                session.Raised = Playing.Where(s => InAudience(raised, s.Id)).Select(s => s.Id).ToList();
         }
 
         private void ExitPhase()

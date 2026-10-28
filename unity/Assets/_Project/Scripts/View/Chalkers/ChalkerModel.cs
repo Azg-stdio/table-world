@@ -320,13 +320,14 @@ namespace TableWorld.View.Chalkers
                 }
                 // Holding cards: the fingers at the fan's foot (the wrist below it), lying up the cards' backs. The hold's own
                 // places, not the shapes' hands: this model's arms may reach where the shapes' stop short.
-                var holds = chalker.CardHold is { } hold && (side == 0 || chalker.ReachFor == null && !chalker.Microphone && !chalker.ThumbUp);
+                // Holding cards: in the left hand only; the right hand
+                // is free (it rests, reaches, holds a microphone or raises a thumb).
+                var holds = chalker.CardHold is { } hold && side == 0;
                 if (holds)
                 {
                     var grip = chalker.CardHold.Value;
-                    // The wrist well below the fan's foot and a little behind it: the fingers close on the cards from their
-                    // backs, the faces left to read.
-                    target = (side == 0 ? grip.LeftHand : grip.RightHand) - grip.Up * (_handLength[side] * 0.8f) - grip.Face * 0.025f;
+                    // The wrist on the holder's side of the fan's foot: the fingers, along the forearm, close over the cards' foot.
+                    target = grip.Grip + grip.Face * (_handLength[side] * 0.55f) - grip.Up * 0.025f;
                 }
                 // Resting on the table (seated, the hand down at the table's height, doing nothing else): the hand lies flat,
                 // palm down and fingers forward, lifted by its own thickness so it does not sink into the table.
@@ -335,15 +336,9 @@ namespace TableWorld.View.Chalkers
                 if (rests)
                     target = hand + root.up * (_handLength[side] * 0.3f) + root.forward * 0.015f;
                 Reach(upper, lower, end, target, elbow - root.forward * 0.1f);
-                if (holds && Bone(end) is { } palm)
-                {
-                    var along = chalker.CardHold.Value;
-                    var want = (along.Up - along.Face * 0.25f).normalized;
-                    // The back of the hand away from the holder, the palm on the cards' backs.
-                    var back = Vector3.ProjectOnPlane(-along.Face, want).normalized;
-                    palm.rotation = Quaternion.LookRotation(want, back) * Quaternion.Inverse(Quaternion.LookRotation(_fingers[side], _backOfHand[side]));
-                }
-                else if (rests && Bone(end) is { } flat)
+                // A holding hand keeps its wrist in line with the forearm, as the model was made: turning it to fit the fan
+                // twisted it.
+                if (rests && Bone(end) is { } flat)
                 {
                     var outward = side == 0 ? -root.right : root.right;
                     var fingers = (root.forward + outward * 0.2f - root.up * 0.12f).normalized;
