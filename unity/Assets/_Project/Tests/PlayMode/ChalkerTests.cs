@@ -35,11 +35,30 @@ namespace TableWorld.Tests.PlayMode
             }
         }
 
+        /// <summary>
+        /// The rigged model follows the points: its hands reach the chalker's hands on the table, and the voice drops its jaw.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator Model_ReachesTheHandsAndTalks()
+        {
+            var model = _chalker.Model;
+            Assume.That(model, Is.Not.Null, "no chalker model in the project");
+            yield return Run(0.3f);
+            foreach (var (point, bone) in new[] { ("leftHand", ChalkerModel.Rig.Unreal.LeftHand), ("rightHand", ChalkerModel.Rig.Unreal.RightHand) })
+                Assert.Less(Vector3.Distance(_chalker.Points[point].position, model.Find(bone).position), 0.06f, point);
+            var head = model.Find(ChalkerModel.Rig.Unreal.Head);
+            var jaw = model.Find(ChalkerModel.Rig.Unreal.Jaw);
+            var shut = Quaternion.Inverse(head.rotation) * jaw.rotation;
+            yield return Run(0.4f, 0.3f);
+            Assert.Greater(Quaternion.Angle(shut, Quaternion.Inverse(head.rotation) * jaw.rotation), 15f, "talking opens the jaw");
+            Assert.Greater(_chalker.MouthOpen, 0.5f);
+        }
+
         /// <summary>M10 T11.11: the named points an artist's model binds to exist, and the pose moves them.</summary>
         [UnityTest]
         public IEnumerator NamedPoints_ExistAndFollowThePose()
         {
-            var names = new[] { "root", "torso", "neck", "head", "face", "mouth", "leftShoulder", "rightShoulder", "leftElbow", "rightElbow", "leftHand", "rightHand" };
+            var names = new[] { "root", "torso", "neck", "head", "face", "mouth", "leftShoulder", "rightShoulder", "leftElbow", "rightElbow", "leftHand", "rightHand", "leftHip", "rightHip" };
             CollectionAssert.AreEquivalent(names, _chalker.Points.Keys);
             foreach (var name in names)
                 Assert.IsNotNull(_chalker.Points[name], name);

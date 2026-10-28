@@ -35,6 +35,7 @@ parented to it.
 | `leftShoulder`, `rightShoulder` | arm raise and forward swing | emotes, rest pose (`ChalkerEmotes.Rest`: forearms on the table) |
 | `leftElbow`, `rightElbow` | elbow bend | emotes, rest pose |
 | `leftHand`, `rightHand` | the hands | follow the elbows; tests check the right hand reaches the table |
+| `leftHip`, `rightHip` | the standing legs' swing | walking (`Chalker.Walking`) |
 
 A singer (karaoke, `Chalker.Microphone`) holds a microphone in the right hand: the right arm takes a fixed pose
 (`Chalker.MicForward`, `MicRaise`, `MicElbow`) whatever the emote does, and the microphone (0.14 m) points from the
@@ -49,6 +50,19 @@ The chalkboard is a texture, not geometry: eyes (each one open, closed or winkin
 that follow the pointer, and extras (sparkles, hearts, dots) are drawn into it from code. The model needs one material
 slot for the board, UV-mapped to the whole 0–1 square, in which the code sets `_BaseMap` to the face texture. The board
 should read well at the size it has today: about 0.27 × 0.23 m.
+
+## Wearing a rigged model
+
+[ChalkerModel.cs](../../unity/Assets/_Project/Scripts/View/Chalkers/ChalkerModel.cs) puts a skinned model on the
+points without asking the artist to match their axes. Every frame the skeleton starts from its bind pose; the pelvis
+sits on the hips (seated) or as high as the legs reach (standing); the spine, neck and head take the turns of `torso`,
+`neck` and `head`; arms and legs reach the hands and feet with two-bone IK, bending toward the elbows and forward
+knees. The model is scaled so its shoulders are as high above its hips as the shapes', and turned to face +Z from where
+its eyes are. The face is a jaw bone that drops with the voice, blend shapes (`jaw_open_pose`, smiles, frowns, cheeks,
+lip corners, looks) and eyes that squash flat to blink. Bone and shape names live in `ChalkerModel.Rig`.
+
+The placeholder worn today is `Art/Placeholder/TomLizard` (an unlicensed test model, see its `NOTICE.txt`; it must
+not ship). The lab's M key switches between it and the shapes; `Chalker.UseModel` does the same in code.
 
 ## What stays in code
 

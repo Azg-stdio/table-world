@@ -192,6 +192,17 @@ namespace TableWorld.View.Chalkers
             Refresh();
         }
 
+        /// <summary>Rebuilds the chalker wearing the rigged model (<see cref="ChalkerModel"/>) or the shapes.</summary>
+        public void SetModel(bool model)
+        {
+            Chalker.UseModel = model;
+            var personality = _chalker.Personality;
+            var hold = _chalker.Hold;
+            _chalker.Destroy();
+            _chalker = new Chalker("lab", transform, ZoneViewFactory.SeatColor(_color), personality) { Hold = hold };
+            Refresh();
+        }
+
         /// <summary>Freezes emotes mid-way, to look at one moment of them.</summary>
         public void SetHold(bool hold)
         {
@@ -262,6 +273,8 @@ namespace TableWorld.View.Chalkers
                     _chalker.Wink();
                 if (keyboard.zKey.wasPressedThisFrame)
                     _chalker.EyesClosed = !_chalker.EyesClosed;
+                if (keyboard.mKey.wasPressedThisFrame)
+                    SetModel(!Chalker.UseModel);
                 if (keyboard.spaceKey.wasPressedThisFrame)
                 {
                     _yaw = HomeYaw;

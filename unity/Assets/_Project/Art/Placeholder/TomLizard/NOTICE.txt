@@ -1,0 +1,8 @@
+Tom the lizard: TEST PLACEHOLDER ONLY, NOT LICENSED.
+
+This model is a fan-ripped Fortnite character (Epic Games' IP), downloaded as
+"tom-the-lizard-doing-the-toothless-dance" and re-exported through Mixamo and
+Blender. It is here only to try a talking-mouth chalker on the project owner's
+machine. It must not be shipped in a build given to anyone, published, or
+uploaded anywhere. Replace it with a commissioned or CC0/CC-BY model (one with
+a jaw bone or a mouth-open blend shape) before any build leaves this machine.

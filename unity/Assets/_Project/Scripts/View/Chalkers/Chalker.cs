@@ -63,6 +63,19 @@ namespace TableWorld.View.Chalkers
         private float _sleep;
         private bool _placed;
         private float _emoteSeconds;
+        private readonly ChalkerModel _model;
+
+        /// <summary>
+        /// New chalkers wear <see cref="ChalkerModel"/> when the project has one (the chalker lab's M key switches it), the
+        /// shapes and chalkboard otherwise.
+        /// </summary>
+        public static bool UseModel { get; set; } = true;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics() => UseModel = true;
+
+        /// <summary>The rigged model this chalker wears, or null when it shows the shapes.</summary>
+        public ChalkerModel Model => _model;
 
         public ChalkerPersonality Personality { get; set; }
 
@@ -232,6 +245,15 @@ namespace TableWorld.View.Chalkers
             _points["rightElbow"] = _elbows[1];
             _points["leftHand"] = LeftHand;
             _points["rightHand"] = RightHand;
+            _points["leftHip"] = _hips[0];
+            _points["rightHip"] = _hips[1];
+
+            if (UseModel)
+                _model = ChalkerModel.Load(_root.transform, color);
+            if (_model != null)
+                foreach (var shape in _root.GetComponentsInChildren<Renderer>(true))
+                    if (!shape.transform.IsChildOf(_model.Root.transform))
+                        shape.enabled = false;
         }
 
         /// <summary>Repaints the body in another seat colour.</summary>
@@ -239,6 +261,7 @@ namespace TableWorld.View.Chalkers
         {
             _tinted[0].SetColor("_BaseColor", color);
             _tinted[1].SetColor("_BaseColor", color * 0.85f);
+            _model?.SetColor(color);
         }
 
         /// <summary>Starts <paramref name="emote"/> from its beginning (a new one replaces the one playing).</summary>
@@ -372,7 +395,9 @@ namespace TableWorld.View.Chalkers
             var asleep = EyesClosed || _sleep > 0.5f;
             var wink = Winking;
             EyesShut = (asleep || blink || wink == true, asleep || blink || wink == false);
-            _face.Draw(face, _mouthFollower.Update(level, dt), pupils, EyesShut.Left, EyesShut.Right);
+            var mouth = _mouthFollower.Update(level, dt);
+            _face.Draw(face, mouth, pupils, EyesShut.Left, EyesShut.Right);
+            _model?.Follow(this, face, mouth, pupils, EyesShut.Left, EyesShut.Right, dt);
             HoldMic();
         }
 
@@ -417,6 +442,7 @@ namespace TableWorld.View.Chalkers
         public void Destroy()
         {
             _face.Destroy();
+            _model?.Destroy();
             foreach (var material in _materials)
                 Object.Destroy(material);
             Object.Destroy(_root);
