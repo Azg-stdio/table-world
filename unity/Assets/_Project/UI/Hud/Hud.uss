@@ -1005,6 +1005,12 @@
     -unity-font-style: bold;
 }
 
+.nameplate--choosable {
+    border-width: 2px;
+    border-color: rgb(255, 255, 255);
+    font-size: 16px;
+}
+
 /* Chat and selection stack at the bottom left. */
 .left-column {
     align-items: flex-start;

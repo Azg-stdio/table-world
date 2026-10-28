@@ -204,6 +204,13 @@ namespace Core.Rules
         public RolesDef? Roles { get; set; }
 
         /// <summary>
+        /// Marks over players' chalkers during a game, seen by everyone: a bobbing arrow over each player chosen for a
+        /// team, a crown over the leader. Each names its players as a phase's <c>awake</c> does.
+        /// </summary>
+        public List<MarkDef> Marks { get; set; } = new List<MarkDef>();
+        public bool ShouldSerializeMarks() => Marks.Count > 0;
+
+        /// <summary>
         /// The game in other languages (ADR 0011): language → path key → text, e.g.
         /// <c>{ "en": { "actions.elegir.name": "Choose a space", "strings.noche": "It is night." } }</c>. Path keys name the
         /// text they replace (<see cref="Core.Text.Translations.Texts"/>); <c>strings.&lt;key&gt;</c> is the game's own free

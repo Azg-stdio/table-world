@@ -27,8 +27,8 @@ Five examples ship in `games/`, each built through the MCP tools from a plain-te
 - **Avalon at the table.** Your role card arrives in your hand (raise your cards to read it). Then the ritual, a few
   seconds each: everyone closes their eyes; the minions open theirs and find each other by their open eyes; the minions
   raise their thumbs (the game does it; not Mordred) while Merlin looks; Merlin and Morgana raise theirs while Percival looks; everyone
-  opens their eyes. The leader drags silver shields in front of the players they choose (the crown shows who leads),
-  then presses Propose. Everyone gets an Approve and a Reject card: lay one face down on the spot in front of you; when
+  opens their eyes. The leader clicks the players they choose, on their chalker or their name (again to take one off):
+  an arrow floats over each one chosen and a crown over the leader. Then the leader presses Propose. Everyone gets an Approve and a Reject card: lay one face down on the spot in front of you; when
   the last is down they turn over together. The team gets Success and Fail cards: lay one on the quest pile in the middle;
   the pile is shuffled and turned over one by one. At the end every role card turns over.
 - **Out of the game.** A lynched or executed player is out: no more actions or votes, and the others no longer hear

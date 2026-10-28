@@ -110,11 +110,27 @@ namespace Core.Rules
                 }
             }
 
+            for (var i = 0; i < _state.Marks.Count; i++)
+            {
+                var mark = _state.Marks[i];
+                if (References.IsReference(mark.Seats))
+                {
+                    if (References.Check(mark.Seats, $"marks[{i}].seats", _state, null) is { } markError)
+                        _errors.Add(markError);
+                }
+                else
+                    Audience(mark.Seats, $"marks[{i}].seats");
+                if (mark.Color is { } c && (c.Length != 3 || c.Any(v => v < 0f || v > 1f)))
+                    Add($"marks[{i}].color", ErrorCodes.InvalidValue, "A colour is [r, g, b], each 0 to 1.");
+            }
+
             for (var i = 0; i < _state.Actions.Count; i++)
             {
                 var action = _state.Actions[i];
                 var path = $"actions[{i}]";
                 _params = Core.Engine.GameEngine.ParamsOf(action).Select(p => p.Name).ToList();
+                if (action.OnPlayer && (action.Params.Count != 1 || action.Params[0].Type != ParamType.Seat || action.Vote != null))
+                    Add($"{path}.onPlayer", ErrorCodes.InvalidValue, "An action done by clicking a player has exactly one parameter, of type seat, and is not a vote.");
                 for (var j = 0; j < action.Params.Count; j++)
                 {
                     var p = action.Params[j];

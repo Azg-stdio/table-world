@@ -21,20 +21,6 @@
       "rows": 1
     },
     {
-      "id": "piece_pawn",
-      "type": "model",
-      "path": "builtin:pawn",
-      "columns": 1,
-      "rows": 1
-    },
-    {
-      "id": "piece_gem",
-      "type": "model",
-      "path": "builtin:gem",
-      "columns": 1,
-      "rows": 1
-    },
-    {
       "id": "piece_checker",
       "type": "model",
       "path": "builtin:checker",
@@ -1149,164 +1135,6 @@
         0.85
       ],
       "asset": "piece_cube"
-    },
-    {
-      "id": "crown",
-      "type": "Model",
-      "name": "Leader",
-      "transform": {
-        "position": [
-          0.36,
-          0.0,
-          -0.25
-        ],
-        "scale": [
-          2.4,
-          2.4,
-          2.4
-        ]
-      },
-      "tint": [
-        0.95,
-        0.75,
-        0.2
-      ],
-      "asset": "piece_pawn"
-    },
-    {
-      "id": "shield",
-      "type": "Model",
-      "name": "Team",
-      "tags": [
-        "shield"
-      ],
-      "transform": {
-        "position": [
-          0.13,
-          0.0,
-          -0.25
-        ],
-        "scale": [
-          2.2,
-          2.2,
-          2.2
-        ]
-      },
-      "tint": [
-        0.8,
-        0.82,
-        0.85
-      ],
-      "asset": "piece_gem",
-      "material": "glass"
-    },
-    {
-      "id": "shield_2",
-      "type": "Model",
-      "name": "Team",
-      "tags": [
-        "shield"
-      ],
-      "transform": {
-        "position": [
-          0.15599999,
-          0.0,
-          -0.25
-        ],
-        "scale": [
-          2.2,
-          2.2,
-          2.2
-        ]
-      },
-      "tint": [
-        0.8,
-        0.82,
-        0.85
-      ],
-      "asset": "piece_gem",
-      "material": "glass"
-    },
-    {
-      "id": "shield_3",
-      "type": "Model",
-      "name": "Team",
-      "tags": [
-        "shield"
-      ],
-      "transform": {
-        "position": [
-          0.182,
-          0.0,
-          -0.25
-        ],
-        "scale": [
-          2.2,
-          2.2,
-          2.2
-        ]
-      },
-      "tint": [
-        0.8,
-        0.82,
-        0.85
-      ],
-      "asset": "piece_gem",
-      "material": "glass"
-    },
-    {
-      "id": "shield_4",
-      "type": "Model",
-      "name": "Team",
-      "tags": [
-        "shield"
-      ],
-      "transform": {
-        "position": [
-          0.208,
-          0.0,
-          -0.25
-        ],
-        "scale": [
-          2.2,
-          2.2,
-          2.2
-        ]
-      },
-      "tint": [
-        0.8,
-        0.82,
-        0.85
-      ],
-      "asset": "piece_gem",
-      "material": "glass"
-    },
-    {
-      "id": "shield_5",
-      "type": "Model",
-      "name": "Team",
-      "tags": [
-        "shield"
-      ],
-      "transform": {
-        "position": [
-          0.234,
-          0.0,
-          -0.25
-        ],
-        "scale": [
-          2.2,
-          2.2,
-          2.2
-        ]
-      },
-      "tint": [
-        0.8,
-        0.82,
-        0.85
-      ],
-      "asset": "piece_gem",
-      "material": "glass"
     },
     {
       "id": "good",
@@ -3611,163 +3439,6 @@
       ]
     },
     {
-      "id": "team_1",
-      "type": "ScriptingZone",
-      "name": "Team",
-      "transform": {
-        "position": [
-          0.308,
-          0.05,
-          -0.375
-        ]
-      },
-      "size": [
-        0.16,
-        0.1,
-        0.12
-      ],
-      "onEnter": [
-        {
-          "if": {
-            "condition": {
-              "hasTag": {
-                "object": "$it",
-                "tag": "shield"
-              }
-            },
-            "then": [
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "and": [
-                        {
-                          "compare": {
-                            "left": "$var.picking",
-                            "op": "==",
-                            "right": true
-                          }
-                        },
-                        {
-                          "isCurrentPlayer": {
-                            "player": "$actor"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  "then": [
-                    {
-                      "refuse": {
-                        "reason": "@onlyLeader"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "inList": {
-                        "list": "$var.team",
-                        "value": "seat_1"
-                      }
-                    }
-                  },
-                  "then": [
-                    {
-                      "if": {
-                        "condition": {
-                          "compare": {
-                            "left": "$var.team.count",
-                            "op": ">=",
-                            "right": "$var.size"
-                          }
-                        },
-                        "then": [
-                          {
-                            "refuse": {
-                              "reason": "@teamFull"
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "setVariable": {
-                        "name": "team",
-                        "add": "seat_1"
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        }
-      ],
-      "onLeave": [
-        {
-          "if": {
-            "condition": {
-              "and": [
-                {
-                  "hasTag": {
-                    "object": "$it",
-                    "tag": "shield"
-                  }
-                },
-                {
-                  "inList": {
-                    "list": "$var.team",
-                    "value": "seat_1"
-                  }
-                }
-              ]
-            },
-            "then": [
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "and": [
-                        {
-                          "compare": {
-                            "left": "$var.picking",
-                            "op": "==",
-                            "right": true
-                          }
-                        },
-                        {
-                          "isCurrentPlayer": {
-                            "player": "$actor"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  "then": [
-                    {
-                      "refuse": {
-                        "reason": "@onlyLeader"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "setVariable": {
-                  "name": "team",
-                  "remove": "seat_1"
-                }
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
       "id": "vote_1",
       "type": "LayoutZone",
       "name": "Vote",
@@ -3876,163 +3547,6 @@
         }
       ],
       "facing": "faceDown"
-    },
-    {
-      "id": "team_2",
-      "type": "ScriptingZone",
-      "name": "Team",
-      "transform": {
-        "position": [
-          -0.0,
-          0.05,
-          -0.375
-        ]
-      },
-      "size": [
-        0.16,
-        0.1,
-        0.12
-      ],
-      "onEnter": [
-        {
-          "if": {
-            "condition": {
-              "hasTag": {
-                "object": "$it",
-                "tag": "shield"
-              }
-            },
-            "then": [
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "and": [
-                        {
-                          "compare": {
-                            "left": "$var.picking",
-                            "op": "==",
-                            "right": true
-                          }
-                        },
-                        {
-                          "isCurrentPlayer": {
-                            "player": "$actor"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  "then": [
-                    {
-                      "refuse": {
-                        "reason": "@onlyLeader"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "inList": {
-                        "list": "$var.team",
-                        "value": "seat_2"
-                      }
-                    }
-                  },
-                  "then": [
-                    {
-                      "if": {
-                        "condition": {
-                          "compare": {
-                            "left": "$var.team.count",
-                            "op": ">=",
-                            "right": "$var.size"
-                          }
-                        },
-                        "then": [
-                          {
-                            "refuse": {
-                              "reason": "@teamFull"
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "setVariable": {
-                        "name": "team",
-                        "add": "seat_2"
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        }
-      ],
-      "onLeave": [
-        {
-          "if": {
-            "condition": {
-              "and": [
-                {
-                  "hasTag": {
-                    "object": "$it",
-                    "tag": "shield"
-                  }
-                },
-                {
-                  "inList": {
-                    "list": "$var.team",
-                    "value": "seat_2"
-                  }
-                }
-              ]
-            },
-            "then": [
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "and": [
-                        {
-                          "compare": {
-                            "left": "$var.picking",
-                            "op": "==",
-                            "right": true
-                          }
-                        },
-                        {
-                          "isCurrentPlayer": {
-                            "player": "$actor"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  "then": [
-                    {
-                      "refuse": {
-                        "reason": "@onlyLeader"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "setVariable": {
-                  "name": "team",
-                  "remove": "seat_2"
-                }
-              }
-            ]
-          }
-        }
-      ]
     },
     {
       "id": "vote_2",
@@ -4145,163 +3659,6 @@
       "facing": "faceDown"
     },
     {
-      "id": "team_3",
-      "type": "ScriptingZone",
-      "name": "Team",
-      "transform": {
-        "position": [
-          -0.308,
-          0.05,
-          -0.375
-        ]
-      },
-      "size": [
-        0.16,
-        0.1,
-        0.12
-      ],
-      "onEnter": [
-        {
-          "if": {
-            "condition": {
-              "hasTag": {
-                "object": "$it",
-                "tag": "shield"
-              }
-            },
-            "then": [
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "and": [
-                        {
-                          "compare": {
-                            "left": "$var.picking",
-                            "op": "==",
-                            "right": true
-                          }
-                        },
-                        {
-                          "isCurrentPlayer": {
-                            "player": "$actor"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  "then": [
-                    {
-                      "refuse": {
-                        "reason": "@onlyLeader"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "inList": {
-                        "list": "$var.team",
-                        "value": "seat_3"
-                      }
-                    }
-                  },
-                  "then": [
-                    {
-                      "if": {
-                        "condition": {
-                          "compare": {
-                            "left": "$var.team.count",
-                            "op": ">=",
-                            "right": "$var.size"
-                          }
-                        },
-                        "then": [
-                          {
-                            "refuse": {
-                              "reason": "@teamFull"
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "setVariable": {
-                        "name": "team",
-                        "add": "seat_3"
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        }
-      ],
-      "onLeave": [
-        {
-          "if": {
-            "condition": {
-              "and": [
-                {
-                  "hasTag": {
-                    "object": "$it",
-                    "tag": "shield"
-                  }
-                },
-                {
-                  "inList": {
-                    "list": "$var.team",
-                    "value": "seat_3"
-                  }
-                }
-              ]
-            },
-            "then": [
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "and": [
-                        {
-                          "compare": {
-                            "left": "$var.picking",
-                            "op": "==",
-                            "right": true
-                          }
-                        },
-                        {
-                          "isCurrentPlayer": {
-                            "player": "$actor"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  "then": [
-                    {
-                      "refuse": {
-                        "reason": "@onlyLeader"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "setVariable": {
-                  "name": "team",
-                  "remove": "seat_3"
-                }
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
       "id": "vote_3",
       "type": "LayoutZone",
       "name": "Vote",
@@ -4410,168 +3767,6 @@
         }
       ],
       "facing": "faceDown"
-    },
-    {
-      "id": "team_4",
-      "type": "ScriptingZone",
-      "name": "Team",
-      "transform": {
-        "position": [
-          -0.605,
-          0.05,
-          -0.154
-        ],
-        "rotation": [
-          0.0,
-          90.0,
-          0.0
-        ]
-      },
-      "size": [
-        0.16,
-        0.1,
-        0.12
-      ],
-      "onEnter": [
-        {
-          "if": {
-            "condition": {
-              "hasTag": {
-                "object": "$it",
-                "tag": "shield"
-              }
-            },
-            "then": [
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "and": [
-                        {
-                          "compare": {
-                            "left": "$var.picking",
-                            "op": "==",
-                            "right": true
-                          }
-                        },
-                        {
-                          "isCurrentPlayer": {
-                            "player": "$actor"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  "then": [
-                    {
-                      "refuse": {
-                        "reason": "@onlyLeader"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "inList": {
-                        "list": "$var.team",
-                        "value": "seat_4"
-                      }
-                    }
-                  },
-                  "then": [
-                    {
-                      "if": {
-                        "condition": {
-                          "compare": {
-                            "left": "$var.team.count",
-                            "op": ">=",
-                            "right": "$var.size"
-                          }
-                        },
-                        "then": [
-                          {
-                            "refuse": {
-                              "reason": "@teamFull"
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "setVariable": {
-                        "name": "team",
-                        "add": "seat_4"
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        }
-      ],
-      "onLeave": [
-        {
-          "if": {
-            "condition": {
-              "and": [
-                {
-                  "hasTag": {
-                    "object": "$it",
-                    "tag": "shield"
-                  }
-                },
-                {
-                  "inList": {
-                    "list": "$var.team",
-                    "value": "seat_4"
-                  }
-                }
-              ]
-            },
-            "then": [
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "and": [
-                        {
-                          "compare": {
-                            "left": "$var.picking",
-                            "op": "==",
-                            "right": true
-                          }
-                        },
-                        {
-                          "isCurrentPlayer": {
-                            "player": "$actor"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  "then": [
-                    {
-                      "refuse": {
-                        "reason": "@onlyLeader"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "setVariable": {
-                  "name": "team",
-                  "remove": "seat_4"
-                }
-              }
-            ]
-          }
-        }
-      ]
     },
     {
       "id": "vote_4",
@@ -4689,168 +3884,6 @@
       "facing": "faceDown"
     },
     {
-      "id": "team_5",
-      "type": "ScriptingZone",
-      "name": "Team",
-      "transform": {
-        "position": [
-          -0.605,
-          0.05,
-          0.154
-        ],
-        "rotation": [
-          0.0,
-          90.0,
-          0.0
-        ]
-      },
-      "size": [
-        0.16,
-        0.1,
-        0.12
-      ],
-      "onEnter": [
-        {
-          "if": {
-            "condition": {
-              "hasTag": {
-                "object": "$it",
-                "tag": "shield"
-              }
-            },
-            "then": [
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "and": [
-                        {
-                          "compare": {
-                            "left": "$var.picking",
-                            "op": "==",
-                            "right": true
-                          }
-                        },
-                        {
-                          "isCurrentPlayer": {
-                            "player": "$actor"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  "then": [
-                    {
-                      "refuse": {
-                        "reason": "@onlyLeader"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "inList": {
-                        "list": "$var.team",
-                        "value": "seat_5"
-                      }
-                    }
-                  },
-                  "then": [
-                    {
-                      "if": {
-                        "condition": {
-                          "compare": {
-                            "left": "$var.team.count",
-                            "op": ">=",
-                            "right": "$var.size"
-                          }
-                        },
-                        "then": [
-                          {
-                            "refuse": {
-                              "reason": "@teamFull"
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "setVariable": {
-                        "name": "team",
-                        "add": "seat_5"
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        }
-      ],
-      "onLeave": [
-        {
-          "if": {
-            "condition": {
-              "and": [
-                {
-                  "hasTag": {
-                    "object": "$it",
-                    "tag": "shield"
-                  }
-                },
-                {
-                  "inList": {
-                    "list": "$var.team",
-                    "value": "seat_5"
-                  }
-                }
-              ]
-            },
-            "then": [
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "and": [
-                        {
-                          "compare": {
-                            "left": "$var.picking",
-                            "op": "==",
-                            "right": true
-                          }
-                        },
-                        {
-                          "isCurrentPlayer": {
-                            "player": "$actor"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  "then": [
-                    {
-                      "refuse": {
-                        "reason": "@onlyLeader"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "setVariable": {
-                  "name": "team",
-                  "remove": "seat_5"
-                }
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
       "id": "vote_5",
       "type": "LayoutZone",
       "name": "Vote",
@@ -4964,168 +3997,6 @@
         }
       ],
       "facing": "faceDown"
-    },
-    {
-      "id": "team_6",
-      "type": "ScriptingZone",
-      "name": "Team",
-      "transform": {
-        "position": [
-          -0.308,
-          0.05,
-          0.375
-        ],
-        "rotation": [
-          0.0,
-          180.0,
-          0.0
-        ]
-      },
-      "size": [
-        0.16,
-        0.1,
-        0.12
-      ],
-      "onEnter": [
-        {
-          "if": {
-            "condition": {
-              "hasTag": {
-                "object": "$it",
-                "tag": "shield"
-              }
-            },
-            "then": [
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "and": [
-                        {
-                          "compare": {
-                            "left": "$var.picking",
-                            "op": "==",
-                            "right": true
-                          }
-                        },
-                        {
-                          "isCurrentPlayer": {
-                            "player": "$actor"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  "then": [
-                    {
-                      "refuse": {
-                        "reason": "@onlyLeader"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "inList": {
-                        "list": "$var.team",
-                        "value": "seat_6"
-                      }
-                    }
-                  },
-                  "then": [
-                    {
-                      "if": {
-                        "condition": {
-                          "compare": {
-                            "left": "$var.team.count",
-                            "op": ">=",
-                            "right": "$var.size"
-                          }
-                        },
-                        "then": [
-                          {
-                            "refuse": {
-                              "reason": "@teamFull"
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "setVariable": {
-                        "name": "team",
-                        "add": "seat_6"
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        }
-      ],
-      "onLeave": [
-        {
-          "if": {
-            "condition": {
-              "and": [
-                {
-                  "hasTag": {
-                    "object": "$it",
-                    "tag": "shield"
-                  }
-                },
-                {
-                  "inList": {
-                    "list": "$var.team",
-                    "value": "seat_6"
-                  }
-                }
-              ]
-            },
-            "then": [
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "and": [
-                        {
-                          "compare": {
-                            "left": "$var.picking",
-                            "op": "==",
-                            "right": true
-                          }
-                        },
-                        {
-                          "isCurrentPlayer": {
-                            "player": "$actor"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  "then": [
-                    {
-                      "refuse": {
-                        "reason": "@onlyLeader"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "setVariable": {
-                  "name": "team",
-                  "remove": "seat_6"
-                }
-              }
-            ]
-          }
-        }
-      ]
     },
     {
       "id": "vote_6",
@@ -5243,168 +4114,6 @@
       "facing": "faceDown"
     },
     {
-      "id": "team_7",
-      "type": "ScriptingZone",
-      "name": "Team",
-      "transform": {
-        "position": [
-          0.0,
-          0.05,
-          0.375
-        ],
-        "rotation": [
-          0.0,
-          180.0,
-          0.0
-        ]
-      },
-      "size": [
-        0.16,
-        0.1,
-        0.12
-      ],
-      "onEnter": [
-        {
-          "if": {
-            "condition": {
-              "hasTag": {
-                "object": "$it",
-                "tag": "shield"
-              }
-            },
-            "then": [
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "and": [
-                        {
-                          "compare": {
-                            "left": "$var.picking",
-                            "op": "==",
-                            "right": true
-                          }
-                        },
-                        {
-                          "isCurrentPlayer": {
-                            "player": "$actor"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  "then": [
-                    {
-                      "refuse": {
-                        "reason": "@onlyLeader"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "inList": {
-                        "list": "$var.team",
-                        "value": "seat_7"
-                      }
-                    }
-                  },
-                  "then": [
-                    {
-                      "if": {
-                        "condition": {
-                          "compare": {
-                            "left": "$var.team.count",
-                            "op": ">=",
-                            "right": "$var.size"
-                          }
-                        },
-                        "then": [
-                          {
-                            "refuse": {
-                              "reason": "@teamFull"
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "setVariable": {
-                        "name": "team",
-                        "add": "seat_7"
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        }
-      ],
-      "onLeave": [
-        {
-          "if": {
-            "condition": {
-              "and": [
-                {
-                  "hasTag": {
-                    "object": "$it",
-                    "tag": "shield"
-                  }
-                },
-                {
-                  "inList": {
-                    "list": "$var.team",
-                    "value": "seat_7"
-                  }
-                }
-              ]
-            },
-            "then": [
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "and": [
-                        {
-                          "compare": {
-                            "left": "$var.picking",
-                            "op": "==",
-                            "right": true
-                          }
-                        },
-                        {
-                          "isCurrentPlayer": {
-                            "player": "$actor"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  "then": [
-                    {
-                      "refuse": {
-                        "reason": "@onlyLeader"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "setVariable": {
-                  "name": "team",
-                  "remove": "seat_7"
-                }
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
       "id": "vote_7",
       "type": "LayoutZone",
       "name": "Vote",
@@ -5518,168 +4227,6 @@
         }
       ],
       "facing": "faceDown"
-    },
-    {
-      "id": "team_8",
-      "type": "ScriptingZone",
-      "name": "Team",
-      "transform": {
-        "position": [
-          0.308,
-          0.05,
-          0.375
-        ],
-        "rotation": [
-          0.0,
-          180.0,
-          0.0
-        ]
-      },
-      "size": [
-        0.16,
-        0.1,
-        0.12
-      ],
-      "onEnter": [
-        {
-          "if": {
-            "condition": {
-              "hasTag": {
-                "object": "$it",
-                "tag": "shield"
-              }
-            },
-            "then": [
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "and": [
-                        {
-                          "compare": {
-                            "left": "$var.picking",
-                            "op": "==",
-                            "right": true
-                          }
-                        },
-                        {
-                          "isCurrentPlayer": {
-                            "player": "$actor"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  "then": [
-                    {
-                      "refuse": {
-                        "reason": "@onlyLeader"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "inList": {
-                        "list": "$var.team",
-                        "value": "seat_8"
-                      }
-                    }
-                  },
-                  "then": [
-                    {
-                      "if": {
-                        "condition": {
-                          "compare": {
-                            "left": "$var.team.count",
-                            "op": ">=",
-                            "right": "$var.size"
-                          }
-                        },
-                        "then": [
-                          {
-                            "refuse": {
-                              "reason": "@teamFull"
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "setVariable": {
-                        "name": "team",
-                        "add": "seat_8"
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        }
-      ],
-      "onLeave": [
-        {
-          "if": {
-            "condition": {
-              "and": [
-                {
-                  "hasTag": {
-                    "object": "$it",
-                    "tag": "shield"
-                  }
-                },
-                {
-                  "inList": {
-                    "list": "$var.team",
-                    "value": "seat_8"
-                  }
-                }
-              ]
-            },
-            "then": [
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "and": [
-                        {
-                          "compare": {
-                            "left": "$var.picking",
-                            "op": "==",
-                            "right": true
-                          }
-                        },
-                        {
-                          "isCurrentPlayer": {
-                            "player": "$actor"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  "then": [
-                    {
-                      "refuse": {
-                        "reason": "@onlyLeader"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "setVariable": {
-                  "name": "team",
-                  "remove": "seat_8"
-                }
-              }
-            ]
-          }
-        }
-      ]
     },
     {
       "id": "vote_8",
@@ -5797,168 +4344,6 @@
       "facing": "faceDown"
     },
     {
-      "id": "team_9",
-      "type": "ScriptingZone",
-      "name": "Team",
-      "transform": {
-        "position": [
-          0.605,
-          0.05,
-          0.154
-        ],
-        "rotation": [
-          0.0,
-          270.0,
-          0.0
-        ]
-      },
-      "size": [
-        0.16,
-        0.1,
-        0.12
-      ],
-      "onEnter": [
-        {
-          "if": {
-            "condition": {
-              "hasTag": {
-                "object": "$it",
-                "tag": "shield"
-              }
-            },
-            "then": [
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "and": [
-                        {
-                          "compare": {
-                            "left": "$var.picking",
-                            "op": "==",
-                            "right": true
-                          }
-                        },
-                        {
-                          "isCurrentPlayer": {
-                            "player": "$actor"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  "then": [
-                    {
-                      "refuse": {
-                        "reason": "@onlyLeader"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "inList": {
-                        "list": "$var.team",
-                        "value": "seat_9"
-                      }
-                    }
-                  },
-                  "then": [
-                    {
-                      "if": {
-                        "condition": {
-                          "compare": {
-                            "left": "$var.team.count",
-                            "op": ">=",
-                            "right": "$var.size"
-                          }
-                        },
-                        "then": [
-                          {
-                            "refuse": {
-                              "reason": "@teamFull"
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "setVariable": {
-                        "name": "team",
-                        "add": "seat_9"
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        }
-      ],
-      "onLeave": [
-        {
-          "if": {
-            "condition": {
-              "and": [
-                {
-                  "hasTag": {
-                    "object": "$it",
-                    "tag": "shield"
-                  }
-                },
-                {
-                  "inList": {
-                    "list": "$var.team",
-                    "value": "seat_9"
-                  }
-                }
-              ]
-            },
-            "then": [
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "and": [
-                        {
-                          "compare": {
-                            "left": "$var.picking",
-                            "op": "==",
-                            "right": true
-                          }
-                        },
-                        {
-                          "isCurrentPlayer": {
-                            "player": "$actor"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  "then": [
-                    {
-                      "refuse": {
-                        "reason": "@onlyLeader"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "setVariable": {
-                  "name": "team",
-                  "remove": "seat_9"
-                }
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
       "id": "vote_9",
       "type": "LayoutZone",
       "name": "Vote",
@@ -6072,168 +4457,6 @@
         }
       ],
       "facing": "faceDown"
-    },
-    {
-      "id": "team_10",
-      "type": "ScriptingZone",
-      "name": "Team",
-      "transform": {
-        "position": [
-          0.605,
-          0.05,
-          -0.154
-        ],
-        "rotation": [
-          0.0,
-          270.0,
-          0.0
-        ]
-      },
-      "size": [
-        0.16,
-        0.1,
-        0.12
-      ],
-      "onEnter": [
-        {
-          "if": {
-            "condition": {
-              "hasTag": {
-                "object": "$it",
-                "tag": "shield"
-              }
-            },
-            "then": [
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "and": [
-                        {
-                          "compare": {
-                            "left": "$var.picking",
-                            "op": "==",
-                            "right": true
-                          }
-                        },
-                        {
-                          "isCurrentPlayer": {
-                            "player": "$actor"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  "then": [
-                    {
-                      "refuse": {
-                        "reason": "@onlyLeader"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "inList": {
-                        "list": "$var.team",
-                        "value": "seat_10"
-                      }
-                    }
-                  },
-                  "then": [
-                    {
-                      "if": {
-                        "condition": {
-                          "compare": {
-                            "left": "$var.team.count",
-                            "op": ">=",
-                            "right": "$var.size"
-                          }
-                        },
-                        "then": [
-                          {
-                            "refuse": {
-                              "reason": "@teamFull"
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "setVariable": {
-                        "name": "team",
-                        "add": "seat_10"
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        }
-      ],
-      "onLeave": [
-        {
-          "if": {
-            "condition": {
-              "and": [
-                {
-                  "hasTag": {
-                    "object": "$it",
-                    "tag": "shield"
-                  }
-                },
-                {
-                  "inList": {
-                    "list": "$var.team",
-                    "value": "seat_10"
-                  }
-                }
-              ]
-            },
-            "then": [
-              {
-                "if": {
-                  "condition": {
-                    "not": {
-                      "and": [
-                        {
-                          "compare": {
-                            "left": "$var.picking",
-                            "op": "==",
-                            "right": true
-                          }
-                        },
-                        {
-                          "isCurrentPlayer": {
-                            "player": "$actor"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  "then": [
-                    {
-                      "refuse": {
-                        "reason": "@onlyLeader"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "setVariable": {
-                  "name": "team",
-                  "remove": "seat_10"
-                }
-              }
-            ]
-          }
-        }
-      ]
     },
     {
       "id": "vote_10",
@@ -6430,7 +4653,6 @@
     "successes": 0,
     "fails": 0,
     "rejections": 0,
-    "picking": false,
     "played": [],
     "voted": [],
     "percival": false,
@@ -6521,6 +4743,7 @@
       "id": "propose",
       "name": "Pick the team",
       "actions": [
+        "choose",
         "propose"
       ],
       "onEnter": [
@@ -6533,22 +4756,6 @@
           "setVariable": {
             "name": "team",
             "value": []
-          }
-        },
-        {
-          "lua": {
-            "call": "shieldsHome"
-          }
-        },
-        {
-          "setVariable": {
-            "name": "picking",
-            "value": true
-          }
-        },
-        {
-          "lua": {
-            "call": "crownToLeader"
           }
         },
         {
@@ -6626,12 +4833,6 @@
       ],
       "effects": [
         {
-          "setVariable": {
-            "name": "picking",
-            "value": false
-          }
-        },
-        {
           "message": {
             "text": "@proposes"
           }
@@ -6640,6 +4841,63 @@
           "endPhase": {}
         }
       ]
+    },
+    {
+      "id": "choose",
+      "name": "Choose for the team",
+      "params": [
+        {
+          "name": "member",
+          "type": "seat"
+        }
+      ],
+      "effects": [
+        {
+          "if": {
+            "condition": {
+              "inList": {
+                "list": "$var.team",
+                "value": "$param.member"
+              }
+            },
+            "then": [
+              {
+                "setVariable": {
+                  "name": "team",
+                  "remove": "$param.member"
+                }
+              }
+            ],
+            "else": [
+              {
+                "if": {
+                  "condition": {
+                    "compare": {
+                      "left": "$var.team.count",
+                      "op": ">=",
+                      "right": "$var.size"
+                    }
+                  },
+                  "then": [
+                    {
+                      "refuse": {
+                        "reason": "@teamFull"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "setVariable": {
+                  "name": "team",
+                  "add": "$param.member"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "onPlayer": true
     },
     {
       "id": "team_vote",
@@ -7087,7 +5345,7 @@
     ]
   },
   "scripts": {
-    "global": "\nSIZES = { [5] = {2, 3, 2, 3, 3}, [6] = {2, 3, 4, 3, 4}, [7] = {2, 3, 3, 4, 4},\n          [8] = {3, 4, 4, 5, 5}, [9] = {3, 4, 4, 5, 5}, [10] = {3, 4, 4, 5, 5} }\n\n-- The team size and the fails it takes for the quest about to be played.\nfunction setQuest(ctx)\n  local players = #Game.getSeats()\n  local quest = Game.getVariable(\"quest\")\n  Game.setVariable(\"size\", SIZES[players][quest])\n  if quest == 4 and players >= 7 then Game.setVariable(\"needFails\", 2) else Game.setVariable(\"needFails\", 1) end\nend\n\n-- ---- where things are -------------------------------------------------------------------------------------------\n\nHOME = {}\n\nlocal function at(id)\n  local o = getObjectFromGUID(id)\n  return o and o.getPosition()\nend\n\nlocal function put(id, p)\n  local o = getObjectFromGUID(id)\n  if o and p then o.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z}) end\nend\n\nlocal function number(seat) return seat:match(\"(%d+)$\") end\n\n-- Before a seat: a share of the way from the middle of the table to its hand, and to the player's left by `left`.\nlocal function before(seat, share, left)\n  local p = at(\"hand_\" .. number(seat))\n  local x, z = p.x * share, p.z * share\n  if left then\n    local length = math.sqrt(p.x * p.x + p.z * p.z)\n    x, z = x + p.z / length * left, z - p.x / length * left\n  end\n  return {x = x, y = p.y, z = z}\nend\n\nlocal function startsWith(text, prefix) return text and text:sub(1, #prefix) == prefix end\n\n-- Every card on the table whose own id starts with one of `prefixes`, in hands and on the given zones.\nlocal function cardsIn(zones, prefixes)\n  local found = {}\n  for _, zone in ipairs(zones) do\n    local z = getObjectFromGUID(zone)\n    if z then\n      for _, o in ipairs(z.getObjects()) do\n        for _, prefix in ipairs(prefixes) do\n          if startsWith(o.getGUID(), prefix) then found[#found + 1] = o end\n        end\n      end\n    end\n  end\n  return found\nend\n\nlocal function hands()\n  local list = {}\n  for _, seat in ipairs(Game.getSeats()) do list[#list + 1] = \"hand_\" .. number(seat) end\n  return list\nend\n\n-- A card of a deck into a seat's hand (the deck names it by the card's own id).\nlocal function deal(deck, id, seat)\n  getObjectFromGUID(deck).takeObject({guid = id, position = at(\"hand_\" .. number(seat)), rotation = {x = 0, y = 0, z = 0}})\nend\n\n-- ---- the start ------------------------------------------------------------------------------------------------------\n\nPIECES = {\"crown\", \"reject_marker\", \"shield\", \"shield_2\", \"shield_3\", \"shield_4\", \"shield_5\"}\n\n-- Each player's role card into their hand, the minions' eyes for the ritual, where every piece starts.\nfunction setUp(ctx)\n  for _, id in ipairs(PIECES) do HOME[id] = at(id) end\n  local next = {}\n  local eyes = {}\n  local forMerlin = {}\n  local forPercival = {}\n  for _, seat in ipairs(Game.getSeats()) do\n    local role = Game.getRole(seat)\n    next[role] = (next[role] or 0) + 1\n    local id = \"role_\" .. role\n    if next[role] > 1 then id = id .. \"_\" .. next[role] end\n    deal(\"role_deck\", id, seat)\n    if Game.getTeam(seat) == \"evil\" and role ~= \"oberon\" then eyes[#eyes + 1] = seat end\n    -- The thumbs the game raises: every minion's but Mordred's for Merlin; Merlin's and Morgana's for Percival.\n    if Game.getTeam(seat) == \"evil\" and role ~= \"mordred\" then forMerlin[#forMerlin + 1] = seat end\n    if role == \"merlin\" or role == \"morgana\" then forPercival[#forPercival + 1] = seat end\n    if role == \"percival\" then Game.setVariable(\"percival\", true) end\n  end\n  Game.setVariable(\"minionEyes\", eyes)\n  Game.setVariable(\"thumbsMerlin\", forMerlin)\n  Game.setVariable(\"thumbsPercival\", forPercival)\nend\n\n-- The five quest cards for this many players, out of the box onto the middle of the table; the box goes with the rest.\nQUESTS = {}\nfunction layQuests(ctx)\n  local players = #Game.getSeats()\n  local group = players >= 8 and 8 or players\n  local left, right = at(\"reject_1\"), at(\"reject_5\")\n  local unit = (right.x - left.x) / 0.32   -- the track's ends are 0.32 m apart: table units per metre\n  local box = getObjectFromGUID(\"quest_box\")\n  for q = 1, 5 do\n    local card = box.takeObject({guid = \"quest_\" .. q .. \"_\" .. group,\n      position = {x = (-0.36 + 0.18 * (q - 1)) * unit, y = left.y + 0.3, z = 0.05 * unit}, rotation = {x = 0, y = 180, z = 0}})\n    QUESTS[q] = card and card.getGUID()\n  end\n  box.destruct()\nend\n\n-- ---- choosing the team ------------------------------------------------------------------------------------------\n\nfunction crownToLeader(ctx)\n  put(\"crown\", before(Game.getCurrentSeat(), 0.88, 0.15))\nend\n\nfunction shieldsHome(ctx)\n  for _, id in ipairs(PIECES) do\n    if startsWith(id, \"shield\") then put(id, HOME[id]) end\n  end\nend\n\n-- ---- the team vote: Approve and Reject cards ----------------------------------------------------------------------\n\nlocal function spots()\n  local list = {}\n  for _, seat in ipairs(Game.getSeats()) do list[#list + 1] = \"vote_\" .. number(seat) end\n  return list\nend\n\n-- Every vote card back into its deck: those on the spots and those left in hands.\nVOTES_SHOWN = 0\nlocal function collectVotes()\n  VOTES_SHOWN = VOTES_SHOWN + 1\n  local deck = getObjectFromGUID(\"vote_deck\")\n  local all = cardsIn(spots(), {\"aye\", \"nay\"})\n  for _, card in ipairs(cardsIn(hands(), {\"aye\", \"nay\"})) do all[#all + 1] = card end\n  for _, card in ipairs(all) do deck.putObject(card) end\nend\n\nfunction votesOut(ctx)\n  -- A quick new vote: last one's cards come back first.\n  collectVotes()\n  for k, seat in ipairs(Game.getSeats()) do\n    deal(\"vote_deck\", k == 1 and \"aye\" or (\"aye_\" .. k), seat)\n    deal(\"vote_deck\", k == 1 and \"nay\" or (\"nay_\" .. k), seat)\n  end\nend\n\n-- The cards laid down turn over together, and go back to their deck a moment later with those left in hands.\nfunction votesShown(ctx)\n  for _, card in ipairs(cardsIn(spots(), {\"aye\", \"nay\"})) do card.flip() end\n  local shown = VOTES_SHOWN\n  Wait.time(function() if VOTES_SHOWN == shown then collectVotes() end end, 5)\nend\n\n-- ---- the quest: Success and Fail cards ------------------------------------------------------------------------------\n\n-- Every quest card back into its deck: from the pile, turned over, or left in hands. A turning-over still running stops.\nQUEST_SHOWN = 0\nSHOWN = {}\nlocal function collectQuest()\n  QUEST_SHOWN = QUEST_SHOWN + 1\n  local deck = getObjectFromGUID(\"quest_deck\")\n  local pile = getObjectFromGUID(\"quest_pile\")\n  for _ = 1, #pile.getObjects() do\n    local card = pile.takeObject({position = at(\"quest_drop\")})\n    if card then deck.putObject(card) end\n  end\n  for _, card in ipairs(SHOWN) do deck.putObject(card) end\n  SHOWN = {}\n  for _, card in ipairs(cardsIn(hands(), {\"success\", \"fail\"})) do deck.putObject(card) end\nend\n\nfunction questOut(ctx)\n  collectQuest()\n  local team = Game.getVariable(\"team\") or {}\n  for k, seat in ipairs(team) do\n    deal(\"quest_deck\", k == 1 and \"success\" or (\"success_\" .. k), seat)\n    deal(\"quest_deck\", k == 1 and \"fail\" or (\"fail_\" .. k), seat)\n  end\nend\n\n-- A card laid on the quest pile goes into it, face down: nobody can tell later whose it was.\nfunction toPile(ctx)\n  local card = getObjectFromGUID(ctx.it)\n  if card then getObjectFromGUID(\"quest_pile\").putObject(card) end\nend\n\n-- The pile is shuffled and its cards turned over one by one; then they and the cards not played go back.\nfunction questShown(ctx)\n  local shown = QUEST_SHOWN\n  Wait.time(function()\n    if QUEST_SHOWN ~= shown then return end\n    local pile = getObjectFromGUID(\"quest_pile\")\n    pile.shuffle()\n    local count = #pile.getObjects()\n    local row = at(\"reveal_row\")\n    local unit = (at(\"reject_5\").x - at(\"reject_1\").x) / 0.32\n    for i = 1, count do\n      Wait.time(function()\n        if QUEST_SHOWN ~= shown then return end\n        local card = getObjectFromGUID(\"quest_pile\").takeObject({\n          position = {x = row.x + (i - (count + 1) / 2) * 0.08 * unit, y = row.y + 0.3, z = row.z},\n          rotation = {x = 0, y = 0, z = 0}})\n        if card then SHOWN[#SHOWN + 1] = card end\n      end, 0.9 * i)\n    end\n    Wait.time(function() if QUEST_SHOWN == shown then collectQuest() end end, 0.9 * count + 5)\n  end, 0.5)\nend\n\nfunction markQuest(ctx)\n  local quest = math.floor(Game.getVariable(\"quest\"))\n  if ctx.args.result == \"fail\" then\n    local n = math.floor(Game.getVariable(\"fails\"))\n    put(n == 1 and \"evil\" or (\"evil_\" .. n), at(QUESTS[quest]))\n  else\n    local n = math.floor(Game.getVariable(\"successes\"))\n    put(n == 1 and \"good\" or (\"good_\" .. n), at(QUESTS[quest]))\n  end\nend\n\nfunction rejectTrack(ctx)\n  local n = math.floor(Game.getVariable(\"rejections\"))\n  if n == 0 then put(\"reject_marker\", HOME[\"reject_marker\"]) else put(\"reject_marker\", at(\"reject_\" .. n)) end\nend\n\n-- ---- the end ----------------------------------------------------------------------------------------------------------\n\n-- Every role card turned over in front of its player.\nfunction rolesShown(ctx)\n  for _, seat in ipairs(Game.getSeats()) do\n    for _, card in ipairs(cardsIn({\"hand_\" .. number(seat)}, {\"role_\"})) do\n      local p = before(seat, 0.56)\n      card.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z})\n      card.setRotationSmooth({x = 0, y = 0, z = 0})\n    end\n  end\nend\n"
+    "global": "\nSIZES = { [5] = {2, 3, 2, 3, 3}, [6] = {2, 3, 4, 3, 4}, [7] = {2, 3, 3, 4, 4},\n          [8] = {3, 4, 4, 5, 5}, [9] = {3, 4, 4, 5, 5}, [10] = {3, 4, 4, 5, 5} }\n\n-- The team size and the fails it takes for the quest about to be played.\nfunction setQuest(ctx)\n  local players = #Game.getSeats()\n  local quest = Game.getVariable(\"quest\")\n  Game.setVariable(\"size\", SIZES[players][quest])\n  if quest == 4 and players >= 7 then Game.setVariable(\"needFails\", 2) else Game.setVariable(\"needFails\", 1) end\nend\n\n-- ---- where things are -------------------------------------------------------------------------------------------\n\nHOME = {}\n\nlocal function at(id)\n  local o = getObjectFromGUID(id)\n  return o and o.getPosition()\nend\n\nlocal function put(id, p)\n  local o = getObjectFromGUID(id)\n  if o and p then o.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z}) end\nend\n\nlocal function number(seat) return seat:match(\"(%d+)$\") end\n\n-- Before a seat: a share of the way from the middle of the table to its hand, and to the player's left by `left`.\nlocal function before(seat, share, left)\n  local p = at(\"hand_\" .. number(seat))\n  local x, z = p.x * share, p.z * share\n  if left then\n    local length = math.sqrt(p.x * p.x + p.z * p.z)\n    x, z = x + p.z / length * left, z - p.x / length * left\n  end\n  return {x = x, y = p.y, z = z}\nend\n\nlocal function startsWith(text, prefix) return text and text:sub(1, #prefix) == prefix end\n\n-- Every card on the table whose own id starts with one of `prefixes`, in hands and on the given zones.\nlocal function cardsIn(zones, prefixes)\n  local found = {}\n  for _, zone in ipairs(zones) do\n    local z = getObjectFromGUID(zone)\n    if z then\n      for _, o in ipairs(z.getObjects()) do\n        for _, prefix in ipairs(prefixes) do\n          if startsWith(o.getGUID(), prefix) then found[#found + 1] = o end\n        end\n      end\n    end\n  end\n  return found\nend\n\nlocal function hands()\n  local list = {}\n  for _, seat in ipairs(Game.getSeats()) do list[#list + 1] = \"hand_\" .. number(seat) end\n  return list\nend\n\n-- A card of a deck into a seat's hand (the deck names it by the card's own id).\nlocal function deal(deck, id, seat)\n  getObjectFromGUID(deck).takeObject({guid = id, position = at(\"hand_\" .. number(seat)), rotation = {x = 0, y = 0, z = 0}})\nend\n\n-- ---- the start ------------------------------------------------------------------------------------------------------\n\nPIECES = {\"reject_marker\"}\n\n-- Each player's role card into their hand, the minions' eyes for the ritual, where every piece starts.\nfunction setUp(ctx)\n  for _, id in ipairs(PIECES) do HOME[id] = at(id) end\n  local next = {}\n  local eyes = {}\n  local forMerlin = {}\n  local forPercival = {}\n  for _, seat in ipairs(Game.getSeats()) do\n    local role = Game.getRole(seat)\n    next[role] = (next[role] or 0) + 1\n    local id = \"role_\" .. role\n    if next[role] > 1 then id = id .. \"_\" .. next[role] end\n    deal(\"role_deck\", id, seat)\n    if Game.getTeam(seat) == \"evil\" and role ~= \"oberon\" then eyes[#eyes + 1] = seat end\n    -- The thumbs the game raises: every minion's but Mordred's for Merlin; Merlin's and Morgana's for Percival.\n    if Game.getTeam(seat) == \"evil\" and role ~= \"mordred\" then forMerlin[#forMerlin + 1] = seat end\n    if role == \"merlin\" or role == \"morgana\" then forPercival[#forPercival + 1] = seat end\n    if role == \"percival\" then Game.setVariable(\"percival\", true) end\n  end\n  Game.setVariable(\"minionEyes\", eyes)\n  Game.setVariable(\"thumbsMerlin\", forMerlin)\n  Game.setVariable(\"thumbsPercival\", forPercival)\nend\n\n-- The five quest cards for this many players, out of the box onto the middle of the table; the box goes with the rest.\nQUESTS = {}\nfunction layQuests(ctx)\n  local players = #Game.getSeats()\n  local group = players >= 8 and 8 or players\n  local left, right = at(\"reject_1\"), at(\"reject_5\")\n  local unit = (right.x - left.x) / 0.32   -- the track's ends are 0.32 m apart: table units per metre\n  local box = getObjectFromGUID(\"quest_box\")\n  for q = 1, 5 do\n    local card = box.takeObject({guid = \"quest_\" .. q .. \"_\" .. group,\n      position = {x = (-0.36 + 0.18 * (q - 1)) * unit, y = left.y + 0.3, z = 0.05 * unit}, rotation = {x = 0, y = 180, z = 0}})\n    QUESTS[q] = card and card.getGUID()\n  end\n  box.destruct()\nend\n\n-- ---- choosing the team ------------------------------------------------------------------------------------------\n\n-- ---- the team vote: Approve and Reject cards ----------------------------------------------------------------------\n\nlocal function spots()\n  local list = {}\n  for _, seat in ipairs(Game.getSeats()) do list[#list + 1] = \"vote_\" .. number(seat) end\n  return list\nend\n\n-- Every vote card back into its deck: those on the spots and those left in hands.\nVOTES_SHOWN = 0\nlocal function collectVotes()\n  VOTES_SHOWN = VOTES_SHOWN + 1\n  local deck = getObjectFromGUID(\"vote_deck\")\n  local all = cardsIn(spots(), {\"aye\", \"nay\"})\n  for _, card in ipairs(cardsIn(hands(), {\"aye\", \"nay\"})) do all[#all + 1] = card end\n  for _, card in ipairs(all) do deck.putObject(card) end\nend\n\nfunction votesOut(ctx)\n  -- A quick new vote: last one's cards come back first.\n  collectVotes()\n  for k, seat in ipairs(Game.getSeats()) do\n    deal(\"vote_deck\", k == 1 and \"aye\" or (\"aye_\" .. k), seat)\n    deal(\"vote_deck\", k == 1 and \"nay\" or (\"nay_\" .. k), seat)\n  end\nend\n\n-- The cards laid down turn over together, and go back to their deck a moment later with those left in hands.\nfunction votesShown(ctx)\n  for _, card in ipairs(cardsIn(spots(), {\"aye\", \"nay\"})) do card.flip() end\n  local shown = VOTES_SHOWN\n  Wait.time(function() if VOTES_SHOWN == shown then collectVotes() end end, 5)\nend\n\n-- ---- the quest: Success and Fail cards ------------------------------------------------------------------------------\n\n-- Every quest card back into its deck: from the pile, turned over, or left in hands. A turning-over still running stops.\nQUEST_SHOWN = 0\nSHOWN = {}\nlocal function collectQuest()\n  QUEST_SHOWN = QUEST_SHOWN + 1\n  local deck = getObjectFromGUID(\"quest_deck\")\n  local pile = getObjectFromGUID(\"quest_pile\")\n  for _ = 1, #pile.getObjects() do\n    local card = pile.takeObject({position = at(\"quest_drop\")})\n    if card then deck.putObject(card) end\n  end\n  for _, card in ipairs(SHOWN) do deck.putObject(card) end\n  SHOWN = {}\n  for _, card in ipairs(cardsIn(hands(), {\"success\", \"fail\"})) do deck.putObject(card) end\nend\n\nfunction questOut(ctx)\n  collectQuest()\n  local team = Game.getVariable(\"team\") or {}\n  for k, seat in ipairs(team) do\n    deal(\"quest_deck\", k == 1 and \"success\" or (\"success_\" .. k), seat)\n    deal(\"quest_deck\", k == 1 and \"fail\" or (\"fail_\" .. k), seat)\n  end\nend\n\n-- A card laid on the quest pile goes into it, face down: nobody can tell later whose it was.\nfunction toPile(ctx)\n  local card = getObjectFromGUID(ctx.it)\n  if card then getObjectFromGUID(\"quest_pile\").putObject(card) end\nend\n\n-- The pile is shuffled and its cards turned over one by one; then they and the cards not played go back.\nfunction questShown(ctx)\n  local shown = QUEST_SHOWN\n  Wait.time(function()\n    if QUEST_SHOWN ~= shown then return end\n    local pile = getObjectFromGUID(\"quest_pile\")\n    pile.shuffle()\n    local count = #pile.getObjects()\n    local row = at(\"reveal_row\")\n    local unit = (at(\"reject_5\").x - at(\"reject_1\").x) / 0.32\n    for i = 1, count do\n      Wait.time(function()\n        if QUEST_SHOWN ~= shown then return end\n        local card = getObjectFromGUID(\"quest_pile\").takeObject({\n          position = {x = row.x + (i - (count + 1) / 2) * 0.08 * unit, y = row.y + 0.3, z = row.z},\n          rotation = {x = 0, y = 0, z = 0}})\n        if card then SHOWN[#SHOWN + 1] = card end\n      end, 0.9 * i)\n    end\n    Wait.time(function() if QUEST_SHOWN == shown then collectQuest() end end, 0.9 * count + 5)\n  end, 0.5)\nend\n\nfunction markQuest(ctx)\n  local quest = math.floor(Game.getVariable(\"quest\"))\n  if ctx.args.result == \"fail\" then\n    local n = math.floor(Game.getVariable(\"fails\"))\n    put(n == 1 and \"evil\" or (\"evil_\" .. n), at(QUESTS[quest]))\n  else\n    local n = math.floor(Game.getVariable(\"successes\"))\n    put(n == 1 and \"good\" or (\"good_\" .. n), at(QUESTS[quest]))\n  end\nend\n\nfunction rejectTrack(ctx)\n  local n = math.floor(Game.getVariable(\"rejections\"))\n  if n == 0 then put(\"reject_marker\", HOME[\"reject_marker\"]) else put(\"reject_marker\", at(\"reject_\" .. n)) end\nend\n\n-- ---- the end ----------------------------------------------------------------------------------------------------------\n\n-- Every role card turned over in front of its player.\nfunction rolesShown(ctx)\n  for _, seat in ipairs(Game.getSeats()) do\n    for _, card in ipairs(cardsIn({\"hand_\" .. number(seat)}, {\"role_\"})) do\n      local p = before(seat, 0.56)\n      card.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z})\n      card.setRotationSmooth({x = 0, y = 0, z = 0})\n    end\n  end\nend\n"
   },
   "roles": {
     "teams": [
@@ -7183,13 +5441,33 @@
       }
     }
   },
+  "marks": [
+    {
+      "id": "leader",
+      "seats": "$current",
+      "shape": "crown",
+      "color": [
+        0.98,
+        0.78,
+        0.2
+      ]
+    },
+    {
+      "id": "team",
+      "seats": "$var.team",
+      "color": [
+        0.85,
+        0.9,
+        1.0
+      ]
+    }
+  ],
   "translations": {
     "en": {
-      "strings.leads": "{$current.name} leads quest {$var.quest}: drag {$var.size} shields in front of the team, then propose it.",
+      "strings.leads": "{$current.name} leads quest {$var.quest}: click {$var.size} players for the team (again to take one off), then propose it.",
       "strings.proposes": "{$actor.name} proposes {$var.team}. Lay Approve or Reject face down on your spot.",
       "strings.questStarts": "{$var.team}: lay Success or Fail face down on the quest pile.",
-      "strings.onlyLeader": "Only the leader moves the shields, while choosing the team.",
-      "strings.teamFull": "The team already has {$var.size} players: take a shield back first.",
+      "strings.teamFull": "The team already has {$var.size} players: click one to take them off first.",
       "strings.notYourSpot": "That is another player's spot.",
       "strings.oneVote": "There is a card on your spot already: take it back to change your vote.",
       "strings.onePlayed": "You have played your card for this quest.",
@@ -7487,11 +5765,10 @@
       "cards.nay_10.description": "No",
       "cards.success_10.description": "OK",
       "cards.fail_10.description": "X",
-      "strings.leads": "{$current.name} lidera la misión {$var.quest}: arrastra {$var.size} escudos frente al equipo y propónlo.",
+      "strings.leads": "{$current.name} lidera la misión {$var.quest}: haz clic en {$var.size} jugadores para el equipo (otra vez para sacar a uno) y propónlo.",
       "strings.proposes": "{$actor.name} propone a {$var.team}. Pon Aprobar o Rechazar boca abajo en tu lugar.",
       "strings.questStarts": "{$var.team}: pongan Éxito o Fracaso boca abajo en el montón de la misión.",
-      "strings.onlyLeader": "Solo el líder mueve los escudos, mientras elige el equipo.",
-      "strings.teamFull": "El equipo ya tiene {$var.size} jugadores: retira antes un escudo.",
+      "strings.teamFull": "El equipo ya tiene {$var.size} jugadores: haz clic en uno para sacarlo antes.",
       "strings.notYourSpot": "Ese es el lugar de otro jugador.",
       "strings.oneVote": "Ya hay una carta en tu lugar: retírala para cambiar tu voto.",
       "strings.onePlayed": "Ya jugaste tu carta en esta misión.",
@@ -7602,12 +5879,7 @@
       "objects.reject_5.text.title": "Gana el mal",
       "objects.reject_5.text.body": "5",
       "objects.reject_marker.name": "Rechazos",
-      "objects.crown.name": "Líder",
-      "objects.shield.name": "Equipo",
-      "objects.shield_2.name": "Equipo",
-      "objects.shield_3.name": "Equipo",
-      "objects.shield_4.name": "Equipo",
-      "objects.shield_5.name": "Equipo",
+      "actions.choose.name": "Elegir para el equipo",
       "objects.good.name": "Misión cumplida",
       "objects.evil.name": "Misión fracasada",
       "objects.good_2.name": "Misión cumplida",
@@ -7620,25 +5892,15 @@
       "objects.quest_pile.name": "Montón de la misión",
       "zones.quest_drop.name": "Montón de la misión",
       "zones.reveal_row.name": "Cartas de la misión",
-      "zones.team_1.name": "Equipo",
       "zones.vote_1.name": "Voto",
-      "zones.team_2.name": "Equipo",
       "zones.vote_2.name": "Voto",
-      "zones.team_3.name": "Equipo",
       "zones.vote_3.name": "Voto",
-      "zones.team_4.name": "Equipo",
       "zones.vote_4.name": "Voto",
-      "zones.team_5.name": "Equipo",
       "zones.vote_5.name": "Voto",
-      "zones.team_6.name": "Equipo",
       "zones.vote_6.name": "Voto",
-      "zones.team_7.name": "Equipo",
       "zones.vote_7.name": "Voto",
-      "zones.team_8.name": "Equipo",
       "zones.vote_8.name": "Voto",
-      "zones.team_9.name": "Equipo",
       "zones.vote_9.name": "Voto",
-      "zones.team_10.name": "Equipo",
       "zones.vote_10.name": "Voto"
     }
   }

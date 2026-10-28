@@ -20,17 +20,20 @@ namespace Core.Tests.Engine
     ""teams"": [ { ""id"": ""good"", ""name"": ""Good"" }, { ""id"": ""evil"", ""name"": ""Evil"" } ],
     ""list"": [ { ""id"": ""loner"", ""team"": ""evil"" }, { ""id"": ""minion"", ""team"": ""evil"" }, { ""id"": ""servant"", ""team"": ""good"", ""count"": ""fill"" } ]
   },
-  ""variables"": { ""eyes"": [], ""said"": """" },
+  ""variables"": { ""eyes"": [], ""said"": """", ""chosen"": [] },
   ""secretVariables"": [ ""eyes"" ],
+  ""marks"": [ { ""id"": ""leader"", ""seats"": ""$current"", ""shape"": ""crown"" }, { ""id"": ""chosen"", ""seats"": ""$var.chosen"", ""shape"": ""arrow"" } ],
   ""turn"": { ""phases"": [ ""talk"", ""vote"" ] },
   ""phases"": [
     { ""id"": ""close"", ""awake"": ""nobody"", ""seconds"": 3, ""next"": ""evil"", ""sleepText"": ""Eyes closed."", ""raised"": ""role:minion"" },
     { ""id"": ""evil"", ""awake"": ""$var.eyes"", ""seconds"": 8, ""next"": ""talk"", ""banner"": ""Minions, open your eyes."", ""raised"": ""role:minion"" },
-    { ""id"": ""talk"", ""actions"": [ ""next"" ] },
+    { ""id"": ""talk"", ""actions"": [ ""next"", ""choose"" ] },
     { ""id"": ""vote"", ""actions"": [ ""ballot"" ] }
   ],
   ""actions"": [
     { ""id"": ""next"", ""actor"": ""any"", ""effects"": [ { ""endPhase"": {} } ] },
+    { ""id"": ""choose"", ""actor"": ""current"", ""onPlayer"": true, ""params"": [ { ""name"": ""who"", ""type"": ""seat"" } ],
+      ""effects"": [ { ""setVariable"": { ""name"": ""chosen"", ""add"": ""$param.who"" } } ] },
     { ""id"": ""ballot"", ""name"": ""Ballot"", ""actor"": ""any"",
       ""preconditions"": [ { ""or"": [ { ""compare"": { ""left"": ""$actor.team"", ""right"": ""evil"" } }, { ""compare"": { ""left"": ""$param.choice"", ""right"": ""yes"" } } ] } ],
       ""vote"": { ""options"": [ ""yes"", ""no"" ], ""reveal"": ""named"",
@@ -106,6 +109,24 @@ namespace Core.Tests.Engine
         }
 
         [Fact]
+        public void Marks_FollowWhoWearsThem()
+        {
+            var game = Start();
+            var leader = game.State.Marks.Single(m => m.Id == "leader");
+            var chosen = game.State.Marks.Single(m => m.Id == "chosen");
+            Assert.Equal(new[] { game.Session!.CurrentSeat }, game.Marked(leader));
+            Assert.Empty(game.Marked(chosen));
+            EndTimed(game);
+            EndTimed(game);
+            var other = game.Playing.First(p => p.Id != game.Session.CurrentSeat).Id;
+            Assert.True(game.Execute(new PerformActionCommand { Actor = game.Session.CurrentSeat, ActionId = "choose", Params = { ["who"] = other } }).Ok);
+            Assert.Equal(new[] { other }, game.Marked(chosen));
+            // A peer sees them too: marks are for everyone.
+            var peer = new GameEngine(TableJson.Parse(SeatView.Serialize(game.State, other)).State!, 1);
+            Assert.Equal(new[] { other }, peer.Marked(chosen));
+        }
+
+        [Fact]
         public void RaisedThumbs_AreSeenByTheAwakeOnly()
         {
             var game = Start();
@@ -164,6 +185,8 @@ namespace Core.Tests.Engine
             Assert.Contains(errors, e => e.Path == "phases[0].next" && e.Code == ErrorCodes.UnknownPhase);
             Assert.Contains(errors, e => e.Path == "phases[1].seconds");
             Assert.Contains(errors, e => e.Path.EndsWith("castBallot.action") && e.Code == ErrorCodes.UnknownAction);
+            var noSeat = TableValidator.Validate(TableJson.Parse(Json.Replace(@"""type"": ""seat"" } ],", @"""type"": ""number"" } ],")).State!);
+            Assert.Contains(noSeat, e => e.Path.EndsWith("onPlayer"));
         }
     }
 }

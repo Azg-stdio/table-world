@@ -143,6 +143,9 @@ namespace TableWorld.View.Chalkers
         /// </summary>
         public Vector3 Eyes => _head.TransformPoint(new Vector3(0f, 0.17f, 0.03f));
 
+        /// <summary>The eyes as drawn: the worn model's own (a hunched cartoon's sit lower than the shapes'), else the shapes'.</summary>
+        public Vector3 SeenEyes => _model != null ? _model.Eyes : Eyes;
+
         /// <summary>
         /// Where the seated camera sits: the eyes with the head straight, carried only by leaning in. The head still turns
         /// where you look, but the view turns in place instead of swinging round the neck with it, and emotes, breathing

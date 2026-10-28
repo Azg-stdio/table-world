@@ -52,6 +52,21 @@ namespace Core.Engine
             return raised.Contains(seat) && (viewer == null || IsAwake(viewer, viewer));
         }
 
+        /// <summary>The seats wearing <paramref name="mark"/> now, as this machine knows them (none outside a game).</summary>
+        public List<string> Marked(MarkDef mark)
+        {
+            if (Session is not { Started: true, Over: false })
+                return new List<string>();
+            try
+            {
+                return Playing.Where(s => !IsOut(s.Id) && AwakeByRule(s.Id, null, mark.Seats)).Select(s => s.Id).ToList();
+            }
+            catch (RuleException)
+            {
+                return new List<string>();
+            }
+        }
+
         /// <summary>A seat named by an audience written as a phase's <c>awake</c> is (team, role, seat, list reference), as the host knows it.</summary>
         private bool InAudience(string audience, string seat) => AwakeByRule(seat, null, audience);
 

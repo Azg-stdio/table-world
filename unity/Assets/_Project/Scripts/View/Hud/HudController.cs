@@ -329,6 +329,7 @@ namespace TableWorld.View.Hud
                 var label = new Label();
                 label.AddToClassList("nameplate");
                 label.pickingMode = PickingMode.Ignore;
+                label.RegisterCallback<ClickEvent>(_ => { if (label.userData is string seat) PerformOnPlayer(seat); });
                 layer.Add(label);
                 _nameplates.Add(label);
             }
@@ -341,6 +342,11 @@ namespace TableWorld.View.Hud
                     continue;
                 var (seat, _, color) = plates[i];
                 label.text = _session?.NameAtSeat(seat) ?? Names.Seat(_table.Engine.State, seat);
+                // A player you may pick now (the leader choosing the team): the name is a button, as is the body.
+                label.userData = seat;
+                var choosable = PlayerAction(seat) != null;
+                label.pickingMode = choosable ? PickingMode.Position : PickingMode.Ignore;
+                label.EnableInClassList("nameplate--choosable", choosable);
                 var luminance = 0.2126f * color.r + 0.7152f * color.g + 0.0722f * color.b;
                 label.style.backgroundColor = new Color(color.r, color.g, color.b, 0.85f);
                 label.style.color = luminance > 0.5f ? new Color(0.08f, 0.08f, 0.1f) : Color.white;
@@ -353,6 +359,56 @@ namespace TableWorld.View.Hud
         }
 
         private readonly List<Label> _nameplates = new List<Label>();
+
+        /// <summary>
+        /// The action this player would do by clicking <paramref name="seat"/>'s chalker now (an <c>onPlayer</c> action legal
+        /// with that seat), or null.
+        /// </summary>
+        private (ActionDef Action, Dictionary<string, string> Choice)? PlayerAction(string seat)
+        {
+            var game = _table.Game;
+            var me = _table.LocalSeat;
+            if (game?.Session is not { Started: true, Over: false } || me == null)
+                return null;
+            foreach (var legal in game.LegalActions(me))
+            {
+                var action = game.State.Actions.FirstOrDefault(a => a.Id == legal.ActionId);
+                if (action is not { OnPlayer: true })
+                    continue;
+                var param = action.Params[0].Name;
+                var choice = legal.Choices.FirstOrDefault(c => c.TryGetValue(param, out var v) && v == seat);
+                if (choice != null)
+                    return (action, choice);
+            }
+            return null;
+        }
+
+        private void PerformOnPlayer(string seat)
+        {
+            if (PlayerAction(seat) is not { } todo)
+                return;
+            var result = _table.Execute(new PerformActionCommand { Actor = _table.LocalSeat, ActionId = todo.Action.Id, Params = new Dictionary<string, string>(todo.Choice) });
+            if (!result.Ok)
+                ShowStatus(Ui.Refusal(result.Error), error: true);
+        }
+
+        private Vector2 _clickFrom;
+
+        /// <summary>A click on a player's chalker (not a drag, nothing held) does what clicking that player does now.</summary>
+        private void ClickPlayer()
+        {
+            if (UnityEngine.InputSystem.Mouse.current is not { } mouse || _chalkersView == null || Camera.main == null)
+                return;
+            var at = mouse.position.ReadValue();
+            if (mouse.leftButton.wasPressedThisFrame)
+                _clickFrom = at;
+            if (!mouse.leftButton.wasReleasedThisFrame || (at - _clickFrom).magnitude > 6f || IsOverUi(at))
+                return;
+            if (_interaction != null && (_interaction.Held != null || _interaction.Hovered != null))
+                return;
+            if (_chalkersView.SeatAt(Camera.main, at) is { } seat)
+                PerformOnPlayer(seat);
+        }
         private TableWorld.View.Chalkers.ChalkersView _chalkersView;
 
         private void UpdatePresenceLabels()
@@ -651,6 +707,7 @@ namespace TableWorld.View.Hud
                 ShowStatus(Ui.T("Autosaved ({autosaved})", ("autosaved", autosaved)), error: false);
             UpdatePresenceLabels();
             UpdateNameplates();
+            ClickPlayer();
             if (_netStatus != null && _session != null)
                 _netStatus.text = _session.Status == "offline" ? "" : _session.Status;
             // K: a wink at the face this player looks at, seen by whoever looks back (ADR 0012 §6).
@@ -1073,7 +1130,7 @@ namespace TableWorld.View.Hud
             var legal = session is { Started: true, Over: false }
                 ? state.Players.Seats.Where(s => s.Id == _table.LocalSeat)
                     .SelectMany(s => game.LegalActions(s.Id).Select(a => (Seat: s.Id, Action: a)))
-                    .Where(l => state.Actions.FirstOrDefault(a => a.Id == l.Action.ActionId)?.Button != false).ToList()
+                    .Where(l => state.Actions.FirstOrDefault(a => a.Id == l.Action.ActionId) is { Button: true, OnPlayer: false }).ToList()
                 : new List<(string Seat, LegalAction Action)>();
             var turns = state.FreeTurns;
             // Another table loaded (even one that looks the same) redraws: its toggles and buttons are its own.

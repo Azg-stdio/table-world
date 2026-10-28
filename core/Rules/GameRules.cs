@@ -164,6 +164,12 @@ namespace Core.Rules
         /// </summary>
         [System.ComponentModel.DefaultValue(true)]
         public bool Button { get; set; } = true;
+
+        /// <summary>
+        /// Done by clicking a player: an action whose one parameter is a seat is performed with the seat whose chalker (or
+        /// name) the player clicks, while it is legal for that seat (the leader picking the team). No button is shown.
+        /// </summary>
+        public bool OnPlayer { get; set; }
     }
 
     /// <summary>A piece put in (or taken out of) a zone during a blind round, whose zone effects wait for the reveal.</summary>
@@ -197,6 +203,20 @@ namespace Core.Rules
     }
 
     /// <summary>Game progress. Written by the engine, saved with the table; an authored game has none.</summary>
+    /// <summary>A mark over players' chalkers (<see cref="TableState.Marks"/>).</summary>
+    public sealed class MarkDef
+    {
+        public string Id { get; set; } = "";
+        /// <summary>Who wears it: <c>$current</c>, a list such as <c>$var.team</c>, <c>team:&lt;id&gt;</c>, <c>role:&lt;id&gt;</c> or a seat.</summary>
+        public string Seats { get; set; } = "";
+        public MarkShape Shape { get; set; }
+        /// <summary>Its colour, [r, g, b] from 0 to 1; gold when left out.</summary>
+        public float[]? Color { get; set; }
+    }
+
+    /// <summary><c>arrow</c>: a bobbing arrow pointing down at the head; <c>crown</c>: a crown floating over it.</summary>
+    public enum MarkShape { Arrow, Crown }
+
     /// <summary>A collection written even when empty, because empty says something null does not (nobody awake, as told to a sleeper).</summary>
     [AttributeUsage(AttributeTargets.Property)]
     public sealed class KeepEmptyAttribute : Attribute

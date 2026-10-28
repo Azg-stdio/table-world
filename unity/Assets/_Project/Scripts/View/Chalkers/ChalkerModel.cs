@@ -326,8 +326,8 @@ namespace TableWorld.View.Chalkers
                 if (holds)
                 {
                     var grip = chalker.CardHold.Value;
-                    // The wrist on the holder's side of the fan's foot: the fingers, along the forearm, close over the cards' foot.
-                    target = grip.Grip + grip.Face * (_handLength[side] * 0.55f) - grip.Up * 0.025f;
+                    // The fan is held on the left hand's own side (no arm across the chest); the wrist just below its foot.
+                    target = grip.Grip - grip.Up * (_handLength[side] * 0.5f);
                 }
                 // Resting on the table (seated, the hand down at the table's height, doing nothing else): the hand lies flat,
                 // palm down and fingers forward, lifted by its own thickness so it does not sink into the table.

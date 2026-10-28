@@ -9,14 +9,14 @@ namespace TableWorld.View.Chalkers
     /// </summary>
     public readonly struct HandHold
     {
-        /// <summary>Lowered: the grip over the table's edge at chest height (the chair is <see cref="ChalkersView.SeatDistance"/> out), in the chalker's space; seated, the cards peek in at the bottom of the view.</summary>
-        public static readonly Vector3 LoweredGrip = new Vector3(0f, 0.16f, 0.3f);
+        /// <summary>Lowered: the grip over the table's edge at chest height, on the holding (left) hand's side so the arm does not cross the chest (the chair is <see cref="ChalkersView.SeatDistance"/> out), in the chalker's space.</summary>
+        public static readonly Vector3 LoweredGrip = new Vector3(-0.11f, 0.17f, 0.34f);
         /// <summary>
         /// Raised: the grip under the chin, a forearm out, where the fan reads whole from the eyes. A face further forward
         /// (a snout) pushes it out to
         /// <see cref="FaceClearance"/> in front.
         /// </summary>
-        public static readonly Vector3 RaisedGrip = new Vector3(0f, 0.38f, 0.31f);
+        public static readonly Vector3 RaisedGrip = new Vector3(-0.07f, 0.38f, 0.33f);
         public const float FaceClearance = 0.12f;
         /// <summary>How far the cards lean back from upright, lowered and raised, in degrees.</summary>
         public const float LoweredLean = 40f;

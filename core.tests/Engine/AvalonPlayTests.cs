@@ -73,11 +73,9 @@ namespace Core.Tests.Engine
                     var team = ((JArray)s.Variables["team"]!).Select(t => (string)t!).ToList();
                     if (team.Count >= (int)s.Variables["size"]!)
                         return (s.CurrentSeat, new PerformActionCommand { Actor = s.CurrentSeat, ActionId = "propose" });
-                    var free = playing.Where(p => !team.Contains(p)).ToList();
-                    var member = free[chooser.Next(free.Count)];
-                    var inZones = new HashSet<string>(playing.SelectMany(p => game.Table.ObjectsIn("team_" + Number(p)).Select(o => o.Id)));
-                    var shield = game.State.Objects.First(o => o.Tags.Contains("shield") && !inZones.Contains(o.Id));
-                    return (s.CurrentSeat, new MoveCommand { Actor = s.CurrentSeat, ObjectId = shield.Id, Position = At(game, "team_" + Number(member)) });
+                    // The leader clicks players; now and then one already chosen, which takes them off again.
+                    var member = team.Count > 0 && chooser.Next(4) == 0 ? team[chooser.Next(team.Count)] : playing.Where(p => !team.Contains(p)).ToList()[chooser.Next(playing.Count - team.Count)];
+                    return (s.CurrentSeat, new PerformActionCommand { Actor = s.CurrentSeat, ActionId = "choose", Params = { ["member"] = member } });
                 case "team_vote":
                     var voter = playing.First(p => s.Secrets.All(c => c.Seat != p || c.Action != "team_vote"));
                     var vote = InHand(game, voter, chooser.Next(3) == 0 ? "nay" : "aye")!;

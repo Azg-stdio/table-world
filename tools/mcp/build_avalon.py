@@ -8,7 +8,7 @@ Played with the hands, as at a real table (Miguel, 2026-10-28):
 - each player finds their role card in their hand; nobody is told who the others are;
 - the ritual: timed eyes-closed steps (the minions see each other, raise their thumbs for Merlin, Merlin and Morgana for
   Percival), with a banner for the awake and a countdown the host can skip;
-- the leader drags shields in front of the players they choose and proposes the team;
+- the leader clicks the players they choose (again to take one off): an arrow floats over each, a crown over the leader;
 - everyone lays an Approve or Reject card face down on their spot; they turn over together when the last is down;
 - the team lays Success or Fail cards on the quest pile, which is shuffled and turned over one by one.
 
@@ -79,16 +79,14 @@ call("new_game", id="avalon", name="Avalon", players=10, minPlayers=5, maxPlayer
 
 # The game's own sentences are strings (@key), so they can be translated like every other text.
 STRINGS = {
-    'leads': ('{$current.name} leads quest {$var.quest}: drag {$var.size} shields in front of the team, then propose it.',
-              '{$current.name} lidera la misión {$var.quest}: arrastra {$var.size} escudos frente al equipo y propónlo.'),
+    'leads': ('{$current.name} leads quest {$var.quest}: click {$var.size} players for the team (again to take one off), then propose it.',
+              '{$current.name} lidera la misión {$var.quest}: haz clic en {$var.size} jugadores para el equipo (otra vez para sacar a uno) y propónlo.'),
     'proposes': ('{$actor.name} proposes {$var.team}. Lay Approve or Reject face down on your spot.',
                  '{$actor.name} propone a {$var.team}. Pon Aprobar o Rechazar boca abajo en tu lugar.'),
     'questStarts': ('{$var.team}: lay Success or Fail face down on the quest pile.',
                     '{$var.team}: pongan Éxito o Fracaso boca abajo en el montón de la misión.'),
-    'onlyLeader': ('Only the leader moves the shields, while choosing the team.',
-                   'Solo el líder mueve los escudos, mientras elige el equipo.'),
-    'teamFull': ('The team already has {$var.size} players: take a shield back first.',
-                 'El equipo ya tiene {$var.size} jugadores: retira antes un escudo.'),
+    'teamFull': ('The team already has {$var.size} players: click one to take them off first.',
+                 'El equipo ya tiene {$var.size} jugadores: haz clic en uno para sacarlo antes.'),
     'notYourSpot': ("That is another player's spot.", 'Ese es el lugar de otro jugador.'),
     'oneVote': ('There is a card on your spot already: take it back to change your vote.',
                 'Ya hay una carta en tu lugar: retírala para cambiar tu voto.'),
@@ -125,7 +123,7 @@ call("set_roles", rolesJson=json.dumps({
 
 call("set_variables", variablesJson=json.dumps({
     "quest": 1, "size": 2, "needFails": 1, "team": [], "successes": 0, "fails": 0, "rejections": 0,
-    "picking": False, "played": [], "voted": [], "percival": False}))
+    "played": [], "voted": [], "percival": False}))
 # Who opens their eyes with the minions (all of them but Oberon): only the host's rules may hold it.
 call("set_variables", variablesJson=json.dumps({"minionEyes": [], "thumbsMerlin": [], "thumbsPercival": []}),
      secret="minionEyes,thumbsMerlin,thumbsPercival")
@@ -200,7 +198,7 @@ end
 
 -- ---- the start ------------------------------------------------------------------------------------------------------
 
-PIECES = {"crown", "reject_marker", "shield", "shield_2", "shield_3", "shield_4", "shield_5"}
+PIECES = {"reject_marker"}
 
 -- Each player's role card into their hand, the minions' eyes for the ritual, where every piece starts.
 function setUp(ctx)
@@ -243,16 +241,6 @@ function layQuests(ctx)
 end
 
 -- ---- choosing the team ------------------------------------------------------------------------------------------
-
-function crownToLeader(ctx)
-  put("crown", before(Game.getCurrentSeat(), 0.88, 0.15))
-end
-
-function shieldsHome(ctx)
-  for _, id in ipairs(PIECES) do
-    if startsWith(id, "shield") then put(id, HOME[id]) end
-  end
-end
 
 -- ---- the team vote: Approve and Reject cards ----------------------------------------------------------------------
 
@@ -412,22 +400,28 @@ RITUAL = [
 for phase in RITUAL:
     call("add_phase", phaseJson=json.dumps(phase))
 
-# ---- choosing the team: shields dragged in front of players ------------------------------------------------------------
+# ---- choosing the team: the leader clicks players --------------------------------------------------------------------
 call("add_phase", phaseJson=json.dumps({
-    "id": "propose", "name": "Pick the team", "actions": ["propose"],
+    "id": "propose", "name": "Pick the team", "actions": ["choose", "propose"],
     "onEnter": [
         {"lua": {"call": "setQuest"}},
         {"setVariable": {"name": "team", "value": []}},
-        {"lua": {"call": "shieldsHome"}},
-        {"setVariable": {"name": "picking", "value": True}},
-        {"lua": {"call": "crownToLeader"}},
         {"message": {"text": "@leads"}},
     ],
 }))
 call("add_action", actionJson=json.dumps({
     "id": "propose", "name": "Propose this team", "actor": "current",
     "preconditions": [compare("$var.team.count", "$var.size")],
-    "effects": [{"setVariable": {"name": "picking", "value": False}}, {"message": {"text": "@proposes"}}, {"endPhase": {}}],
+    "effects": [{"message": {"text": "@proposes"}}, {"endPhase": {}}],
+}))
+# Clicking a player puts them on the team, or takes them off.
+call("add_action", actionJson=json.dumps({
+    "id": "choose", "name": "Choose for the team", "actor": "current", "onPlayer": True,
+    "params": [{"name": "member", "type": "seat"}],
+    "effects": [{"if": {"condition": {"inList": {"list": "$var.team", "value": "$param.member"}},
+                        "then": [{"setVariable": {"name": "team", "remove": "$param.member"}}],
+                        "else": [{"if": {"condition": compare("$var.team.count", "$var.size", ">="), "then": [refuse("teamFull")]}},
+                                 {"setVariable": {"name": "team", "add": "$param.member"}}]}}],
 }))
 
 # ---- the team vote: Approve and Reject cards laid face down ------------------------------------------------------------
@@ -512,8 +506,6 @@ for n in range(1, 6):
         "style": {"paper": [0.75, 0.72, 0.68], "ink": [0.2, 0.15, 0.1], "accent": [0.6, 0.15, 0.12]},
         "transform": {"position": [-0.16 + 0.08 * (n - 1), 0, -0.13], "rotation": [0, 180, 0]}}))
 call("create_supply", id="reject_marker", piece="cube", color="silver", mode="pile", count=1, name="Rejections", x=-0.25, z=-0.13)
-call("create_supply", id="crown", piece="pawn", color="gold", mode="pile", count=1, name="Leader", x=0.36, z=-0.25)
-call("create_supply", id="shield", piece="gem", color="silver", mode="pile", count=5, name="Team", x=0.13, z=-0.25, tags="shield")
 call("create_supply", id="good", piece="checker", color="blue", mode="pile", count=3, name="Quest succeeded", x=-0.52, z=-0.03)
 call("create_supply", id="evil", piece="checker", color="red", mode="pile", count=3, name="Quest failed", x=0.47, z=-0.03)
 
@@ -557,7 +549,7 @@ call("define_zone", zoneJson=json.dumps({
 call("define_zone", zoneJson=json.dumps({"id": "reveal_row", "type": "ScriptingZone", "name": "Quest cards shown",
                                          "transform": {"position": [-0.12, 0.05, -0.25]}, "size": [0.42, 0.1, 0.12]}))
 
-# Before each seat: the spot where the leader lays a shield, and the spot for a vote card.
+# Before each seat: the spot for a vote card.
 document = call("get_rules_document")
 hands = {z["id"]: z for z in document["zones"] if z["type"] == "HandZone"}
 for seat in document["players"]["seats"]:
@@ -565,24 +557,6 @@ for seat in document["players"]["seats"]:
     hx, _, hz = hand["transform"]["position"]
     turn = hand["transform"].get("rotation", [0, 0, 0])
     n = seat["id"].split("_")[1]
-    call("define_zone", zoneJson=json.dumps({
-        "id": f"team_{n}", "type": "ScriptingZone", "name": "Team",
-        "transform": {"position": [round(hx * 0.56, 3), 0.05, round(hz * 0.56, 3)], "rotation": turn}, "size": [0.16, 0.1, 0.12],
-        "onEnter": [{"if": {"condition": {"hasTag": {"object": "$it", "tag": "shield"}}, "then": [
-            {"if": {"condition": {"not": {"and": [compare("$var.picking", True), {"isCurrentPlayer": {"player": "$actor"}}]}},
-                    "then": [refuse("onlyLeader")]}},
-            {"if": {"condition": {"not": {"inList": {"list": "$var.team", "value": seat["id"]}}}, "then": [
-                {"if": {"condition": compare("$var.team.count", "$var.size", ">="), "then": [refuse("teamFull")]}},
-                {"setVariable": {"name": "team", "add": seat["id"]}},
-            ]}},
-        ]}}],
-        "onLeave": [{"if": {"condition": {"and": [{"hasTag": {"object": "$it", "tag": "shield"}},
-                                                  {"inList": {"list": "$var.team", "value": seat["id"]}}]}, "then": [
-            {"if": {"condition": {"not": {"and": [compare("$var.picking", True), {"isCurrentPlayer": {"player": "$actor"}}]}},
-                    "then": [refuse("onlyLeader")]}},
-            {"setVariable": {"name": "team", "remove": seat["id"]}},
-        ]}}],
-    }))
     call("define_zone", zoneJson=json.dumps({
         "id": f"vote_{n}", "type": "LayoutZone", "name": "Vote", "facing": "faceDown",
         "transform": {"position": [round(hx * 0.76, 3), 0.05, round(hz * 0.76, 3)], "rotation": turn}, "size": [0.11, 0.1, 0.13],
@@ -604,13 +578,18 @@ call("set_turn", phases="propose,team_vote,quest,assassinate", order="clockwise"
 
 # Where the game stands, for everyone: the panel reads the variables the rules keep. The decks and the pile stay put.
 document = call("get_rules_document")
-SCALES = {"crown": 2.4, "shield": 2.2, "good": 1.8, "evil": 1.8, "reject_marker": 1.6}
+SCALES = {"good": 1.8, "evil": 1.8, "reject_marker": 1.6}
 for obj in document["objects"]:
     base = obj["id"].split("_")[0] if obj["id"] != "reject_marker" else obj["id"]
     if base in SCALES:
         obj["transform"]["scale"] = [SCALES[base]] * 3
     if obj["id"] in ("role_deck", "vote_deck", "quest_deck"):
         obj["locked"] = True
+# Over the players: a crown on the leader, an arrow over each one chosen for the team, for everyone to see.
+document["marks"] = [
+    {"id": "leader", "seats": "$current", "shape": "crown", "color": [0.98, 0.78, 0.2]},
+    {"id": "team", "seats": "$var.team", "shape": "arrow", "color": [0.85, 0.9, 1.0]},
+]
 document["ui"] = {"panels": [{
     "id": "quests", "title": "Avalon", "anchor": "right", "visibleTo": [],
     "elements": [
@@ -709,9 +688,7 @@ for n in range(1, 6):
     ES[f"objects.reject_{n}.text.title"] = "Gana el mal" if n == 5 else "Rechazado"
     ES[f"objects.reject_{n}.text.body"] = str(n)
 ES["objects.reject_marker.name"] = "Rechazos"
-ES["objects.crown.name"] = "Líder"
-for i in ["", "_2", "_3", "_4", "_5"]:
-    ES[f"objects.shield{i}.name"] = "Equipo"
+ES["actions.choose.name"] = "Elegir para el equipo"
 for i in ["", "_2", "_3"]:
     ES[f"objects.good{i}.name"] = "Misión cumplida"
     ES[f"objects.evil{i}.name"] = "Misión fracasada"
@@ -723,7 +700,6 @@ ES["zones.quest_drop.name"] = "Montón de la misión"
 ES["zones.reveal_row.name"] = "Cartas de la misión"
 for seat in document["players"]["seats"]:
     n = seat["id"].split("_")[1]
-    ES[f"zones.team_{n}.name"] = "Equipo"
     ES[f"zones.vote_{n}.name"] = "Voto"
 call("set_translations", language="es", translationsJson=json.dumps(ES, ensure_ascii=False))
 left = call("translate_game", language="es")

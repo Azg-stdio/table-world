@@ -144,6 +144,12 @@
         "roles": {
           "$ref": "#/$defs/RolesDef"
         },
+        "marks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MarkDef"
+          }
+        },
         "translations": {
           "type": "object",
           "additionalProperties": {
@@ -4429,6 +4435,9 @@
         },
         "button": {
           "type": "boolean"
+        },
+        "onPlayer": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false
@@ -4759,6 +4768,30 @@
           "type": "array",
           "items": {
             "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "MarkDef": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "seats": {
+          "type": "string"
+        },
+        "shape": {
+          "enum": [
+            "arrow",
+            "crown"
+          ]
+        },
+        "color": {
+          "type": "array",
+          "items": {
+            "type": "number"
           }
         }
       },

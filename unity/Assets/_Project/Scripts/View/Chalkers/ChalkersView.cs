@@ -215,6 +215,7 @@ namespace TableWorld.View.Chalkers
                 _chairs.Remove(key);
             }
             AimStage();
+            ShowMarks();
         }
 
         private TableCamera _tableCamera;
@@ -603,12 +604,149 @@ namespace TableWorld.View.Chalkers
             {
                 if (pair.Key == MirrorKey || pair.Value.HeadHidden || _table.Engine == null)
                     continue;
-                yield return (pair.Key, pair.Value.Eyes + pair.Value.Root.transform.up * NameAbove, ColorOf(pair.Key));
+                yield return (pair.Key, pair.Value.SeenEyes + pair.Value.Root.transform.up * NameAbove, ColorOf(pair.Key));
             }
         }
 
-        /// <summary>How far above a chalker's eyes its name sits, in metres (above the placeholder's eyeballs).</summary>
-        public const float NameAbove = 0.3f;
+        /// <summary>How far above a chalker's eyes its name sits, in metres (above the placeholder's eyeballs and any mark).</summary>
+        public const float NameAbove = 0.25f;
+
+        /// <summary>The player whose chalker is under <paramref name="screen"/> (the nearest), or null.</summary>
+        public string SeatAt(Camera view, Vector2 screen)
+        {
+            string best = null;
+            var nearest = float.MaxValue;
+            foreach (var pair in _chalkers)
+            {
+                if (pair.Key == MirrorKey || pair.Value.HeadHidden)
+                    continue;
+                var root = pair.Value.Root.transform;
+                var min = new Vector2(float.MaxValue, float.MaxValue);
+                var max = new Vector2(float.MinValue, float.MinValue);
+                var behind = false;
+                for (var i = 0; i < 8; i++)
+                {
+                    var corner = root.TransformPoint(new Vector3((i & 1) == 0 ? -BodyBox.x : BodyBox.x, (i & 2) == 0 ? 0.2f : BodyBox.y + 0.1f,
+                        (i & 4) == 0 ? -BodyBox.z * 0.5f : BodyBox.z * 0.5f));
+                    var seen = view.WorldToScreenPoint(corner);
+                    behind |= seen.z <= 0f;
+                    min = Vector2.Min(min, seen);
+                    max = Vector2.Max(max, seen);
+                }
+                var depth = view.WorldToScreenPoint(root.position).z;
+                if (behind || screen.x < min.x || screen.x > max.x || screen.y < min.y || screen.y > max.y || depth >= nearest)
+                    continue;
+                nearest = depth;
+                best = pair.Key;
+            }
+            return best;
+        }
+
+        // ---- marks over players (the rules' marks: an arrow over each chosen player, a crown over the leader) ----
+
+        private readonly Dictionary<(string Mark, string Seat), Transform> _marks = new Dictionary<(string, string), Transform>();
+        private readonly List<Material> _markMaterials = new List<Material>();
+        private Mesh _cone;
+
+        /// <summary>Shows each rules mark over the chalkers of the players wearing it, bobbing, and hides the rest.</summary>
+        private void ShowMarks()
+        {
+            var game = _table.Game;
+            var wanted = new HashSet<(string, string)>();
+            if (game != null)
+                foreach (var mark in game.State.Marks)
+                    foreach (var seat in game.Marked(mark))
+                        if (_chalkers.TryGetValue(seat, out var chalker))
+                        {
+                            var key = (mark.Id, seat);
+                            wanted.Add(key);
+                            if (!_marks.TryGetValue(key, out var shown) || shown == null)
+                                _marks[key] = shown = BuildMark(mark);
+                            var bob = mark.Shape == MarkShape.Arrow ? Mathf.Abs(Mathf.Sin(Time.time * 3.2f)) * 0.04f : Mathf.Sin(Time.time * 1.5f) * 0.008f;
+                            shown.position = chalker.SeenEyes + chalker.Root.transform.up * (MarkAbove + bob);
+                            shown.rotation = Quaternion.Euler(0f, Time.time * (mark.Shape == MarkShape.Crown ? 30f : 90f), 0f);
+                            // Seen from inside your own head, your mark would fill the view.
+                            shown.gameObject.SetActive(!chalker.HeadHidden);
+                        }
+            foreach (var key in _marks.Keys.Where(k => !wanted.Contains(k)).ToList())
+            {
+                if (_marks[key] != null)
+                    Destroy(_marks[key].gameObject);
+                _marks.Remove(key);
+            }
+        }
+
+        /// <summary>How far above a chalker's eyes a mark floats, in metres.</summary>
+        public const float MarkAbove = 0.08f;
+
+        private Transform BuildMark(MarkDef mark)
+        {
+            var c = mark.Color is { Length: 3 } rgb ? new Color(rgb[0], rgb[1], rgb[2]) : new Color(0.98f, 0.78f, 0.2f);
+            var material = new Material(RequiredShaders.Lit) { name = "Mark " + mark.Id };
+            material.SetColor("_BaseColor", c);
+            material.SetFloat("_Smoothness", 0.6f);
+            material.EnableKeyword("_EMISSION");
+            material.SetColor("_EmissionColor", c * 0.35f);
+            _markMaterials.Add(material);
+            var root = new GameObject("Mark " + mark.Id).transform;
+            root.SetParent(transform, false);
+            GameObject Part(PrimitiveType type, Vector3 at, Vector3 size)
+            {
+                var part = GameObject.CreatePrimitive(type);
+                Destroy(part.GetComponent<Collider>());
+                part.transform.SetParent(root, false);
+                part.transform.localPosition = at;
+                part.transform.localScale = size;
+                part.GetComponent<Renderer>().sharedMaterial = material;
+                return part;
+            }
+            if (mark.Shape == MarkShape.Arrow)
+            {
+                // A head pointing down at the player, on a short shaft.
+                var head = new GameObject("Head");
+                head.transform.SetParent(root, false);
+                head.transform.localScale = new Vector3(0.04f, 0.05f, 0.04f);
+                head.AddComponent<MeshFilter>().sharedMesh = _cone ??= Cone();
+                head.AddComponent<MeshRenderer>().sharedMaterial = material;
+                Part(PrimitiveType.Cylinder, new Vector3(0f, 0.075f, 0f), new Vector3(0.016f, 0.03f, 0.016f));
+            }
+            else
+            {
+                // A band with five points.
+                Part(PrimitiveType.Cylinder, Vector3.zero, new Vector3(0.09f, 0.016f, 0.09f));
+                for (var i = 0; i < 5; i++)
+                {
+                    var angle = i * Mathf.PI * 2f / 5f;
+                    var point = Part(PrimitiveType.Cube, new Vector3(Mathf.Cos(angle) * 0.04f, 0.03f, Mathf.Sin(angle) * 0.04f), new Vector3(0.018f, 0.038f, 0.018f));
+                    point.transform.localRotation = Quaternion.Euler(0f, -angle * Mathf.Rad2Deg, 45f);
+                }
+            }
+            return root;
+        }
+
+        /// <summary>A cone of height 1 and radius 1, its point at the origin and its base up.</summary>
+        private static Mesh Cone()
+        {
+            const int around = 20;
+            var vertices = new List<Vector3> { Vector3.zero, Vector3.up };
+            for (var i = 0; i <= around; i++)
+            {
+                var angle = i * Mathf.PI * 2f / around;
+                vertices.Add(new Vector3(Mathf.Cos(angle), 1f, Mathf.Sin(angle)));
+            }
+            var triangles = new List<int>();
+            for (var i = 0; i < around; i++)
+            {
+                triangles.AddRange(new[] { 0, 2 + i + 1, 2 + i });
+                triangles.AddRange(new[] { 1, 2 + i, 2 + i + 1 });
+            }
+            var mesh = new Mesh { name = "Mark cone" };
+            mesh.SetVertices(vertices);
+            mesh.SetTriangles(triangles, 0);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            return mesh;
+        }
 
         private Chalker ChalkerFor(string key, Color color)
         {
@@ -743,6 +881,10 @@ namespace TableWorld.View.Chalkers
             foreach (var chalker in _chalkers.Values)
                 chalker.Destroy();
             _chalkers.Clear();
+            foreach (var material in _markMaterials)
+                Destroy(material);
+            if (_cone != null)
+                Destroy(_cone);
             foreach (var chair in _chairs.Values)
                 chair.Destroy();
             _chairs.Clear();

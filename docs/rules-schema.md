@@ -251,6 +251,12 @@ the votes are counted, the count is logged, and `onResult` runs.
 - A vote has no `secret` and no `effects`: it is secret by itself, and what follows goes in `onResult`.
 - `$vote.result`, `$vote.total`, `$vote.<option>` (how many chose it), `$vote.of.<seat>` (named votes only) read the
   vote counted last; `$vote.<action>.result` and so on read a given one.
+- An action with `"onPlayer": true` and one seat parameter is done by clicking a player: their chalker or their name
+  over it, while the action is legal for that seat (the leader clicking players for the team, again to take one off). It
+  gets no button.
+- `marks` (top level) put a mark over players' chalkers for everyone to see: `{ "id": "team", "seats": "$var.team",
+  "shape": "arrow" }` (a bobbing arrow) or `"shape": "crown"`; `seats` is an audience like `awake` (`$current`, a list,
+  `team:`, `role:`, a seat); `color` is `[r, g, b]`, gold by default.
 - `closeVote { action }` counts a vote now with the votes cast so far (a rule calling it).
 - `castBallot { action, seat, choice }` casts a seat's ballot as if it had voted: a piece laid down is a vote. Put it in
   a zone's `onEnter` (`"choice": "$it.meta.vote"`, the card's own word) and players vote by laying a card face down on
