@@ -28,6 +28,8 @@ namespace TableWorld.View
         private static readonly Dictionary<string, GameObject> Templates = new Dictionary<string, GameObject>();
         private static readonly HashSet<string> Loading = new HashSet<string>();
         private static readonly List<GltfImport> Imports = new List<GltfImport>();
+        /// <summary>Textures the baker made for the templates' materials, destroyed with the session.</summary>
+        private static readonly List<Texture2D> Baked = new List<Texture2D>();
         private static GameObject _holder;
         /// <summary>Counts play sessions, so a load finishing after the session ended is dropped.</summary>
         private static int _session;
@@ -39,6 +41,10 @@ namespace TableWorld.View
             foreach (var import in Imports)
                 import.Dispose();
             Imports.Clear();
+            foreach (var texture in Baked)
+                if (texture != null)
+                    Object.Destroy(texture);
+            Baked.Clear();
             Templates.Clear();
             Loading.Clear();
             _holder = null;
@@ -91,7 +97,8 @@ namespace TableWorld.View
         {
             var session = _session;
             var import = new GltfImport(materialGenerator: new LitMaterials(), logger: new ConsoleLogger());
-            var settings = new ImportSettings { AnimationMethod = AnimationMethod.None, GenerateMipMaps = true, AnisotropicFilterLevel = 4 };
+            // Textures stay readable so the baker can shrink and compress them (it makes the mipmaps too).
+            var settings = new ImportSettings { AnimationMethod = AnimationMethod.None, GenerateMipMaps = false, TexturesReadable = true, AnisotropicFilterLevel = 4 };
             GameObject template = null;
             try
             {
@@ -115,7 +122,11 @@ namespace TableWorld.View
                     var root = new GameObject("glTF " + System.IO.Path.GetFileName(key));
                     root.transform.SetParent(_holder.transform, false);
                     if (await import.InstantiateMainSceneAsync(root.transform) && session == _session)
+                    {
                         template = Prepare(key, root);
+                        if (template != null)
+                            await Compress(template);
+                    }
                     else if (root != null)
                         Object.Destroy(root);
                 }
@@ -135,6 +146,49 @@ namespace TableWorld.View
             else
                 import.Dispose();
             loaded?.Invoke();
+        }
+
+        private static readonly int[] TextureProperties = { Shader.PropertyToID("_BaseMap"), Shader.PropertyToID("_EmissionMap"), Shader.PropertyToID("_BumpMap") };
+
+        /// <summary>
+        /// The template's textures through <see cref="TextureBaker"/>, as images on the table are: at most
+        /// <see cref="AssetLibrary.MaxTextureSize"/>, mipmapped and block-compressed (glTF's PNG and JPEG arrive as
+        /// uncompressed pixels: 12 sample models held 944 MB of them). Normal maps stay linear. Returns when all are swapped in.
+        /// </summary>
+        private static System.Threading.Tasks.Task Compress(GameObject template)
+        {
+            var uses = new Dictionary<Texture2D, List<(Material Material, int Property)>>();
+            var normals = new HashSet<Texture2D>();
+            foreach (var renderer in template.GetComponentsInChildren<Renderer>(true))
+                foreach (var material in renderer.sharedMaterials)
+                    if (material != null)
+                        foreach (var property in TextureProperties)
+                            if (material.HasProperty(property) && material.GetTexture(property) is Texture2D texture && texture.isReadable)
+                            {
+                                if (!uses.TryGetValue(texture, out var list))
+                                    uses[texture] = list = new List<(Material, int)>();
+                                list.Add((material, property));
+                                if (property == TextureProperties[2])
+                                    normals.Add(texture);
+                            }
+            var done = new System.Threading.Tasks.TaskCompletionSource<bool>();
+            var left = uses.Count;
+            if (left == 0)
+                done.SetResult(true);
+            foreach (var pair in uses)
+            {
+                var targets = pair.Value;
+                TextureBaker.Start(pair.Key, baked =>
+                {
+                    Baked.Add(baked);
+                    foreach (var (material, property) in targets)
+                        if (material != null)
+                            material.SetTexture(property, baked);
+                    if (--left == 0)
+                        done.TrySetResult(true);
+                }, linear: normals.Contains(pair.Key));
+            }
+            return done.Task;
         }
 
         /// <summary>Checks the model's size, gives it colliders, and returns it as the template (or null when refused).</summary>

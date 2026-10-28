@@ -42,6 +42,7 @@ namespace TableWorld.View
             public string Name;
             public int AnisoLevel;
             public Action<Texture2D> Done;
+            public bool Linear;
             public int Width, Height;
             public NativeArray<byte> RowHasAlpha;
             public NativeArray<byte>[] Levels;
@@ -63,9 +64,9 @@ namespace TableWorld.View
         /// <summary>
         /// Bakes <paramref name="source"/> (a readable, freshly decoded image; destroyed here) and calls
         /// <paramref name="done"/> with the GPU texture on a later frame. Formats the jobs do not read go through
-        /// <see cref="AssetLibrary.Fit"/> at once.
+        /// <see cref="AssetLibrary.Fit"/> at once. <paramref name="linear"/> keeps the values as they are (normal maps), not sRGB.
         /// </summary>
-        public static void Start(Texture2D source, Action<Texture2D> done)
+        public static void Start(Texture2D source, Action<Texture2D> done, bool linear = false)
         {
             int channels, r, g, b, a;
             switch (source.format)
@@ -91,7 +92,7 @@ namespace TableWorld.View
             var height = Mathf.Max(4, Mathf.RoundToInt(source.height * scale / 4f) * 4);
             var bake = new Bake
             {
-                Source = source, Name = source.name, AnisoLevel = source.anisoLevel, Done = done, Width = width, Height = height,
+                Source = source, Name = source.name, AnisoLevel = source.anisoLevel, Done = done, Linear = linear, Width = width, Height = height,
                 RowHasAlpha = new NativeArray<byte>(height, Allocator.Persistent),
                 Levels = new NativeArray<byte>[MipCount(width, height)],
             };
@@ -176,7 +177,7 @@ namespace TableWorld.View
 
         private static void Finish(Bake bake)
         {
-            var texture = new Texture2D(bake.Width, bake.Height, bake.Alpha ? TextureFormat.DXT5 : TextureFormat.DXT1, bake.Levels.Length, linear: false)
+            var texture = new Texture2D(bake.Width, bake.Height, bake.Alpha ? TextureFormat.DXT5 : TextureFormat.DXT1, bake.Levels.Length, linear: bake.Linear)
             {
                 name = bake.Name, anisoLevel = bake.AnisoLevel,
             };
