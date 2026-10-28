@@ -374,7 +374,6 @@
   "ui:Leave {name}": "Dejar {name}",
   "ui:Left drag": "Arrastrar con el botón izquierdo",
   "ui:Left drag on empty table": "Arrastrar con el botón izquierdo sobre la mesa vacía",
-  "ui:Left out because they cannot play here: {count}": "Descartadas porque no se pueden reproducir aquí: {count}",
   "ui:Left out: click to deal it too.": "Fuera: haz clic para repartirlo también.",
   "ui:Lift the whole deck or bag (also Shift + drag)": "Levanta el mazo o la bolsa entera (también Mayús + arrastrar)",
   "ui:Load": "Cargar",

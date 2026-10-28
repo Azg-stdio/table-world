@@ -357,6 +357,30 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsFalse(_hud.SongSearch.Visible);
             Assert.IsNull(Object.FindAnyObjectByType<SearchBrowser>(), "its browsers are gone");
             Assert.IsFalse(Walker.Paused);
+            Assert.IsFalse(_hud.TypingInUi(), "the hidden search field let go of the keys");
+        }
+
+        /// <summary>
+        /// Miguel: W A S D sometimes typed into the YouTube link instead of walking. A field that was used gives the keys
+        /// back: Enter in the link plays it and lets go.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator TheLinkField_GivesTheKeysBack_AfterEnter()
+        {
+            var root = _hud.GetComponent<UIDocument>().rootVisualElement;
+            yield return null;
+            var link = root.Q<TextField>("screenLink");
+            link.Focus();
+            yield return null;
+            Assert.IsTrue(_hud.TypingInUi(), "while the link has the focus the keys type");
+            link.value = "https://www.youtube.com/watch?v=M7lc1UVf-VE";
+            using (var enter = KeyDownEvent.GetPooled('\0', KeyCode.Return, EventModifiers.None))
+            {
+                enter.target = link;
+                link.SendEvent(enter);
+            }
+            yield return null;
+            Assert.IsFalse(_hud.TypingInUi(), "after Enter the keys walk again");
         }
 
         /// <summary>T12.15: what the hidden reader hands over is checked before anything is listed.</summary>

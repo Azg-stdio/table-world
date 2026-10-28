@@ -289,7 +289,7 @@ namespace TableWorld.View.Hud
                 return true;
             if (_scriptUi != null && _scriptUi.Typing)
                 return true;
-            // Searching for a song: the page has the mouse, Escape closes it.
+            // Searching for a song: the list has the keyboard, Escape closes it.
             if (_songSearch != null && _songSearch.Visible)
                 return true;
             // Moving a key in the settings: the next key pressed is the menu's.
@@ -563,6 +563,12 @@ namespace TableWorld.View.Hud
             _escape?.PollKeyCapture();
             if (_agent != null && _agent.Visible)
                 _agent.Update();
+            // A click in the room takes the keyboard back from the HUD: a field clicked earlier (the YouTube link) kept
+            // it, and W A S D typed into it instead of walking.
+            if (UnityEngine.InputSystem.Mouse.current is { } pointer
+                && (pointer.leftButton.wasPressedThisFrame || pointer.rightButton.wasPressedThisFrame)
+                && !IsOverUi(pointer.position.ReadValue()))
+                (_root.panel?.focusController?.focusedElement as VisualElement)?.Blur();
             MenuKeys();
             // After the menu keys, so the Escape that closes the search does not also open the menu.
             if (_songSearch != null)

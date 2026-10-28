@@ -52,8 +52,11 @@ namespace TableWorld.View.Hud
             _songs = root.Q("screenSongs");
             _link.RegisterCallback<KeyDownEvent>(e =>
             {
-                if (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter)
-                    PlayLink(_link.value);
+                if (e.keyCode != KeyCode.Return && e.keyCode != KeyCode.KeypadEnter)
+                    return;
+                PlayLink(_link.value);
+                // Done with the link: the keys walk again instead of typing into it.
+                _link.Blur();
             });
         }
 

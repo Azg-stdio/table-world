@@ -41,7 +41,6 @@ namespace TableWorld.View.Hud
         private readonly List<SearchResult> _listed = new();
         private readonly List<Texture2D> _thumbnails = new();
         private int _read;
-        private int _hidden;
         private int _asking;
         private int _trying;
         private float _askedMoreAt;
@@ -110,6 +109,8 @@ namespace TableWorld.View.Hud
         public void Close()
         {
             _panel.AddToClassList("hidden");
+            // A hidden field keeps the focus otherwise, and the keys would type into it instead of walking.
+            _query.Blur();
             ClearList();
             if (_reader != null)
                 Object.Destroy(_reader.gameObject);
@@ -155,7 +156,6 @@ namespace TableWorld.View.Hud
                     Object.Destroy(texture);
             _thumbnails.Clear();
             _read = 0;
-            _hidden = 0;
             _asking = 0;
             _queueing = false;
             _statusShown = null;
@@ -179,8 +179,8 @@ namespace TableWorld.View.Hud
                         return;
                     _asking--;
                     if (answer == VideoCheck.Answer.Blocked || answer == VideoCheck.Answer.Gone)
-                        _hidden++;
-                    else if (_bar.Videos.Played(result.VideoId))
+                        return;
+                    if (_bar.Videos.Played(result.VideoId))
                         List(result);
                     else
                         _toTry.Enqueue(result);
@@ -209,9 +209,7 @@ namespace TableWorld.View.Hud
                         _bar.Videos.MarkPlayed(result.VideoId);
                     if (generation != _generation)
                         return;
-                    if (error != null)
-                        _hidden++;
-                    else
+                    if (error == null)
                         List(result);
                 });
             }
@@ -285,7 +283,7 @@ namespace TableWorld.View.Hud
             });
         }
 
-        /// <summary>How the search is going: songs ready, results still being checked, and how many could not play here.</summary>
+        /// <summary>How the search is going: songs ready and results still being checked (what cannot play is not mentioned).</summary>
         private void ShowStatus()
         {
             if (_queueing)
@@ -299,8 +297,6 @@ namespace TableWorld.View.Hud
                 text = Ui.T("No song for these words plays here. Try other words.");
             else
                 text = Ui.T("Songs that play here: {count}", ("count", _listed.Count));
-            if (_hidden > 0)
-                text += " · " + Ui.T("Left out because they cannot play here: {count}", ("count", _hidden));
             if (text == _statusShown)
                 return;
             _statusShown = text;
