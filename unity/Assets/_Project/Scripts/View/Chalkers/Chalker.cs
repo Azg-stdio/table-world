@@ -105,6 +105,103 @@ namespace TableWorld.View.Chalkers
         /// <summary>Walking: the legs and arms swing.</summary>
         public bool Walking { get; set; }
 
+        /// <summary>How far the player leans in over the table, 0–1 (first person's wheel, or their presence).</summary>
+        public float LeanIn { get; set; }
+
+        /// <summary>The torso's forward tilt at <see cref="LeanIn"/> 1, in degrees.</summary>
+        public const float MaxLeanIn = 24f;
+
+        /// <summary>
+        /// The player has cards in their hand: the chalker holds them in a fan (<see cref="Hold"/>), both hands on it,
+        /// raised to the face by <see cref="RaiseHand"/>.
+        /// </summary>
+        public bool HoldingCards { get; set; }
+
+        /// <summary>Hold the cards up to read them (eased; the fan rises over about a third of a second).</summary>
+        public bool RaiseHand { get; set; }
+
+        /// <summary>How far the fan is raised now, 0–1.</summary>
+        public float Raised => _raise;
+
+        /// <summary>Where the cards are held this frame (after <see cref="Pose"/>), or null when it holds none.</summary>
+        public HandHold? CardHold { get; private set; }
+
+        /// <summary>The right hand reaches for this point (something the player carries), as far as the arm goes; null rests it.</summary>
+        public Vector3? ReachFor { get; set; }
+
+        /// <summary>
+        /// Where the first-person camera looks from, inside a head it does not draw (<see cref="HideHead"/>): the shapes'
+        /// eyes as the head turns, whatever model is worn, so the cards it holds sit in view the same way for every model
+        /// (a long snout would put a model's own eyes over the hands).
+        /// </summary>
+        public Vector3 Eyes => _head.TransformPoint(new Vector3(0f, 0.17f, 0.03f));
+
+        /// <summary>
+        /// First person: the first-person camera looks out from inside the head, which draws its shadow only. A worn model
+        /// draws only its shadow too, and the shapes' slim forearms and hands show instead, holding the cards in view.
+        /// </summary>
+        public void HideHead(bool hide)
+        {
+            if (hide == _headHidden)
+                return;
+            _headHidden = hide;
+            var mode = hide ? UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly : UnityEngine.Rendering.ShadowCastingMode.On;
+            foreach (var renderer in _headTurn.GetComponentsInChildren<Renderer>(true))
+                renderer.shadowCastingMode = mode;
+            _model?.HideBody(hide);
+            // A hand's length from the eyes, slimmer, longer arms and smaller fists hold the cards up in view without
+            // covering them (the shapes' stubby arms would stop short of a fan held up to be read).
+            for (var side = 0; side < 2; side++)
+            {
+                var hand = side == 0 ? LeftHand : RightHand;
+                Resize(_shoulders[side].Find("Upper arm"), hide, FirstPersonReach, 1f);
+                Resize(_elbows[side], hide, FirstPersonReach, 1f);
+                Resize(_elbows[side].Find("Forearm"), hide, FirstPersonReach, FirstPersonArm);
+                Resize(hand, hide, FirstPersonReach, FirstPersonHand);
+                if (_model == null)
+                    continue;
+                // The model's shadow already has arms: the shapes' forearms and fists show, without one.
+                foreach (var part in new[] { _elbows[side].Find("Forearm"), hand })
+                    if (part != null && part.TryGetComponent<Renderer>(out var renderer))
+                    {
+                        renderer.enabled = hide;
+                        renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                    }
+            }
+        }
+
+        /// <summary>A part of an arm along its length (<paramref name="reach"/>) and across it (<paramref name="thickness"/>), or back as built.</summary>
+        private void Resize(Transform part, bool firstPerson, float reach, float thickness)
+        {
+            if (part == null)
+                return;
+            if (!_armRest.TryGetValue(part, out var rest))
+                _armRest[part] = rest = (part.localPosition, part.localScale);
+            if (!firstPerson)
+            {
+                part.SetLocalPositionAndRotation(rest.Position, part.localRotation);
+                part.localScale = rest.Scale;
+                return;
+            }
+            part.localPosition = rest.Position * reach;
+            // Capsules are long along y; a fist is round.
+            part.localScale = part == LeftHand || part == RightHand
+                ? rest.Scale * thickness
+                : new Vector3(rest.Scale.x * thickness, rest.Scale.y * reach, rest.Scale.z * thickness);
+        }
+
+        /// <summary>Seen from inside the head: the arms' length, the forearms' thickness and the fists' size against the shapes' own.</summary>
+        public const float FirstPersonReach = 1.2f;
+        public const float FirstPersonArm = 0.6f;
+        public const float FirstPersonHand = 0.55f;
+
+        private readonly Dictionary<Transform, (Vector3 Position, Vector3 Scale)> _armRest = new Dictionary<Transform, (Vector3, Vector3)>();
+
+        public bool HeadHidden => _headHidden;
+
+        private bool _headHidden;
+        private float _raise;
+
         private Transform _sitLegs;
         private Transform _standLegs;
         private readonly Transform[] _hips = new Transform[2];
@@ -363,7 +460,9 @@ namespace TableWorld.View.Chalkers
                 pose.RightRaise = MicRaise;
                 pose.RightElbow = MicElbow;
             }
+            pose.Lean += MaxLeanIn * Mathf.Clamp01(LeanIn);
             Apply(pose);
+            HoldAndReach(dt);
 
             // The head turns toward the gaze, as far as a neck goes.
             var local = _torso.InverseTransformDirection(gaze - _headTurn.position);
@@ -399,6 +498,39 @@ namespace TableWorld.View.Chalkers
             _face.Draw(face, mouth, pupils, EyesShut.Left, EyesShut.Right);
             _model?.Follow(this, face, mouth, pupils, EyesShut.Left, EyesShut.Right, dt);
             HoldMic();
+        }
+
+        /// <summary>
+        /// The arms over the emote's: both hands on the fan of cards when it holds some, and the right one reaching for
+        /// what the player carries (the cards stay in the left).
+        /// </summary>
+        private void HoldAndReach(float dt)
+        {
+            _raise = Mathf.MoveTowards(_raise, HoldingCards && RaiseHand ? 1f : 0f, dt * 3f);
+            CardHold = null;
+            var root = _root.transform;
+            if (HoldingCards && !Standing)
+            {
+                // Seen from its own eyes the shapes' face counts; others see the model's (a snout reaches further).
+                var face = _model != null && !_headHidden ? _model.FaceDepth : 0.03f;
+                var hold = HandHold.For(root, _torso, root.TransformPoint(new Vector3(0f, EyeHeight, 0.03f)), _raise, face);
+                CardHold = hold;
+                Arm(0, hold.LeftHand);
+                if (!Microphone)
+                    Arm(1, hold.RightHand);
+            }
+            if (ReachFor is { } target && !Microphone)
+                Arm(1, target);
+        }
+
+        /// <summary>One shape arm to <paramref name="target"/>, the elbow out and down (a model's arm follows the shape's hand).</summary>
+        private void Arm(int side, Vector3 target)
+        {
+            var root = _root.transform;
+            var outward = root.right * (side == 0 ? -1f : 1f);
+            var shoulder = _shoulders[side].position;
+            var pole = shoulder + outward * 0.25f - root.up * 0.25f - root.forward * 0.05f;
+            TwoBoneIk.Solve(_shoulders[side], _elbows[side], side == 0 ? LeftHand : RightHand, target, pole, -root.up, root.forward);
         }
 
         /// <summary>The microphone in the right hand, its head toward the mouth (the head turns, the microphone follows).</summary>

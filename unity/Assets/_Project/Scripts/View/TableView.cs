@@ -576,6 +576,9 @@ namespace TableWorld.View
             {
                 var view = cards[i];
                 view.EnterHand();
+                view.HandOwner = hand.Owner;
+                view.HandIndex = i;
+                view.HandCount = cards.Count;
                 // Later cards sit a little closer to the owner, so overlapping cards never z-fight.
                 var local = new Vector3((i - (cards.Count - 1) / 2f) * step, 0f, -HandEdgeOffset - 0.0015f * i);
                 var p = center + yaw * local;
@@ -590,13 +593,58 @@ namespace TableWorld.View
             var k = 1f - Mathf.Exp(-HandMotionRate * Time.fixedDeltaTime);
             foreach (var view in _views.Values)
             {
-                if (view == null || !view.InHand || view.Held || view.RemoteHolder != null)
+                if (view == null || !view.InHand || view.Held || view.RemoteHolder != null || HeldByChalker(view.HandOwner))
                     continue;
+                view.Body.interpolation = RigidbodyInterpolation.Interpolate;
                 var body = view.Body;
                 if ((body.position - view.HandPosition).sqrMagnitude < 1e-8f && Quaternion.Angle(body.rotation, view.HandRotation) < 0.05f)
                     continue;
                 body.MovePosition(Vector3.Lerp(body.position, view.HandPosition, k));
                 body.MoveRotation(Quaternion.Slerp(body.rotation, view.HandRotation, k));
+            }
+        }
+
+        /// <summary>The frame each seat's chalker last held its cards on (<see cref="HoldHand"/>).</summary>
+        private readonly Dictionary<string, int> _heldHands = new Dictionary<string, int>();
+
+        /// <summary>A chalker holds this seat's cards now: they follow its hands, not the hand zone.</summary>
+        public bool HeldByChalker(string seat) => seat != null && _heldHands.TryGetValue(seat, out var frame) && frame >= Time.frameCount - 2;
+
+        /// <summary>How many cards <paramref name="seat"/> has in its hand (shown, not carried away).</summary>
+        public int HandCardCount(string seat)
+        {
+            var count = 0;
+            foreach (var view in _views.Values)
+                if (view != null && view.InHand && !view.Held && view.HandOwner == seat)
+                    count++;
+            return count;
+        }
+
+        /// <summary>
+        /// The cards in <paramref name="seat"/>'s hand fan out in its chalker's hands (docs/dev/camera.md), called every
+        /// frame the chalker is posed; they glide there at the render rate, so they move with the hands. A seat nobody's
+        /// chalker sits in keeps them standing at its hand zone.
+        /// </summary>
+        public void HoldHand(string seat, Chalkers.HandHold hold)
+        {
+            _heldHands[seat] = Time.frameCount;
+            var k = 1f - Mathf.Exp(-HandMotionRate * Time.deltaTime);
+            foreach (var view in _views.Values)
+            {
+                if (view == null || !view.InHand || view.Held || view.RemoteHolder != null || view.HandOwner != seat)
+                    continue;
+                var size = (((Card)view.Model).Size ?? Card.DefaultSize).ToUnity();
+                var (position, rotation) = hold.Card(view.HandIndex, view.HandCount, size);
+                var body = view.Body;
+                // Set every frame here: rigidbody interpolation would drag it back to the last physics step.
+                body.interpolation = RigidbodyInterpolation.None;
+                position = Vector3.Lerp(view.transform.position, position, k);
+                rotation = Quaternion.Slerp(view.transform.rotation, rotation, k);
+                view.transform.SetPositionAndRotation(position, rotation);
+                body.position = position;
+                body.rotation = rotation;
+                view.HandPosition = position;
+                view.HandRotation = rotation;
             }
         }
 

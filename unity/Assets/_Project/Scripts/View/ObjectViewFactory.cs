@@ -262,7 +262,7 @@ namespace TableWorld.View
                     break;
                 }
             }
-            view.Body.isKinematic = view.Pinned || !view.Renderer.enabled || view.Held || view.Animating;
+            view.Body.isKinematic = view.Pinned || !view.Renderer.enabled || view.Held || view.Animating || view.InHand;
             // A script hid the shape (the object holds UI), or its tint is fully transparent (a TTS click or drop area):
             // nothing is drawn, the rest stays. A partly transparent tint draws the piece see-through.
             view.Renderer.forceRenderingOff = view.ShapeHidden || view.ZoneHidden;

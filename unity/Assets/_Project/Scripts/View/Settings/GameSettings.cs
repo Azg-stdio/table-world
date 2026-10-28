@@ -62,6 +62,11 @@ namespace TableWorld.View.Settings
         public float ZoomSpeed { get; set; } = 1f;
         public float PanSpeed { get; set; } = 1f;
         public bool InvertOrbitY { get; set; }
+        /// <summary>
+        /// Keep to the free orbit camera (motion sickness, taste): Space and a game's start no longer sit you in first
+        /// person at your seat; O still does.
+        /// </summary>
+        public bool FreeCamera { get; set; }
 
         public DisplayMode DisplayMode { get; set; } = DisplayMode.Borderless;
         /// <summary>Screen size in full screen; 0 means the monitor's own.</summary>
@@ -168,6 +173,7 @@ namespace TableWorld.View.Settings
                 tableCamera.ZoomScale = ZoomSpeed;
                 tableCamera.PanScale = PanSpeed;
                 tableCamera.InvertOrbitY = InvertOrbitY;
+                tableCamera.FirstPerson = !FreeCamera;
                 if (tableCamera.TryGetComponent<UniversalAdditionalCameraData>(out var urp))
                     urp.antialiasing = Antialiasing switch
                     {

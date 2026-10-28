@@ -55,9 +55,13 @@ namespace Core.Net
         public List<string> Selected { get; set; } = new List<string>();
         /// <summary>The player's body where players walk (karaoke); null at a table.</summary>
         public AvatarPose? Body { get; set; }
+        /// <summary>The player holds their cards up to read them (their chalker raises its hand).</summary>
+        public bool HandUp { get; set; }
+        /// <summary>How far the player leans in over the table from their chair, 0 (sitting back) to 1.</summary>
+        public float Lean { get; set; }
     }
 
-    /// <summary>Presence frames on the wire: <c>{ kind: "presence", seat, seq, pointer?, gaze?, emote?: { name, n }, hover?, sel?: [id], held: [{ id, p, r }] }</c>.</summary>
+    /// <summary>Presence frames on the wire: <c>{ kind: "presence", seat, seq, pointer?, gaze?, emote?: { name, n }, hover?, sel?: [id], hand?: true, lean?: 0–1, held: [{ id, p, r }] }</c>.</summary>
     public static class PresenceCodec
     {
         /// <summary>A frame carrying more held objects than this is refused (a TTS player can carry a big group, not the table).</summary>
@@ -86,6 +90,8 @@ namespace Core.Net
                     ["moving"] = body.Moving ? true : (bool?)null,
                 }
                 : null,
+            ["hand"] = frame.HandUp ? true : (bool?)null,
+            ["lean"] = frame.Lean > 0f ? frame.Lean : (float?)null,
             ["held"] = new JArray(frame.Held.Select(h => new JObject
             {
                 ["id"] = h.Id,
@@ -152,6 +158,14 @@ namespace Core.Net
                     place = (int)sat;
                 }
                 frame.Body = new AvatarPose { Position = feet, Yaw = turned, Place = place, Moving = body["moving"]?.Type == JTokenType.Boolean && (bool)body["moving"]! };
+            }
+            frame.HandUp = message["hand"]?.Type == JTokenType.Boolean && (bool)message["hand"]!;
+            if (message["lean"] is JValue { Type: JTokenType.Float or JTokenType.Integer } lean)
+            {
+                var amount = (float)lean;
+                if (float.IsNaN(amount) || amount < 0f || amount > 1f)
+                    return null;
+                frame.Lean = amount;
             }
             if (message["held"] is JArray held)
             {

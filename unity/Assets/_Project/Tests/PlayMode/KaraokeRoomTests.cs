@@ -427,7 +427,7 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsFalse(TableGeometry.Hidden, "the table is back");
             Assert.IsNull(_chalkers.Walker, "walking ends");
             Assert.IsTrue(Object.FindAnyObjectByType<TableCamera>().enabled, "the table camera is back");
-            Assert.AreEqual(_table.Engine.State.Players.Seats.Count - 1, _chalkers.Chairs.Count);
+            Assert.AreEqual(_table.Engine.State.Players.Seats.Count, _chalkers.Chairs.Count);
             Assert.IsNull(_environment.Screen);
             Assert.IsNull(_environment.Lounge);
         }

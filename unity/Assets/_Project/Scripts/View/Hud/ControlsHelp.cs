@@ -16,13 +16,16 @@ namespace TableWorld.View.Hud
         {
             (Ui.T("Camera"), new[]
             {
-                (Ui.T("Right mouse drag on the table"), Ui.T("Orbit")),
-                (Ui.T("Middle mouse drag, or {PanForward} {PanLeft} {PanBack} {PanRight} / arrows"), Ui.T("Pan")),
-                (Ui.T("Mouse wheel"), Ui.T("Zoom")),
+                (Ui.T("Seated: right mouse drag"), Ui.T("Look around")),
+                (Ui.T("Seated: mouse wheel"), Ui.T("Lean in over the table; out from sitting back lifts you out of your head")),
+                (Ui.T("Lifted: right mouse drag on the table"), Ui.T("Orbit")),
+                (Ui.T("Middle mouse drag, or {PanForward} {PanLeft} {PanBack} {PanRight} / arrows"), Ui.T("Pan (lifts you out of your seat)")),
+                (Ui.T("Lifted: mouse wheel"), Ui.T("Zoom")),
                 (Ui.T("{QuickZoom}, or middle click on the table"), Ui.T("Quick zoom to the pointer (again to go back)")),
-                ("{ResetCamera}", Ui.T("Back to your seat's view")),
+                ("{ResetCamera}", Ui.T("Back to your seat")),
                 ("{TopDown}", Ui.T("Top-down view (again to go back)")),
-                ("{SeatView}", Ui.T("View from your seat, eyes level with the others (again to go back)")),
+                ("{SeatView}", Ui.T("Sit in first person, or lift out into the free camera")),
+                (Ui.T("Pointer on your cards, or {HandUp}"), Ui.T("Hold your cards up to read them ({HandUp} keeps them up)")),
                 ("{Wink}", Ui.T("Wink at the face you look at (games can react to it)")),
                 (Ui.T("{RotateLeft} / {RotateRight} over nothing"), Ui.T("Turn the camera")),
                 (Ui.T("Ctrl + 1–9 / Shift + 1–9"), Ui.T("Save / load a camera view")),

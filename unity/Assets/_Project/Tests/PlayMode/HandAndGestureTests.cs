@@ -29,6 +29,10 @@ namespace TableWorld.Tests.PlayMode
             var uno = GameLibrary.List().First(e => e.File.EndsWith("uno-lite.json"));
             Assert.IsTrue(_table.Load(File.ReadAllText(uno.File), uno.PackageRoot));
             Assert.IsTrue(_table.Execute(new StartGameCommand()).Ok);
+            // TTS hands: the free camera (your hand stands at your edge of the table).
+            var camera = Object.FindAnyObjectByType<TableCamera>();
+            camera.FirstPerson = false;
+            camera.ResetView();
             yield return null;
         }
 

@@ -12,8 +12,8 @@ using UnityEngine.TestTools;
 namespace TableWorld.Tests.PlayMode
 {
     /// <summary>
-    /// T11.10: a chair at every seat but the player's own, outside the table's edge and facing in, never two in the same
-    /// place; a chalker sits on its chair with its hands on the table.
+    /// T11.10: a chair at every seat, outside the table's edge and facing in, never two in the same place; a chalker sits
+    /// on its chair with its hands on the table. Your own chalker sits in yours: first person looks out of its eyes.
     /// </summary>
     public class SeatingTests
     {
@@ -41,9 +41,9 @@ namespace TableWorld.Tests.PlayMode
         }
 
         [Test]
-        public void EverySeatButYours_HasAChair_AtTheEdge()
+        public void EverySeat_HasAChair_AtTheEdge()
         {
-            var seats = _table.Engine.State.Players.Seats.Select(s => s.Id).Where(s => s != _table.LocalSeat).ToList();
+            var seats = _table.Engine.State.Players.Seats.Select(s => s.Id).ToList();
             Assert.Greater(seats.Count, 0, "the sample table has other seats");
             CollectionAssert.AreEquivalent(seats, _chalkers.Chairs.Keys);
             var half = TableGeometry.Size / 2f;
@@ -69,31 +69,39 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsTrue(_table.Load($"{{\"schemaVersion\":\"0.1\",\"objects\":[],\"players\":{{\"seats\":[{seats}]}}}}", null));
             yield return null;
             yield return null;
-            Assert.AreEqual(9, _chalkers.Chairs.Count, "every seat but yours");
+            Assert.AreEqual(10, _chalkers.Chairs.Count, "every seat");
             var chairs = _chalkers.Chairs.Values.Select(c => c.Root.transform.position).ToList();
             for (var i = 0; i < chairs.Count; i++)
                 for (var j = i + 1; j < chairs.Count; j++)
                     Assert.Greater(Vector3.Distance(chairs[i], chairs[j]), ChalkerChair.SeatWidth, "chairs do not overlap");
         }
 
-        /// <summary>T11.12: O puts the eyes where this player's chalker would sit, looking across; again goes back.</summary>
+        /// <summary>
+        /// First person: the game starts seated in your own chalker's eyes in your chair, looking across, its head drawn
+        /// only as a shadow; O lifts you out (you see your chalker) and sits you back.
+        /// </summary>
         [UnityTest]
-        public IEnumerator SeatView_PutsTheEyesAtYourChair_AndGoesBack()
+        public IEnumerator SeatView_SitsInYourChalkersEyes_AndLiftsOut()
         {
             var camera = Object.FindAnyObjectByType<TableCamera>();
             var interaction = Object.FindAnyObjectByType<TableInteraction>();
-            var before = camera.transform.position;
-            interaction.ToggleSeatView();
-            yield return null;
-            Assert.IsTrue(camera.IsSeatView);
+            yield return new WaitForSeconds(TableCamera.BlendSeconds + 0.1f);
+            Assert.IsTrue(camera.IsSeated, "a game starts seated");
+            var yours = _chalkers.Yours;
+            Assert.IsNotNull(yours, "your own chalker");
+            Assert.AreEqual(0f, Vector3.Distance(yours.Eyes, camera.transform.position), 0.01f, "at your chalker's eyes");
             var place = _chalkers.Place(_table.LocalSeat).Value;
-            var eye = place.Position + Vector3.up * Chalker.EyeHeight;
-            Assert.AreEqual(0f, Vector3.Distance(eye, camera.transform.position), 0.02f, "eyes at the chair");
             Assert.Greater(Vector3.Dot(camera.transform.forward, place.Facing), 0.7f, "looking across the table");
+            Assert.IsTrue(yours.HeadHidden, "you look out of your head");
+
             interaction.ToggleSeatView();
-            yield return null;
-            Assert.IsFalse(camera.IsSeatView);
-            Assert.AreEqual(0f, Vector3.Distance(before, camera.transform.position), 0.02f, "back where it was");
+            yield return new WaitForSeconds(TableCamera.BlendSeconds + 0.1f);
+            Assert.IsFalse(camera.IsSeated);
+            Assert.Greater(Vector3.Distance(yours.Eyes, camera.transform.position), 0.3f, "lifted out");
+            Assert.IsFalse(yours.HeadHidden, "lifted, you see your own chalker");
+            interaction.ToggleSeatView();
+            yield return new WaitForSeconds(TableCamera.BlendSeconds + 0.1f);
+            Assert.IsTrue(camera.IsSeated, "and back");
         }
 
         /// <summary>A hot seat: a second seat taken from this window shows a chalker, though nobody else is connected.</summary>
@@ -109,7 +117,7 @@ namespace TableWorld.Tests.PlayMode
             yield return null;
             yield return null;
             Assert.IsTrue(_chalkers.Shown.ContainsKey("b"), "the second seat shows its chalker");
-            Assert.IsFalse(_chalkers.Shown.ContainsKey(_table.LocalSeat), "never one where the camera sits");
+            Assert.AreSame(_chalkers.Yours, _chalkers.Shown[_table.LocalSeat], "yours sits where the camera does");
             Assert.IsFalse(_chalkers.Shown.ContainsKey("c"), "an empty seat keeps only its chair");
         }
 

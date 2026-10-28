@@ -129,6 +129,10 @@ namespace TableWorld.View
         /// <summary>Where the hand presentation wants this card; <see cref="TableView"/> glides it there.</summary>
         internal Vector3 HandPosition;
         internal Quaternion HandRotation;
+        /// <summary>The seat whose hand it is in, its place in that hand (left to right) and the hand's size.</summary>
+        internal string HandOwner;
+        internal int HandIndex;
+        internal int HandCount;
 
         /// <summary>Stands in a hand: kinematic, and its collider a trigger so it is still picked but never pushes anything.</summary>
         internal void EnterHand()
@@ -142,6 +146,8 @@ namespace TableWorld.View
         internal void LeaveHand()
         {
             InHand = false;
+            HandOwner = null;
+            Body.interpolation = RigidbodyInterpolation.Interpolate;
             if (Collider != null)
                 Collider.isTrigger = false;
         }

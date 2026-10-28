@@ -35,6 +35,10 @@ namespace TableWorld.Tests.PlayMode
             _table = Object.FindAnyObjectByType<TableView>();
             _interaction = Object.FindAnyObjectByType<TableInteraction>();
             _interaction.IgnoreDevices = true;
+            // TTS controls and hands: the free camera (your hand stands at your edge, the hand bar shows).
+            var camera = Object.FindAnyObjectByType<TableCamera>();
+            camera.FirstPerson = false;
+            camera.ResetView();
             yield return new WaitForSeconds(0.5f);
         }
 

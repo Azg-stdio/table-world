@@ -6,10 +6,15 @@ using TableWorld.View.Settings;
 namespace TableWorld.View
 {
     /// <summary>
-    /// Orbit camera around a pivot on the table (TTS controls, docs/tts-interactions.md §1): right drag orbits, middle
-    /// drag (or Shift + right drag) pans, wheel zooms, WASD/arrows pan, Q/E turn. The interaction calls
-    /// <see cref="ResetView"/> (Space), <see cref="ToggleQuickZoom"/> (Z, middle click), <see cref="ToggleTopDown"/> (P)
-    /// and <see cref="Save"/>/<see cref="Load"/> (Ctrl/Shift + 1–9).
+    /// The player's camera, two heights of one camera (docs/dev/camera.md). <b>Seated</b> (first person, the default):
+    /// the eyes of your own chalker in its chair (<see cref="SetSeat"/>), right drag and Q/E turn the head, the wheel
+    /// leans in over the table and, leaned all the way back, one more step out lifts you out of your head. <b>Lifted</b>:
+    /// the orbit camera around a pivot on the table (TTS controls, docs/tts-interactions.md §1): right drag orbits, middle
+    /// drag (or Shift + right drag) pans, wheel zooms, WASD/arrows pan, Q/E turn. Panning while seated lifts too. The
+    /// interaction calls <see cref="ResetView"/> (Space: back to the seat), <see cref="ToggleSeated"/> (O),
+    /// <see cref="ToggleQuickZoom"/> (Z, middle click), <see cref="ToggleTopDown"/> (P) and <see cref="Save"/>/
+    /// <see cref="Load"/> (Ctrl/Shift + 1–9). With <see cref="FirstPerson"/> off (a setting, for motion sickness or taste)
+    /// the camera stays lifted unless O sits it.
     /// </summary>
     [RequireComponent(typeof(Camera))]
     public sealed class TableCamera : MonoBehaviour
@@ -34,6 +39,18 @@ namespace TableWorld.View
 
         public const float QuickZoomDistance = 0.3f;
         public const float TopDownPitch = 89f;
+        /// <summary>Seated, the head starts this far down from level: the table in front and the faces across it.</summary>
+        public const float SeatPitch = 28f;
+        /// <summary>Seated, how far the head turns from the chair's facing and up and down, in degrees.</summary>
+        public const float MaxHeadYaw = 110f;
+        public const float MinHeadPitch = -35f;
+        public const float MaxHeadPitch = 80f;
+        /// <summary>Seated, each wheel step leans this much of the way in (0 sitting back, 1 over the table).</summary>
+        public const float LeanStep = 0.25f;
+        /// <summary>Sitting down and lifting off blend over this long, in seconds.</summary>
+        public const float BlendSeconds = 0.4f;
+        /// <summary>Seated, the near clip plane: the eyes are a hand's length from the cards they hold.</summary>
+        public const float SeatedNearClip = 0.02f;
 
         private readonly Dictionary<int, View> _saved = new Dictionary<int, View>();
         private View _home;
@@ -53,8 +70,42 @@ namespace TableWorld.View
         public float Distance => _distance;
         public float Pitch => _pitch;
         public bool IsTopDown => _beforeTopDown.HasValue;
-        public bool IsSeatView => _beforeSeatView.HasValue;
         public bool IsQuickZoomed => _beforeQuickZoom.HasValue;
+
+        /// <summary>Seated in first person, at your chalker's eyes.</summary>
+        public bool IsSeated => _seated;
+
+        /// <summary>
+        /// Player setting: Space and the start of a game sit you in first person. Off, the camera stays the free orbit camera
+        /// (O still sits you).
+        /// </summary>
+        public bool FirstPerson { get; set; } = true;
+
+        /// <summary>Seated, how far you lean in over the table (0–1): your chalker leans with you.</summary>
+        public float Lean => _seated ? _lean : 0f;
+
+        /// <summary>Seated, the head's turn from the chair's facing (degrees, right positive) and its pitch (down positive).</summary>
+        public float HeadYaw => _headYaw;
+        public float HeadPitch => _headPitch;
+
+        /// <summary>Where your eyes are, or null without a seat (a spectator, no table).</summary>
+        public Vector3? Eye => _hasSeat ? _eye : (Vector3?)null;
+
+        private bool _seated;
+        private bool _hasSeat;
+        private Vector3 _eye;
+        private float _seatYaw;
+        private float _headYaw;
+        private float _headPitch = SeatPitch;
+        private float _lean;
+        /// <summary>Space or a game's start asked to sit before the seat was known: sit as soon as it is.</summary>
+        private bool _sitWhenSeated;
+        private float _blend = 1f;
+        private Vector3 _blendPosition;
+        private Quaternion _blendRotation;
+        private float _liftedNearClip = -1f;
+        private bool _topDownFromSeat;
+        private bool _quickZoomFromSeat;
 
         /// <summary>Set each frame by the interaction: Q/E rotate a held or hovered object instead of turning.</summary>
         public bool SuppressTurnKeys { get; set; }
@@ -101,6 +152,11 @@ namespace TableWorld.View
 
         public void SetView(View view)
         {
+            if (_seated)
+            {
+                StartBlend();
+                _seated = false;
+            }
             _pivot = view.Pivot;
             _yaw = view.Yaw;
             _pitch = view.Pitch;
@@ -108,13 +164,118 @@ namespace TableWorld.View
             Apply();
         }
 
-        /// <summary>Space: back to the starting view.</summary>
+        /// <summary>Space: back to the starting view, seated in first person when <see cref="FirstPerson"/> is on.</summary>
         public void ResetView()
         {
             _beforeQuickZoom = null;
             _beforeTopDown = null;
-            _beforeSeatView = null;
+            _topDownFromSeat = _quickZoomFromSeat = false;
+            if (FirstPerson && _hasSeat)
+            {
+                Sit();
+                return;
+            }
+            _sitWhenSeated = FirstPerson;
             SetView(_home);
+        }
+
+        /// <summary>
+        /// Where your eyes are this frame (your chalker's, set after it is posed) and which way its chair faces; null when
+        /// you have no seat, which lifts a seated camera to the starting view.
+        /// </summary>
+        public void SetSeat(Vector3? eye, Vector3 facing)
+        {
+            if (eye is not { } at)
+            {
+                _hasSeat = false;
+                // A table loading drops the seat for a frame or two: sit again when it is back.
+                if (_seated)
+                {
+                    _sitWhenSeated = true;
+                    SetView(_home);
+                }
+                return;
+            }
+            var yaw = Mathf.Atan2(facing.x, facing.z) * Mathf.Rad2Deg;
+            // A new chair (another seat, a hot seat's turn): the head starts straight again, and the view glides there.
+            if (_hasSeat && _seated && (Vector3.Distance(at, _eye) > 0.3f || Mathf.Abs(Mathf.DeltaAngle(yaw, _seatYaw)) > 20f))
+            {
+                StartBlend();
+                _headYaw = 0f;
+                _headPitch = SeatPitch;
+            }
+            _eye = at;
+            _seatYaw = yaw;
+            _hasSeat = true;
+            if (_sitWhenSeated)
+            {
+                _sitWhenSeated = false;
+                if (FirstPerson)
+                    Sit();
+            }
+            if (_seated)
+                Apply();
+        }
+
+        /// <summary>Sits you in your chalker's eyes, the head straight, leaning back. Without a seat yet, as soon as there is one.</summary>
+        public void Sit()
+        {
+            if (!_hasSeat)
+            {
+                _sitWhenSeated = true;
+                return;
+            }
+            if (!_seated)
+                StartBlend();
+            _seated = true;
+            _headYaw = 0f;
+            _headPitch = SeatPitch;
+            _lean = 0f;
+            _beforeQuickZoom = null;
+            _beforeTopDown = null;
+            Apply();
+        }
+
+        /// <summary>
+        /// Out of your head into the orbit camera: it orbits the point you were looking at on the table, from a little
+        /// higher and further back than your eyes, so the view rises rather than jumps.
+        /// </summary>
+        public void Lift()
+        {
+            if (!_seated)
+                return;
+            var rotation = Quaternion.Euler(_headPitch, _seatYaw + _headYaw, 0f);
+            var from = _eye;
+            var forward = rotation * Vector3.forward;
+            // Where the view meets the table, or a point ahead when looking up.
+            var pivot = forward.y < -0.15f ? from + forward * (-from.y / forward.y) : from + Vector3.ProjectOnPlane(forward, Vector3.up).normalized * 0.8f;
+            pivot.y = 0f;
+            var flat = new Vector3(pivot.x - from.x, 0f, pivot.z - from.z);
+            if (flat.magnitude > 2f)
+                pivot = new Vector3(from.x, 0f, from.z) + flat.normalized * 2f;
+            SetView(new View
+            {
+                Pivot = pivot,
+                Yaw = _seatYaw + _headYaw,
+                Pitch = Mathf.Clamp(Mathf.Max(_headPitch, 50f), _minPitch, _maxPitch),
+                Distance = Mathf.Clamp(Vector3.Distance(from, pivot) + 0.6f, _minDistance, _maxDistance),
+            });
+        }
+
+        /// <summary>O: seated or lifted, whichever you are not.</summary>
+        public void ToggleSeated()
+        {
+            if (_seated)
+                Lift();
+            else
+                Sit();
+        }
+
+        private void StartBlend()
+        {
+            _blendPosition = transform.position;
+            _blendRotation = transform.rotation;
+            _blend = 0f;
         }
 
         /// <summary>
@@ -139,53 +300,33 @@ namespace TableWorld.View
             if (_beforeQuickZoom is { } back)
             {
                 _beforeQuickZoom = null;
-                SetView(back);
+                if (_quickZoomFromSeat)
+                    Sit();
+                else
+                    SetView(back);
                 return;
             }
+            _quickZoomFromSeat = _seated;
             _beforeQuickZoom = Current;
             SetView(new View { Pivot = point, Yaw = _yaw, Pitch = Mathf.Max(_pitch, 50f), Distance = QuickZoomDistance });
         }
 
-        /// <summary>P: top-down view of the whole table; again to go back. (TTS also has first person: M6.)</summary>
+        /// <summary>P: top-down view of the whole table; again to go back (to the seat, when you were seated).</summary>
         public void ToggleTopDown()
         {
             if (_beforeTopDown is { } back)
             {
                 _beforeTopDown = null;
-                SetView(back);
+                if (_topDownFromSeat)
+                    Sit();
+                else
+                    SetView(back);
                 return;
             }
+            _topDownFromSeat = _seated;
             _beforeTopDown = Current;
             SetView(new View { Pivot = new Vector3(_pivot.x, 0f, _pivot.z), Yaw = _yaw, Pitch = TopDownPitch, Distance = Mathf.Max(_distance, 1.2f) });
         }
-
-        /// <summary>
-        /// O: the view from your own chair, eyes at a seated player's height, looking across the table at the others'
-        /// faces (M10 T11.12); again to go back. The camera still orbits and zooms from there.
-        /// </summary>
-        public void ToggleSeatView(Vector3 eye, Vector3 lookAt)
-        {
-            if (_beforeSeatView is { } back)
-            {
-                _beforeSeatView = null;
-                SetView(back);
-                return;
-            }
-            var toward = lookAt - eye;
-            if (toward.sqrMagnitude < 1e-4f)
-                return;
-            _beforeSeatView = Current;
-            var flat = new Vector2(toward.x, toward.z).magnitude;
-            SetView(new View
-            {
-                Pivot = lookAt,
-                Yaw = Mathf.Atan2(toward.x, toward.z) * Mathf.Rad2Deg,
-                Pitch = Mathf.Atan2(-toward.y, flat) * Mathf.Rad2Deg,
-                Distance = toward.magnitude,
-            });
-        }
-
-        private View? _beforeSeatView;
 
         /// <summary>Ctrl + 1–9.</summary>
         public void Save(int slot) => _saved[slot] = Current;
@@ -213,6 +354,13 @@ namespace TableWorld.View
         {
             var mouse = Mouse.current;
             var keyboard = Keyboard.current;
+            if (_blend < 1f)
+                _blend = Mathf.Min(1f, _blend + Time.unscaledDeltaTime / BlendSeconds);
+            if (_seated && Seated(mouse, keyboard))
+            {
+                Apply();
+                return;
+            }
 
             if (mouse != null && !SuppressMouse)
             {
@@ -248,6 +396,57 @@ namespace TableWorld.View
             Apply();
         }
 
+        /// <summary>
+        /// The seated controls: right drag and Q/E turn the head, the wheel leans in and out. Panning (middle drag, Shift +
+        /// right drag, WASD) or the wheel out while sitting back lifts you into the orbit camera: false then, and the orbit
+        /// controls take this frame's input.
+        /// </summary>
+        private bool Seated(Mouse mouse, Keyboard keyboard)
+        {
+            if (mouse != null && !SuppressMouse)
+            {
+                var delta = mouse.delta.ReadValue();
+                var shift = keyboard != null && keyboard.shiftKey.isPressed;
+                if (mouse.middleButton.isPressed || (mouse.rightButton.isPressed && shift))
+                {
+                    Lift();
+                    return false;
+                }
+                if (mouse.rightButton.isPressed)
+                {
+                    var degrees = _orbitDegreesPerPixel * OrbitScale;
+                    _headYaw = Mathf.Clamp(_headYaw + delta.x * degrees, -MaxHeadYaw, MaxHeadYaw);
+                    _headPitch = Mathf.Clamp(_headPitch - delta.y * degrees * (InvertOrbitY ? -1f : 1f), MinHeadPitch, MaxHeadPitch);
+                }
+                var scroll = mouse.scroll.ReadValue().y;
+                if (Mathf.Abs(scroll) > 0.01f && !SuppressWheel && (keyboard == null || !keyboard.altKey.isPressed))
+                {
+                    if (scroll < 0f && _lean <= 0f)
+                    {
+                        Lift();
+                        return true;
+                    }
+                    _lean = Mathf.Clamp01(_lean + LeanStep * Mathf.Sign(scroll));
+                }
+            }
+            if (keyboard != null && !keyboard.ctrlKey.isPressed && !SuppressKeys)
+            {
+                if (KeyBindings.Held(keyboard, GameAction.PanForward) || keyboard.upArrowKey.isPressed ||
+                    KeyBindings.Held(keyboard, GameAction.PanBack) || keyboard.downArrowKey.isPressed ||
+                    KeyBindings.Held(keyboard, GameAction.PanRight) || keyboard.rightArrowKey.isPressed ||
+                    KeyBindings.Held(keyboard, GameAction.PanLeft) || keyboard.leftArrowKey.isPressed)
+                {
+                    Lift();
+                    return false;
+                }
+                if (!SuppressTurnKeys && KeyBindings.Held(keyboard, GameAction.RotateLeft))
+                    _headYaw = Mathf.Max(-MaxHeadYaw, _headYaw - _keyTurnSpeed * Time.unscaledDeltaTime);
+                if (!SuppressTurnKeys && KeyBindings.Held(keyboard, GameAction.RotateRight))
+                    _headYaw = Mathf.Min(MaxHeadYaw, _headYaw + _keyTurnSpeed * Time.unscaledDeltaTime);
+            }
+            return true;
+        }
+
         private void PanByPixels(Vector2 pixels)
         {
             // One screen height of drag moves the pivot by roughly what the camera sees vertically at the pivot.
@@ -265,10 +464,34 @@ namespace TableWorld.View
 
         private void Apply()
         {
-            _pivot.x = Mathf.Clamp(_pivot.x, -_pivotExtents.x, _pivotExtents.x);
-            _pivot.z = Mathf.Clamp(_pivot.z, -_pivotExtents.y, _pivotExtents.y);
-            var rotation = Quaternion.Euler(_pitch, _yaw, 0f);
-            transform.SetPositionAndRotation(_pivot - rotation * Vector3.forward * _distance, rotation);
+            Vector3 position;
+            Quaternion rotation;
+            if (_seated)
+            {
+                // The eyes are your chalker's, which leans with you (it is posed from Lean before it reports them).
+                rotation = Quaternion.Euler(_headPitch, _seatYaw + _headYaw, 0f);
+                position = _eye;
+            }
+            else
+            {
+                _pivot.x = Mathf.Clamp(_pivot.x, -_pivotExtents.x, _pivotExtents.x);
+                _pivot.z = Mathf.Clamp(_pivot.z, -_pivotExtents.y, _pivotExtents.y);
+                rotation = Quaternion.Euler(_pitch, _yaw, 0f);
+                position = _pivot - rotation * Vector3.forward * _distance;
+            }
+            if (_blend < 1f)
+            {
+                var t = Mathf.SmoothStep(0f, 1f, _blend);
+                position = Vector3.Lerp(_blendPosition, position, t);
+                rotation = Quaternion.Slerp(_blendRotation, rotation, t);
+            }
+            transform.SetPositionAndRotation(position, rotation);
+            if (TryGetComponent<Camera>(out var cam))
+            {
+                if (_liftedNearClip < 0f)
+                    _liftedNearClip = cam.nearClipPlane;
+                cam.nearClipPlane = _seated || _blend < 1f ? Mathf.Min(SeatedNearClip, _liftedNearClip) : _liftedNearClip;
+            }
         }
     }
 }

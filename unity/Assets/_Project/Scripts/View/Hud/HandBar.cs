@@ -195,6 +195,12 @@ namespace TableWorld.View.Hud
                 .OrderBy(o => (Quaternion.Inverse(yaw) * (o.Transform.Position.ToUnity() - center)).x).ToList();
         }
 
+        private TableCamera _camera;
+        private bool _inHands;
+
+        /// <summary>Seated in first person with your chalker holding your cards: the bar steps aside (docs/dev/camera.md).</summary>
+        public bool SteppedAside => _inHands;
+
         public void Update()
         {
             if (_bar == null || _table.Engine == null)
@@ -202,7 +208,10 @@ namespace TableWorld.View.Hud
             var cards = HandCards(out _);
             // Hidden while the player carries one of its cards, so the bar shows where it can go back.
             var held = _interaction != null ? _interaction.Held?.Id : null;
-            var key = $"{_table.LocalSeat}|{held}|" + string.Join(",", cards.Select(c => c.Id + ":" + ((Card)c).FaceAsset + ((Card)c).FaceIndex + TextFaces.FaceId((Card)c)));
+            // Seated in first person your chalker holds the real cards up to you: the bar steps aside until you lift out.
+            _camera ??= Camera.main != null ? Camera.main.GetComponent<TableCamera>() : null;
+            _inHands = _camera != null && _camera.IsSeated && _table.HeldByChalker(_table.LocalSeat);
+            var key = $"{_table.LocalSeat}|{held}|{_inHands}|" + string.Join(",", cards.Select(c => c.Id + ":" + ((Card)c).FaceAsset + ((Card)c).FaceIndex + TextFaces.FaceId((Card)c)));
             if (key == _shownKey && _spritesFor == _table.Assets)
                 return;
             _shownKey = key;
@@ -215,8 +224,8 @@ namespace TableWorld.View.Hud
             _bar.Clear();
             _hovered = null;
             var shown = cards.Where(c => c.Id != held).ToList();
-            _bar.EnableInClassList("hidden", shown.Count == 0 && held == null);
-            _grip?.EnableInClassList("hidden", shown.Count == 0);
+            _bar.EnableInClassList("hidden", _inHands || shown.Count == 0 && held == null);
+            _grip?.EnableInClassList("hidden", _inHands || shown.Count == 0);
             var screen = _bar.panel?.visualTree.layout ?? new Rect(0f, 0f, 1200f, 800f);
             var screenHeight = float.IsNaN(screen.height) || screen.height <= 0f ? 800f : screen.height;
             var screenWidth = float.IsNaN(screen.width) || screen.width <= 0f ? 1200f : screen.width;

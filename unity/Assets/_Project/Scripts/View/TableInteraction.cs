@@ -350,6 +350,7 @@ namespace TableWorld.View
 
             UpdateTooltip();
             UpdateLook(alt, shift);
+            UpdateHand(pointer);
 
             if (_tool == Tool.Gizmo && !tab && Held == null)
             {
@@ -602,6 +603,8 @@ namespace TableWorld.View
                 _tableCamera?.ToggleTopDown();
             if (KeyBindings.Pressed(keyboard, GameAction.SeatView))
                 ToggleSeatView();
+            if (KeyBindings.Pressed(keyboard, GameAction.HandUp))
+                ToggleHandUp();
             if (KeyBindings.Pressed(keyboard, GameAction.Delete))
                 Delete(targets);
 
@@ -1718,25 +1721,91 @@ namespace TableWorld.View
             LookChanged?.Invoke(view, _peeking);
         }
 
-        /// <summary>
-        /// The view from this player's chair (T11.12): eyes where its chalker's would be, looking across the table. A
-        /// spectator, or a table with no place for the seat, keeps the table camera.
-        /// </summary>
+        /// <summary>O: sits you in your chalker's eyes, or lifts you out of them into the orbit camera (docs/dev/camera.md).</summary>
         public void ToggleSeatView()
         {
-            if (_tableCamera == null)
-                return;
-            if (_tableCamera.IsSeatView)
+            if (_tableCamera != null)
+                _tableCamera.ToggleSeated();
+        }
+
+        /// <summary>
+        /// Your cards are held up to your face (docs/dev/camera.md): they rise when the pointer goes onto them, stay up
+        /// while it is over them or below the fan's top, and drop a moment after it leaves. <see cref="GameAction.HandUp"/>
+        /// (H) pins them up until pressed again. Others see your hand go up (presence).
+        /// </summary>
+        public bool HandUp { get; private set; }
+
+        /// <summary>The cards stay up whatever the pointer does (H).</summary>
+        public bool HandPinned { get; private set; }
+
+        /// <summary>How long the pointer may be away from a raised hand before it drops, in seconds.</summary>
+        public const float HandLowerDelay = 0.35f;
+
+        private float _handAwaySince = -1f;
+
+        public void ToggleHandUp()
+        {
+            HandPinned = !HandPinned;
+            HandUp = HandPinned;
+        }
+
+        private void UpdateHand(Vector2 pointer)
+        {
+            var me = _table.LocalSeat;
+            if (me == null || !_table.HeldByChalker(me))
             {
-                _tableCamera.ToggleSeatView(Vector3.zero, Vector3.zero);
+                HandUp = HandPinned = false;
                 return;
             }
-            var chalkers = FindAnyObjectByType<TableWorld.View.Chalkers.ChalkersView>();
-            if (chalkers == null || _table.LocalSeat == null || !(chalkers.Place(_table.LocalSeat) is { } place))
+            if (HandPinned)
+            {
+                HandUp = true;
                 return;
-            var eye = place.Position + Vector3.up * TableWorld.View.Chalkers.Chalker.EyeHeight;
-            // A gentle tilt: the table and, above it, the faces across (they are what social games are played with).
-            _tableCamera.ToggleSeatView(eye, place.Position + place.Facing * 1.1f + Vector3.up * 0.22f);
+            }
+            var over = Hovered != null && Hovered.InHand && Hovered.HandOwner == me ||
+                       HandUp && Held == null && UnderHand(me, pointer);
+            if (over)
+            {
+                HandUp = true;
+                _handAwaySince = -1f;
+                return;
+            }
+            if (!HandUp)
+                return;
+            if (_handAwaySince < 0f)
+                _handAwaySince = Time.unscaledTime;
+            if (Time.unscaledTime - _handAwaySince > HandLowerDelay)
+            {
+                HandUp = false;
+                _handAwaySince = -1f;
+            }
+        }
+
+        /// <summary>
+        /// The pointer is across the width of <paramref name="seat"/>'s held cards on screen and no higher than their top:
+        /// while they rise past it, or it rests just under them, the hand stays up.
+        /// </summary>
+        private bool UnderHand(string seat, Vector2 pointer)
+        {
+            var min = new Vector2(float.MaxValue, float.MaxValue);
+            var max = new Vector2(float.MinValue, float.MinValue);
+            foreach (var view in _table.Views.Values)
+            {
+                if (view == null || !view.InHand || view.HandOwner != seat || view.Held)
+                    continue;
+                var b = view.Renderer.bounds;
+                for (var i = 0; i < 8; i++)
+                {
+                    var corner = b.center + Vector3.Scale(b.extents, new Vector3((i & 1) == 0 ? -1 : 1, (i & 2) == 0 ? -1 : 1, (i & 4) == 0 ? -1 : 1));
+                    var screen = _camera.WorldToScreenPoint(corner);
+                    if (screen.z <= 0f)
+                        continue;
+                    min = Vector2.Min(min, screen);
+                    max = Vector2.Max(max, screen);
+                }
+            }
+            var margin = Screen.height * 0.04f;
+            return max.x >= min.x && pointer.x >= min.x - margin && pointer.x <= max.x + margin && pointer.y <= max.y + margin;
         }
 
         /// <summary>True while this player wears a blindfold (G15): the screen is dark, and everyone was told.</summary>

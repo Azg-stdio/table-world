@@ -93,6 +93,7 @@ namespace TableWorld.View.Net
 
         /// <summary>This player's frame, sent when it changed (at most <see cref="PresenceRate"/>/s) or as a keep-alive.</summary>
         private Chalkers.ChalkersView _chalkersView;
+        private TableCamera _seatCamera;
 
         private void SendPresence()
         {
@@ -112,6 +113,7 @@ namespace TableWorld.View.Net
                 frame.Emote = _emote;
                 frame.EmoteCount = _emoteCount;
                 frame.Hover = _interaction.Hovered != null ? _interaction.Hovered.Id : null;
+                frame.HandUp = _interaction.HandUp;
                 foreach (var view in _interaction.Selection)
                     if (view != null && !view.Held && frame.Selected.Count < PresenceCodec.MaxSelected)
                         frame.Selected.Add(view.Id);
@@ -123,9 +125,13 @@ namespace TableWorld.View.Net
             _chalkersView ??= FindAnyObjectByType<Chalkers.ChalkersView>();
             if (_chalkersView != null && _chalkersView.Walker != null)
                 frame.Body = _chalkersView.Walker.Body;
+            // Leaning in over the table in first person, in steps of a twentieth (it eases on the other side).
+            _seatCamera ??= Camera.main != null ? Camera.main.GetComponent<TableCamera>() : null;
+            if (_seatCamera != null)
+                frame.Lean = Mathf.Round(_seatCamera.Lean * 20f) / 20f;
             // Millimetre and degree resolution is plenty; it also keeps an idle player quiet.
             var key = string.Join("|", new[] { frame.Pointer is { } p ? $"{p.X:F3},{p.Z:F3}" : "-", frame.Gaze is { } g ? $"{g.X:F2},{g.Y:F2},{g.Z:F2}" : "-", frame.EmoteCount.ToString(), frame.Hover ?? "-", string.Join(",", frame.Selected),
-                    frame.Body is { } b ? $"{b.Position.X:F2},{b.Position.Z:F2},{b.Yaw:F0},{b.Place},{b.Moving}" : "-" }
+                    frame.Body is { } b ? $"{b.Position.X:F2},{b.Position.Z:F2},{b.Yaw:F0},{b.Place},{b.Moving}" : "-", frame.HandUp ? "h" : "-", frame.Lean.ToString("F2") }
                 .Concat(frame.Held.Select(h => $"{h.Id}:{h.Position.X:F3},{h.Position.Y:F3},{h.Position.Z:F3},{h.Rotation.Y:F0},{h.Rotation.X:F0},{h.Rotation.Z:F0}")));
             if (key == _presenceKey && now - _presenceSentAt < PresenceKeepAlive)
                 return;

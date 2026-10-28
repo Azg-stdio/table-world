@@ -22,7 +22,7 @@ Five examples ship in `games/`, each built through the MCP tools from a plain-te
   the players who are awake. The awake players see your chalker asleep, head down.
 - **Out of the game.** A lynched or executed player is out: no more actions or votes, and the others no longer hear
   them.
-- **Faces.** Press **O** to see the table from your chair, eye to eye with the others; O again goes back. Press **K** to
+- **Faces.** You play from your chair in first person, eye to eye with the others; **O** lifts you out over the table and sits you back. Press **K** to
   wink at the face you are looking at. Whoever is looking at you sees it; in Wink Murder, a wink from the Murderer
   kills.
 - **Hosting fairly.** The host's computer runs the rules, so it holds every secret, but the host's screen and the

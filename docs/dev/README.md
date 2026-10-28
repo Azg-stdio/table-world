@@ -14,6 +14,7 @@ Permanent rules live in [CLAUDE.md](../../CLAUDE.md); context, decisions and ris
   - [Lua scripts](flows/lua.md): the sandbox, events, timers, the API.
   - [User interface](flows/ui.md): HUD, declarative game UI, script UI, buttons.
 - [The chalker model](chalker-model.md): the named points and face texture an artist's model plugs into.
+- [The camera](camera.md): seated in your own chalker's eyes or lifted into the orbit camera, and cards held in its hands.
 - [Recipes](recipes.md): add an effect or condition, an MCP tool, an object type, a Lua function, a HUD panel, a PlayMode test or probe.
 
 ## System map

@@ -23,7 +23,7 @@ Both sample games (War and **Simplified UNO**) have two seats, so a third person
 
 1. Start `TableWorld.exe`.
 2. Type the code in the address field (replacing `127.0.0.1:7777`) and press **Join**.
-3. The top bar shows `playing as seat_north` once the table arrives. The camera starts behind your own seat; your hand stands at your edge of the table, and the other players' hands show only backs.
+3. The top bar shows `playing as seat_north` once the table arrives. You start seated in first person, in your own chalker's chair; your chalker holds your cards, and the other players' chalkers hold theirs with only the backs showing.
 
 ## 4. What to write down
 
@@ -56,7 +56,7 @@ Everything below already passes automated tests on one machine (two processes, s
 - [ ] Your own hand: the bar at the bottom shows your cards; hover enlarges; drag out plays or places; drop back reorders.
 - [ ] Hide hand / Show hand works and is remembered next time.
 - [ ] Friends see only the backs of your hand cards, at your edge of the table, and cannot pick them up or read their names.
-- [ ] The camera starts behind each person's own seat.
+- [ ] Each person starts seated in their own chalker's eyes at their own seat (or behind it, with Camera: Free camera only).
 
 **Playing by the rules (War, UNO)**
 - [ ] Drag a playable card from your hand: it plays and the turn passes on everyone's screen.
@@ -78,7 +78,7 @@ Everything below already passes automated tests on one machine (two processes, s
 - [ ] Hidden zone (the sample table's dark block on the left belongs to the north seat): the north player sees the Ace of hearts inside, the south player sees only the block; dropping a card in hides it from the other seat.
 - [ ] Blind round (left tool bar): after one person starts it, whatever each friend moves vanishes for the others and stays visible to the mover; Reveal (n) shows everything on every screen.
 - [ ] Hide from others (right click a piece): the friends no longer see it or can pick it up; Show to everyone brings it back.
-- [ ] A game with more than 4 seats (5–12): every friend's camera starts behind their own hand, and friends beyond the seats can still join, watch and talk.
+- [ ] A game with more than 4 seats (5–12): every friend starts at their own seat, and friends beyond the seats can still join, watch and talk.
 - [ ] Text cards (a deck made with create_text_deck): faces and backs are readable on the table, in the hand and in Search on every screen.
 - [ ] A rules action that runs Lua: every screen ends with the same result (clients catch up after a moment).
 - [ ] Physics modes (host: right-click the felt → Physics): with semi-lock nothing gets knocked over, with locked dropped pieces stay exactly where they are put; friends see the same; a friend has no Physics row.
@@ -109,7 +109,8 @@ Everything below already passes automated tests on one machine (two processes, s
 - [ ] Look (first build): white cards, boards and papers show their shading under the lamp, as in the Editor (tone mapping, `Resources/Look/LookProfile`); if they are flat white, URP stripped the tone mapping from the build.
 - [ ] Voice (T7.3): hold T and talk: every other player hears you, from your chalker across the table, and its mouth moves with your voice; its head turns to where you look and its eyes follow your pointer. Try Settings → Voice → "Open when I speak" and the activation level; check that typing a T in the chat does not open the microphone. Note any echo (speakers instead of headphones), delay, or choppy sound. Your seat chip glows while you talk, and theirs while they do.
 - [ ] Emotes and faces (T7.4): pick a Chalker face in Settings → You; everyone sees your chalker with it. Hold X, point at an emote, let go: every other player sees your chalker do it once.
-- [ ] Seated chalkers (M10): every other seat has a chair at the table, and each friend's chalker sits on theirs with its hands on the table. Press O: you see the table from your chair, faces across at eye level; O again goes back.
+- [ ] Seated chalkers (M10): every seat has a chair at the table, and each friend's chalker sits on theirs with its hands on the table. You look out of your own chalker's eyes; O (or the wheel out) lifts you out and you see your own chalker in your colour; O or Space sits you again.
+- [ ] Hands of cards: your chalker holds your cards in a fan; pointing at them (or H) brings them up to your face, and your friends see your chalker raise them. The other players' chalkers hold theirs, backs out.
 - [ ] Social games (M10): open Avalon with 5 or more. Before Start, tick optional roles; after Start, each of you reads your own role in gold above the log, and nobody else's. Vote on a team: the buttons show to everyone, "2 of 5 voted" while it runs, then the names. On a quest only the team votes, and only the number of fails shows.
 - [ ] Eyes closed and winks (M10): in a game with a night phase, the sleepers' screens go dark and they hear nothing of the awake; the awake see the sleepers' chalkers with eyes shut and heads down. Press K while looking at a friend's face: your chalker winks with one eye, and whoever looks at you sees it.
 - [ ] Chat: Enter, type, Enter: everyone sees it with your seat colour; `/roll 2d6` shows the same dice for everyone; the Log tab reads the same on every screen and never names a card someone could not see; typing never flips or moves anything.

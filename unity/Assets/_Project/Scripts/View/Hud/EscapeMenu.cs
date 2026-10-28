@@ -206,6 +206,7 @@ namespace TableWorld.View.Hud
             Choice(Ui.T("Hear myself (test)"), new[] { false, true }, s.HearMyself, v => s.HearMyself = v, v => v ? Ui.T("On") : Ui.T("Off"));
 
             Group(Ui.T("Camera and mouse"));
+            Choice(Ui.T("Camera"), new[] { false, true }, s.FreeCamera, v => s.FreeCamera = v, v => v ? Ui.T("Free camera only") : Ui.T("First person at your seat"));
             Slider(Ui.T("Orbit sensitivity"), GameSettings.MinScale, GameSettings.MaxScale, s.OrbitSensitivity, v => s.OrbitSensitivity = v, Times);
             Slider(Ui.T("Zoom speed"), GameSettings.MinScale, GameSettings.MaxScale, s.ZoomSpeed, v => s.ZoomSpeed = v, Times);
             Slider(Ui.T("Keyboard pan speed"), GameSettings.MinScale, GameSettings.MaxScale, s.PanSpeed, v => s.PanSpeed = v, Times);

@@ -109,7 +109,7 @@ namespace TableWorld.View.Chalkers
             var seen = new HashSet<string>();
             var seated = new HashSet<string>();
             var dt = Time.deltaTime;
-            // A chair at every seat but the one this player sits in (the camera is there), played or not.
+            // A chair at every seat, played or not; this player's own chalker sits in theirs (first person looks out of it).
             var karaoke = Karaoke;
             if (karaoke)
                 BuildSofas();
@@ -117,7 +117,7 @@ namespace TableWorld.View.Chalkers
                 ClearSofas();
             if (!TableGeometry.Hidden && !karaoke)
                 foreach (var seat in _table.Engine.State.Players.Seats)
-                    if (seat.Id != _table.LocalSeat && Place(seat.Id) is { } place)
+                    if (Place(seat.Id) is { } place)
                     {
                         seated.Add(seat.Id);
                         ChairFor(seat.Id).Place(place.Position, place.Facing);
@@ -139,7 +139,10 @@ namespace TableWorld.View.Chalkers
                     _emoteCounts[frame.Seat] = frame.EmoteCount;
                     var gaze = frame.Gaze is { } g ? new Vector3(g.X, g.Y, g.Z) : (Vector3?)null;
                     var pointer = frame.Pointer is { } p ? new Vector3(p.X, p.Y, p.Z) : (Vector3?)null;
+                    var carried = frame.Held.Count > 0 ? new Vector3(frame.Held[0].Position.X, frame.Held[0].Position.Y, frame.Held[0].Position.Z) : (Vector3?)null;
+                    Prepare(chalker, frame.Seat, frame.HandUp, frame.Lean, carried, place.Position);
                     chalker.Pose(place.Position, place.Facing, gaze ?? pointer ?? Vector3.zero, pointer ?? gaze, _voice != null ? _voice.LevelOf(frame.Seat) : 0f, dt);
+                    HoldCards(chalker, frame.Seat);
                     Carry(chalker, frame.Seat);
                 }
 
@@ -153,8 +156,12 @@ namespace TableWorld.View.Chalkers
                 var chalker = ChalkerFor(seat, ColorOf(seat));
                 chalker.EyesClosed = _table.Game is { EyesClosedPhase: true } nightGame && !nightGame.IsAwake(seat, _table.LocalSeat);
                 chalker.Microphone = Singer != null && Singer == seat;
+                Prepare(chalker, seat, false, 0f, null, place.Position);
                 chalker.Pose(place.Position, place.Facing, Vector3.zero, null, 0f, dt);
+                HoldCards(chalker, seat);
             }
+
+            Yourself(seen, dt);
 
             var camera = Camera.main;
             if (VoiceChat.HearMyself && camera != null)
@@ -206,6 +213,72 @@ namespace TableWorld.View.Chalkers
                 _chairs.Remove(key);
             }
             AimStage();
+        }
+
+        private TableCamera _tableCamera;
+        private TableInteraction _interaction;
+
+        /// <summary>Your own chalker, the one you see from inside in first person (null without a seat, or walking).</summary>
+        public Chalker Yours => _table != null && _table.LocalSeat != null && _chalkers.TryGetValue(_table.LocalSeat, out var yours) ? yours : null;
+
+        /// <summary>
+        /// Your own chalker in your chair (docs/dev/camera.md): the seated camera looks out of its eyes, its head drawn only
+        /// as a shadow then; lifted, you see it from outside and know which one is you. It leans with the camera, raises its
+        /// cards when you look at them, reaches for what you carry, and talks with your microphone.
+        /// </summary>
+        private void Yourself(HashSet<string> seen, float dt)
+        {
+            if (_tableCamera == null && Camera.main != null)
+                _tableCamera = Camera.main.GetComponent<TableCamera>();
+            if (_interaction == null)
+                _interaction = _table.GetComponent<TableInteraction>();
+            var me = _table.LocalSeat;
+            if (me == null || seen.Contains(me) || !(Place(me) is { } place))
+            {
+                if (_tableCamera != null)
+                    _tableCamera.SetSeat(null, Vector3.forward);
+                return;
+            }
+            seen.Add(me);
+            var yours = ChalkerFor(me, ColorOf(me));
+            yours.Personality = PersonalityOf(_session != null ? _session.LocalLook : "");
+            yours.Microphone = Singer != null && Singer == me;
+            var view = Camera.main != null ? Camera.main.transform : null;
+            var pointer = _interaction != null ? _interaction.PointerOnTable : null;
+            var ahead = view != null ? view.position + view.forward * 2f : place.Position + place.Facing * 2f;
+            // Seated, the head turns where you look; lifted, to your pointer, as other players see it.
+            var seated = _tableCamera != null && _tableCamera.IsSeated;
+            var gaze = seated ? ahead : pointer ?? ahead;
+            var carried = _interaction != null && _interaction.Held != null ? _interaction.Held.transform.position : (Vector3?)null;
+            Prepare(yours, me, _interaction != null && _interaction.HandUp, _tableCamera != null ? _tableCamera.Lean : 0f, carried, place.Position);
+            // With the free camera setting your hand stands at your edge of the table as in TTS, read from above.
+            yours.HoldingCards &= _tableCamera == null || _tableCamera.FirstPerson;
+            yours.Pose(place.Position, place.Facing, gaze, pointer ?? gaze, _voice != null && _voice.Talking ? _voice.MicLevel : 0f, dt);
+            HoldCards(yours, me);
+            if (_tableCamera != null)
+            {
+                yours.HideHead(Vector3.Distance(_tableCamera.transform.position, yours.Eyes) < 0.35f);
+                _tableCamera.SetSeat(yours.Eyes, place.Facing);
+            }
+        }
+
+        /// <summary>What a seated chalker does with its hands this frame: hold its seat's cards (raised or not), reach for what its player carries.</summary>
+        private void Prepare(Chalker chalker, string seat, bool raise, float lean, Vector3? carried, Vector3 at)
+        {
+            chalker.HoldingCards = _table.HandCardCount(seat) > 0;
+            chalker.RaiseHand = raise;
+            chalker.LeanIn = lean;
+            // Something carried across the table: the arm points at it rather than stretching through the table.
+            chalker.ReachFor = carried is { } c && Vector3.Distance(new Vector3(c.x, 0f, c.z), new Vector3(at.x, 0f, at.z)) < MaxReach ? c : (Vector3?)null;
+        }
+
+        /// <summary>How far from its chair a chalker reaches for something its player carries, in metres.</summary>
+        public const float MaxReach = 1.1f;
+
+        private void HoldCards(Chalker chalker, string seat)
+        {
+            if (chalker.CardHold is { } hold)
+                _table.HoldHand(seat, hold);
         }
 
         /// <summary>The room's stage light on the singer's place, or off.</summary>
@@ -437,7 +510,7 @@ namespace TableWorld.View.Chalkers
             var bestAngle = LookAngle;
             foreach (var (key, chalker) in _chalkers)
             {
-                if (key == MirrorKey)
+                if (key == MirrorKey || key == _table.LocalSeat)
                     continue;
                 var to = chalker.Mouth + Vector3.up * 0.05f - camera.transform.position;
                 var angle = Vector3.Angle(camera.transform.forward, to);
@@ -453,8 +526,11 @@ namespace TableWorld.View.Chalkers
         /// <summary>This player's own emote shows on the mirror chalker (Hear myself), the only chalker of yours you see.</summary>
         private void OnLocalEmote(string name)
         {
-            if (_chalkers.TryGetValue(MirrorKey, out var mirror) && Enum.TryParse<ChalkerEmote>(name, out var emote))
+            if (!Enum.TryParse<ChalkerEmote>(name, out var emote))
+                return;
+            if (_chalkers.TryGetValue(MirrorKey, out var mirror))
                 mirror.Play(emote);
+            Yours?.Play(emote);
         }
 
         public static ChalkerPersonality PersonalityOf(string look) =>

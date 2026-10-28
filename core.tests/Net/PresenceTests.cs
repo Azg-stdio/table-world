@@ -63,6 +63,24 @@ namespace Core.Tests.Net
             Assert.Null(PresenceCodec.Decode(bad));
         }
 
+        /// <summary>First person: a raised hand of cards and leaning in travel; a lean outside 0–1 is refused.</summary>
+        [Fact]
+        public void HandAndLean_RoundTrip()
+        {
+            var frame = Frame("seat_north", 2);
+            frame.HandUp = true;
+            frame.Lean = 0.5f;
+            var decoded = PresenceCodec.Decode(JObject.Parse(PresenceCodec.Encode(frame).ToString()))!;
+            Assert.True(decoded.HandUp);
+            Assert.Equal(0.5f, decoded.Lean);
+            var plain = PresenceCodec.Decode(PresenceCodec.Encode(Frame("seat_north", 3)))!;
+            Assert.False(plain.HandUp);
+            Assert.Equal(0f, plain.Lean);
+            var bad = PresenceCodec.Encode(frame);
+            bad["lean"] = 3f;
+            Assert.Null(PresenceCodec.Decode(bad));
+        }
+
         [Fact]
         public void Emotes_RoundTrip()
         {

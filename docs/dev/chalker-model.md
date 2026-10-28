@@ -15,7 +15,7 @@ Units are metres. The chalker's origin is on the edge of the table, at table-top
 | Chair seat (cushion top) | 0.30 m below the table top | `ChalkerChair.SeatTop` (a karaoke sofa's cushions too, `ChalkerSofa`) |
 | Distance from the table's edge | 0.22 m | `ChalkersView.SeatDistance` |
 | Torso pivot above the origin | 0.14 m | `Chalker.TorsoHeight` |
-| Eyes above the origin | 0.53 m | `Chalker.EyeHeight` (the camera from your seat sits here) |
+| Eyes above the origin | 0.53 m | `Chalker.EyeHeight` (the first-person camera sits at the shapes' eyes, `Chalker.Eyes`) |
 | Shoulders, upper arm, forearm | 0.06 m above the torso pivot, 0.17 m, 0.17 m | arm lengths that reach the table at rest |
 | Knees forward of the hips | 0.24 m | `Chalker.KneeForward` |
 
@@ -34,7 +34,7 @@ parented to it.
 | `mouth` | the voice's position | voice playback comes from here |
 | `leftShoulder`, `rightShoulder` | arm raise and forward swing | emotes, rest pose (`ChalkerEmotes.Rest`: forearms on the table) |
 | `leftElbow`, `rightElbow` | elbow bend | emotes, rest pose |
-| `leftHand`, `rightHand` | the hands | follow the elbows; tests check the right hand reaches the table |
+| `leftHand`, `rightHand` | the hands | follow the elbows; holding cards or reaching for a carried object, IK to the fan (`HandHold`) or the object ([camera.md](camera.md)) |
 | `leftHip`, `rightHip` | the standing legs' swing | walking (`Chalker.Walking`) |
 
 A singer (karaoke, `Chalker.Microphone`) holds a microphone in the right hand: the right arm takes a fixed pose
@@ -60,6 +60,11 @@ sits on the hips (seated) or as high as the legs reach (standing); the spine, ne
 knees. The model is scaled so its shoulders are as high above its hips as the shapes', and turned to face +Z from where
 its eyes are. The face is a jaw bone that drops with the voice, blend shapes (`jaw_open_pose`, smiles, frowns, cheeks,
 lip corners, looks) and eyes that squash flat to blink. The skin takes the seat's colour: the `TableWorld/Recolor` shader repaints the skin's hue (`Rig.SkinHue`) on the GPU when the colour changes, keeping shading, eyes and mouth. Bone and shape names live in `ChalkerModel.Rig`.
+
+Holding cards, the model's wrists go below the fan's foot and its fingers turn up the cards' backs; the hands use the
+fan's places directly, so a model with longer arms than the shapes still reaches a raised fan. `Rig.HandScale` shrinks
+a cartoon's fists that would dwarf real-size cards. In first person your own model draws only its shadow
+([camera.md](camera.md)).
 
 The placeholder worn today is `Art/Placeholder/TomLizard` (an unlicensed test model, see its `NOTICE.txt`; it must
 not ship). The lab's M key switches between it and the shapes; `Chalker.UseModel` does the same in code.

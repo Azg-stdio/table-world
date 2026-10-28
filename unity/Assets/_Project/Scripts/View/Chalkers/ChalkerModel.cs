@@ -28,6 +28,8 @@ namespace TableWorld.View.Chalkers
             public string[] Skin;
             /// <summary>The skin's own hue (0–1), the one repainted, and its typical saturation and value.</summary>
             public float SkinHue, SkinSaturation, SkinValue;
+            /// <summary>The hands' size against the file's (a cartoon's fists dwarf real-size cards).</summary>
+            public float HandScale = 1f;
 
             /// <summary>Unreal-style names (pelvis, spine_01, upperarm_l…), as on the placeholder lizard.</summary>
             public static readonly Rig Unreal = new Rig
@@ -43,6 +45,7 @@ namespace TableWorld.View.Chalkers
                 Tail = new[] { "tail1", "tail2", "tail3", "tail4" },
                 Skin = new[] { "Body", "Head" },
                 SkinHue = 0.3f, SkinSaturation = 0.45f, SkinValue = 0.7f,
+                HandScale = 0.75f,
             };
         }
 
@@ -67,6 +70,8 @@ namespace TableWorld.View.Chalkers
         private readonly float _ankleHeight;
         private readonly float _footSpread;
         private float _tailPhase;
+        private readonly float[] _handLength = new float[2];
+        private readonly Vector3[] _fingers = { Vector3.up, Vector3.up };
         /// <summary>Per eye (left, right), the bone's local axis that points up the face, which a blink squashes.</summary>
         private readonly int[] _eyeUp = new int[2];
 
@@ -140,6 +145,21 @@ namespace TableWorld.View.Chalkers
             _ankleHeight = Mathf.Max(0.02f, (foot.y - MinY(renderers, _container)) * Scale);
             _footSpread = Mathf.Abs(thigh.x - pelvis.x) * Scale;
             _container.localScale = Vector3.one * Scale;
+            // Each hand: its size, and the way and distance from the wrist to the farthest fingertip, in the hand's own
+            // axes (holding cards, the fingers lie up the cards' backs).
+            for (var side = 0; side < 2; side++)
+            {
+                var hand = Bone(side == 0 ? rig.LeftHand : rig.RightHand);
+                if (hand == null)
+                    continue;
+                hand.localScale = Vector3.one * rig.HandScale;
+                var tip = hand;
+                foreach (var t in hand.GetComponentsInChildren<Transform>())
+                    if (Vector3.Distance(t.position, hand.position) > Vector3.Distance(tip.position, hand.position))
+                        tip = t;
+                _handLength[side] = Vector3.Distance(tip.position, hand.position);
+                _fingers[side] = tip == hand ? Vector3.up : hand.InverseTransformDirection(tip.position - hand.position).normalized;
+            }
             for (var side = 0; side < 2; side++)
             {
                 var eye = Bone(side == 0 ? rig.LeftEye : rig.RightEye);
@@ -186,6 +206,7 @@ namespace TableWorld.View.Chalkers
                 if (shapes.Count > 0)
                     _faces.Add((renderer, shapes));
             }
+            _renderers = renderers;
             SetColor(color);
         }
 
@@ -296,7 +317,21 @@ namespace TableWorld.View.Chalkers
                     var span = Vector3.Distance(shoulder, elbow) + Vector3.Distance(elbow, hand);
                     target = shoulderBone.position + (hand - shoulder) * (reach / Mathf.Max(span, 0.01f));
                 }
+                // Holding cards: the palm at the fan's foot (the wrist below it), fingers up the cards' backs. The hold's own
+                // places, not the shapes' hands: this model's arms may reach where the shapes' stop short.
+                var holds = chalker.CardHold is { } hold && (side == 0 || chalker.ReachFor == null && !chalker.Microphone);
+                if (holds)
+                {
+                    var grip = chalker.CardHold.Value;
+                    target = (side == 0 ? grip.LeftHand : grip.RightHand) - grip.Up * (_handLength[side] * 0.45f);
+                }
                 Reach(upper, lower, end, target, elbow - root.forward * 0.1f);
+                if (holds && Bone(end) is { } palm)
+                {
+                    var along = chalker.CardHold.Value;
+                    var want = (along.Up - along.Face * 0.25f).normalized;
+                    palm.rotation = Quaternion.FromToRotation(palm.TransformDirection(_fingers[side]), want) * palm.rotation;
+                }
             }
 
             // Legs: seated, the feet on the floor under the knees; standing, swung from the chalker's hips.
@@ -335,7 +370,11 @@ namespace TableWorld.View.Chalkers
                 }
 
             Face(face, mouth, pupils, leftShut, rightShut, head);
+            FaceDepth = root.InverseTransformPoint(Eyes).z;
         }
+
+        /// <summary>How far ahead of the chalker's root the eyes are (as last posed): a raised hand of cards goes in front.</summary>
+        public float FaceDepth { get; private set; }
 
         private void Turn(string name, Quaternion delta)
         {
@@ -350,23 +389,33 @@ namespace TableWorld.View.Chalkers
             var upper = Bone(upperName);
             var lower = Bone(lowerName);
             var end = Bone(endName);
-            if (upper == null || lower == null || end == null)
-                return;
-            var a = upper.position;
-            var lengthA = Vector3.Distance(a, lower.position);
-            var lengthB = Vector3.Distance(lower.position, end.position);
-            var toTarget = target - a;
-            var distance = Mathf.Clamp(toTarget.magnitude, Mathf.Abs(lengthA - lengthB) + 1e-3f, (lengthA + lengthB) * 0.999f);
-            var direction = toTarget.sqrMagnitude > 1e-8f ? toTarget.normalized : -_container.up;
-            var bend = Vector3.ProjectOnPlane(pole - a, direction);
-            if (bend.sqrMagnitude < 1e-8f)
-                bend = Vector3.ProjectOnPlane(_container.forward, direction);
-            bend.Normalize();
-            var cos = Mathf.Clamp((lengthA * lengthA + distance * distance - lengthB * lengthB) / (2f * lengthA * distance), -1f, 1f);
-            var middle = a + direction * (lengthA * cos) + bend * (lengthA * Mathf.Sqrt(1f - cos * cos));
-            upper.rotation = Quaternion.FromToRotation(lower.position - a, middle - a) * upper.rotation;
-            lower.rotation = Quaternion.FromToRotation(end.position - lower.position, a + direction * distance - lower.position) * lower.rotation;
+            if (upper != null && lower != null && end != null)
+                TwoBoneIk.Solve(upper, lower, end, target, pole, -_container.up, _container.forward);
         }
+
+        /// <summary>Midway between the eyes as posed (the first-person camera sits there).</summary>
+        public Vector3 Eyes
+        {
+            get
+            {
+                var left = Bone(_rig.LeftEye);
+                var right = Bone(_rig.RightEye);
+                return left != null && right != null ? (left.position + right.position) / 2f : Bone(_rig.Head).position;
+            }
+        }
+
+        /// <summary>
+        /// Draws the model's shadow only (first person: you look out from inside it, and a cartoon body's thick arms and
+        /// big hands a hand's length from the eyes would fill the view; the chalker shows slim arms instead).
+        /// </summary>
+        public void HideBody(bool hide)
+        {
+            var mode = hide ? UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly : UnityEngine.Rendering.ShadowCastingMode.On;
+            foreach (var renderer in _renderers)
+                renderer.shadowCastingMode = mode;
+        }
+
+        private SkinnedMeshRenderer[] _renderers = new SkinnedMeshRenderer[0];
 
         private void Face(FaceShape face, float mouth, Vector2 pupils, bool leftShut, bool rightShut, Transform head)
         {

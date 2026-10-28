@@ -46,6 +46,9 @@ namespace TableWorld.Tests.PlayMode
             _interaction = Object.FindAnyObjectByType<TableInteraction>();
             _camera = Object.FindAnyObjectByType<TableCamera>();
             _view = _camera.GetComponent<Camera>();
+            // TTS controls and hands: the free camera (your hand stands at your edge, the hand bar shows).
+            _camera.FirstPerson = false;
+            _camera.ResetView();
             yield return new WaitForSeconds(0.5f);
         }
 
