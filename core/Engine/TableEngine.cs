@@ -50,6 +50,16 @@ namespace Core.Engine
 
         public TableObject? Find(string id) => _objects.TryGetValue(id, out var obj) ? obj : null;
 
+        /// <summary>
+        /// The id rules and scripts know an object by: a card drawn on a table with secret cards travels under a fresh id
+        /// (<see cref="Card.EntryId"/> keeps its own), but the game's rules and scripts run on the host and still call it
+        /// by its own id (Tornaris checks which character card was dealt).
+        /// </summary>
+        public static string OwnId(TableObject obj) => obj is Card { EntryId: { Length: > 0 } own } ? own : obj.Id;
+
+        /// <summary><see cref="Find"/>, or the card on the table whose own id (<see cref="OwnId"/>) this is. For rules and scripts only: commands from other machines name objects by their table id.</summary>
+        public TableObject? FindByOwnId(string id) => Find(id) ?? State.Objects.FirstOrDefault(o => o is Card { EntryId: { } own } && own == id);
+
         /// <summary>Where the next object placed into <paramref name="zone"/> goes: a hand slot, or stacked at the zone's centre.</summary>
         internal Vec3 SlotFor(Zone zone)
         {

@@ -73,6 +73,34 @@ namespace Core.Tests.Engine
         }
 
         [Fact]
+        public void DrawnCards_KeepTheirOwnIds_ForRulesAndScripts()
+        {
+            // Secret cards give a drawn card a fresh table id; rules and scripts (run on the host) still know it as c0.
+            var game = MiniGame.Start(MiniGame.Json(MiniGame.Action(@"{ ""endTurn"": {} }"), events: @"""onGameStart"": [
+                { ""move"": { ""from"": ""d"", ""to"": ""z"", ""count"": 1, ""faceUp"": true } },
+                { ""forEach"": { ""objectsIn"": ""z"", ""do"": [ { ""setVariable"": { ""name"": ""note"", ""value"": ""$it.id"" } } ] } },
+                { ""if"": { ""condition"": { ""compare"": { ""left"": ""$obj.z.top.id"", ""op"": ""=="", ""right"": ""c0"" } },
+                            ""then"": [ { ""move"": { ""object"": ""c1"", ""to"": ""h1"" } }, { ""move"": { ""object"": ""c0"", ""to"": ""h1"" } } ] } } ]"));
+            Assert.True(game.State.SecretCards);
+            Assert.Equal("c0", (string)game.Session!.Variables["note"]!);
+            var hand = game.Table.ObjectsIn("h1").Select(Key).OrderBy(k => k).ToList();
+            Assert.Equal(new[] { "c0", "c1" }, hand);
+            Assert.DoesNotContain(game.Table.ObjectsIn("h1"), o => o.Id == "c0" || o.Id == "c1");   // still fresh on the wire
+
+            var host = new Core.Scripting.ScriptHost(() => game.Table, c => game.Table.Execute(c));
+            var said = new System.Collections.Generic.List<string>();
+            host.Broadcast += said.Add;
+            game.State.Scripts[Core.Scripting.ScriptHost.GlobalName] = @"function onLoad()
+                local ids = {}
+                for _, o in ipairs(getObjectFromGUID('h1').getObjects()) do ids[#ids + 1] = o.getGUID() end
+                table.sort(ids)
+                broadcastToAll(table.concat(ids, ',') .. ' ' .. getObjectFromGUID('c0').getName())
+            end";
+            host.Load(0);
+            Assert.Equal("c0,c1 " + game.Table.ObjectsIn("h1").Single(o => Key(o) == "c0").Name, said.Single());
+        }
+
+        [Fact]
         public void Message_FillsTemplates()
         {
             var game = MiniGame.Run(@"{ ""message"": { ""text"": ""{$actor.id} sees {$obj.d.top.name}{$obj.d.top.id} ({$obj.d.count})"" } }");

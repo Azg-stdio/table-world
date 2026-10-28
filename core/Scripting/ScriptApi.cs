@@ -36,7 +36,7 @@ namespace Core.Scripting
 
             // As in TTS, an object inside a bag is not on the table: nil (Pokémon Master Trainer takes its figure out of
             // the bag only when this says so; it clones it otherwise).
-            g["getObjectFromGUID"] = Fn(args => args.Count > 0 && args[0].CastToString() is { } guid && Engine.Find(guid) is { Container: { } }
+            g["getObjectFromGUID"] = Fn(args => args.Count > 0 && args[0].CastToString() is { } guid && Engine.FindByOwnId(guid) is { Container: { } }
                 ? DynValue.Nil
                 : Proxy(script, args.Count > 0 ? args[0].CastToString() : null));
             g["startLuaCoroutine"] = Fn(args =>
@@ -344,6 +344,9 @@ namespace Core.Scripting
         {
             if (id == null)
                 return DynValue.Nil;
+            // A drawn card asked for by its own id (getGUID gives scripts that one).
+            if (Engine.Find(id) == null && Engine.FindByOwnId(id) is { } drawn)
+                id = drawn.Id;
             if (_proxies.TryGetValue((script, id), out var known))
                 return Engine.Find(id) != null || Engine.State.Zones.Any(z => z.Id == id) ? known : DynValue.Nil;
             var obj = Engine.Find(id);
@@ -358,7 +361,9 @@ namespace Core.Scripting
             DynValue At(CallbackArguments args, int i) => args.Count > i + Self(args) ? args[i + Self(args)] : DynValue.Nil;
             string? Arg(CallbackArguments args, int i) => At(args, i).Type == DataType.Nil ? null : At(args, i).CastToString();
 
-            t["getGUID"] = DynValue.NewCallback((_, a) => DynValue.NewString(id));
+            // Scripts know a drawn card by its own id; the proxy keeps the table's id in guid for its own lookups.
+            var own = obj != null ? TableEngine.OwnId(obj) : id;
+            t["getGUID"] = DynValue.NewCallback((_, a) => DynValue.NewString(own));
             t["guid"] = id;
             if (zone != null)
             {

@@ -601,7 +601,7 @@ namespace Core.Engine
                     var call = new RuleCall
                     {
                         Actor = _ctx.Actor, Params = _ctx.Params, Args = lua.Args,
-                        It = _ctx.It switch { Seat seat => seat.Id, TableObject obj => obj.Id, string id => id, _ => null },
+                        It = _ctx.It switch { Seat seat => seat.Id, TableObject obj => TableEngine.OwnId(obj), string id => id, _ => null },
                         Execute = command => command is ScriptRulesCommand or PerformActionCommand ? Execute(command) : InRules(command),
                     };
                     if (Scripts.CallRule(lua.Call, call) is { } refusal)
@@ -1140,7 +1140,7 @@ namespace Core.Engine
         {
             if (References.IsReference(text))
                 return Resolve(text, field) ?? throw new RuleException(field, ErrorCodes.InvalidReference, $"'{text}' resolves to nothing right now.");
-            return (object?)Table.Find(text) ?? (object?)State.Zones.FirstOrDefault(z => z.Id == text) ?? (object?)FindCard(text)
+            return (object?)Table.FindByOwnId(text) ?? (object?)State.Zones.FirstOrDefault(z => z.Id == text) ?? (object?)FindCard(text)
                 ?? throw new RuleException(field, ErrorCodes.UnknownObject, $"No object, zone or card '{text}'.");
         }
 
@@ -1301,7 +1301,7 @@ namespace Core.Engine
 
         private static object? ObjectProperty(TableObject obj, string part, string[] parts, ref int i) => part switch
         {
-            "id" => new JValue(obj.Id),
+            "id" => new JValue(TableEngine.OwnId(obj)),
             "name" => obj.Name == null ? null : new JValue(obj.Name),
             "meta" => obj is Card card ? card.Meta : null,
             "faceUp" => new JValue(obj.IsFaceUp),

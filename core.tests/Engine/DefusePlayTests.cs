@@ -38,7 +38,9 @@ namespace Core.Tests.Engine
             return game;
         }
 
-        private static List<string> Order(GameEngine game) => ((JArray)game.Session!.Variables["order"]!).Select(t => (string)t!).ToList();
+        /// <summary>The wires left to right, by their table ids (the script keeps the cards' own ids, as getGUID gives them).</summary>
+        private static List<string> Order(GameEngine game) =>
+            ((JArray)game.Session!.Variables["order"]!).Select(t => game.Table.FindByOwnId((string)t!)!.Id).ToList();
 
         private static string Colour(GameEngine game, string id) => (string)((Card)game.Table.Find(id)!).Meta!["color"]!;
 

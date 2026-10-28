@@ -45,8 +45,9 @@ namespace Core.Scripting
                 if (call.It != null)
                     context["it"] = call.It;
                 var parameters = new Table(_global);
+                // An object picked by a player arrives under its table id; the script knows a drawn card by its own (getGUID).
                 foreach (var pair in call.Params)
-                    parameters[pair.Key] = pair.Value;
+                    parameters[pair.Key] = pair.Value is string id && Engine.Find(id) is { } picked ? TableEngine.OwnId(picked) : pair.Value;
                 context["params"] = parameters;
                 context["args"] = call.Args != null ? ToLua(call.Args, _global) : DynValue.NewTable(new Table(_global));
                 if (!RunFor(_global, fn, function, new[] { DynValue.NewTable(context) }, out var result))
