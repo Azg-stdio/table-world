@@ -155,7 +155,8 @@ namespace TableWorld.View.Chalkers
 
         /// <summary>
         /// First person: the first-person camera looks out from inside the head, which draws its shadow only. A worn model
-        /// draws only its shadow too, and the shapes' slim forearms and hands show instead, holding the cards in view.
+        /// draws only its shadow too, but for its own forearms and hands holding the cards in view; without a model (or
+        /// one whose rig has no forearms) the shapes' slim forearms and hands show instead.
         /// </summary>
         public void HideHead(bool hide)
         {
@@ -177,11 +178,12 @@ namespace TableWorld.View.Chalkers
                 Resize(hand, hide, FirstPersonReach, FirstPersonHand);
                 if (_model == null)
                     continue;
-                // The model's shadow already has arms: the shapes' forearms and fists show, without one.
+                // The model shows its own forearms and hands when it has them; otherwise the shapes' forearms and fists
+                // show (the model's shadow already has arms, so they cast none).
                 foreach (var part in new[] { _elbows[side].Find("Forearm"), hand })
                     if (part != null && part.TryGetComponent<Renderer>(out var renderer))
                     {
-                        renderer.enabled = hide;
+                        renderer.enabled = hide && !_model.FirstPersonArms;
                         renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
                     }
             }

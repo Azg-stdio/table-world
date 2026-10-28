@@ -319,13 +319,15 @@ namespace TableWorld.View.Chalkers
                     var span = Vector3.Distance(shoulder, elbow) + Vector3.Distance(elbow, hand);
                     target = shoulderBone.position + (hand - shoulder) * (reach / Mathf.Max(span, 0.01f));
                 }
-                // Holding cards: the palm at the fan's foot (the wrist below it), fingers up the cards' backs. The hold's own
+                // Holding cards: the fingers at the fan's foot (the wrist below it), lying up the cards' backs. The hold's own
                 // places, not the shapes' hands: this model's arms may reach where the shapes' stop short.
                 var holds = chalker.CardHold is { } hold && (side == 0 || chalker.ReachFor == null && !chalker.Microphone);
                 if (holds)
                 {
                     var grip = chalker.CardHold.Value;
-                    target = (side == 0 ? grip.LeftHand : grip.RightHand) - grip.Up * (_handLength[side] * 0.45f);
+                    // The wrist well below the fan's foot and a little behind it: the fingers close on the cards from their
+                    // backs, the faces left to read.
+                    target = (side == 0 ? grip.LeftHand : grip.RightHand) - grip.Up * (_handLength[side] * 0.8f) - grip.Face * 0.025f;
                 }
                 Reach(upper, lower, end, target, elbow - root.forward * 0.1f);
                 if (holds && Bone(end) is { } palm)
@@ -407,17 +409,103 @@ namespace TableWorld.View.Chalkers
         }
 
         /// <summary>
-        /// Draws the model's shadow only (first person: you look out from inside it, and a cartoon body's thick arms and
-        /// big hands a hand's length from the eyes would fill the view; the chalker shows slim arms instead).
+        /// First person: the model draws only its shadow (you look out from inside it, and its head and shoulders would
+        /// fill the view) except its own forearms and hands (<see cref="FirstPersonArms"/>), which hold the cards in view.
         /// </summary>
         public void HideBody(bool hide)
         {
             var mode = hide ? UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly : UnityEngine.Rendering.ShadowCastingMode.On;
             foreach (var renderer in _renderers)
                 renderer.shadowCastingMode = mode;
+            if (hide && _arms == null)
+                _arms = BuildArms();
+            foreach (var arm in _arms ?? new List<GameObject>())
+                arm.SetActive(hide);
         }
 
+        /// <summary>Whether first person shows this model's own forearms and hands (false: none were found in its rig).</summary>
+        public bool FirstPersonArms => _arms is { Count: > 0 };
+
         private SkinnedMeshRenderer[] _renderers = new SkinnedMeshRenderer[0];
+        private List<GameObject> _arms;
+
+        /// <summary>
+        /// The triangles of each skinned mesh that its forearm and hand bones carry (both sides, the fingers included),
+        /// as meshes of their own on the same skeleton: posed with the body, drawn without it. Built the first time.
+        /// </summary>
+        private List<GameObject> BuildArms()
+        {
+            var arms = new List<GameObject>();
+            var carried = new HashSet<Transform>();
+            foreach (var name in new[] { _rig.LeftForearm, _rig.RightForearm })
+                if (Bone(name) is { } forearm)
+                    carried.UnionWith(forearm.GetComponentsInChildren<Transform>(true));
+            if (carried.Count == 0)
+                return arms;
+            foreach (var renderer in _renderers)
+            {
+                var source = renderer.sharedMesh;
+                // An imported model needs Read/Write on to be cut; without it, the shapes' arms stand in.
+                if (source == null || !source.isReadable)
+                    continue;
+                var bones = renderer.bones;
+                var weights = source.boneWeights;
+                if (weights.Length != source.vertexCount)
+                    continue;
+                bool Arm(int vertex)
+                {
+                    var w = weights[vertex];
+                    float On(int bone, float weight) => bone >= 0 && bone < bones.Length && carried.Contains(bones[bone]) ? weight : 0f;
+                    return On(w.boneIndex0, w.weight0) + On(w.boneIndex1, w.weight1) + On(w.boneIndex2, w.weight2) + On(w.boneIndex3, w.weight3) > 0.5f;
+                }
+                var subMeshes = new List<int[]>();
+                var any = false;
+                for (var sub = 0; sub < source.subMeshCount; sub++)
+                {
+                    var triangles = source.GetTriangles(sub);
+                    var kept = new List<int>();
+                    for (var i = 0; i + 2 < triangles.Length; i += 3)
+                        if (Arm(triangles[i]) && Arm(triangles[i + 1]) && Arm(triangles[i + 2]))
+                            kept.AddRange(new[] { triangles[i], triangles[i + 1], triangles[i + 2] });
+                    any |= kept.Count > 0;
+                    subMeshes.Add(kept.ToArray());
+                }
+                if (!any)
+                    continue;
+                var mesh = new Mesh
+                {
+                    name = source.name + " arms",
+                    indexFormat = source.indexFormat,
+                    vertices = source.vertices,
+                    normals = source.normals,
+                    tangents = source.tangents,
+                    uv = source.uv,
+                    boneWeights = weights,
+                    bindposes = source.bindposes,
+                    subMeshCount = subMeshes.Count,
+                };
+                for (var sub = 0; sub < subMeshes.Count; sub++)
+                    mesh.SetTriangles(subMeshes[sub], sub);
+                mesh.RecalculateBounds();
+                var go = new GameObject(renderer.name + " (first-person arms)");
+                go.transform.SetParent(renderer.transform.parent, false);
+                go.transform.SetLocalPositionAndRotation(renderer.transform.localPosition, renderer.transform.localRotation);
+                go.transform.localScale = renderer.transform.localScale;
+                var arm = go.AddComponent<SkinnedMeshRenderer>();
+                arm.sharedMesh = mesh;
+                arm.bones = bones;
+                arm.rootBone = renderer.rootBone;
+                arm.sharedMaterials = renderer.sharedMaterials;
+                arm.updateWhenOffscreen = true;
+                arm.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                _meshes.Add(mesh);
+                go.SetActive(false);
+                arms.Add(go);
+            }
+            return arms;
+        }
+
+        private readonly List<Mesh> _meshes = new List<Mesh>();
 
         private void Face(FaceShape face, float mouth, Vector2 pupils, bool leftShut, bool rightShut, Transform head)
         {
@@ -491,6 +579,8 @@ namespace TableWorld.View.Chalkers
         {
             foreach (var material in _materials)
                 Object.Destroy(material);
+            foreach (var mesh in _meshes)
+                Object.Destroy(mesh);
             foreach (var skin in _skins)
                 if (skin.Painted != null)
                     Object.Destroy(skin.Painted);

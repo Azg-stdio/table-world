@@ -74,9 +74,11 @@ Every seat has a chair, yours too, and your chalker sits in it. Lifted, you see 
 Seated, the camera is inside its head:
 
 - The head draws its shadow only (`Chalker.HideHead`), and a worn model draws only its shadow
-  (`ChalkerModel.HideBody`). A cartoon body's thick arms and big hands a hand's length from the eyes would fill the view.
-- The shapes' forearms and fists show instead, slimmer and smaller, the arms 20 % longer
-  (`Chalker.FirstPersonReach`, `FirstPersonArm`, `FirstPersonHand`).
+  (`ChalkerModel.HideBody`), except its own forearms and hands. Those are cut out of its meshes the first time (the
+  triangles its forearm and hand bones carry, on the same skeleton) and drawn alone, so you see the model's real hands
+  holding the cards. Cutting needs the mesh readable: an imported model needs Read/Write on (Tom has it).
+- Without a model, or with one that cannot be cut, the shapes' forearms and fists show instead, slimmer and smaller,
+  the arms 20 % longer (`Chalker.FirstPersonReach`, `FirstPersonArm`, `FirstPersonHand`).
 - Your shadow on the table is still the whole model.
 
 **Seen through when lifted.** Where your chalker stands between the lifted camera and the table
@@ -106,8 +108,8 @@ with the hand bar.
 - **Raised**: under the chin, the cards nearly upright, facing the eyes. A face further forward (a snout) pushes the fan
   out to stay 0.12 m in front of it (`HandHold.FaceClearance`, `ChalkerModel.FaceDepth`).
 
-The fan opens up to 64°, 9° between cards. A worn model's wrists sit below the fan's foot and its fingers lie up the
-cards' backs.
+The fan opens up to 64°, 9° between cards. A worn model's wrists sit well below the fan's foot and a little behind it,
+its fingers lying up the cards' backs, so the faces stay readable.
 
 **Raising the hand.** The cards come up when the pointer goes onto one of them. They stay up while the pointer is over
 them, or across their width and no higher than their top. They drop 0.35 s after it leaves. H
