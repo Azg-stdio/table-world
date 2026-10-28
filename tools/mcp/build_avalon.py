@@ -5,7 +5,8 @@ saves it as games/avalon.json. Every call is a tools/call to the server over std
     python -I tools/mcp/build_avalon.py [path to TableWorld.Mcp.dll]
 
 The tools used are the general ones (new_game, set_roles, set_variables, set_script, add_phase, add_action,
-set_turn, validate_rules, save_game); nothing in the server knows Avalon.
+set_turn, get_rules_document and set_rules_document for the score panel, set_translations, validate_rules,
+save_game); nothing in the server knows Avalon.
 """
 import json
 import os
@@ -68,6 +69,34 @@ call("new_game", id="avalon", name="Avalon", players=10, minPlayers=5, maxPlayer
      description="Hidden loyalties: good completes three quests, evil fails three or finds Merlin at the end. "
                  "A leader picks each quest's team, everyone votes on it, and the team succeeds or fails it in secret.")
 
+# The game's own sentences are strings (@key), so they can be translated like every other text.
+STRINGS = {
+    'leads': ('{$current.name} leads quest {$var.quest}: pick {$var.size} players.',
+                '{$current.name} lidera la misión {$var.quest}: elige {$var.size} jugadores.'),
+    'picks': ('{$actor.name} picks {$param.member.name}.',
+                '{$actor.name} elige a {$param.member.name}.'),
+    'unpicks': ('{$actor.name} takes {$param.member.name} off the team.',
+                  '{$actor.name} saca a {$param.member.name} del equipo.'),
+    'proposes': ('{$actor.name} proposes {$var.team}. Vote on the team.',
+                   '{$actor.name} propone a {$var.team}. Voten el equipo.'),
+    'fiveRejected': ('Five teams rejected in a row.',
+                       'Cinco equipos rechazados seguidos.'),
+    'questFails': ('Quest {$var.quest} fails.',
+                     'La misión {$var.quest} fracasa.'),
+    'questSucceeds': ('Quest {$var.quest} succeeds.',
+                        'La misión {$var.quest} tiene éxito.'),
+    'threeFailed': ('Three quests failed.',
+                      'Tres misiones fracasaron.'),
+    'threeSucceeded': ('Three quests succeeded. The Assassin names Merlin.',
+                         'Tres misiones tuvieron éxito. El Asesino nombra a Merlín.'),
+    'wasMerlin': ('{$param.target.name} was Merlin.',
+                    '{$param.target.name} era Merlín.'),
+    'wasNotMerlin': ('{$param.target.name} was not Merlin.',
+                       '{$param.target.name} no era Merlín.'),
+}
+call("set_translations", language="en", gameLanguage="en",
+     translationsJson=json.dumps({f"strings.{key}": text for key, (text, _) in STRINGS.items()}))
+
 call("set_roles", rolesJson=json.dumps({
     "teams": [{"id": "good", "name": "Loyal servants of Arthur"}, {"id": "evil", "name": "Minions of Mordred"}],
     "list": [
@@ -112,14 +141,18 @@ def compare(left, right, op="=="):
     return {"compare": {"left": left, "op": op, "right": right}}
 
 
+def win(team):
+    """A team wins, and every role is shown, as players turn their cards over at the end."""
+    return [{"forEach": {"players": True, "do": [{"revealRole": {"seat": "$it"}}]}}, {"win": {"team": team}}]
+
+
 call("add_phase", phaseJson=json.dumps({
-    "id": "propose", "name": "Pick the team", "actions": ["pick", "unpick"],
+    "id": "propose", "name": "Pick the team", "actions": ["pick", "unpick", "propose"],
     "onEnter": [
         {"lua": {"call": "setQuest"}},
         {"setVariable": {"name": "team", "value": []}},
-        {"message": {"text": "{$current.name} leads quest {$var.quest}: pick {$var.size} players."}},
+        {"message": {"text": "@leads"}},
     ],
-    "advanceWhen": {"condition": compare("$var.team.count", "$var.size")},
 }))
 call("add_action", actionJson=json.dumps({
     "id": "pick", "name": "Pick", "actor": "current",
@@ -127,13 +160,20 @@ call("add_action", actionJson=json.dumps({
     "preconditions": [{"not": {"inList": {"list": "$var.team", "value": "$param.member"}}},
                       compare("$var.team.count", "$var.size", "<")],
     "effects": [{"setVariable": {"name": "team", "add": "$param.member"}},
-                {"message": {"text": "{$actor.name} picks {$param.member.name}."}}],
+                {"message": {"text": "@picks"}}],
 }))
 call("add_action", actionJson=json.dumps({
     "id": "unpick", "name": "Take off the team", "actor": "current",
     "params": [{"name": "member", "type": "seat"}],
     "preconditions": [{"inList": {"list": "$var.team", "value": "$param.member"}}],
-    "effects": [{"setVariable": {"name": "team", "remove": "$param.member"}}],
+    "effects": [{"setVariable": {"name": "team", "remove": "$param.member"}},
+                {"message": {"text": "@unpicks"}}],
+}))
+# The table talks the team over before the vote: the leader sends it when ready, and can change it until then.
+call("add_action", actionJson=json.dumps({
+    "id": "propose", "name": "Propose this team", "actor": "current",
+    "preconditions": [compare("$var.team.count", "$var.size")],
+    "effects": [{"message": {"text": "@proposes"}}, {"endPhase": {}}],
 }))
 
 call("add_phase", phaseJson=json.dumps({"id": "team_vote", "name": "Vote on the team", "actions": ["team_vote"]}))
@@ -147,7 +187,7 @@ call("add_action", actionJson=json.dumps({
             "then": [{"setVariable": {"name": "rejections", "value": 0}}, {"gotoPhase": {"phase": "quest"}}],
             "else": [{"setVariable": {"name": "rejections", "delta": 1}},
                      {"if": {"condition": compare("$var.rejections", 5, ">="),
-                             "then": [{"message": {"text": "Five teams rejected in a row."}}, {"win": {"team": "evil"}}],
+                             "then": [{"message": {"text": "@fiveRejected"}}] + win("evil"),
                              "else": [{"endTurn": {}}]}}]}}],
     },
 }))
@@ -159,15 +199,16 @@ call("add_action", actionJson=json.dumps({
     "preconditions": [{"or": [compare("$actor.team", "evil"), compare("$param.choice", "success")]}],
     "vote": {
         "options": ["success", "fail"], "labels": {"success": "Success", "fail": "Fail"},
-        "who": "$var.team", "reveal": "count",
+        # The rules judge the fail cards (one fails it, two on the fourth quest with 7 or more): no majority result.
+        "who": "$var.team", "reveal": "count", "decide": "none",
         "onResult": [
             {"if": {"condition": compare("$vote.fail", "$var.needFails", ">="),
-                    "then": [{"setVariable": {"name": "fails", "delta": 1}}, {"message": {"text": "Quest {$var.quest} fails."}}],
-                    "else": [{"setVariable": {"name": "successes", "delta": 1}}, {"message": {"text": "Quest {$var.quest} succeeds."}}]}},
+                    "then": [{"setVariable": {"name": "fails", "delta": 1}}, {"message": {"text": "@questFails"}}],
+                    "else": [{"setVariable": {"name": "successes", "delta": 1}}, {"message": {"text": "@questSucceeds"}}]}},
             {"if": {"condition": compare("$var.fails", 3, ">="),
-                    "then": [{"win": {"team": "evil"}}],
+                    "then": [{"message": {"text": "@threeFailed"}}] + win("evil"),
                     "else": [{"if": {"condition": compare("$var.successes", 3, ">="),
-                                     "then": [{"message": {"text": "Three quests succeeded. The Assassin names Merlin."}},
+                                     "then": [{"message": {"text": "@threeSucceeded"}},
                                               {"gotoPhase": {"phase": "assassinate"}}],
                                      "else": [{"setVariable": {"name": "quest", "delta": 1}}, {"endTurn": {}}]}}]}},
         ],
@@ -182,11 +223,74 @@ call("add_action", actionJson=json.dumps({
     "effects": [
         {"revealRole": {"seat": "$param.target"}},
         {"if": {"condition": compare("$param.target.role", "merlin"),
-                "then": [{"win": {"team": "evil"}}], "else": [{"win": {"team": "good"}}]}},
+                "then": [{"message": {"text": "@wasMerlin"}}] + win("evil"),
+                "else": [{"message": {"text": "@wasNotMerlin"}}] + win("good")}},
     ],
 }))
 
 call("set_turn", phases="propose,team_vote,quest,assassinate", order="clockwise", startingPlayer="random")
+# Where the game stands, for everyone: the panel reads the variables the rules keep.
+document = call("get_rules_document")
+document["ui"] = {"panels": [{
+    "id": "quests", "title": "Avalon", "anchor": "right", "visibleTo": [],
+    "elements": [
+        {"type": "label", "text": "Quest {$var.quest} of 5: a team of {$var.size}"},
+        {"type": "label", "text": "Fails that sink it: {$var.needFails}"},
+        {"type": "label", "text": "Succeeded {$var.successes} · Failed {$var.fails}"},
+        {"type": "label", "text": "Rejected teams: {$var.rejections} of 5"},
+        {"type": "label", "text": "Leader: {$current.name}"},
+        {"type": "label", "text": "Team: {$var.team}"},
+    ]}]}
+call("set_rules_document", documentJson=json.dumps(document))
+
+# Spanish, for every text translate_game lists.
+ES = {
+    'game.name': 'Avalon',
+    'game.description': 'Lealtades ocultas: el bien completa tres misiones; el mal hace fracasar tres o encuentra a Merlín al final. Un líder elige el equipo de cada misión, todos lo votan y el equipo la cumple o la sabotea en secreto.',
+    'actions.pick.name': 'Elegir',
+    'actions.unpick.name': 'Sacar del equipo',
+    'actions.propose.name': 'Proponer este equipo',
+    'actions.team_vote.name': 'Voto del equipo',
+    'votes.team_vote.approve': 'Aprobar',
+    'votes.team_vote.reject': 'Rechazar',
+    'actions.quest.name': 'Misión',
+    'votes.quest.success': 'Éxito',
+    'votes.quest.fail': 'Fracaso',
+    'actions.assassinate.name': 'Nombrar a Merlín',
+    'phases.propose.name': 'Elegir el equipo',
+    'phases.team_vote.name': 'Votar el equipo',
+    'phases.quest.name': 'Misión',
+    'phases.assassinate.name': 'El Asesino ataca',
+    'ui.quests.title': 'Avalon',
+    'ui.quests.0.text': 'Misión {$var.quest} de 5: equipo de {$var.size}',
+    'ui.quests.1.text': 'Fracasos que la hunden: {$var.needFails}',
+    'ui.quests.2.text': 'Éxitos {$var.successes} · Fracasos {$var.fails}',
+    'ui.quests.3.text': 'Equipos rechazados: {$var.rejections} de 5',
+    'ui.quests.4.text': 'Líder: {$current.name}',
+    'ui.quests.5.text': 'Equipo: {$var.team}',
+    'teams.good.name': 'Leales servidores de Arturo',
+    'teams.evil.name': 'Esbirros de Mordred',
+    'roles.merlin.name': 'Merlín',
+    'roles.merlin.description': 'Conoce a los malvados, salvo a Mordred. Debe esconderse del Asesino.',
+    'roles.percival.name': 'Percival',
+    'roles.percival.description': 'Ve a Merlín y a Morgana, sin saber quién es quién.',
+    'roles.servant.name': 'Leal servidor',
+    'roles.assassin.name': 'Asesino',
+    'roles.assassin.description': 'Al final nombra a un jugador bueno: si es Merlín, gana el mal.',
+    'roles.morgana.name': 'Morgana',
+    'roles.morgana.description': 'Ante Percival parece Merlín.',
+    'roles.mordred.name': 'Mordred',
+    'roles.mordred.description': 'Oculto para Merlín.',
+    'roles.oberon.name': 'Oberón',
+    'roles.oberon.description': 'Los demás esbirros no lo conocen, y él no conoce a ninguno.',
+    'roles.minion.name': 'Esbirro de Mordred',
+}
+ES.update({f"strings.{key}": text for key, (_, text) in STRINGS.items()})
+call("set_translations", language="es", translationsJson=json.dumps(ES, ensure_ascii=False))
+left = call("translate_game", language="es")
+if left.get("left", 0):
+    raise SystemExit(f"untranslated: {left.get('missing')}")
+
 call("validate_rules")
 call("save_game", path=OUT)
 server.kill()

@@ -613,6 +613,7 @@
   "ui:Stack · {count}": "Pila · {count}",
   "ui:Start": "Iniciar",
   "ui:Start a blind round: until the reveal, what each player moves stays hidden from the others.": "Empieza una ronda a ciegas: hasta revelarla, lo que mueve cada jugador queda oculto a los demás.",
+  "ui:Start game": "Empezar partida",
   "ui:Start game (1 player)": "Empezar partida (1 jugador)",
   "ui:Start game ({count} players)": "Empezar partida ({count} jugadores)",
   "ui:Starting the game's scripts": "Iniciando los scripts del juego",

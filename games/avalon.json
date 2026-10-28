@@ -288,6 +288,7 @@
     "id": "avalon",
     "name": "Avalon",
     "description": "Hidden loyalties: good completes three quests, evil fails three or finds Merlin at the end. A leader picks each quest's team, everyone votes on it, and the team succeeds or fails it in secret.",
+    "language": "en",
     "minPlayers": 5,
     "maxPlayers": 10
   },
@@ -315,7 +316,8 @@
       "name": "Pick the team",
       "actions": [
         "pick",
-        "unpick"
+        "unpick",
+        "propose"
       ],
       "onEnter": [
         {
@@ -331,19 +333,10 @@
         },
         {
           "message": {
-            "text": "{$current.name} leads quest {$var.quest}: pick {$var.size} players."
+            "text": "@leads"
           }
         }
-      ],
-      "advanceWhen": {
-        "condition": {
-          "compare": {
-            "left": "$var.team.count",
-            "op": "==",
-            "right": "$var.size"
-          }
-        }
-      }
+      ]
     },
     {
       "id": "team_vote",
@@ -403,7 +396,7 @@
         },
         {
           "message": {
-            "text": "{$actor.name} picks {$param.member.name}."
+            "text": "@picks"
           }
         }
       ]
@@ -431,6 +424,34 @@
             "name": "team",
             "remove": "$param.member"
           }
+        },
+        {
+          "message": {
+            "text": "@unpicks"
+          }
+        }
+      ]
+    },
+    {
+      "id": "propose",
+      "name": "Propose this team",
+      "preconditions": [
+        {
+          "compare": {
+            "left": "$var.team.count",
+            "op": "==",
+            "right": "$var.size"
+          }
+        }
+      ],
+      "effects": [
+        {
+          "message": {
+            "text": "@proposes"
+          }
+        },
+        {
+          "endPhase": {}
         }
       ]
     },
@@ -491,7 +512,19 @@
                     "then": [
                       {
                         "message": {
-                          "text": "Five teams rejected in a row."
+                          "text": "@fiveRejected"
+                        }
+                      },
+                      {
+                        "forEach": {
+                          "players": true,
+                          "do": [
+                            {
+                              "revealRole": {
+                                "seat": "$it"
+                              }
+                            }
+                          ]
                         }
                       },
                       {
@@ -549,6 +582,7 @@
         },
         "who": "$var.team",
         "reveal": "count",
+        "decide": "none",
         "onResult": [
           {
             "if": {
@@ -568,7 +602,7 @@
                 },
                 {
                   "message": {
-                    "text": "Quest {$var.quest} fails."
+                    "text": "@questFails"
                   }
                 }
               ],
@@ -581,7 +615,7 @@
                 },
                 {
                   "message": {
-                    "text": "Quest {$var.quest} succeeds."
+                    "text": "@questSucceeds"
                   }
                 }
               ]
@@ -597,6 +631,23 @@
                 }
               },
               "then": [
+                {
+                  "message": {
+                    "text": "@threeFailed"
+                  }
+                },
+                {
+                  "forEach": {
+                    "players": true,
+                    "do": [
+                      {
+                        "revealRole": {
+                          "seat": "$it"
+                        }
+                      }
+                    ]
+                  }
+                },
                 {
                   "win": {
                     "player": "",
@@ -617,7 +668,7 @@
                     "then": [
                       {
                         "message": {
-                          "text": "Three quests succeeded. The Assassin names Merlin."
+                          "text": "@threeSucceeded"
                         }
                       },
                       {
@@ -690,6 +741,23 @@
             },
             "then": [
               {
+                "message": {
+                  "text": "@wasMerlin"
+                }
+              },
+              {
+                "forEach": {
+                  "players": true,
+                  "do": [
+                    {
+                      "revealRole": {
+                        "seat": "$it"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
                 "win": {
                   "player": "",
                   "team": "evil"
@@ -697,6 +765,23 @@
               }
             ],
             "else": [
+              {
+                "message": {
+                  "text": "@wasNotMerlin"
+                }
+              },
+              {
+                "forEach": {
+                  "players": true,
+                  "do": [
+                    {
+                      "revealRole": {
+                        "seat": "$it"
+                      }
+                    }
+                  ]
+                }
+              },
               {
                 "win": {
                   "player": "",
@@ -709,6 +794,35 @@
       ]
     }
   ],
+  "ui": {
+    "panels": [
+      {
+        "id": "quests",
+        "title": "Avalon",
+        "anchor": "right",
+        "elements": [
+          {
+            "text": "Quest {$var.quest} of 5: a team of {$var.size}"
+          },
+          {
+            "text": "Fails that sink it: {$var.needFails}"
+          },
+          {
+            "text": "Succeeded {$var.successes} · Failed {$var.fails}"
+          },
+          {
+            "text": "Rejected teams: {$var.rejections} of 5"
+          },
+          {
+            "text": "Leader: {$current.name}"
+          },
+          {
+            "text": "Team: {$var.team}"
+          }
+        ]
+      }
+    ]
+  },
   "scripts": {
     "global": "\nSIZES = { [5] = {2, 3, 2, 3, 3}, [6] = {2, 3, 4, 3, 4}, [7] = {2, 3, 3, 4, 4},\n          [8] = {3, 4, 4, 5, 5}, [9] = {3, 4, 4, 5, 5}, [10] = {3, 4, 4, 5, 5} }\n\n-- The team size and the fails it takes for the quest about to be played.\nfunction setQuest(ctx)\n  local players = #Game.getSeats()\n  local quest = Game.getVariable(\"quest\")\n  Game.setVariable(\"size\", SIZES[players][quest])\n  if quest == 4 and players >= 7 then Game.setVariable(\"needFails\", 2) else Game.setVariable(\"needFails\", 1) end\nend\n"
   },
@@ -837,5 +951,72 @@
         "as": "oneOf"
       }
     ]
+  },
+  "translations": {
+    "en": {
+      "strings.leads": "{$current.name} leads quest {$var.quest}: pick {$var.size} players.",
+      "strings.picks": "{$actor.name} picks {$param.member.name}.",
+      "strings.unpicks": "{$actor.name} takes {$param.member.name} off the team.",
+      "strings.proposes": "{$actor.name} proposes {$var.team}. Vote on the team.",
+      "strings.fiveRejected": "Five teams rejected in a row.",
+      "strings.questFails": "Quest {$var.quest} fails.",
+      "strings.questSucceeds": "Quest {$var.quest} succeeds.",
+      "strings.threeFailed": "Three quests failed.",
+      "strings.threeSucceeded": "Three quests succeeded. The Assassin names Merlin.",
+      "strings.wasMerlin": "{$param.target.name} was Merlin.",
+      "strings.wasNotMerlin": "{$param.target.name} was not Merlin."
+    },
+    "es": {
+      "game.name": "Avalon",
+      "game.description": "Lealtades ocultas: el bien completa tres misiones; el mal hace fracasar tres o encuentra a Merlín al final. Un líder elige el equipo de cada misión, todos lo votan y el equipo la cumple o la sabotea en secreto.",
+      "actions.pick.name": "Elegir",
+      "actions.unpick.name": "Sacar del equipo",
+      "actions.propose.name": "Proponer este equipo",
+      "actions.team_vote.name": "Voto del equipo",
+      "votes.team_vote.approve": "Aprobar",
+      "votes.team_vote.reject": "Rechazar",
+      "actions.quest.name": "Misión",
+      "votes.quest.success": "Éxito",
+      "votes.quest.fail": "Fracaso",
+      "actions.assassinate.name": "Nombrar a Merlín",
+      "phases.propose.name": "Elegir el equipo",
+      "phases.team_vote.name": "Votar el equipo",
+      "phases.quest.name": "Misión",
+      "phases.assassinate.name": "El Asesino ataca",
+      "ui.quests.title": "Avalon",
+      "ui.quests.0.text": "Misión {$var.quest} de 5: equipo de {$var.size}",
+      "ui.quests.1.text": "Fracasos que la hunden: {$var.needFails}",
+      "ui.quests.2.text": "Éxitos {$var.successes} · Fracasos {$var.fails}",
+      "ui.quests.3.text": "Equipos rechazados: {$var.rejections} de 5",
+      "ui.quests.4.text": "Líder: {$current.name}",
+      "ui.quests.5.text": "Equipo: {$var.team}",
+      "teams.good.name": "Leales servidores de Arturo",
+      "teams.evil.name": "Esbirros de Mordred",
+      "roles.merlin.name": "Merlín",
+      "roles.merlin.description": "Conoce a los malvados, salvo a Mordred. Debe esconderse del Asesino.",
+      "roles.percival.name": "Percival",
+      "roles.percival.description": "Ve a Merlín y a Morgana, sin saber quién es quién.",
+      "roles.servant.name": "Leal servidor",
+      "roles.assassin.name": "Asesino",
+      "roles.assassin.description": "Al final nombra a un jugador bueno: si es Merlín, gana el mal.",
+      "roles.morgana.name": "Morgana",
+      "roles.morgana.description": "Ante Percival parece Merlín.",
+      "roles.mordred.name": "Mordred",
+      "roles.mordred.description": "Oculto para Merlín.",
+      "roles.oberon.name": "Oberón",
+      "roles.oberon.description": "Los demás esbirros no lo conocen, y él no conoce a ninguno.",
+      "roles.minion.name": "Esbirro de Mordred",
+      "strings.leads": "{$current.name} lidera la misión {$var.quest}: elige {$var.size} jugadores.",
+      "strings.picks": "{$actor.name} elige a {$param.member.name}.",
+      "strings.unpicks": "{$actor.name} saca a {$param.member.name} del equipo.",
+      "strings.proposes": "{$actor.name} propone a {$var.team}. Voten el equipo.",
+      "strings.fiveRejected": "Cinco equipos rechazados seguidos.",
+      "strings.questFails": "La misión {$var.quest} fracasa.",
+      "strings.questSucceeds": "La misión {$var.quest} tiene éxito.",
+      "strings.threeFailed": "Tres misiones fracasaron.",
+      "strings.threeSucceeded": "Tres misiones tuvieron éxito. El Asesino nombra a Merlín.",
+      "strings.wasMerlin": "{$param.target.name} era Merlín.",
+      "strings.wasNotMerlin": "{$param.target.name} no era Merlín."
+    }
   }
 }

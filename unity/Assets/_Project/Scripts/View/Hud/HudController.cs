@@ -1306,6 +1306,11 @@ namespace TableWorld.View.Hud
             // In words, never the type's name: "SetLightCommand" reads "Set light".
             var words = System.Text.RegularExpressions.Regex.Replace(command.GetType().Name.Replace("Command", ""), "(?<=[a-z])(?=[A-Z])", " ").ToLowerInvariant();
             var name = char.ToUpperInvariant(words[0]) + words.Substring(1);
+            // A game's action by its own name, in the session's language ("Proponer este equipo: hecho").
+            if (command is PerformActionCommand perform && _table.Engine?.State is { } rules && rules.Actions.FirstOrDefault(a => a.Id == perform.ActionId) is { } action)
+                name = Names.Action(rules, action);
+            else if (command is StartGameCommand)
+                name = Ui.T("Start game");
             _status.text = result.Ok ? (command is RollCommand ? RollText(result) : command is SetPhysicsCommand physics ? Ui.T("Physics: {physicsName}", ("physicsName", PhysicsName(physics.Mode))) : TurnText(command) ?? Ui.T("{name}: done", ("name", name)))
                 : Ui.T("{name} rejected: {message} {suggestion}", ("name", name), ("message", result.Error.Message), ("suggestion", result.Error.Suggestion));
             _status.EnableInClassList("status-label--error", !result.Ok);

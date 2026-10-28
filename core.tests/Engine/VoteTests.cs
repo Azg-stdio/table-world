@@ -25,8 +25,9 @@ namespace Core.Tests.Engine
       ""vote"": { ""options"": [ ""yes"", ""no"" ], ""labels"": { ""yes"": ""approve"", ""no"": ""reject"" }, ""decide"": ""majority"", ""otherwise"": ""no"",
                   ""onResult"": [ { ""setVariable"": { ""name"": ""outcome"", ""value"": ""$vote.result"" } } ] } },
     { ""id"": ""mission"", ""name"": ""Mission"", ""actor"": ""any"",
-      ""vote"": { ""options"": [ ""success"", ""fail"" ], ""who"": ""$var.crew"", ""reveal"": ""count"",
-                  ""onResult"": [ { ""setVariable"": { ""name"": ""fails"", ""value"": ""$vote.fail"" } } ] } },
+      ""vote"": { ""options"": [ ""success"", ""fail"" ], ""who"": ""$var.crew"", ""reveal"": ""count"", ""decide"": ""none"",
+                  ""onResult"": [ { ""setVariable"": { ""name"": ""fails"", ""value"": ""$vote.fail"" } },
+                                  { ""message"": { ""text"": ""Crew: {$var.crew}."" } } ] } },
     { ""id"": ""agree"", ""name"": ""Pact"", ""actor"": ""any"",
       ""vote"": { ""options"": [ ""keep"", ""break"" ], ""reveal"": ""result"", ""decide"": ""unanimous"", ""otherwise"": ""break"" } },
     { ""id"": ""accuse"", ""name"": ""Accusation"", ""actor"": ""any"",
@@ -87,6 +88,11 @@ namespace Core.Tests.Engine
             Vote(game, "e", "mission", "success");
             Assert.Equal(1, (int)game.Session!.Variables["fails"]!);
             Assert.Contains("Mission: 2 Success, 1 Fail.", game.Session.Log);
+            // decide none: the rules judge the counts (one fail can fail it), so no majority result is announced.
+            Assert.DoesNotContain(game.Session.Log, l => l == "Mission: Success.");
+            Assert.Equal("", game.Session.Votes["mission"].Result);
+            // A list of seats reads as their names.
+            Assert.Contains("Crew: Red, Green and Purple.", game.Session.Log);
             Assert.Empty(game.Session.Votes["mission"].Votes);
             Assert.DoesNotContain(game.Session.Log, l => l.Contains("Green") && l.Contains("Fail"));
         }

@@ -53,7 +53,11 @@ namespace Core.Rules
     /// <c>most</c>: the option with the most votes; <c>majority</c>: more than half the votes cast; <c>unanimous</c>: every
     /// vote the same. Otherwise the vote's <see cref="VoteDef.Otherwise"/>.
     /// </summary>
-    public enum VoteDecision { Most, Majority, Unanimous }
+    /// <summary>
+    /// How a vote's result is decided: the most chosen option, more than half, everyone; or <c>none</c>, when the rules
+    /// decide from the counts themselves (a quest fails on one fail card): no result is announced and <c>$vote.result</c> is empty.
+    /// </summary>
+    public enum VoteDecision { Most, Majority, Unanimous, None }
 
     /// <summary>A counted vote, as rules read it through <c>$vote</c>: the last one counted, and each action's last.</summary>
     public sealed class VoteTally

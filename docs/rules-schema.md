@@ -229,7 +229,7 @@ the votes are counted, the count is logged, and `onResult` runs.
     "options": [ "yes", "no" ], "labels": { "yes": "approve", "no": "reject" },   // or "seats": true to vote for a player
     "who": "all",              // all (default), team:<id>, role:<id>, a seat, or a list of seats ($var.quest_team)
     "reveal": "named",         // named (who voted what) | count (only how many chose each) | result (only the outcome)
-    "decide": "majority",      // most (default) | majority (more than half) | unanimous
+    "decide": "majority",      // most (default) | majority (more than half) | unanimous | none (the rules judge the counts)
     "otherwise": "no",         // the result on a tie or when nothing reaches what decide needs; "tie" when left out
     "onResult": [ { "if": { "condition": { "compare": { "left": "$vote.result", "right": "yes" } }, "then": [ /* ... */ ] } } ]
   } }
@@ -243,6 +243,9 @@ the votes are counted, the count is logged, and `onResult` runs.
 - `closeVote { action }` counts a vote now with the votes cast so far (a rule calling it).
 - `"seconds": 30` closes the vote that long after its first ballot, counting what was cast; everyone reads the time
   left, and the host's game window keeps the clock.
+- `"decide": "none"` announces no result and leaves `$vote.result` empty: for votes whose outcome the rules work out
+  from the counts (a quest fails on one fail card), where a majority line would contradict them.
+- A list in a text reads as names: `{$var.team}` shows "Red, Green and Blue".
 - `"private": true` keeps a vote among its voters (the wolves choosing a victim): "voted" and the count are told to
   them alone, and no other machine learns that a ballot was cast.
 

@@ -1326,7 +1326,7 @@ object or object or object or object or object or object or object or object or 
 | `labels` | map of string |  |
 | `who` | string |  |
 | `reveal` | one of `named`, `count`, `result` |  |
-| `decide` | one of `most`, `majority`, `unanimous` |  |
+| `decide` | one of `most`, `majority`, `unanimous`, `none` |  |
 | `otherwise` | string |  |
 | `onResult` | array of [Effect](#effect) |  |
 | `private` | boolean |  |

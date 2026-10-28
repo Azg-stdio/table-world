@@ -764,7 +764,7 @@ namespace Core.Engine
                 // Players read the option's label ("Mazmorra"), not the id the rules use.
                 var picked = string.Join(", ", choice.Params.Select(p => OptionLabel(action.Id, p.Key, p.Value)));
                 Log(Names.Message(State, "chose",
-                    ("seat", Names.Seat(State, choice.Seat)), ("action", action.Name ?? Names.Humanize(action.Id)),
+                    ("seat", Names.Seat(State, choice.Seat)), ("action", Names.Action(State, action)),
                     ("choice", picked.Length == 0 ? "" : ": " + picked), ("option", picked)));
                 _ctx = new Context { Actor = choice.Seat, Params = choice.Params };
                 RunEffects(action.Effects);
@@ -1122,12 +1122,25 @@ namespace Core.Engine
                 {
                     Seat seat => Names.Of(State, seat),
                     TableObject obj => Names.Of(State, obj),
+                    // A list reads as names too ("Red, Green"), never as JSON.
+                    JArray list => Join(list.Select(ListItem).ToList()),
                     _ => ToValue(resolved)?.ToString() ?? "",
                 };
                 result = result.Substring(0, start) + value + result.Substring(end + 1);
                 start = result.IndexOf("{$", start + value.Length, StringComparison.Ordinal);
             }
             return result;
+        }
+
+        /// <summary>An item of a list as players read it: a seat or object by its name, anything else as it is.</summary>
+        private string ListItem(JToken item)
+        {
+            if (item.Type != JTokenType.String)
+                return item.ToString();
+            var text = (string)item!;
+            if (State.Players.Seats.FirstOrDefault(s => s.Id == text) is { } seat)
+                return Names.Of(State, seat);
+            return Table.FindByOwnId(text) is { } obj ? Names.Of(State, obj) : text;
         }
 
         private object? TryResolve(string reference)

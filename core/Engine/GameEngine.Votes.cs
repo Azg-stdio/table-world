@@ -87,6 +87,9 @@ namespace Core.Engine
                 case VoteDecision.Unanimous:
                     result = leaders.Count == 1 && top == total ? leaders[0] : otherwise;
                     break;
+                case VoteDecision.None:
+                    result = "";
+                    break;
                 default:
                     result = leaders.Count == 1 ? leaders[0] : otherwise;
                     break;
@@ -100,15 +103,16 @@ namespace Core.Engine
             session.LastVote = action.Id;
 
             string Label(string option) => vote.Seats ? Names.Seat(State, option) : VoteLabel(vote, option);
-            var name = action.Name ?? Names.Humanize(action.Id);
+            var name = Names.Action(State, action);
             if (vote.Reveal == VoteReveal.Named)
                 Say(action, Names.Message(State, "voteNamed", ("vote", name),
                     ("votes", string.Join(", ", Playing.Where(s => picks.ContainsKey(s.Id)).Select(s => $"{Names.Of(State, s)} {Label(picks[s.Id])}")))));
             else if (vote.Reveal == VoteReveal.Count)
                 Say(action, Names.Message(State, "voteCount", ("vote", name),
                     ("counts", string.Join(", ", counts.Where(c => c.Value > 0 || !vote.Seats).Select(c => $"{c.Value} {Label(c.Key)}")))));
-            Say(action, Names.Message(State, "voteResult", ("vote", name),
-                ("result", result == otherwise && !counts.ContainsKey(result) ? Names.Humanize(result) : Label(result))));
+            if (vote.Decide != VoteDecision.None)
+                Say(action, Names.Message(State, "voteResult", ("vote", name),
+                    ("result", result == otherwise && !counts.ContainsKey(result) ? Names.Humanize(result) : Label(result))));
             RunEffects(vote.OnResult);
         }
 

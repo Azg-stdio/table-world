@@ -4470,7 +4470,8 @@
           "enum": [
             "most",
             "majority",
-            "unanimous"
+            "unanimous",
+            "none"
           ]
         },
         "otherwise": {
