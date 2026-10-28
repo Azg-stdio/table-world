@@ -20,6 +20,22 @@ namespace TableWorld.View
         /// <summary>Main-thread time per frame for uploading finished textures; at least one goes each frame.</summary>
         public const float UploadBudgetMs = 4f;
 
+        /// <summary>The longer side of the alpha mask kept for a see-through image (tokens are cut along it).</summary>
+        public const int MaskSide = 256;
+
+        /// <summary>A see-through image's alpha at a small size: row-major, row 0 at the bottom.</summary>
+        public sealed class AlphaMask
+        {
+            public int Width, Height;
+            public byte[] Alpha;
+        }
+
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Texture2D, AlphaMask> Masks =
+            new System.Runtime.CompilerServices.ConditionalWeakTable<Texture2D, AlphaMask>();
+
+        /// <summary>The alpha mask of a texture this baker made from a see-through image; null for opaque or other textures.</summary>
+        public static AlphaMask MaskOf(Texture2D texture) => texture != null && Masks.TryGetValue(texture, out var mask) ? mask : null;
+
         private sealed class Bake
         {
             public Texture2D Source;
@@ -167,8 +183,27 @@ namespace TableWorld.View
             for (var level = 0; level < bake.Blocks.Length; level++)
                 texture.SetPixelData(bake.Blocks[level], level);
             texture.Apply(updateMipmaps: false, makeNoLongerReadable: true);
+            if (bake.Alpha)
+                Masks.Add(texture, Mask(bake));
             Release(bake);
             bake.Done(texture);
+        }
+
+        /// <summary>The alpha of the first mipmap level no longer than <see cref="MaskSide"/>.</summary>
+        private static AlphaMask Mask(Bake bake)
+        {
+            int level = 0, width = bake.Width, height = bake.Height;
+            while (Mathf.Max(width, height) > MaskSide && level + 1 < bake.Levels.Length)
+            {
+                level++;
+                width = Mathf.Max(1, width >> 1);
+                height = Mathf.Max(1, height >> 1);
+            }
+            var pixels = bake.Levels[level];
+            var alpha = new byte[width * height];
+            for (var i = 0; i < alpha.Length; i++)
+                alpha[i] = pixels[i * 4 + 3];
+            return new AlphaMask { Width = width, Height = height, Alpha = alpha };
         }
 
         private static void Release(Bake bake)

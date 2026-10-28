@@ -38,6 +38,86 @@ namespace TableWorld.View.Meshes
             Cached($"ihex:{radius:F5}:{height:F5}", () => Prism(Polygon(radius, 6, 0f), height, turned: true));
 
         /// <summary>
+        /// A piece cut along its image's outline (TTS custom tokens): <paramref name="loops"/> in image UVs (from
+        /// <see cref="Core.Models.Silhouette"/>) laid on a <paramref name="face"/> (x × z) rectangle and extruded to
+        /// <paramref name="height"/>, with the image turned 180° as <see cref="ImageBox"/> does and the same submeshes, so
+        /// the image lands where it does on the box. Cached by the outline itself (one list per traced image).
+        /// </summary>
+        public static Mesh ImageSilhouette(IReadOnlyList<Core.Models.Silhouette.Loop> loops, Vector2 face, float height) =>
+            Cached($"isil:{System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(loops)}:{loops.Count}:{face.x:F5}:{face.y:F5}:{height:F5}", () =>
+            {
+                var vertices = new List<Vector3>();
+                var normals = new List<Vector3>();
+                var uvs = new List<Vector2>();
+                var topTris = new List<int>();
+                var bottomTris = new List<int>();
+                var sideTris = new List<int>();
+                var top = height / 2f;
+                var bottom = -height / 2f;
+                // The image turned 180°: UV (u, v) sits at x = (0.5 − u)·width, z = (0.5 − v)·depth.
+                Vector2 At(Core.Rules.Vec2 uv) => new Vector2((0.5f - uv.X) * face.x, (0.5f - uv.Y) * face.y);
+                var perimeter = 0f;
+                foreach (var loop in loops)
+                    for (var i = 0; i < loop.Points.Count; i++)
+                        perimeter += Vector2.Distance(At(loop.Points[i]), At(loop.Points[(i + 1) % loop.Points.Count]));
+                var run = 0f;
+                foreach (var loop in loops)
+                {
+                    // Caps: the loop's own triangles, counter-clockwise in (x, z), so the top reverses them.
+                    foreach (var (y, normal, tris, mirrorU) in new[] { (top, Vector3.up, topTris, false), (bottom, Vector3.down, bottomTris, true) })
+                    {
+                        var first = vertices.Count;
+                        foreach (var p in loop.Points)
+                        {
+                            var at = At(p);
+                            vertices.Add(new Vector3(at.x, y, at.y));
+                            normals.Add(normal);
+                            uvs.Add(new Vector2(mirrorU ? 1f - p.X : p.X, p.Y));
+                        }
+                        for (var t = 0; t < loop.Triangles.Count; t += 3)
+                        {
+                            int a = first + loop.Triangles[t], b = first + loop.Triangles[t + 1], c = first + loop.Triangles[t + 2];
+                            tris.AddRange(normal.y > 0f ? new[] { c, b, a } : new[] { a, b, c });
+                        }
+                    }
+                    // Sides: one quad per edge, flat shaded, the side image running round the perimeter.
+                    for (var i = 0; i < loop.Points.Count; i++)
+                    {
+                        var a = At(loop.Points[i]);
+                        var b = At(loop.Points[(i + 1) % loop.Points.Count]);
+                        var edge = b - a;
+                        var normal = new Vector3(edge.y, 0f, -edge.x).normalized;
+                        var u0 = run / perimeter;
+                        run += edge.magnitude;
+                        var u1 = run / perimeter;
+                        var start = vertices.Count;
+                        vertices.Add(new Vector3(a.x, bottom, a.y));
+                        vertices.Add(new Vector3(a.x, top, a.y));
+                        vertices.Add(new Vector3(b.x, top, b.y));
+                        vertices.Add(new Vector3(b.x, bottom, b.y));
+                        for (var k = 0; k < 4; k++)
+                            normals.Add(normal);
+                        uvs.Add(new Vector2(u0, 0f));
+                        uvs.Add(new Vector2(u0, 1f));
+                        uvs.Add(new Vector2(u1, 1f));
+                        uvs.Add(new Vector2(u1, 0f));
+                        sideTris.AddRange(new[] { start, start + 1, start + 2, start, start + 2, start + 3 });
+                    }
+                }
+                var mesh = new Mesh();
+                mesh.SetVertices(vertices);
+                mesh.SetNormals(normals);
+                mesh.SetUVs(0, uvs);
+                mesh.subMeshCount = 3;
+                mesh.SetTriangles(topTris, TopSubmesh);
+                mesh.SetTriangles(bottomTris, BottomSubmesh);
+                mesh.SetTriangles(sideTris, SideSubmesh);
+                mesh.RecalculateBounds();
+                mesh.RecalculateTangents();
+                return mesh;
+            });
+
+        /// <summary>
         /// A cloth pouch tied at the neck (TTS's built-in bag): a profile turned about the vertical, <paramref name="radius"/>
         /// at its belly, <paramref name="height"/> tall, centred on the origin. One submesh.
         /// </summary>

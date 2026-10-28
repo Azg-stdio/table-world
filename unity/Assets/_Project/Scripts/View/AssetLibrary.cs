@@ -151,6 +151,24 @@ namespace TableWorld.View
             return material;
         }
 
+        /// <summary>Outlines by the texture they were traced from (a re-decoded image is traced again).</summary>
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Texture2D, List<Core.Models.Silhouette.Loop>> Silhouettes =
+            new System.Runtime.CompilerServices.ConditionalWeakTable<Texture2D, List<Core.Models.Silhouette.Loop>>();
+
+        /// <summary>
+        /// The outline of the image's opaque part (TTS cuts custom tokens along it), in image UVs; empty while the image
+        /// loads, when it has no see-through pixels, or when the outline cannot be filled. Traced once per image.
+        /// </summary>
+        public IReadOnlyList<Core.Models.Silhouette.Loop> Silhouette(string assetId)
+        {
+            var texture = Texture(assetId);
+            if (texture == null)
+                return System.Array.Empty<Core.Models.Silhouette.Loop>();
+            return Silhouettes.GetValue(texture, t => TextureBaker.MaskOf(t) is { } mask
+                ? Core.Models.Silhouette.Trace(mask.Alpha, mask.Width, mask.Height)
+                : new List<Core.Models.Silhouette.Loop>());
+        }
+
         /// <summary>Material showing the whole image of <paramref name="assetId"/>, or a plain material when it has none.</summary>
         public Material ImageMaterial(string assetId, Color fallback)
         {

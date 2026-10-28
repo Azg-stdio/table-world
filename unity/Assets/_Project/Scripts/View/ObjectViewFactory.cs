@@ -113,12 +113,16 @@ namespace TableWorld.View
                 {
                     // A counted stack (G14) is one body, as tall as its pieces.
                     var size = (token.Thickness ?? TokenThickness) * token.Count;
-                    // A TTS token is shaped by its image: it takes the image's proportions.
+                    // A TTS token is shaped by its image: it takes the image's proportions, and is cut along its
+                    // transparent edges when it has any.
                     var diameter = token.Size ?? TokenDiameter;
                     var face2 = token.Shape == TokenShape.Image ? Proportioned(new Vector2(diameter, diameter), assets.Texture(token.Asset)) : new Vector2(diameter, diameter);
+                    var outline = token.Shape == TokenShape.Image && token.Asset != null ? assets.Silhouette(token.Asset) : null;
                     var mesh = token.Shape == TokenShape.Round
                         ? MeshFactory.ImageCylinder(diameter / 2f, size)
-                        : MeshFactory.ImageBox(new Vector3(face2.x, size, face2.y));
+                        : outline is { Count: > 0 }
+                            ? MeshFactory.ImageSilhouette(outline, face2, size)
+                            : MeshFactory.ImageBox(new Vector3(face2.x, size, face2.y));
                     var face = assets.ImageMaterial(token.Asset, model.Tint.ToColor(Ivory));
                     var edge = model.Tint.ToColor(Ivory) * 0.85f;
                     SetPrism(view, mesh, face, face, token.Count > 1 ? assets.Grooved(edge) : assets.Plain(edge), 0.002f * token.Count);
