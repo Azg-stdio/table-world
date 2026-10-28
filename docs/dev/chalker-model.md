@@ -59,7 +59,7 @@ sits on the hips (seated) or as high as the legs reach (standing); the spine, ne
 `neck` and `head`; arms and legs reach the hands and feet with two-bone IK, bending toward the elbows and forward
 knees. The model is scaled so its shoulders are as high above its hips as the shapes', and turned to face +Z from where
 its eyes are. The face is a jaw bone that drops with the voice, blend shapes (`jaw_open_pose`, smiles, frowns, cheeks,
-lip corners, looks) and eyes that squash flat to blink. Bone and shape names live in `ChalkerModel.Rig`.
+lip corners, looks) and eyes that squash flat to blink. The skin takes the seat's colour: the `TableWorld/Recolor` shader repaints the skin's hue (`Rig.SkinHue`) on the GPU when the colour changes, keeping shading, eyes and mouth. Bone and shape names live in `ChalkerModel.Rig`.
 
 The placeholder worn today is `Art/Placeholder/TomLizard` (an unlicensed test model, see its `NOTICE.txt`; it must
 not ship). The lab's M key switches between it and the shapes; `Chalker.UseModel` does the same in code.

@@ -24,7 +24,10 @@ namespace TableWorld.View.Chalkers
             public string LeftThigh, LeftCalf, LeftFoot, RightThigh, RightCalf, RightFoot;
             public string LeftEye, RightEye;
             public string[] InnerBrows, OuterBrows, Tail;
-            public string Body;
+            /// <summary>Materials (by a part of their name) whose skin takes the seat's colour.</summary>
+            public string[] Skin;
+            /// <summary>The skin's own hue (0–1), the one repainted, and its typical saturation and value.</summary>
+            public float SkinHue, SkinSaturation, SkinValue;
 
             /// <summary>Unreal-style names (pelvis, spine_01, upperarm_l…), as on the placeholder lizard.</summary>
             public static readonly Rig Unreal = new Rig
@@ -38,7 +41,8 @@ namespace TableWorld.View.Chalkers
                 InnerBrows = new[] { "C_brow_mid", "L_brow_mid", "R_brow_mid" },
                 OuterBrows = new[] { "L_brow_outer", "R_brow_outer" },
                 Tail = new[] { "tail1", "tail2", "tail3", "tail4" },
-                Body = "Body",
+                Skin = new[] { "Body", "Head" },
+                SkinHue = 0.3f, SkinSaturation = 0.45f, SkinValue = 0.7f,
             };
         }
 
@@ -55,7 +59,8 @@ namespace TableWorld.View.Chalkers
         private readonly Dictionary<string, Transform> _byName = new Dictionary<string, Transform>();
         private readonly List<(SkinnedMeshRenderer Renderer, Dictionary<string, int> Shapes)> _faces = new List<(SkinnedMeshRenderer, Dictionary<string, int>)>();
         private readonly List<Material> _materials = new List<Material>();
-        private readonly Material _body;
+        /// <summary>The skin materials, their painted textures, and the texture each is painted from.</summary>
+        private readonly List<(Material Material, Texture Source, RenderTexture Painted)> _skins = new List<(Material, Texture, RenderTexture)>();
         private readonly Rig _rig;
         private readonly Transform _pelvis;
         private readonly float _legLength;
@@ -166,8 +171,9 @@ namespace TableWorld.View.Chalkers
                     foreach (var pair in textures)
                         if (pair.Value != null && name.Contains(pair.Key))
                             material.SetTexture("_BaseMap", pair.Value);
-                    if (name.Contains(rig.Body))
-                        _body = material;
+                    var skin = material.GetTexture("_BaseMap");
+                    if (skin != null && System.Array.Exists(rig.Skin ?? new string[0], part => name.Contains(part)))
+                        _skins.Add((material, skin, null));
                     _materials.Add(material);
                     own[i] = material;
                 }
@@ -185,11 +191,37 @@ namespace TableWorld.View.Chalkers
 
         public GameObject Root => _container.gameObject;
 
-        /// <summary>A light wash of the seat colour on the body, so players still tell each other apart.</summary>
+        /// <summary>
+        /// Paints the skin in the seat's colour, so players tell each other apart: its hue becomes the colour's, its shading
+        /// and painted detail stay, and the eyes and mouth keep theirs. Done on the GPU once per colour change.
+        /// </summary>
         public void SetColor(Color color)
         {
-            if (_body != null)
-                _body.SetColor("_BaseColor", Color.Lerp(Color.white, color, 0.35f));
+            var shader = Shader.Find(RequiredShaders.RecolorName);
+            if (shader == null)
+                return;
+            Color.RGBToHSV(color, out var hue, out var saturation, out var value);
+            var paint = new Material(shader);
+            paint.SetFloat("_FromHue", _rig.SkinHue);
+            paint.SetFloat("_Band", 0.15f);
+            paint.SetFloat("_Hue", hue);
+            paint.SetFloat("_SaturationScale", saturation / _rig.SkinSaturation);
+            paint.SetFloat("_ValueScale", Mathf.Clamp(value / _rig.SkinValue, 0.45f, 1.4f));
+            for (var i = 0; i < _skins.Count; i++)
+            {
+                var (material, source, painted) = _skins[i];
+                if (painted == null)
+                {
+                    painted = new RenderTexture(source.width, source.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB)
+                    {
+                        name = "ChalkerModel skin", useMipMap = true, autoGenerateMips = true, anisoLevel = 4,
+                    };
+                    _skins[i] = (material, source, painted);
+                    material.SetTexture("_BaseMap", painted);
+                }
+                Graphics.Blit(source, painted, paint);
+            }
+            Object.Destroy(paint);
         }
 
         /// <summary>The lowest point of the skinned meshes as posed, in <paramref name="space"/>.</summary>
@@ -408,6 +440,9 @@ namespace TableWorld.View.Chalkers
         {
             foreach (var material in _materials)
                 Object.Destroy(material);
+            foreach (var skin in _skins)
+                if (skin.Painted != null)
+                    Object.Destroy(skin.Painted);
             Object.Destroy(_container.gameObject);
         }
     }
