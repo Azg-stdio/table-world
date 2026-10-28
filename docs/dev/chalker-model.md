@@ -77,3 +77,11 @@ and the face texture, so they keep working on any model bound to the points. A n
 
 Try any change in the ChalkerLab scene (`Table World/Build Chalker Lab Scene`): one chalker that talks with your
 microphone and looks at the mouse. Keys 1–0 and − play emotes, H holds one, W winks and Z closes the eyes.
+
+## Eyelids
+
+A model whose lid bones move no skin (the placeholder lizard's) gets lids made by the game (`ChalkerModel.BuildLids`):
+two half spheres in the skin's colour over each eyeball, placed every frame over the eyeball as posed (its vertices,
+which the face's shapes move) and a little bigger. Half shut, the upper one covers the eye's top; from
+`ChalkerModel.ClosedFrom` shut (blink, wink, sleep) the lower one joins it and the eye is a ball of skin. Open, neither
+is drawn. The eyeball itself is never squashed.

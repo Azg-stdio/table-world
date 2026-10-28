@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace TableWorld.View.Chalkers
@@ -56,8 +57,6 @@ namespace TableWorld.View.Chalkers
 
         /// <summary>How far the jaw drops with the mouth fully open, in degrees.</summary>
         public const float JawDegrees = 36f;
-        /// <summary>A shut eye's height against an open one: cartoon eyes without lids blink by squashing flat.</summary>
-        public const float ShutEye = 0.12f;
 
         private readonly Transform _container;
         private readonly Transform _model;
@@ -79,8 +78,6 @@ namespace TableWorld.View.Chalkers
         private readonly Vector3[] _fingers = { Vector3.up, Vector3.up };
         /// <summary>Per hand, its local axis out of the back of the hand (up, in the bind pose's flat-palmed arms).</summary>
         private readonly Vector3[] _backOfHand = { Vector3.forward, Vector3.forward };
-        /// <summary>Per eye (left, right), the bone's local axis that points up the face, which a blink squashes.</summary>
-        private readonly int[] _eyeUp = new int[2];
 
         /// <summary>The model's scale against its file, chosen so its shoulders are as high above its hips as the shapes'.</summary>
         public float Scale { get; }
@@ -168,16 +165,7 @@ namespace TableWorld.View.Chalkers
                 _fingers[side] = tip == hand ? Vector3.up : hand.InverseTransformDirection(tip.position - hand.position).normalized;
                 _backOfHand[side] = Vector3.ProjectOnPlane(hand.InverseTransformDirection(_container.up), _fingers[side]).normalized;
             }
-            for (var side = 0; side < 2; side++)
-            {
-                var eye = Bone(side == 0 ? rig.LeftEye : rig.RightEye);
-                if (eye == null)
-                    continue;
-                var axes = new[] { eye.right, eye.up, eye.forward };
-                for (var i = 1; i < 3; i++)
-                    if (Mathf.Abs(Vector3.Dot(axes[i], _container.up)) > Mathf.Abs(Vector3.Dot(axes[_eyeUp[side]], _container.up)))
-                        _eyeUp[side] = i;
-            }
+            BuildLids(renderers);
 
             // The eyes are mapped onto the head's texture (their pupils are painted there).
             var headTexture = Resources.Load<Texture2D>(ResourcePath + "_Head");
@@ -230,6 +218,11 @@ namespace TableWorld.View.Chalkers
             if (shader == null)
                 return;
             Color.RGBToHSV(color, out var hue, out var saturation, out var value);
+            // The lids in the painted skin's colour: its hue, and its saturation and value as the paint scales them.
+            if (_lidMaterial != null)
+                _lidMaterial.SetColor("_BaseColor", Color.HSVToRGB(hue, Mathf.Clamp01(saturation),
+                    // a shade darker: the painted skin has darker speckles the plain lid lacks.
+                    0.82f * _rig.SkinValue * Mathf.Clamp(value / _rig.SkinValue, 0.45f, 1.4f)));
             var paint = new Material(shader);
             paint.SetFloat("_FromHue", _rig.SkinHue);
             paint.SetFloat("_Band", 0.15f);
@@ -437,6 +430,9 @@ namespace TableWorld.View.Chalkers
             var mode = hide ? UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly : UnityEngine.Rendering.ShadowCastingMode.On;
             foreach (var renderer in _renderers)
                 renderer.shadowCastingMode = mode;
+            foreach (var lid in _lids.Concat(_lowerLids))
+                if (lid != null)
+                    lid.shadowCastingMode = mode;
         }
 
         private SkinnedMeshRenderer[] _renderers = new SkinnedMeshRenderer[0];
@@ -449,10 +445,10 @@ namespace TableWorld.View.Chalkers
             if (jaw != null)
                 jaw.rotation = Quaternion.AngleAxis(open * JawDegrees, across) * jaw.rotation;
 
-            // Eyes: as tall as the face opens them (half shut, wide); a blink, wink or sleep squashes them flat.
-            var height = Mathf.Clamp(face.EyeOpen, ShutEye, 1.25f);
-            Eye(0, leftShut ? ShutEye : height);
-            Eye(1, rightShut ? ShutEye : height);
+            // Eyes: the lids come down as far as the face shuts them (half shut, asleep); a blink, a wink or sleep closes them.
+            var shut = 1f - Mathf.Clamp01(face.EyeOpen);
+            Lid(0, leftShut ? 1f : shut);
+            Lid(1, rightShut ? 1f : shut);
 
             // Brows: up and down, the inner ends lower when angry and higher when worried.
             var up = head.up * Scale;
@@ -492,15 +488,158 @@ namespace TableWorld.View.Chalkers
             Shape("look_down_pose", Mathf.Clamp01(-pupils.y));
         }
 
-        private void Eye(int side, float height)
+        /// <summary>
+        /// Lids for a model that has none (the placeholder lizard's lid bones move no skin): over each eyeball a dome in
+        /// the skin's colour, a little bigger than the eye, which rolls from behind the eye over its top to cover its front.
+        /// Its size is measured from the eye's own vertices.
+        /// </summary>
+        private void BuildLids(SkinnedMeshRenderer[] renderers)
         {
-            var bone = Bone(side == 0 ? _rig.LeftEye : _rig.RightEye);
-            if (bone == null)
-                return;
-            var scale = Vector3.one;
-            scale[_eyeUp[side]] = height;
-            bone.localScale = scale;
+            var mesh = Dome();
+            _meshes.Add(mesh);
+            _lidMaterial = new Material(RequiredShaders.Lit) { name = "ChalkerModel lid" };
+            _lidMaterial.SetFloat("_Smoothness", 0.25f);
+            _materials.Add(_lidMaterial);
+            for (var side = 0; side < 2; side++)
+            {
+                var eye = Bone(side == 0 ? _rig.LeftEye : _rig.RightEye);
+                if (eye == null || eye.parent == null)
+                    continue;
+                // The eyeball's own vertices (those its bone carries): where they are as posed places the lid.
+                foreach (var renderer in renderers)
+                {
+                    var source = renderer.sharedMesh;
+                    var index = source != null && source.isReadable ? System.Array.IndexOf(renderer.bones, eye) : -1;
+                    if (index < 0)
+                        continue;
+                    var weights = source.boneWeights;
+                    var mine = new List<int>();
+                    for (var i = 0; i < weights.Length; i++)
+                        if (weights[i].boneIndex0 == index && weights[i].weight0 > 0.5f)
+                            mine.Add(i);
+                    if (mine.Count == 0)
+                        continue;
+                    _eyeRenderer = renderer;
+                    _eyeVertices[side] = mine.ToArray();
+                    break;
+                }
+                if (_eyeVertices[side] == null)
+                    continue;
+                MeshRenderer Half(string name)
+                {
+                    var half = new GameObject(name);
+                    half.transform.SetParent(eye.parent, false);
+                    half.AddComponent<MeshFilter>().sharedMesh = mesh;
+                    var drawn = half.AddComponent<MeshRenderer>();
+                    drawn.sharedMaterial = _lidMaterial;
+                    drawn.enabled = false;
+                    return drawn;
+                }
+                _lids[side] = Half(side == 0 ? "Left lid" : "Right lid");
+                _lowerLids[side] = Half(side == 0 ? "Left lower lid" : "Right lower lid");
+                // The face's forward, up and right in the space the eyes hang from: the lid turns with the face.
+                _lidAxes[side] = (eye.parent.InverseTransformDirection(_container.forward), eye.parent.InverseTransformDirection(_container.up),
+                    eye.parent.InverseTransformDirection(_container.right));
+            }
         }
+
+        /// <summary>A half sphere of radius 1, bulging along +Z, its rim in the XY plane.</summary>
+        private static Mesh Dome()
+        {
+            const int around = 24, down = 8;
+            var vertices = new List<Vector3>();
+            var triangles = new List<int>();
+            for (var r = 0; r <= down; r++)
+            {
+                var polar = Mathf.PI / 2f * r / down;
+                for (var a = 0; a <= around; a++)
+                {
+                    var angle = 2f * Mathf.PI * a / around;
+                    vertices.Add(new Vector3(Mathf.Sin(polar) * Mathf.Cos(angle), Mathf.Sin(polar) * Mathf.Sin(angle), Mathf.Cos(polar)));
+                }
+            }
+            for (var r = 0; r < down; r++)
+                for (var a = 0; a < around; a++)
+                {
+                    var i = r * (around + 1) + a;
+                    var j = i + around + 1;
+                    triangles.AddRange(new[] { i, j, i + 1, i + 1, j, j + 1 });
+                }
+            var mesh = new Mesh { name = "Lid" };
+            mesh.SetVertices(vertices);
+            mesh.SetNormals(vertices);
+            mesh.SetTriangles(triangles, 0);
+            mesh.RecalculateBounds();
+            return mesh;
+        }
+
+        /// <summary>
+        /// Shuts a lid to <paramref name="shut"/> (0 open, 1 closed). The upper half comes down over the eyeball from the
+        /// back of its top (sleepy, half shut) to cover its whole top; shut, the lower half closes it from below and the
+        /// eye is a smooth ball of skin. Open, neither is drawn. (The placeholder's eyes bulge out of the head, so a single
+        /// dome could not cover them.)
+        /// </summary>
+        private void Lid(int side, float shut)
+        {
+            var upper = _lids[side];
+            var lower = _lowerLids[side];
+            if (upper == null || lower == null)
+                return;
+            var (forward, up, right) = _lidAxes[side];
+            upper.enabled = shut > 0.05f;
+            lower.enabled = shut > ClosedFrom;
+            if (!upper.enabled)
+                return;
+            // Over the eyeball as it is now (the face's shapes move it: looking around, squinting), a little bigger.
+            if (_bakedFrame != Time.frameCount)
+            {
+                _bakedFrame = Time.frameCount;
+                _bakedEyes ??= new Mesh { name = "Eyes as posed" };
+                _eyeRenderer.BakeMesh(_bakedEyes);
+                _bakedEyes.GetVertices(_bakedVertices);
+            }
+            var t = _eyeRenderer.transform;
+            var min = Vector3.positiveInfinity;
+            var max = Vector3.negativeInfinity;
+            foreach (var i in _eyeVertices[side])
+            {
+                var point = _bakedVertices[i];
+                min = Vector3.Min(min, point);
+                max = Vector3.Max(max, point);
+            }
+            var middle = (min + max) / 2f;
+            var radius = 0f;
+            foreach (var i in _eyeVertices[side])
+                radius = Mathf.Max(radius, (_bakedVertices[i] - middle).magnitude);
+            var centre = t.position + t.rotation * middle;
+            var parentScale = Mathf.Max(1e-6f, upper.transform.parent.lossyScale.x);
+            foreach (var half in new[] { upper, lower })
+            {
+                half.transform.position = centre;
+                half.transform.localScale = Vector3.one * (radius * 1.06f / parentScale);
+            }
+            if (upper.enabled)
+            {
+                var dome = Vector3.Slerp((up - forward).normalized, up, Mathf.Clamp01(shut / ClosedFrom));
+                upper.transform.localRotation = Quaternion.LookRotation(dome, Vector3.Cross(dome, right));
+            }
+            if (lower.enabled)
+                lower.transform.localRotation = Quaternion.LookRotation(-up, Vector3.Cross(-up, right));
+        }
+
+        /// <summary>From this much shut, an eye is closed: the upper lid is all the way down and the lower one meets it.</summary>
+        public const float ClosedFrom = 0.75f;
+
+        private readonly MeshRenderer[] _lids = new MeshRenderer[2];
+        private readonly MeshRenderer[] _lowerLids = new MeshRenderer[2];
+        private SkinnedMeshRenderer _eyeRenderer;
+        private readonly int[][] _eyeVertices = new int[2][];
+        private Mesh _bakedEyes;
+        private readonly List<Vector3> _bakedVertices = new List<Vector3>();
+        private int _bakedFrame = -1;
+        private Material _lidMaterial;
+        private readonly List<Mesh> _meshes = new List<Mesh>();
+        private readonly (Vector3 Forward, Vector3 Up, Vector3 Right)[] _lidAxes = new (Vector3, Vector3, Vector3)[2];
 
         private void Shape(string name, float weight)
         {
@@ -513,6 +652,10 @@ namespace TableWorld.View.Chalkers
         {
             foreach (var material in _materials)
                 Object.Destroy(material);
+            foreach (var mesh in _meshes)
+                Object.Destroy(mesh);
+            if (_bakedEyes != null)
+                Object.Destroy(_bakedEyes);
             foreach (var skin in _skins)
                 if (skin.Painted != null)
                     Object.Destroy(skin.Painted);
