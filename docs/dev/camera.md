@@ -111,6 +111,10 @@ with the hand bar.
 The fan opens up to 64°, 9° between cards. A worn model's wrists sit well below the fan's foot and a little behind it,
 its fingers lying up the cards' backs, so the faces stay readable.
 
+**Resting hands.** A seated worn model whose hand rests on the table (lower than `ChalkerModel.RestHeight` over the
+table top, holding nothing) lays it flat: palm down, fingers forward and a little out, lifted by the hand's own
+thickness, so a cartoon hand does not sink into the table's rim. The back of the hand is measured in the bind pose.
+
 **Raising the hand.** The cards come up when the pointer goes onto one of them. They stay up while the pointer is over
 them, or across their width and no higher than their top. They drop 0.35 s after it leaves. H
 (`GameAction.HandUp`) keeps them up until pressed again. Other players see your hand go up and you lean in (presence

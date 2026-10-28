@@ -169,14 +169,30 @@ function shieldsToTeam(ctx)
   end
 end
 
+-- The five quest cards for this many players, out of the box onto the middle of the table; the box goes with the rest.
+QUESTS = {}
+function layQuests(ctx)
+  local players = #Game.getSeats()
+  local group = players >= 8 and 8 or players
+  local left, right = at("reject_1"), at("reject_5")
+  local unit = (right.x - left.x) / 0.32   -- the track's ends are 0.32 m apart: table units per metre
+  local box = getObjectFromGUID("quest_box")
+  for q = 1, 5 do
+    local card = box.takeObject({guid = "quest_" .. q .. "_" .. group,
+      position = {x = (-0.36 + 0.18 * (q - 1)) * unit, y = left.y + 0.3, z = 0.08 * unit}, rotation = {x = 0, y = 180, z = 0}})
+    QUESTS[q] = card and card.getGUID()
+  end
+  box.destruct()
+end
+
 function markQuest(ctx)
   local quest = math.floor(Game.getVariable("quest"))
   if ctx.args.result == "fail" then
     local n = math.floor(Game.getVariable("fails"))
-    put(n == 1 and "evil" or ("evil_" .. n), at("quest_" .. quest))
+    put(n == 1 and "evil" or ("evil_" .. n), at(QUESTS[quest]))
   else
     local n = math.floor(Game.getVariable("successes"))
-    put(n == 1 and "good" or ("good_" .. n), at("quest_" .. quest))
+    put(n == 1 and "good" or ("good_" .. n), at(QUESTS[quest]))
   end
 end
 
@@ -284,16 +300,21 @@ call("add_action", actionJson=json.dumps({
 }))
 
 # The table: the quests' cards with their team sizes, the rejection track, and the pieces the rules move.
-SIZES = {"5": [2, 3, 2, 3, 3], "6": [2, 3, 4, 3, 4], "7": [2, 3, 3, 4, 4], "8-10": [3, 4, 4, 5, 5]}
+# One card per quest and player count (8, 9 and 10 share theirs), kept in a box: the game lays out the five for the
+# players at the table when it starts (layQuests), so each card shows only its own team size.
+SIZES = {5: [2, 3, 2, 3, 3], 6: [2, 3, 4, 3, 4], 7: [2, 3, 3, 4, 4], 8: [3, 4, 4, 5, 5]}
 CARD = {"paper": [0.93, 0.89, 0.78], "ink": [0.2, 0.15, 0.1], "accent": [0.55, 0.38, 0.12]}
-for q in range(1, 6):
-    body = "\n".join(f"{players}: {sizes[q - 1]}" for players, sizes in SIZES.items())
-    text = {"title": f"Quest {q}", "kind": "Players: team", "body": body}
-    if q == 4:
-        text["footer"] = "7 or more: 2 fails to sink it"
-    call("place_object", objectJson=json.dumps({
-        "id": f"quest_{q}", "type": "Card", "name": f"Quest {q}", "locked": True, "size": [0.14, 0.19], "text": text,
-        "style": CARD, "transform": {"position": [-0.36 + 0.18 * (q - 1), 0, 0.08], "rotation": [0, 180, 0]}}))
+call("place_object", objectJson=json.dumps({
+    "id": "quest_box", "type": "Bag", "name": "Quest cards", "tint": [0.45, 0.3, 0.15],
+    "transform": {"position": [0.62, 0, -0.3]}}))
+for players, sizes in SIZES.items():
+    for q in range(1, 6):
+        text = {"title": f"Quest {q}", "kind": "Team of", "body": str(sizes[q - 1])}
+        if q == 4 and players >= 7:
+            text["footer"] = "2 fails to sink it"
+        call("place_object", objectJson=json.dumps({
+            "id": f"quest_{q}_{players}", "type": "Card", "name": f"Quest {q}", "locked": True, "size": [0.14, 0.19],
+            "text": text, "style": CARD, "container": "quest_box", "transform": {"position": [0.62, 0, -0.3]}}))
 for n in range(1, 6):
     call("place_object", objectJson=json.dumps({
         "id": f"reject_{n}", "type": "Card", "name": f"Rejected team {n}", "locked": True, "size": [0.06, 0.06],
@@ -306,6 +327,7 @@ call("create_supply", id="shield", piece="gem", color="silver", mode="pile", cou
 call("create_supply", id="good", piece="checker", color="blue", mode="pile", count=3, name="Quest succeeded", x=-0.62, z=0.06)
 call("create_supply", id="evil", piece="checker", color="red", mode="pile", count=3, name="Quest failed", x=0.56, z=0.06)
 
+call("add_event", eventName="onGameStart", effectsJson=json.dumps([{"lua": {"call": "layQuests"}}]))
 call("set_turn", phases="propose,team_vote,quest,assassinate", order="clockwise", startingPlayer="random")
 # Where the game stands, for everyone: the panel reads the variables the rules keep.
 document = call("get_rules_document")
@@ -370,11 +392,15 @@ ES = {
     'roles.minion.name': 'Esbirro de Mordred',
 }
 ES.update({f"strings.{key}": text for key, (_, text) in STRINGS.items()})
-for q in range(1, 6):
-    ES[f"objects.quest_{q}.name"] = ES[f"objects.quest_{q}.text.title"] = f"Misión {q}"
-    ES[f"objects.quest_{q}.text.kind"] = "Jugadores: equipo"
-    ES[f"objects.quest_{q}.text.body"] = "\n".join(f"{players}: {sizes[q - 1]}" for players, sizes in SIZES.items())
-ES["objects.quest_4.text.footer"] = "7 o más: 2 fracasos para hundirla"
+ES["objects.quest_box.name"] = "Cartas de misión"
+for players, sizes in SIZES.items():
+    for q in range(1, 6):
+        card = f"objects.quest_{q}_{players}"
+        ES[f"{card}.name"] = ES[f"{card}.text.title"] = f"Misión {q}"
+        ES[f"{card}.text.kind"] = "Equipo de"
+        ES[f"{card}.text.body"] = str(sizes[q - 1])
+        if q == 4 and players >= 7:
+            ES[f"{card}.text.footer"] = "2 fracasos para hundirla"
 for n in range(1, 6):
     ES[f"objects.reject_{n}.name"] = f"Equipo rechazado {n}"
     ES[f"objects.reject_{n}.text.title"] = "Gana el mal" if n == 5 else "Rechazado"

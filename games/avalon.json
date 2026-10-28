@@ -44,22 +44,35 @@
   ],
   "objects": [
     {
-      "id": "quest_1",
+      "id": "quest_box",
+      "type": "Bag",
+      "name": "Quest cards",
+      "transform": {
+        "position": [
+          0.62,
+          0.0,
+          -0.3
+        ]
+      },
+      "tint": [
+        0.45,
+        0.3,
+        0.15
+      ]
+    },
+    {
+      "id": "quest_1_5",
       "type": "Card",
       "name": "Quest 1",
       "locked": true,
       "transform": {
         "position": [
-          -0.36,
+          0.62,
           0.0,
-          0.08
-        ],
-        "rotation": [
-          0.0,
-          180.0,
-          0.0
+          -0.3
         ]
       },
+      "container": "quest_box",
       "faceAsset": "",
       "backAsset": "",
       "size": [
@@ -68,8 +81,8 @@
       ],
       "text": {
         "title": "Quest 1",
-        "kind": "Players: team",
-        "body": "5: 2\n6: 2\n7: 2\n8-10: 3"
+        "kind": "Team of",
+        "body": "2"
       },
       "style": {
         "paper": [
@@ -90,22 +103,18 @@
       }
     },
     {
-      "id": "quest_2",
+      "id": "quest_2_5",
       "type": "Card",
       "name": "Quest 2",
       "locked": true,
       "transform": {
         "position": [
-          -0.18,
+          0.62,
           0.0,
-          0.08
-        ],
-        "rotation": [
-          0.0,
-          180.0,
-          0.0
+          -0.3
         ]
       },
+      "container": "quest_box",
       "faceAsset": "",
       "backAsset": "",
       "size": [
@@ -114,8 +123,8 @@
       ],
       "text": {
         "title": "Quest 2",
-        "kind": "Players: team",
-        "body": "5: 3\n6: 3\n7: 3\n8-10: 4"
+        "kind": "Team of",
+        "body": "3"
       },
       "style": {
         "paper": [
@@ -136,22 +145,18 @@
       }
     },
     {
-      "id": "quest_3",
+      "id": "quest_3_5",
       "type": "Card",
       "name": "Quest 3",
       "locked": true,
       "transform": {
         "position": [
+          0.62,
           0.0,
-          0.0,
-          0.08
-        ],
-        "rotation": [
-          0.0,
-          180.0,
-          0.0
+          -0.3
         ]
       },
+      "container": "quest_box",
       "faceAsset": "",
       "backAsset": "",
       "size": [
@@ -160,8 +165,8 @@
       ],
       "text": {
         "title": "Quest 3",
-        "kind": "Players: team",
-        "body": "5: 2\n6: 4\n7: 3\n8-10: 4"
+        "kind": "Team of",
+        "body": "2"
       },
       "style": {
         "paper": [
@@ -182,22 +187,18 @@
       }
     },
     {
-      "id": "quest_4",
+      "id": "quest_4_5",
       "type": "Card",
       "name": "Quest 4",
       "locked": true,
       "transform": {
         "position": [
-          0.18,
+          0.62,
           0.0,
-          0.08
-        ],
-        "rotation": [
-          0.0,
-          180.0,
-          0.0
+          -0.3
         ]
       },
+      "container": "quest_box",
       "faceAsset": "",
       "backAsset": "",
       "size": [
@@ -206,9 +207,8 @@
       ],
       "text": {
         "title": "Quest 4",
-        "kind": "Players: team",
-        "body": "5: 3\n6: 3\n7: 4\n8-10: 5",
-        "footer": "7 or more: 2 fails to sink it"
+        "kind": "Team of",
+        "body": "3"
       },
       "style": {
         "paper": [
@@ -229,22 +229,18 @@
       }
     },
     {
-      "id": "quest_5",
+      "id": "quest_5_5",
       "type": "Card",
       "name": "Quest 5",
       "locked": true,
       "transform": {
         "position": [
-          0.36,
+          0.62,
           0.0,
-          0.08
-        ],
-        "rotation": [
-          0.0,
-          180.0,
-          0.0
+          -0.3
         ]
       },
+      "container": "quest_box",
       "faceAsset": "",
       "backAsset": "",
       "size": [
@@ -253,8 +249,640 @@
       ],
       "text": {
         "title": "Quest 5",
-        "kind": "Players: team",
-        "body": "5: 3\n6: 4\n7: 4\n8-10: 5"
+        "kind": "Team of",
+        "body": "3"
+      },
+      "style": {
+        "paper": [
+          0.93,
+          0.89,
+          0.78
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.55,
+          0.38,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "quest_1_6",
+      "type": "Card",
+      "name": "Quest 1",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.62,
+          0.0,
+          -0.3
+        ]
+      },
+      "container": "quest_box",
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.14,
+        0.19
+      ],
+      "text": {
+        "title": "Quest 1",
+        "kind": "Team of",
+        "body": "2"
+      },
+      "style": {
+        "paper": [
+          0.93,
+          0.89,
+          0.78
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.55,
+          0.38,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "quest_2_6",
+      "type": "Card",
+      "name": "Quest 2",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.62,
+          0.0,
+          -0.3
+        ]
+      },
+      "container": "quest_box",
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.14,
+        0.19
+      ],
+      "text": {
+        "title": "Quest 2",
+        "kind": "Team of",
+        "body": "3"
+      },
+      "style": {
+        "paper": [
+          0.93,
+          0.89,
+          0.78
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.55,
+          0.38,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "quest_3_6",
+      "type": "Card",
+      "name": "Quest 3",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.62,
+          0.0,
+          -0.3
+        ]
+      },
+      "container": "quest_box",
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.14,
+        0.19
+      ],
+      "text": {
+        "title": "Quest 3",
+        "kind": "Team of",
+        "body": "4"
+      },
+      "style": {
+        "paper": [
+          0.93,
+          0.89,
+          0.78
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.55,
+          0.38,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "quest_4_6",
+      "type": "Card",
+      "name": "Quest 4",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.62,
+          0.0,
+          -0.3
+        ]
+      },
+      "container": "quest_box",
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.14,
+        0.19
+      ],
+      "text": {
+        "title": "Quest 4",
+        "kind": "Team of",
+        "body": "3"
+      },
+      "style": {
+        "paper": [
+          0.93,
+          0.89,
+          0.78
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.55,
+          0.38,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "quest_5_6",
+      "type": "Card",
+      "name": "Quest 5",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.62,
+          0.0,
+          -0.3
+        ]
+      },
+      "container": "quest_box",
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.14,
+        0.19
+      ],
+      "text": {
+        "title": "Quest 5",
+        "kind": "Team of",
+        "body": "4"
+      },
+      "style": {
+        "paper": [
+          0.93,
+          0.89,
+          0.78
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.55,
+          0.38,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "quest_1_7",
+      "type": "Card",
+      "name": "Quest 1",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.62,
+          0.0,
+          -0.3
+        ]
+      },
+      "container": "quest_box",
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.14,
+        0.19
+      ],
+      "text": {
+        "title": "Quest 1",
+        "kind": "Team of",
+        "body": "2"
+      },
+      "style": {
+        "paper": [
+          0.93,
+          0.89,
+          0.78
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.55,
+          0.38,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "quest_2_7",
+      "type": "Card",
+      "name": "Quest 2",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.62,
+          0.0,
+          -0.3
+        ]
+      },
+      "container": "quest_box",
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.14,
+        0.19
+      ],
+      "text": {
+        "title": "Quest 2",
+        "kind": "Team of",
+        "body": "3"
+      },
+      "style": {
+        "paper": [
+          0.93,
+          0.89,
+          0.78
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.55,
+          0.38,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "quest_3_7",
+      "type": "Card",
+      "name": "Quest 3",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.62,
+          0.0,
+          -0.3
+        ]
+      },
+      "container": "quest_box",
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.14,
+        0.19
+      ],
+      "text": {
+        "title": "Quest 3",
+        "kind": "Team of",
+        "body": "3"
+      },
+      "style": {
+        "paper": [
+          0.93,
+          0.89,
+          0.78
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.55,
+          0.38,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "quest_4_7",
+      "type": "Card",
+      "name": "Quest 4",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.62,
+          0.0,
+          -0.3
+        ]
+      },
+      "container": "quest_box",
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.14,
+        0.19
+      ],
+      "text": {
+        "title": "Quest 4",
+        "kind": "Team of",
+        "body": "4",
+        "footer": "2 fails to sink it"
+      },
+      "style": {
+        "paper": [
+          0.93,
+          0.89,
+          0.78
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.55,
+          0.38,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "quest_5_7",
+      "type": "Card",
+      "name": "Quest 5",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.62,
+          0.0,
+          -0.3
+        ]
+      },
+      "container": "quest_box",
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.14,
+        0.19
+      ],
+      "text": {
+        "title": "Quest 5",
+        "kind": "Team of",
+        "body": "4"
+      },
+      "style": {
+        "paper": [
+          0.93,
+          0.89,
+          0.78
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.55,
+          0.38,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "quest_1_8",
+      "type": "Card",
+      "name": "Quest 1",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.62,
+          0.0,
+          -0.3
+        ]
+      },
+      "container": "quest_box",
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.14,
+        0.19
+      ],
+      "text": {
+        "title": "Quest 1",
+        "kind": "Team of",
+        "body": "3"
+      },
+      "style": {
+        "paper": [
+          0.93,
+          0.89,
+          0.78
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.55,
+          0.38,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "quest_2_8",
+      "type": "Card",
+      "name": "Quest 2",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.62,
+          0.0,
+          -0.3
+        ]
+      },
+      "container": "quest_box",
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.14,
+        0.19
+      ],
+      "text": {
+        "title": "Quest 2",
+        "kind": "Team of",
+        "body": "4"
+      },
+      "style": {
+        "paper": [
+          0.93,
+          0.89,
+          0.78
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.55,
+          0.38,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "quest_3_8",
+      "type": "Card",
+      "name": "Quest 3",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.62,
+          0.0,
+          -0.3
+        ]
+      },
+      "container": "quest_box",
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.14,
+        0.19
+      ],
+      "text": {
+        "title": "Quest 3",
+        "kind": "Team of",
+        "body": "4"
+      },
+      "style": {
+        "paper": [
+          0.93,
+          0.89,
+          0.78
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.55,
+          0.38,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "quest_4_8",
+      "type": "Card",
+      "name": "Quest 4",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.62,
+          0.0,
+          -0.3
+        ]
+      },
+      "container": "quest_box",
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.14,
+        0.19
+      ],
+      "text": {
+        "title": "Quest 4",
+        "kind": "Team of",
+        "body": "5",
+        "footer": "2 fails to sink it"
+      },
+      "style": {
+        "paper": [
+          0.93,
+          0.89,
+          0.78
+        ],
+        "ink": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "accent": [
+          0.55,
+          0.38,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "quest_5_8",
+      "type": "Card",
+      "name": "Quest 5",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.62,
+          0.0,
+          -0.3
+        ]
+      },
+      "container": "quest_box",
+      "faceAsset": "",
+      "backAsset": "",
+      "size": [
+        0.14,
+        0.19
+      ],
+      "text": {
+        "title": "Quest 5",
+        "kind": "Team of",
+        "body": "5"
       },
       "style": {
         "paper": [
@@ -1636,6 +2264,15 @@
       ]
     }
   ],
+  "events": {
+    "onGameStart": [
+      {
+        "lua": {
+          "call": "layQuests"
+        }
+      }
+    ]
+  },
   "ui": {
     "panels": [
       {
@@ -1666,7 +2303,7 @@
     ]
   },
   "scripts": {
-    "global": "\nSIZES = { [5] = {2, 3, 2, 3, 3}, [6] = {2, 3, 4, 3, 4}, [7] = {2, 3, 3, 4, 4},\n          [8] = {3, 4, 4, 5, 5}, [9] = {3, 4, 4, 5, 5}, [10] = {3, 4, 4, 5, 5} }\n\n-- The team size and the fails it takes for the quest about to be played.\nfunction setQuest(ctx)\n  local players = #Game.getSeats()\n  local quest = Game.getVariable(\"quest\")\n  Game.setVariable(\"size\", SIZES[players][quest])\n  if quest == 4 and players >= 7 then Game.setVariable(\"needFails\", 2) else Game.setVariable(\"needFails\", 1) end\nend\n\n-- The pieces on the table follow the game: the crown before the leader, a shield before each member of the team,\n-- a blue or red checker on each quest card once played, the marker on the rejection track.\nSHIELDS = {\"shield\", \"shield_2\", \"shield_3\", \"shield_4\", \"shield_5\"}\nHOME = {}\n\nlocal function at(id)\n  local o = getObjectFromGUID(id)\n  return o and o.getPosition()\nend\n\nlocal function put(id, p)\n  local o = getObjectFromGUID(id)\n  if HOME[id] == nil and o then HOME[id] = o.getPosition() end\n  if o and p then o.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z}) end\nend\n\n-- Before a seat, between its edge of the table and the middle (share of the way from the middle to its hand).\nlocal function before(seat, share)\n  local p = at(\"hand_\" .. seat:match(\"(%d+)$\"))\n  return {x = p.x * share, y = p.y, z = p.z * share}\nend\n\nfunction crownToLeader(ctx)\n  put(\"crown\", before(Game.getCurrentSeat(), 0.8))\nend\n\nfunction shieldsToTeam(ctx)\n  local team = Game.getVariable(\"team\") or {}\n  for i, id in ipairs(SHIELDS) do\n    put(id, nil)\n    if team[i] then put(id, before(team[i], 0.62)) else put(id, HOME[id]) end\n  end\nend\n\nfunction markQuest(ctx)\n  local quest = math.floor(Game.getVariable(\"quest\"))\n  if ctx.args.result == \"fail\" then\n    local n = math.floor(Game.getVariable(\"fails\"))\n    put(n == 1 and \"evil\" or (\"evil_\" .. n), at(\"quest_\" .. quest))\n  else\n    local n = math.floor(Game.getVariable(\"successes\"))\n    put(n == 1 and \"good\" or (\"good_\" .. n), at(\"quest_\" .. quest))\n  end\nend\n\nfunction rejectTrack(ctx)\n  local n = math.floor(Game.getVariable(\"rejections\"))\n  put(\"reject_marker\", nil)\n  if n == 0 then put(\"reject_marker\", HOME[\"reject_marker\"]) else put(\"reject_marker\", at(\"reject_\" .. n)) end\nend\n"
+    "global": "\nSIZES = { [5] = {2, 3, 2, 3, 3}, [6] = {2, 3, 4, 3, 4}, [7] = {2, 3, 3, 4, 4},\n          [8] = {3, 4, 4, 5, 5}, [9] = {3, 4, 4, 5, 5}, [10] = {3, 4, 4, 5, 5} }\n\n-- The team size and the fails it takes for the quest about to be played.\nfunction setQuest(ctx)\n  local players = #Game.getSeats()\n  local quest = Game.getVariable(\"quest\")\n  Game.setVariable(\"size\", SIZES[players][quest])\n  if quest == 4 and players >= 7 then Game.setVariable(\"needFails\", 2) else Game.setVariable(\"needFails\", 1) end\nend\n\n-- The pieces on the table follow the game: the crown before the leader, a shield before each member of the team,\n-- a blue or red checker on each quest card once played, the marker on the rejection track.\nSHIELDS = {\"shield\", \"shield_2\", \"shield_3\", \"shield_4\", \"shield_5\"}\nHOME = {}\n\nlocal function at(id)\n  local o = getObjectFromGUID(id)\n  return o and o.getPosition()\nend\n\nlocal function put(id, p)\n  local o = getObjectFromGUID(id)\n  if HOME[id] == nil and o then HOME[id] = o.getPosition() end\n  if o and p then o.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z}) end\nend\n\n-- Before a seat, between its edge of the table and the middle (share of the way from the middle to its hand).\nlocal function before(seat, share)\n  local p = at(\"hand_\" .. seat:match(\"(%d+)$\"))\n  return {x = p.x * share, y = p.y, z = p.z * share}\nend\n\nfunction crownToLeader(ctx)\n  put(\"crown\", before(Game.getCurrentSeat(), 0.8))\nend\n\nfunction shieldsToTeam(ctx)\n  local team = Game.getVariable(\"team\") or {}\n  for i, id in ipairs(SHIELDS) do\n    put(id, nil)\n    if team[i] then put(id, before(team[i], 0.62)) else put(id, HOME[id]) end\n  end\nend\n\n-- The five quest cards for this many players, out of the box onto the middle of the table; the box goes with the rest.\nQUESTS = {}\nfunction layQuests(ctx)\n  local players = #Game.getSeats()\n  local group = players >= 8 and 8 or players\n  local left, right = at(\"reject_1\"), at(\"reject_5\")\n  local unit = (right.x - left.x) / 0.32   -- the track's ends are 0.32 m apart: table units per metre\n  local box = getObjectFromGUID(\"quest_box\")\n  for q = 1, 5 do\n    local card = box.takeObject({guid = \"quest_\" .. q .. \"_\" .. group,\n      position = {x = (-0.36 + 0.18 * (q - 1)) * unit, y = left.y + 0.3, z = 0.08 * unit}, rotation = {x = 0, y = 180, z = 0}})\n    QUESTS[q] = card and card.getGUID()\n  end\n  box.destruct()\nend\n\nfunction markQuest(ctx)\n  local quest = math.floor(Game.getVariable(\"quest\"))\n  if ctx.args.result == \"fail\" then\n    local n = math.floor(Game.getVariable(\"fails\"))\n    put(n == 1 and \"evil\" or (\"evil_\" .. n), at(QUESTS[quest]))\n  else\n    local n = math.floor(Game.getVariable(\"successes\"))\n    put(n == 1 and \"good\" or (\"good_\" .. n), at(QUESTS[quest]))\n  end\nend\n\nfunction rejectTrack(ctx)\n  local n = math.floor(Game.getVariable(\"rejections\"))\n  put(\"reject_marker\", nil)\n  if n == 0 then put(\"reject_marker\", HOME[\"reject_marker\"]) else put(\"reject_marker\", at(\"reject_\" .. n)) end\nend\n"
   },
   "roles": {
     "teams": [
@@ -1859,27 +2496,89 @@
       "strings.threeSucceeded": "Tres misiones tuvieron éxito. El Asesino nombra a Merlín.",
       "strings.wasMerlin": "{$param.target.name} era Merlín.",
       "strings.wasNotMerlin": "{$param.target.name} no era Merlín.",
-      "objects.quest_1.name": "Misión 1",
-      "objects.quest_1.text.title": "Misión 1",
-      "objects.quest_1.text.kind": "Jugadores: equipo",
-      "objects.quest_1.text.body": "5: 2\n6: 2\n7: 2\n8-10: 3",
-      "objects.quest_2.name": "Misión 2",
-      "objects.quest_2.text.title": "Misión 2",
-      "objects.quest_2.text.kind": "Jugadores: equipo",
-      "objects.quest_2.text.body": "5: 3\n6: 3\n7: 3\n8-10: 4",
-      "objects.quest_3.name": "Misión 3",
-      "objects.quest_3.text.title": "Misión 3",
-      "objects.quest_3.text.kind": "Jugadores: equipo",
-      "objects.quest_3.text.body": "5: 2\n6: 4\n7: 3\n8-10: 4",
-      "objects.quest_4.name": "Misión 4",
-      "objects.quest_4.text.title": "Misión 4",
-      "objects.quest_4.text.kind": "Jugadores: equipo",
-      "objects.quest_4.text.body": "5: 3\n6: 3\n7: 4\n8-10: 5",
-      "objects.quest_5.name": "Misión 5",
-      "objects.quest_5.text.title": "Misión 5",
-      "objects.quest_5.text.kind": "Jugadores: equipo",
-      "objects.quest_5.text.body": "5: 3\n6: 4\n7: 4\n8-10: 5",
-      "objects.quest_4.text.footer": "7 o más: 2 fracasos para hundirla",
+      "objects.quest_box.name": "Cartas de misión",
+      "objects.quest_1_5.name": "Misión 1",
+      "objects.quest_1_5.text.title": "Misión 1",
+      "objects.quest_1_5.text.kind": "Equipo de",
+      "objects.quest_1_5.text.body": "2",
+      "objects.quest_2_5.name": "Misión 2",
+      "objects.quest_2_5.text.title": "Misión 2",
+      "objects.quest_2_5.text.kind": "Equipo de",
+      "objects.quest_2_5.text.body": "3",
+      "objects.quest_3_5.name": "Misión 3",
+      "objects.quest_3_5.text.title": "Misión 3",
+      "objects.quest_3_5.text.kind": "Equipo de",
+      "objects.quest_3_5.text.body": "2",
+      "objects.quest_4_5.name": "Misión 4",
+      "objects.quest_4_5.text.title": "Misión 4",
+      "objects.quest_4_5.text.kind": "Equipo de",
+      "objects.quest_4_5.text.body": "3",
+      "objects.quest_5_5.name": "Misión 5",
+      "objects.quest_5_5.text.title": "Misión 5",
+      "objects.quest_5_5.text.kind": "Equipo de",
+      "objects.quest_5_5.text.body": "3",
+      "objects.quest_1_6.name": "Misión 1",
+      "objects.quest_1_6.text.title": "Misión 1",
+      "objects.quest_1_6.text.kind": "Equipo de",
+      "objects.quest_1_6.text.body": "2",
+      "objects.quest_2_6.name": "Misión 2",
+      "objects.quest_2_6.text.title": "Misión 2",
+      "objects.quest_2_6.text.kind": "Equipo de",
+      "objects.quest_2_6.text.body": "3",
+      "objects.quest_3_6.name": "Misión 3",
+      "objects.quest_3_6.text.title": "Misión 3",
+      "objects.quest_3_6.text.kind": "Equipo de",
+      "objects.quest_3_6.text.body": "4",
+      "objects.quest_4_6.name": "Misión 4",
+      "objects.quest_4_6.text.title": "Misión 4",
+      "objects.quest_4_6.text.kind": "Equipo de",
+      "objects.quest_4_6.text.body": "3",
+      "objects.quest_5_6.name": "Misión 5",
+      "objects.quest_5_6.text.title": "Misión 5",
+      "objects.quest_5_6.text.kind": "Equipo de",
+      "objects.quest_5_6.text.body": "4",
+      "objects.quest_1_7.name": "Misión 1",
+      "objects.quest_1_7.text.title": "Misión 1",
+      "objects.quest_1_7.text.kind": "Equipo de",
+      "objects.quest_1_7.text.body": "2",
+      "objects.quest_2_7.name": "Misión 2",
+      "objects.quest_2_7.text.title": "Misión 2",
+      "objects.quest_2_7.text.kind": "Equipo de",
+      "objects.quest_2_7.text.body": "3",
+      "objects.quest_3_7.name": "Misión 3",
+      "objects.quest_3_7.text.title": "Misión 3",
+      "objects.quest_3_7.text.kind": "Equipo de",
+      "objects.quest_3_7.text.body": "3",
+      "objects.quest_4_7.name": "Misión 4",
+      "objects.quest_4_7.text.title": "Misión 4",
+      "objects.quest_4_7.text.kind": "Equipo de",
+      "objects.quest_4_7.text.body": "4",
+      "objects.quest_4_7.text.footer": "2 fracasos para hundirla",
+      "objects.quest_5_7.name": "Misión 5",
+      "objects.quest_5_7.text.title": "Misión 5",
+      "objects.quest_5_7.text.kind": "Equipo de",
+      "objects.quest_5_7.text.body": "4",
+      "objects.quest_1_8.name": "Misión 1",
+      "objects.quest_1_8.text.title": "Misión 1",
+      "objects.quest_1_8.text.kind": "Equipo de",
+      "objects.quest_1_8.text.body": "3",
+      "objects.quest_2_8.name": "Misión 2",
+      "objects.quest_2_8.text.title": "Misión 2",
+      "objects.quest_2_8.text.kind": "Equipo de",
+      "objects.quest_2_8.text.body": "4",
+      "objects.quest_3_8.name": "Misión 3",
+      "objects.quest_3_8.text.title": "Misión 3",
+      "objects.quest_3_8.text.kind": "Equipo de",
+      "objects.quest_3_8.text.body": "4",
+      "objects.quest_4_8.name": "Misión 4",
+      "objects.quest_4_8.text.title": "Misión 4",
+      "objects.quest_4_8.text.kind": "Equipo de",
+      "objects.quest_4_8.text.body": "5",
+      "objects.quest_4_8.text.footer": "2 fracasos para hundirla",
+      "objects.quest_5_8.name": "Misión 5",
+      "objects.quest_5_8.text.title": "Misión 5",
+      "objects.quest_5_8.text.kind": "Equipo de",
+      "objects.quest_5_8.text.body": "5",
       "objects.reject_1.name": "Equipo rechazado 1",
       "objects.reject_1.text.title": "Rechazado",
       "objects.reject_1.text.body": "1",

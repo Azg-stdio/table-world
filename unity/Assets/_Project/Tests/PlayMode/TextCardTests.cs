@@ -77,6 +77,9 @@ namespace TableWorld.Tests.PlayMode
             Assert.AreEqual(40f, TextCardPainter.BodySize("Attack +1.", 500f));
             Assert.Less(TextCardPainter.BodySize(new string('x', 600), 500f), 26f);
             Assert.GreaterOrEqual(TextCardPainter.BodySize(new string('x', 5000), 200f), 16f);
+            // A lone number reads from across the table.
+            Assert.Greater(TextCardPainter.BodySize("3", 500f), 120f);
+            Assert.LessOrEqual(TextCardPainter.BodySize("3", 500f), 160f);
             Assert.Less(TextCardPainter.BackLabelSize("EQUIPAMIENTO"), TextCardPainter.BackLabelSize("ITEM"));
             Assert.Greater(TextCardPainter.Readable(new Color(0.9f, 0.9f, 0.5f)).r, 0f);
             Assert.Less(TextCardPainter.Readable(new Color(0.9f, 0.9f, 0.5f)).r, 0.5f, "dark ink on a light band");

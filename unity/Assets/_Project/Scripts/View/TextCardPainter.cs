@@ -261,9 +261,15 @@ namespace TableWorld.View
         /// <summary>
         /// The largest size at which <paramref name="body"/> fills about 85 % of a <paramref name="height"/>-pixel box
         /// 472 pixels wide (Inter: a character is about half its size wide, a line 1.3 times its size high), 16–40 px.
+        /// A number or a word of a few letters (a quest's team size, a track's space) is printed as big as the card
+        /// holds, up to 160 px, to read from across the table.
         /// </summary>
         public static float BodySize(string body, float height)
         {
+            var lines = (body ?? "").Split('\n');
+            var longest = lines.Max(l => l.Trim().Length);
+            if (longest > 0 && longest <= 4 && lines.Length <= 2)
+                return Mathf.Clamp(Mathf.Min(Mathf.Max(60f, height) * 0.7f / lines.Length, 472f / (0.62f * longest)), 40f, 160f);
             var length = Mathf.Max(1, body?.Length ?? 0);
             var size = Mathf.Sqrt(0.85f * Mathf.Max(60f, height) * 472f / (0.676f * length));
             return Mathf.Clamp(size, 16f, 40f);

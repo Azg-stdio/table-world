@@ -51,6 +51,9 @@ namespace TableWorld.View.Chalkers
             };
         }
 
+        /// <summary>A seated chalker's hand lower than this above its root (the table top) is resting on the table, in metres.</summary>
+        public const float RestHeight = 0.07f;
+
         /// <summary>How far the jaw drops with the mouth fully open, in degrees.</summary>
         public const float JawDegrees = 36f;
         /// <summary>A shut eye's height against an open one: cartoon eyes without lids blink by squashing flat.</summary>
@@ -74,6 +77,8 @@ namespace TableWorld.View.Chalkers
         private float _tailPhase;
         private readonly float[] _handLength = new float[2];
         private readonly Vector3[] _fingers = { Vector3.up, Vector3.up };
+        /// <summary>Per hand, its local axis out of the back of the hand (up, in the bind pose's flat-palmed arms).</summary>
+        private readonly Vector3[] _backOfHand = { Vector3.forward, Vector3.forward };
         /// <summary>Per eye (left, right), the bone's local axis that points up the face, which a blink squashes.</summary>
         private readonly int[] _eyeUp = new int[2];
 
@@ -161,6 +166,7 @@ namespace TableWorld.View.Chalkers
                         tip = t;
                 _handLength[side] = Vector3.Distance(tip.position, hand.position);
                 _fingers[side] = tip == hand ? Vector3.up : hand.InverseTransformDirection(tip.position - hand.position).normalized;
+                _backOfHand[side] = Vector3.ProjectOnPlane(hand.InverseTransformDirection(_container.up), _fingers[side]).normalized;
             }
             for (var side = 0; side < 2; side++)
             {
@@ -329,12 +335,24 @@ namespace TableWorld.View.Chalkers
                     // backs, the faces left to read.
                     target = (side == 0 ? grip.LeftHand : grip.RightHand) - grip.Up * (_handLength[side] * 0.8f) - grip.Face * 0.025f;
                 }
+                // Resting on the table (seated, the hand down at the table's height, doing nothing else): the hand lies flat,
+                // palm down and fingers forward, lifted by its own thickness so it does not sink into the table.
+                var rests = !holds && !chalker.Standing && !(side == 1 && (chalker.ReachFor != null || chalker.Microphone)) &&
+                            !TableGeometry.Hidden && root.InverseTransformPoint(hand).y < RestHeight;
+                if (rests)
+                    target = hand + root.up * (_handLength[side] * 0.3f) + root.forward * 0.015f;
                 Reach(upper, lower, end, target, elbow - root.forward * 0.1f);
                 if (holds && Bone(end) is { } palm)
                 {
                     var along = chalker.CardHold.Value;
                     var want = (along.Up - along.Face * 0.25f).normalized;
                     palm.rotation = Quaternion.FromToRotation(palm.TransformDirection(_fingers[side]), want) * palm.rotation;
+                }
+                else if (rests && Bone(end) is { } flat)
+                {
+                    var outward = side == 0 ? -root.right : root.right;
+                    var fingers = (root.forward + outward * 0.2f - root.up * 0.12f).normalized;
+                    flat.rotation = Quaternion.LookRotation(fingers, root.up) * Quaternion.Inverse(Quaternion.LookRotation(_fingers[side], _backOfHand[side]));
                 }
             }
 
