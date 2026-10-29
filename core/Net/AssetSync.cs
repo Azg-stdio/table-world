@@ -23,6 +23,41 @@ namespace Core.Net
             hash.Skip(7).All(c => (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'));
     }
 
+    /// <summary>
+    /// The client cache, plus the player's music library (M12): a track the player already imported is in the cache by
+    /// its hash, so it is never downloaded. Written files go to the cache only.
+    /// </summary>
+    public sealed class LibraryAwareStore : IAssetStore
+    {
+        private readonly IAssetStore _inner;
+        private readonly Func<string, string?> _pathByHash;
+
+        public LibraryAwareStore(IAssetStore inner, Func<string, string?> pathByHash)
+        {
+            _inner = inner;
+            _pathByHash = pathByHash;
+        }
+
+        public bool Has(string hash) => _inner.Has(hash) || _pathByHash(hash) != null;
+
+        public byte[]? Read(string hash)
+        {
+            if (_inner.Read(hash) is { } data)
+                return data;
+            var path = _pathByHash(hash);
+            try
+            {
+                return path != null ? File.ReadAllBytes(path) : null;
+            }
+            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
+            {
+                return null;
+            }
+        }
+
+        public void Write(string hash, byte[] data) => _inner.Write(hash, data);
+    }
+
     /// <summary>Content-addressed asset bytes: the client cache.</summary>
     public interface IAssetStore
     {
@@ -151,6 +186,17 @@ namespace Core.Net
         private readonly Func<Asset, byte[]?> _read;
         private readonly Dictionary<string, byte[]> _byHash = new Dictionary<string, byte[]>();
         private List<ManifestEntry> _entries = new List<ManifestEntry>();
+        /// <summary>Files read and hashed by an earlier build, by id and path: a build after a small change reads only what is new.</summary>
+        private readonly Dictionary<(string, string), (string Hash, byte[] Data)> _readCache = new Dictionary<(string, string), (string, byte[])>();
+
+        /// <summary>The id a library track of the table's music travels under: <c>music:library:pack/track</c>.</summary>
+        public static string MusicId(MusicTrack track) => "music:" + track.Url;
+
+        /// <summary>
+        /// Reads a library track of the table's music (<c>library:pack/track</c>, M12) from the host's own music library;
+        /// null leaves it out. Without it no library track travels.
+        /// </summary>
+        public Func<MusicTrack, byte[]?>? ReadTrack { get; set; }
 
         /// <summary><paramref name="read"/> returns an asset's file bytes, or null when the host does not have it.</summary>
         public AssetHost(Func<Asset, byte[]?> read)
@@ -178,12 +224,29 @@ namespace Core.Net
             foreach (var asset in travelling.ToList())
                 foreach (var (language, path) in asset.Localized)
                     travelling.Add(LocalizedAsset(asset, language, path));
+            // Sound last (M12): what the table shows arrives first, then its audio and music, the first track to play first.
+            travelling.AddRange(state.Assets.Where(a => a.Type == AssetType.Audio && !a.IsBuiltin));
+            var tracks = new Dictionary<string, MusicTrack>();
+            if (ReadTrack != null && state.Music != null)
+                foreach (var track in state.Music.AllTracks().Where(t => t.IsLibrary))
+                {
+                    var id = MusicId(track);
+                    tracks[id] = track;
+                    travelling.Add(new Asset { Id = id, Type = AssetType.Audio, Path = track.Url, Hash = track.Hash });
+                }
             foreach (var asset in travelling)
             {
                 byte[]? data;
+                string? cachedHash = null;
                 try
                 {
-                    data = _read(asset);
+                    if (_readCache.TryGetValue((asset.Id, asset.Path), out var cached))
+                    {
+                        data = cached.Data;
+                        cachedHash = cached.Hash;
+                    }
+                    else
+                        data = tracks.TryGetValue(asset.Id, out var track) ? ReadTrack!(track) : _read(asset);
                 }
                 catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
                 {
@@ -200,7 +263,8 @@ namespace Core.Net
                     Warnings.Add($"Asset '{asset.Id}' is {data.Length / (1024 * 1024)} MB; the limit is {MaxAssetSize / (1024 * 1024)} MB.");
                     continue;
                 }
-                var hash = AssetHash.Of(data);
+                var hash = cachedHash ?? AssetHash.Of(data);
+                _readCache[(asset.Id, asset.Path)] = (hash, data);
                 if (asset.Hash != null && asset.Hash != hash)
                     Warnings.Add($"Asset '{asset.Id}': the table says {asset.Hash} but the file is {hash}; sending the file.");
                 _byHash[hash] = data;
@@ -217,6 +281,15 @@ namespace Core.Net
             new Asset { Id = asset.Id + "@" + language, Type = asset.Type, Path = path, Columns = asset.Columns, Rows = asset.Rows, MeshScale = asset.MeshScale };
 
         public JArray Manifest() => new JArray(_entries.Select(e => new JObject { ["id"] = e.Id, ["hash"] = e.Hash, ["size"] = e.Size }));
+
+        /// <summary>
+        /// The manifest alone, for players already at the table when the files change (an asset added, a playlist
+        /// changed while playing): they fetch what they lack, as they did when they joined.
+        /// </summary>
+        public JObject ManifestMessage() => new JObject { ["kind"] = "assets", ["assets"] = Manifest() };
+
+        /// <summary>A key that changes when the manifest does.</summary>
+        public string ManifestKey => string.Join(";", _entries.Select(e => e.Id + "=" + e.Hash));
 
         /// <summary>Answers an <c>asset_request</c>; anything else, or a request for an unknown hash, yields nothing.</summary>
         public List<Outgoing> Receive(string clientId, JObject message)
@@ -308,6 +381,8 @@ namespace Core.Net
             {
                 case "snapshot" when message["assets"] is JArray manifest:
                     return ReadManifest(manifest);
+                case "assets" when message["assets"] is JArray changed:
+                    return ReadManifest(changed);
                 case "asset_chunk":
                     return ReadChunk(message);
                 default:

@@ -27,6 +27,8 @@ namespace Core.Rules
     {
         public string Id { get; set; } = "";
         public string? Name { get; set; }
+        /// <summary>The team's colour where players read its name (and its roles'): a seat colour name or <c>#rrggbb</c>.</summary>
+        public string? Color { get; set; }
     }
 
     public sealed class RoleDef
@@ -45,6 +47,8 @@ namespace Core.Rules
         /// <summary>The host ticks it when starting (Avalon's Percival, Morgana); left out otherwise.</summary>
         public bool Optional { get; set; }
         public string? Description { get; set; }
+        /// <summary>The role's colour where players read its name; null is its team's.</summary>
+        public string? Color { get; set; }
 
         [JsonIgnore]
         public bool Fills => Count is JValue { Type: JTokenType.String } v && (string?)v == "fill";

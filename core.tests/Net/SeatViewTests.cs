@@ -198,6 +198,7 @@ namespace Core.Tests.Net
                 new ScriptUiChanged(null), new AssetAdded("img"), new InputsChanged("a"), new ButtonsChanged("a"),
                 new NotebookChanged(), new DrawingsChanged(), new CardShown("c", new Card { Id = "c", Name = "Ace", FaceIndex = 3 }, "s1"),
                 new GameMessage("Red wins."), new PrivateMessage("s1", "You are Merlin."), new Searched("deck", "s1"), new ScreenChanged(),
+                new SoundCue("gong", 0.5f, new List<string> { "s1" }),
             };
             var all = typeof(StateEvent).Assembly.GetTypes().Where(t => typeof(StateEvent).IsAssignableFrom(t) && !t.IsAbstract).Select(t => t.Name);
             Assert.Equal(all.OrderBy(n => n), events.Select(e => e.GetType().Name).OrderBy(n => n));

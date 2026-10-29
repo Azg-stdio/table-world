@@ -15,6 +15,8 @@ namespace Core.Rules
         public bool Seats { get; set; }
         /// <summary>Words players read for an option.</summary>
         public Dictionary<string, string>? Labels { get; set; }
+        /// <summary>The colour of an option where players read it (<c>"reject": "red"</c>): a seat colour name or <c>#rrggbb</c>.</summary>
+        public Dictionary<string, string>? Colors { get; set; }
 
         /// <summary>
         /// Who votes: every seat playing when left out or <c>all</c>, <c>team:&lt;id&gt;</c>, <c>role:&lt;id&gt;</c>, a seat,

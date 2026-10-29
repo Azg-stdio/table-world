@@ -255,6 +255,50 @@ namespace Core.Rules
         public string Part { get; set; } = "room";
         public float? Scale { get; set; }
         public float[]? Tint { get; set; }
+        /// <summary>How long the change takes on screen, in seconds (0 at once); null is <see cref="LightingDef.DefaultFade"/>.</summary>
+        public float? Seconds { get; set; }
+    }
+
+    /// <summary>
+    /// Plays a sound for everyone, or for <see cref="To"/> (a seat, <c>team:</c>, <c>role:</c>, <c>awake</c>): a built-in
+    /// cue (<see cref="SoundCues.Builtin"/>: <c>gong</c>, <c>chime</c>...), an audio asset of the game, or a track of the
+    /// player's music library (<c>library:pack/track</c>). Not positional: it marks a moment (eyes closing, a quest failing).
+    /// </summary>
+    public sealed class SoundEffect : Effect
+    {
+        public string Play { get; set; } = "";
+        /// <summary>0–1; null is 1.</summary>
+        public float? Volume { get; set; }
+        public string? To { get; set; }
+    }
+
+    /// <summary>
+    /// Changes the table's music (M12): <see cref="Playlist"/> starts one of the game's named playlists (left playing if it
+    /// already is), <see cref="Track"/> plays one track, <see cref="Pause"/>, <see cref="Resume"/> and <see cref="Stop"/> do
+    /// what they say, <see cref="Volume"/> sets the game's level and <see cref="Crossfade"/> how long the change takes.
+    /// </summary>
+    public sealed class MusicEffect : Effect
+    {
+        public string? Playlist { get; set; }
+        public string? Track { get; set; }
+        public bool Pause { get; set; }
+        public bool Resume { get; set; }
+        public bool Stop { get; set; }
+        public float? Volume { get; set; }
+        public float? Crossfade { get; set; }
+    }
+
+    /// <summary>The sounds every copy of the game has built in, for rules to mark their moments with.</summary>
+    public static class SoundCues
+    {
+        public static readonly string[] Builtin = { "gong", "chime", "bell", "drum", "sting", "fanfare", "page", "whoosh", "knock" };
+
+        public const string LibraryPrefix = "library:";
+
+        /// <summary>A sound a rule can name: a built-in cue, one of the game's audio assets, or a library track.</summary>
+        public static bool Known(TableState state, string sound) =>
+            Builtin.Contains(sound) || sound.StartsWith(LibraryPrefix) && sound.Length > LibraryPrefix.Length
+            || state.Assets.Any(a => a.Id == sound && a.Type == AssetType.Audio);
     }
 
     public static class EffectKinds
@@ -289,6 +333,8 @@ namespace Core.Rules
             ["blindRound"] = typeof(BlindRoundEffect),
             ["show"] = typeof(ShowEffect),
             ["light"] = typeof(LightEffect),
+            ["sound"] = typeof(SoundEffect),
+            ["music"] = typeof(MusicEffect),
         };
 
         private static readonly Dictionary<Type, string> Names = ByName.ToDictionary(p => p.Value, p => p.Key);

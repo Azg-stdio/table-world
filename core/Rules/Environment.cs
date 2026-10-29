@@ -12,6 +12,19 @@ namespace Core.Rules
         /// wall and a stage light on whoever sings.
         /// </summary>
         Karaoke,
+        /// <summary>
+        /// A medieval tavern (M12): stone walls over a wooden wainscot, beams, a plank floor, a chandelier of candles over
+        /// the table, candles on the walls and a fire in the hearth, all flickering; dark red cloth on the table.
+        /// </summary>
+        Tavern,
+    }
+
+    /// <summary>How the game's panels look (M12): the default dark glass, or parchment and wood for a medieval game.</summary>
+    public enum HudTheme
+    {
+        Default,
+        /// <summary>Parchment panels, ink text, gold titles and wooden buttons, with a serif for headings.</summary>
+        Parchment,
     }
 
     /// <summary>
@@ -51,6 +64,14 @@ namespace Core.Rules
         /// <summary>The table light alone (the felt and the pieces on it), changed while playing. Null is normal.</summary>
         public float? TableScale { get; set; }
         public float[]? TableTint { get; set; }
+
+        /// <summary>Seconds a light change while playing takes on screen, when it does not say.</summary>
+        public const float DefaultFade = 1.5f;
+        /// <summary>
+        /// How long the last change while playing (<c>SetLightCommand</c>) takes on screen, in seconds; null is
+        /// <see cref="DefaultFade"/>. A table that loads shows its light at once.
+        /// </summary>
+        public float? Fade { get; set; }
     }
 
     /// <summary>TTS's lighting, as saves and scripts give it, against the multipliers of <see cref="LightingDef"/>.</summary>
@@ -68,6 +89,19 @@ namespace Core.Rules
                 tint[i] = tint[i] < 0f ? 0f : tint[i] > 2f ? 2f : tint[i];
             return tint[0] > 0.98f && tint[0] < 1.02f && tint[1] > 0.98f && tint[1] < 1.02f && tint[2] > 0.98f && tint[2] < 1.02f ? null : tint;
         }
+    }
+
+    /// <summary>
+    /// The room's post-processing (M12), each 0–1 and null for the room preset's: <see cref="Fog"/> greys what is far
+    /// (the walls, never the table), <see cref="Vignette"/> darkens the picture's edges, <see cref="Bloom"/> makes flames
+    /// and lamps glow (not cards: only what is far brighter than white). Ambient occlusion is always on.
+    /// </summary>
+    public sealed class LookDef
+    {
+        public float? Fog { get; set; }
+        public float[]? FogColor { get; set; }
+        public float? Vignette { get; set; }
+        public float? Bloom { get; set; }
     }
 
     /// <summary>How the table itself looks.</summary>
@@ -102,6 +136,8 @@ namespace Core.Rules
     public sealed class EnvironmentDef
     {
         public RoomPreset Room { get; set; }
+        /// <summary>The look of the game's panels while this table is loaded.</summary>
+        public HudTheme Theme { get; set; }
         /// <summary>Model asset that replaces the built-in room (loaded once models load, M4).</summary>
         public string? RoomAsset { get; set; }
         /// <summary>
@@ -112,6 +148,7 @@ namespace Core.Rules
         public float[]? WallColor { get; set; }
         public float[]? FloorColor { get; set; }
         public LightingDef Lighting { get; set; } = new LightingDef();
+        public LookDef Look { get; set; } = new LookDef();
         public TableLookDef Table { get; set; } = new TableLookDef();
     }
 }

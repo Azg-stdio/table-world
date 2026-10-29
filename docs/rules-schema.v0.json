@@ -2865,6 +2865,30 @@
             "light"
           ],
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "sound": {
+              "$ref": "#/$defs/SoundEffect"
+            }
+          },
+          "required": [
+            "sound"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "music": {
+              "$ref": "#/$defs/MusicEffect"
+            }
+          },
+          "required": [
+            "music"
+          ],
+          "additionalProperties": false
         }
       ]
     },
@@ -3480,6 +3504,51 @@
           "items": {
             "type": "number"
           }
+        },
+        "seconds": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SoundEffect": {
+      "type": "object",
+      "properties": {
+        "play": {
+          "type": "string"
+        },
+        "volume": {
+          "type": "number"
+        },
+        "to": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MusicEffect": {
+      "type": "object",
+      "properties": {
+        "playlist": {
+          "type": "string"
+        },
+        "track": {
+          "type": "string"
+        },
+        "pause": {
+          "type": "boolean"
+        },
+        "resume": {
+          "type": "boolean"
+        },
+        "stop": {
+          "type": "boolean"
+        },
+        "volume": {
+          "type": "number"
+        },
+        "crossfade": {
+          "type": "number"
         }
       },
       "additionalProperties": false
@@ -3879,7 +3948,14 @@
           "enum": [
             "gameNight",
             "none",
-            "karaoke"
+            "karaoke",
+            "tavern"
+          ]
+        },
+        "theme": {
+          "enum": [
+            "default",
+            "parchment"
           ]
         },
         "roomAsset": {
@@ -3902,6 +3978,9 @@
         },
         "lighting": {
           "$ref": "#/$defs/LightingDef"
+        },
+        "look": {
+          "$ref": "#/$defs/LookDef"
         },
         "table": {
           "$ref": "#/$defs/TableLookDef"
@@ -3968,6 +4047,30 @@
           "items": {
             "type": "number"
           }
+        },
+        "fade": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "LookDef": {
+      "type": "object",
+      "properties": {
+        "fog": {
+          "type": "number"
+        },
+        "fogColor": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "vignette": {
+          "type": "number"
+        },
+        "bloom": {
+          "type": "number"
         }
       },
       "additionalProperties": false
@@ -4128,6 +4231,27 @@
         },
         "starts": {
           "type": "integer"
+        },
+        "playlists": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/MusicTrack"
+            }
+          }
+        },
+        "list": {
+          "type": "string"
+        },
+        "start": {
+          "type": "string"
+        },
+        "volume": {
+          "type": "number"
+        },
+        "crossfade": {
+          "type": "number"
         }
       },
       "additionalProperties": false
@@ -4139,6 +4263,9 @@
           "type": "string"
         },
         "url": {
+          "type": "string"
+        },
+        "hash": {
           "type": "string"
         }
       },
@@ -4246,6 +4373,12 @@
           "type": "string"
         },
         "messages": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "highlights": {
           "type": "object",
           "additionalProperties": {
             "type": "string"
@@ -4507,6 +4640,12 @@
             "type": "string"
           }
         },
+        "colors": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "who": {
           "type": "string"
         },
@@ -4695,6 +4834,9 @@
         },
         "name": {
           "type": "string"
+        },
+        "color": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -4719,6 +4861,9 @@
           "type": "boolean"
         },
         "description": {
+          "type": "string"
+        },
+        "color": {
           "type": "string"
         }
       },

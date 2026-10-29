@@ -330,6 +330,19 @@ namespace Core.Engine
         public string Light { get; set; } = Room;
         public float? Scale { get; set; }
         public float[]? Tint { get; set; }
+        /// <summary>Seconds the change takes on screen (0 at once, up to 30); null is <see cref="LightingDef.DefaultFade"/>.</summary>
+        public float? Seconds { get; set; }
+    }
+
+    /// <summary>
+    /// Plays a sound (a built-in cue, an audio asset, a library track) on the machines of <see cref="Seats"/>, or on every
+    /// machine when null. Changes nothing on the table. Host only.
+    /// </summary>
+    public sealed class PlaySoundCommand : Command, IHostCommand
+    {
+        public string Sound { get; set; } = "";
+        public float? Volume { get; set; }
+        public List<string>? Seats { get; set; }
     }
 
     /// <summary>

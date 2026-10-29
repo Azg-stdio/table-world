@@ -252,7 +252,7 @@ namespace Core.Net
                 var order = OrderMessage(origin, clientSeq, sent);
                 order["hash"] = hash;
                 // A private line goes to its seat only.
-                order["events"] = EventCodec.EncodeAll(result.Events.Where(e => !(e is PrivateMessage p) || p.Seat == seat));
+                order["events"] = EventCodec.EncodeAll(result.Events.Where(e => !(e is PrivateMessage p) || p.Seat == seat).Where(e => !(e is SoundCue cue) || cue.For(seat)));
                 if (TablePatch.Build(Game.State, result, seat, Game.Table) is { } patch)
                     order["patch"] = patch;
                 else

@@ -125,6 +125,9 @@ namespace Core.Scripting
             g["printToAll"] = Fn(Say);
             g["broadcastToColor"] = Fn(Say);
             g["printToColor"] = Fn(Say);
+            // Ours, not TTS's: a sound cue for everyone (a built-in cue, an audio asset, a library track), volume 0–1.
+            g["playSound"] = Fn(args => DynValue.NewBoolean(args.Count > 0 && args[0].Type == DataType.String
+                && Issue(new PlaySoundCommand { Sound = args[0].String, Volume = args.Count > 1 && args[1].Type == DataType.Number ? (float)args[1].Number : (float?)null })));
 
             var json = new Table(script);
             json["encode"] = Fn(args => args.Count > 0 && args[0].Type == DataType.Table

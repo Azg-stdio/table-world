@@ -44,14 +44,24 @@ Optional. The room around the table, so a game (a mod) can set its own place. Om
 
 ```json
 "environment": {
-  "room": "gameNight",                 // gameNight (default: dim room, warm lamp over the table) | none (plain background, sun light) | karaoke (sofas, a big screen, a stage light)
+  "room": "gameNight",                 // gameNight (default: dim room, warm lamp over the table) | tavern (stone, beams, a chandelier of candles, candles on the walls, a fire) | none (plain background, sun light) | karaoke (sofas, a big screen, a stage light)
+  "theme": "default",                  // default | parchment: the look of the game's panels (parchment, ink, gold titles, wooden buttons)
   "roomAsset": "my_room",              // model or assetBundle asset that replaces the built-in room (loads with M4)
   "wallColor": [0.16, 0.12, 0.1], "floorColor": [0.22, 0.14, 0.09],   // colours 0–1
   "lighting": { "ambientIntensity": 0.3, "ambientColor": [0.6, 0.6, 0.62], "lampIntensity": 3.2, "lampColor": [1, 0.83, 0.62],
                 "tableLightIntensity": 2.6, "tableLightColor": [1, 0.99, 0.97] },   // intensities 0–8
-  "table": { "feltColor": [0.09, 0.27, 0.19], "feltAsset": "felt_image", "woodColor": [0.36, 0.22, 0.12] }
+  "table": { "feltColor": [0.09, 0.27, 0.19], "feltAsset": "felt_image", "woodColor": [0.36, 0.22, 0.12] },
+  "look": { "fog": 0, "fogColor": [0.06, 0.04, 0.03], "vignette": 0.5, "bloom": 0.5 }   // post-processing, 0–1 each; null keeps the room's
 }
 ```
+
+**The tavern** (M12) flickers: its chandelier, wall candles and fire move their light a little, and the flames always face
+the camera. Its tabletop is bare planks unless the game sets a felt colour or image. Its look is a soft vignette and a
+bloom that only catches flames and lamps (anything far brighter than white: never a lit card). Fog is available to any
+room but off in the tavern: it dimmed the flames and the hearth more than it added.
+
+**Light while playing.** The `light` effect changes the room or the table light; the change fades over `seconds`
+(default 1.5, at most 30), on every screen. A table that loads shows its light at once.
 
 **Light on game pieces is kept neutral.** The lamp, its fill and the room colours set the mood and light only the room and the table's wooden frame; game pieces and the felt are lit only by the table light (neutral white by default), so card art keeps its true colours whatever mood a game picks. Ambient light reaches everything, so keep it low and neutral. A game can still tint the table light on purpose.
 
@@ -238,6 +248,7 @@ the votes are counted, the count is logged, and `onResult` runs.
 { "id": "team_vote", "name": "Team vote", "actor": "any",
   "vote": {
     "options": [ "yes", "no" ], "labels": { "yes": "approve", "no": "reject" },   // or "seats": true to vote for a player
+    "colors": { "yes": "green", "no": "#d8322a" },                                  // optional: how each option reads
     "who": "all",              // all (default), team:<id>, role:<id>, a seat, or a list of seats ($var.quest_team)
     "reveal": "named",         // named (who voted what) | count (only how many chose each) | result (only the outcome)
     "decide": "majority",      // most (default) | majority (more than half) | unanimous | none (the rules judge the counts)
@@ -318,6 +329,9 @@ Each effect is a single-key object, e.g. `{ "shuffle": { "object": "deck_main" }
 | `setRole` | `seat`, `role` (an id or a reference), `set`, `tell` (let the player know); the new role brings its team |
 | `swapRoles` | `a`, `b`, `set`, `tell`; each seat's team goes with its role |
 | `setTeam` | `seat`, `team`, `tell`; the role stays |
+| `light` | `part` (`room`: the lamp and the room; `table`: the felt and the pieces), `scale` (0–8, 1 normal), `tint` (three numbers 0–2), `seconds` (how long the change takes on screen); neither scale nor tint puts it back to normal |
+| `sound` | `play`: a built-in cue (`gong`, `chime`, `bell`, `drum`, `sting`, `fanfare`, `page`, `whoosh`, `knock`), one of the game's audio assets, or a library track (`library:<pack>/<track>`); `volume` (0–1); `to` (a seat, `team:<id>`, `role:<id>`, `awake`, or everyone). Not positional: it marks a moment. Each machine receives only the cues it plays |
+| `music` | one of `playlist` (one of the game's playlists; left playing if it already is), `track`, `pause`, `resume`, `stop`; with `volume` (0–1) and `crossfade` (seconds the change takes) |
 
 Moving cards into a deck makes them take the deck's orientation; into a zone they are laid out (hand slots for a HandZone, a stack at the centre otherwise). Not in v0: `spawn`, `destroy`, `prompt`, `reveal`/`hide`, `lua` (M5).
 
@@ -365,6 +379,37 @@ v0 events: `onGameStart`, `onTurnStart`, `onTurnEnd`. Zone and physical events (
 With hidden roles a win condition can name a team instead of a winner: `{ "when": { "compare": { "left":
 "$alive.team.wolves", "right": 0 } }, "team": "village", "checkAfter": "anyCommand" }` is checked once, not per seat.
 
+## Music
+
+The game's soundtrack (M12): named playlists of tracks, the one that starts with the game, and the game's own level
+under each player's music volume. A track is a web address, one of the game's audio assets, or a track of the
+player's music library (`library:<pack>/<track>`, with the file's `hash`): music is never shipped with the game.
+Players who imported the same pack play their own copy; the others receive the track from the host while playing.
+
+```jsonc
+"music": {
+  "playlists": {
+    "tavern": [ { "title": "Ambient 1 (loop)", "url": "library:fantasy-rpg-music-pack-vol-3/ambient-1-loop", "hash": "sha256:..." } ],
+    "ritual": [ { "url": "library:fantasy-rpg-music-pack-vol-3/dark-1" } ]
+  },
+  "start": "tavern",     // played when the game starts (or when the table loads with nothing playing)
+  "shuffle": true, "repeat": false,
+  "volume": 0.6,         // 0–1
+  "crossfade": 2         // seconds one track takes to fade into the next; 2 when left out
+}
+```
+
+The same block holds what plays now (`current`, `playing`, `list`...), as TTS's Music Player does; the host changes it
+with the `music` effect, the Music panel, or Lua's `MusicPlayer`. Lua's `playSound(name, volume)` plays a cue.
+
+## Colours where names are read
+
+Seats, teams, roles and vote options are shown in their colours wherever players read them (the game panel, the role
+line, banners, the log): a seat in its seat colour, a team in `teams[].color`, a role in `list[].color` or else its
+team's, a vote option in `vote.colors`, and any other words in `game.highlights` (`{"Excalibur": "#ffd040"}`, as
+written on screen, in any language). A colour is a seat colour name or `#rrggbb`; too dark or too light ones are
+adjusted to read on the panel. The lines themselves stay plain text (logs, tests and agents read words only).
+
 ## Roles
 
 Hidden-role games (Avalon, Werewolf, Wink Murder; ADR 0012) declare teams, the roles dealt at random when the game
@@ -372,9 +417,9 @@ starts, and who knows whom:
 
 ```jsonc
 "roles": {
-  "teams": [ { "id": "good", "name": "Loyal servants of Arthur" }, { "id": "evil", "name": "Minions of Mordred" } ],
+  "teams": [ { "id": "good", "name": "Loyal servants of Arthur", "color": "#4a8cff" }, { "id": "evil", "name": "Minions of Mordred", "color": "red" } ],
   "list": [
-    { "id": "merlin",   "name": "Merlin",   "team": "good" },              // count 1 when left out
+    { "id": "merlin",   "name": "Merlin",   "team": "good" },              // count 1 when left out; read in its team's colour
     { "id": "percival", "name": "Percival", "team": "good", "optional": true },
     { "id": "servant",  "team": "good", "count": "fill" },                  // the seats left in its team
     { "id": "assassin", "team": "evil" },

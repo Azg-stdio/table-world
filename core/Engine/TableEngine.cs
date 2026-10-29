@@ -325,6 +325,7 @@ namespace Core.Engine
             SetGridCommand c => SetGrid(c),
             SetLightingCommand c => SetLighting(c),
             SetLightCommand c => SetLight(c),
+            PlaySoundCommand c => PlaySound(c),
             MoveZoneCommand c => MoveZone(c),
             SetMusicCommand c => SetMusic(c),
             SetScreenCommand c => SetScreen(c),
@@ -704,8 +705,15 @@ namespace Core.Engine
             {
                 if (music.Index < -1 || music.Index >= music.Playlist.Count)
                     return CommandResult.Fail("music.index", ErrorCodes.IndexOutOfRange, $"Track {music.Index} is not in a playlist of {music.Playlist.Count}.");
-                if (music.Playlist.Concat(music.Current == null ? Enumerable.Empty<MusicTrack>() : new[] { music.Current }).FirstOrDefault(t => !Asset.IsWebAddress(t.Url)) is { } bad)
-                    return CommandResult.Fail("music", ErrorCodes.InvalidValue, $"'{bad.Url}' is not a web address.", "Tracks are http(s) addresses of audio files.");
+                if (music.AllTracks().FirstOrDefault(t => !MusicTrack.Valid(State, t.Url)) is { } bad)
+                    return CommandResult.Fail("music", ErrorCodes.InvalidValue, $"'{bad.Url}' is not a track.",
+                        "Tracks are http(s) addresses of audio files, audio assets of the table, or library:<pack>/<track>.");
+                if (music.Volume is < 0f or > 1f)
+                    return CommandResult.Fail("music.volume", ErrorCodes.InvalidValue, "The music's volume goes from 0 to 1.");
+                if (music.Crossfade is < 0f or > 20f)
+                    return CommandResult.Fail("music.crossfade", ErrorCodes.InvalidValue, "A crossfade takes 0 to 20 seconds.");
+                if (music.Start != null && !music.Playlists.ContainsKey(music.Start))
+                    return CommandResult.Fail("music.start", ErrorCodes.InvalidValue, $"There is no playlist '{music.Start}'.");
             }
             State.Music = c.Music?.Clone();
             return CommandResult.Success(new List<StateEvent> { new MusicChanged() });
@@ -743,6 +751,16 @@ namespace Core.Engine
             return CommandResult.Success(new List<StateEvent> { new LightingChanged() });
         }
 
+        private CommandResult PlaySound(PlaySoundCommand c)
+        {
+            if (string.IsNullOrWhiteSpace(c.Sound) || !SoundCues.Known(State, c.Sound))
+                return CommandResult.Fail("sound", ErrorCodes.InvalidValue, $"'{c.Sound}' is not a sound.",
+                    "Use a built-in cue (" + string.Join(", ", SoundCues.Builtin) + "), an audio asset's id, or library:<pack>/<track>.");
+            if (c.Volume is < 0f or > 1f)
+                return CommandResult.Fail("volume", ErrorCodes.InvalidValue, "A sound's volume goes from 0 to 1.");
+            return CommandResult.Success(new List<StateEvent> { new SoundCue(c.Sound, c.Volume ?? 1f, c.Seats) });
+        }
+
         private CommandResult SetLight(SetLightCommand c)
         {
             if (c.Light != SetLightCommand.Room && c.Light != SetLightCommand.TableLight)
@@ -751,8 +769,11 @@ namespace Core.Engine
                 return CommandResult.Fail("scale", ErrorCodes.InvalidValue, "A light's scale goes from 0 (off) to 8; 1 is normal.");
             if (c.Tint != null && (c.Tint.Length != 3 || c.Tint.Any(v => !(v >= 0f && v <= 2f))))
                 return CommandResult.Fail("tint", ErrorCodes.InvalidValue, "A tint is three numbers from 0 to 2.");
+            if (c.Seconds is < 0f or > 30f)
+                return CommandResult.Fail("seconds", ErrorCodes.InvalidValue, "A light change takes 0 to 30 seconds.");
             State.Environment ??= new EnvironmentDef();
             var lighting = State.Environment.Lighting;
+            lighting.Fade = c.Seconds;
             if (c.Light == SetLightCommand.Room)
             {
                 lighting.RoomScale = c.Scale;

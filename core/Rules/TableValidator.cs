@@ -512,6 +512,10 @@ namespace Core.Rules
                 CheckColor(env.Table.FeltColor, $"{path}.table.feltColor");
                 CheckColor(env.Table.WoodColor, $"{path}.table.woodColor");
                 CheckOptionalAsset(env.Table.FeltAsset, $"{path}.table.feltAsset", AssetType.Image);
+                CheckColor(env.Look.FogColor, $"{path}.look.fogColor");
+                foreach (var (value, name) in new[] { (env.Look.Fog, "fog"), (env.Look.Vignette, "vignette"), (env.Look.Bloom, "bloom") })
+                    if (value is < 0f or > 1f)
+                        Add($"{path}.look.{name}", ErrorCodes.InvalidValue, $"look.{name} goes from 0 (none) to 1.");
             }
 
             private void CheckCardText(CardText? text, string path)

@@ -155,6 +155,14 @@ namespace Core.Rules
                             Suggest.OneOf(vote.Otherwise, vote.Options.Append("tie"), "an option or tie"));
                     if (vote.Seconds is < 1)
                         Add($"{path}.vote.seconds", ErrorCodes.InvalidValue, "A vote's time is at least 1 second.");
+                    if (vote.Colors != null)
+                        foreach (var pair in vote.Colors)
+                        {
+                            if (!vote.Options.Contains(pair.Key))
+                                Add($"{path}.vote.colors.{pair.Key}", ErrorCodes.InvalidValue, $"'{pair.Key}' is not one of the vote's options.",
+                                    Suggest.OneOf(pair.Key, vote.Options, "an option"));
+                            Colour(pair.Value, $"{path}.vote.colors.{pair.Key}");
+                        }
                     if (action.Secret || action.Effects.Count > 0)
                         Add($"{path}.vote", ErrorCodes.InvalidValue, "A vote is secret by itself and runs its onResult once counted.",
                             "Drop secret, and move the effects to vote.onResult.");
@@ -193,6 +201,21 @@ namespace Core.Rules
 
             CheckUi(actionIds);
             CheckRoles();
+            if (_state.Music is { } tableMusic)
+            {
+                foreach (var pair in tableMusic.Playlists)
+                    for (var i = 0; i < pair.Value.Count; i++)
+                        if (!MusicTrack.Valid(_state, pair.Value[i].Url))
+                            Add($"music.playlists.{pair.Key}[{i}].url", ErrorCodes.InvalidValue, $"'{pair.Value[i].Url}' is not a track.",
+                                "Use library:<pack>/<track> (list_music), an audio asset's id, or a web address.");
+                if (tableMusic.Start != null && !tableMusic.Playlists.ContainsKey(tableMusic.Start))
+                    Add("music.start", ErrorCodes.InvalidValue, $"There is no playlist '{tableMusic.Start}'.", Suggest.OneOf(tableMusic.Start, tableMusic.Playlists.Keys, "a playlist"));
+                if (tableMusic.Volume is < 0f or > 1f)
+                    Add("music.volume", ErrorCodes.InvalidValue, "The music's volume goes from 0 to 1.");
+            }
+            if (_state.Game?.Highlights != null)
+                foreach (var pair in _state.Game.Highlights)
+                    Colour(pair.Value, $"game.highlights.{pair.Key}");
             for (var i = 0; i < _state.SecretVariables.Count; i++)
                 if (!_state.Variables.ContainsKey(_state.SecretVariables[i]))
                     Add($"secretVariables[{i}]", ErrorCodes.UnknownVariable, $"Variable '{_state.SecretVariables[i]}' is not declared.",
@@ -245,14 +268,18 @@ namespace Core.Rules
                 return;
             var teams = new HashSet<string>();
             for (var i = 0; i < roles.Teams.Count; i++)
+            {
                 if (!teams.Add(roles.Teams[i].Id))
                     Add($"roles.teams[{i}].id", ErrorCodes.DuplicateId, $"Team '{roles.Teams[i].Id}' is defined twice.");
+                Colour(roles.Teams[i].Color, $"roles.teams[{i}].color");
+            }
             var ids = new HashSet<string>();
             for (var i = 0; i < roles.List.Count; i++)
             {
                 var role = roles.List[i];
                 if (!ids.Add(role.Id))
                     Add($"roles.list[{i}].id", ErrorCodes.DuplicateId, $"Role '{role.Id}' is defined twice.");
+                Colour(role.Color, $"roles.list[{i}].color");
                 // A role needs a team; a trait of an extra set may have none.
                 if ((role.Set == null || role.Team.Length > 0) && !teams.Contains(role.Team))
                     Add($"roles.list[{i}].team", ErrorCodes.UnknownTeam, $"Team '{role.Team}' does not exist.", Suggest.OneOf(role.Team, teams, "a team id") ?? "Declare it under roles.teams.");
@@ -432,6 +459,34 @@ namespace Core.Rules
                 case ShowEffect show:
                     Target(show.Object, $"{path}.object");
                     break;
+                case MusicEffect music:
+                {
+                    var lists = _state.Music?.Playlists;
+                    if (music.Playlist != null && (lists == null || !lists.ContainsKey(music.Playlist)))
+                        Add($"{path}.playlist", ErrorCodes.InvalidValue, $"The game has no playlist '{music.Playlist}'.",
+                            lists == null || lists.Count == 0 ? "Add playlists under music.playlists." : Suggest.OneOf(music.Playlist, lists.Keys, "a playlist"));
+                    if (music.Track != null && !MusicTrack.Valid(_state, music.Track))
+                        Add($"{path}.track", ErrorCodes.InvalidValue, $"'{music.Track}' is not a track.", "Use a library track, an audio asset's id or a web address.");
+                    if (music.Volume is < 0f or > 1f)
+                        Add($"{path}.volume", ErrorCodes.InvalidValue, "The music's volume goes from 0 to 1.");
+                    if (music.Crossfade is < 0f or > 20f)
+                        Add($"{path}.crossfade", ErrorCodes.InvalidValue, "A crossfade takes 0 to 20 seconds.");
+                    var asked = (music.Playlist != null ? 1 : 0) + (music.Track != null ? 1 : 0) + (music.Pause ? 1 : 0) + (music.Resume ? 1 : 0) + (music.Stop ? 1 : 0);
+                    if (asked > 1)
+                        Add(path, ErrorCodes.InvalidValue, "A music effect does one thing: playlist, track, pause, resume or stop.");
+                    break;
+                }
+                case SoundEffect sound:
+                    if (string.IsNullOrWhiteSpace(sound.Play))
+                        Add($"{path}.play", ErrorCodes.MissingField, "A sound effect names what to play.", "Use a built-in cue (" + string.Join(", ", SoundCues.Builtin) + ").");
+                    else if (!SoundCues.Known(_state, sound.Play))
+                        Add($"{path}.play", ErrorCodes.InvalidValue, $"'{sound.Play}' is not a sound.",
+                            Suggest.OneOf(sound.Play, SoundCues.Builtin, "a built-in cue") ?? "Use a built-in cue, an audio asset's id, or library:<pack>/<track>.");
+                    if (sound.Volume is < 0f or > 1f)
+                        Add($"{path}.volume", ErrorCodes.InvalidValue, "A sound's volume goes from 0 to 1.");
+                    if (sound.To != null && sound.To != "awake" && sound.To != "all")
+                        Audience(sound.To, $"{path}.to");
+                    break;
                 case LightEffect light:
                     if (light.Part != "room" && light.Part != "table")
                         Add($"{path}.part", ErrorCodes.InvalidValue, $"'{light.Part}' is not a light.", "Use room (the lamp and the room) or table (the felt and the pieces).");
@@ -439,6 +494,8 @@ namespace Core.Rules
                         Add($"{path}.scale", ErrorCodes.InvalidValue, "A light's scale goes from 0 (off) to 8; 1 is normal.");
                     if (light.Tint != null && (light.Tint.Length != 3 || light.Tint.Any(v => !(v >= 0f && v <= 2f))))
                         Add($"{path}.tint", ErrorCodes.InvalidValue, "A tint is three numbers from 0 to 2.");
+                    if (light.Seconds is < 0f or > 30f)
+                        Add($"{path}.seconds", ErrorCodes.InvalidValue, "A light change takes 0 to 30 seconds.");
                     break;
                 case LuaEffect lua:
                     if (string.IsNullOrWhiteSpace(lua.Call))
@@ -598,6 +655,14 @@ namespace Core.Rules
         {
             if (string.IsNullOrEmpty(value))
                 Add(path, ErrorCodes.MissingField, "This field is required.");
+        }
+
+        /// <summary>A colour players read (a team's, an option's, a highlighted word's): a seat colour name or #rrggbb.</summary>
+        private void Colour(string? colour, string path)
+        {
+            if (colour != null && !Text.Highlights.TryParseColor(colour, out _))
+                Add(path, ErrorCodes.InvalidValue, $"'{colour}' is not a colour.",
+                    "Use a seat colour (" + string.Join(", ", SeatLayout.Colors) + ") or #rrggbb.");
         }
 
         private void Add(string path, string code, string message, string? suggestion = null) =>

@@ -93,9 +93,10 @@ namespace Core.Tests.Engine
             const string json = @"{
   ""players"": { ""seats"": [ { ""id"": ""a"", ""color"": ""red"" } ] },
   ""turn"": { ""phases"": [ ""play"" ] },
-  ""phases"": [ { ""id"": ""play"", ""actions"": [ ""night"", ""bad_night"" ] } ],
+  ""phases"": [ { ""id"": ""play"", ""actions"": [ ""night"", ""slow_dawn"", ""bad_night"" ] } ],
   ""actions"": [
     { ""id"": ""night"", ""actor"": ""any"", ""effects"": [ { ""light"": { ""part"": ""room"", ""scale"": 0.3, ""tint"": [0.6, 0.7, 1] } } ] },
+    { ""id"": ""slow_dawn"", ""actor"": ""any"", ""effects"": [ { ""light"": { ""part"": ""room"", ""seconds"": 4 } } ] },
     { ""id"": ""bad_night"", ""actor"": ""any"", ""effects"": [ { ""light"": { ""part"": ""table"", ""scale"": 0.2 } }, { ""refuse"": { ""reason"": ""No."" } } ] } ]
 }";
             var game = Start(json);
@@ -103,12 +104,20 @@ namespace Core.Tests.Engine
             var lighting = game.State.Environment!.Lighting;
             Assert.Equal(0.3f, lighting.RoomScale!.Value, 3);
             Assert.Null(lighting.TableScale);
+            Assert.Null(lighting.Fade);
             Assert.False(game.Execute(new PerformActionCommand { Actor = "a", ActionId = "bad_night" }).Ok);
             Assert.Null(game.State.Environment!.Lighting.TableScale);
             Assert.Equal(0.3f, game.State.Environment.Lighting.RoomScale!.Value, 3);
 
+            // A slow dawn: back to normal over four seconds on every screen.
+            Run(game, "a", "slow_dawn");
+            Assert.Null(game.State.Environment.Lighting.RoomScale);
+            Assert.Equal(4f, game.State.Environment.Lighting.Fade!.Value, 3);
+
             var bad = TableJson.Parse(json.Replace(@"""part"": ""room""", @"""part"": ""lamp""")).State!;
             Assert.Contains(TableValidator.Validate(bad), e => e.Path.EndsWith(".part"));
+            var slow = TableJson.Parse(json.Replace(@"""seconds"": 4", @"""seconds"": 99")).State!;
+            Assert.Contains(TableValidator.Validate(slow), e => e.Path.EndsWith(".seconds"));
         }
 
         [Fact]

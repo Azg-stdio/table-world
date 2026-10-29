@@ -17,6 +17,24 @@ namespace Core.Engine
         }
     }
 
+    /// <summary>A sound to play (<see cref="PlaySoundCommand"/>) on the machines of <see cref="Seats"/>, or on all of them when null.</summary>
+    public sealed class SoundCue : StateEvent
+    {
+        public string Sound { get; }
+        public float Volume { get; }
+        public List<string>? Seats { get; }
+
+        public SoundCue(string sound, float volume, List<string>? seats) : base("")
+        {
+            Sound = sound;
+            Volume = volume;
+            Seats = seats;
+        }
+
+        /// <summary>Whether the machine of <paramref name="seat"/> (null: a spectator) plays it.</summary>
+        public bool For(string? seat) => Seats == null || seat != null && Seats.Contains(seat);
+    }
+
     /// <summary>The room's light changed (<see cref="SetLightingCommand"/>).</summary>
     public sealed class LightingChanged : StateEvent
     {

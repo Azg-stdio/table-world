@@ -48,6 +48,7 @@ API the local mods' calls find is measured in [`docs/data/lua-coverage-*.md`](..
 | `pcall` | function |  |
 | `Physics` | table | `cast`, `getGravity`, `setGravity` |
 | `Player` | table | `getAvailableColors`, `getColors`, `getPlayers` |
+| `playSound` | function |  |
 | `print` | function |  |
 | `printToAll` | function |  |
 | `printToColor` | function |  |

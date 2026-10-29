@@ -137,6 +137,7 @@ namespace Core.Engine
                 case PlayEffectCommand _:
                 case SetLightingCommand _:
                 case SetLightCommand _:
+                case PlaySoundCommand _:
                 case ScriptingKeyCommand _:
                 case TypeNumberCommand _:
                     return null;

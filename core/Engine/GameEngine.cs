@@ -191,6 +191,46 @@ namespace Core.Engine
             }
         }
 
+        /// <summary>The table's music after a <c>music</c> effect.</summary>
+        private MusicState Music(MusicEffect effect)
+        {
+            var music = State.Music?.Clone() ?? new MusicState();
+            if (effect.Crossfade is { } fade)
+                music.Crossfade = fade;
+            if (effect.Volume is { } volume)
+                music.Volume = volume;
+            if (effect.Playlist != null)
+            {
+                if (!music.Playlists.ContainsKey(effect.Playlist))
+                    throw new RuleException("music.playlist", ErrorCodes.InvalidValue, $"The game has no playlist '{effect.Playlist}'.",
+                        Suggest.OneOf(effect.Playlist, music.Playlists.Keys, "a playlist"));
+                music = music.WithPlaylist(effect.Playlist, Table.Random.Next);
+            }
+            if (effect.Track != null)
+            {
+                var track = music.Playlists.Values.SelectMany(p => p).Concat(music.Playlist).FirstOrDefault(t => t.Url == effect.Track)?.Clone()
+                    ?? new MusicTrack { Url = effect.Track };
+                if (!MusicTrack.Valid(State, track.Url))
+                    throw new RuleException("music.track", ErrorCodes.InvalidValue, $"'{effect.Track}' is not a track.", "Use a library track, an audio asset's id or a web address.");
+                music.Current = track;
+                music.Index = music.Playlist.FindIndex(t => t.Url == track.Url);
+                music.Playing = true;
+                music.Starts++;
+            }
+            if (effect.Pause)
+                music.Playing = false;
+            if (effect.Resume && music.Current != null)
+                music.Playing = true;
+            if (effect.Stop)
+            {
+                music.Current = null;
+                music.Index = -1;
+                music.Playing = false;
+                music.List = null;
+            }
+            return music;
+        }
+
         private void StartGame(StartGameCommand command)
         {
             if (!State.HasRules)
@@ -230,6 +270,9 @@ namespace Core.Engine
             };
             State.Session = session;
             DealRoles(seats, command.Roles);
+            // The game's own music starts with it (a host may already have something else playing: that stays).
+            if (State.Music is { Start: { } start } music && music.Current == null && music.Playlists.ContainsKey(start))
+                TableCommand(new SetMusicCommand { Music = music.WithPlaylist(start, Table.Random.Next) });
 
             RunEvent(GameEvents.OnGameStart);
             RunEvent(GameEvents.OnTurnStart);
@@ -608,8 +651,22 @@ namespace Core.Engine
                     TableCommand(new ShowCommand { ObjectId = id });
                     break;
                 }
+                case MusicEffect music:
+                    TableCommand(new SetMusicCommand { Music = Music(music) });
+                    break;
+                case SoundEffect sound:
+                {
+                    // A cue for some seats only is sent by the host to those seats alone (who hears it may be a secret).
+                    if (sound.To != null && sound.To != "all")
+                        _secretsRead = true;
+                    var seats = sound.To == "awake"
+                        ? CurrentPhase()?.Awake != null ? Playing.Where(s => AwakeByRule(s.Id, null)).Select(s => s.Id).ToList() : Playing.Select(s => s.Id).ToList()
+                        : Audience(sound.To, "sound.to");
+                    TableCommand(new PlaySoundCommand { Sound = sound.Play, Volume = sound.Volume, Seats = seats });
+                    break;
+                }
                 case LightEffect light:
-                    TableCommand(new SetLightCommand { Light = light.Part, Scale = light.Scale, Tint = light.Tint });
+                    TableCommand(new SetLightCommand { Light = light.Part, Scale = light.Scale, Tint = light.Tint, Seconds = light.Seconds });
                     break;
                 case RefuseEffect refuse:
                     throw string.IsNullOrWhiteSpace(refuse.Reason)

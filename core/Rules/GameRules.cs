@@ -21,6 +21,11 @@ namespace Core.Rules
         /// </summary>
         public Dictionary<string, string>? Messages { get; set; }
         /// <summary>
+        /// Words coloured wherever players read them in the game's lines (<c>"Merlin": "#4a8cff"</c>), as they are
+        /// written on screen, in any language. Seats, teams, roles and vote options are coloured from their own colours.
+        /// </summary>
+        public Dictionary<string, string>? Highlights { get; set; }
+        /// <summary>
         /// The language the game is written in (ADR 0011), e.g. <c>es</c>: its texts as they stand are in it, and
         /// <see cref="TableState.Translations"/> carries the others. Null: a game in one language.
         /// </summary>
