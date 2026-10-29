@@ -317,6 +317,9 @@ hangs). Record frame times (tavern vs game night) and anything left for Miguel t
   up?" also needed the sleepers' card hands down, so a chalker with its eyes closed rests its cards at the table's edge.
 - **A stale table** explained Miguel's Merlin holding a Fail card: a game already running (or a save) keeps the script
   it started with. `TheLoyal_HoldOnlySuccessCards_AndMinionsASuccessAndAFail` checks the deal in 36 games.
+- **Vanishing players** (Miguel's match, 2026-10-29): at a hot-seat table, every seat he looked out of stayed
+  invisible after he switched to another, because a chalker hides its body while you look out of its eyes and nothing
+  showed it again. Now only the seat you look out of hides its body or fades (`SeatSwitchTests`).
 - **Found while testing:** the music state's `index` 0 was not saved (its default was -1), so a client's copy of the
   table differed from the host's whenever a playlist started at its first track, and every client resynced. Fixed with
   `[DefaultValue(-1)]`; `TheMusic_CopiesOverTheWire_Exactly` guards it.

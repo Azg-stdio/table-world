@@ -165,6 +165,15 @@ namespace TableWorld.View.Chalkers
 
             Yourself(seen, dt);
 
+            // Only your own chalker hides its body (you look out of it) or fades (it stands in your way). A seat you looked
+            // out of before switching seats at a hot-seat table, or that you left online, shows again.
+            foreach (var pair in _chalkers)
+                if (pair.Key != _table.LocalSeat && seen.Contains(pair.Key))
+                {
+                    pair.Value.HideHead(false);
+                    pair.Value.Ghost.Update(false, ColorOf(pair.Key), dt);
+                }
+
             var camera = Camera.main;
             if (VoiceChat.HearMyself && camera != null)
             {
