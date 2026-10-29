@@ -329,7 +329,8 @@ namespace TableWorld.View.Chalkers
                     // The wrist up at chest height on the hand's own side, the elbow below: the forearm rises, so the hand,
                     // left as the model was made, points its fingers up. The cards are then put in those fingers
                     // (CardsInHand), wherever the hand is.
-                    target = grip.Grip + root.up * 0.08f - root.forward * 0.05f;
+                    // Out on its own side and forward at chest height: the card is in front of the shoulder, not the face.
+                    target = root.TransformPoint(new Vector3(side == 0 ? -0.26f : 0.26f, 0.22f, 0.34f));
                 }
                 // Resting on the table (seated, the hand down at the table's height, doing nothing else): the hand lies flat,
                 // palm down and fingers forward, lifted by its own thickness so it does not sink into the table.
@@ -337,7 +338,12 @@ namespace TableWorld.View.Chalkers
                             !TableGeometry.Hidden && root.InverseTransformPoint(hand).y < RestHeight;
                 if (rests)
                     target = hand + root.up * (_handLength[side] * 0.3f) + root.forward * 0.015f;
-                Reach(upper, lower, end, target, elbow - root.forward * 0.1f);
+                // The holding arm's elbow out to its side and down, as a person raising a card does (the shapes' elbow
+                // tucked it in across the chest).
+                var pole = holds && Bone(upper) is { } upperBone
+                    ? upperBone.position + (side == 0 ? -root.right : root.right) * 0.35f - root.up * 0.3f
+                    : elbow - root.forward * 0.1f;
+                Reach(upper, lower, end, target, pole);
                 // A holding hand keeps its wrist in line with the forearm, as the model was made: turning it to fit the fan
                 // twisted it.
                 if (rests && Bone(end) is { } flat)
