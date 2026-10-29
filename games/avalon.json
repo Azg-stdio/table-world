@@ -2812,6 +2812,171 @@
           }
         },
         {
+          "id": "success_11",
+          "name": "Success",
+          "description": "SUCCESS",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "success"
+          },
+          "text": {
+            "title": "Success",
+            "body": "SUCCESS",
+            "footer": "Onto the quest pile"
+          },
+          "style": {
+            "paper": [
+              0.88,
+              0.92,
+              0.98
+            ],
+            "ink": [
+              0.1,
+              0.16,
+              0.3
+            ],
+            "accent": [
+              0.2,
+              0.36,
+              0.7
+            ]
+          }
+        },
+        {
+          "id": "success_12",
+          "name": "Success",
+          "description": "SUCCESS",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "success"
+          },
+          "text": {
+            "title": "Success",
+            "body": "SUCCESS",
+            "footer": "Onto the quest pile"
+          },
+          "style": {
+            "paper": [
+              0.88,
+              0.92,
+              0.98
+            ],
+            "ink": [
+              0.1,
+              0.16,
+              0.3
+            ],
+            "accent": [
+              0.2,
+              0.36,
+              0.7
+            ]
+          }
+        },
+        {
+          "id": "success_13",
+          "name": "Success",
+          "description": "SUCCESS",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "success"
+          },
+          "text": {
+            "title": "Success",
+            "body": "SUCCESS",
+            "footer": "Onto the quest pile"
+          },
+          "style": {
+            "paper": [
+              0.88,
+              0.92,
+              0.98
+            ],
+            "ink": [
+              0.1,
+              0.16,
+              0.3
+            ],
+            "accent": [
+              0.2,
+              0.36,
+              0.7
+            ]
+          }
+        },
+        {
+          "id": "success_14",
+          "name": "Success",
+          "description": "SUCCESS",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "success"
+          },
+          "text": {
+            "title": "Success",
+            "body": "SUCCESS",
+            "footer": "Onto the quest pile"
+          },
+          "style": {
+            "paper": [
+              0.88,
+              0.92,
+              0.98
+            ],
+            "ink": [
+              0.1,
+              0.16,
+              0.3
+            ],
+            "accent": [
+              0.2,
+              0.36,
+              0.7
+            ]
+          }
+        },
+        {
+          "id": "success_15",
+          "name": "Success",
+          "description": "SUCCESS",
+          "tags": [
+            "quest"
+          ],
+          "meta": {
+            "quest": "success"
+          },
+          "text": {
+            "title": "Success",
+            "body": "SUCCESS",
+            "footer": "Onto the quest pile"
+          },
+          "style": {
+            "paper": [
+              0.88,
+              0.92,
+              0.98
+            ],
+            "ink": [
+              0.1,
+              0.16,
+              0.3
+            ],
+            "accent": [
+              0.2,
+              0.36,
+              0.7
+            ]
+          }
+        },
+        {
           "id": "fail",
           "name": "Fail",
           "description": "FAIL",
@@ -3386,6 +3551,10 @@
     {
       "id": "quest_drop",
       "type": "LayoutZone",
+      "catch": {
+        "tag": "quest",
+        "for": "$var.team"
+      },
       "name": "Quest pile",
       "transform": {
         "position": [
@@ -3499,6 +3668,10 @@
     {
       "id": "vote_1",
       "type": "LayoutZone",
+      "catch": {
+        "tag": "vote",
+        "for": "seat_1"
+      },
       "name": "Vote",
       "transform": {
         "position": [
@@ -3609,6 +3782,10 @@
     {
       "id": "vote_2",
       "type": "LayoutZone",
+      "catch": {
+        "tag": "vote",
+        "for": "seat_2"
+      },
       "name": "Vote",
       "transform": {
         "position": [
@@ -3719,6 +3896,10 @@
     {
       "id": "vote_3",
       "type": "LayoutZone",
+      "catch": {
+        "tag": "vote",
+        "for": "seat_3"
+      },
       "name": "Vote",
       "transform": {
         "position": [
@@ -3829,6 +4010,10 @@
     {
       "id": "vote_4",
       "type": "LayoutZone",
+      "catch": {
+        "tag": "vote",
+        "for": "seat_4"
+      },
       "name": "Vote",
       "transform": {
         "position": [
@@ -3944,6 +4129,10 @@
     {
       "id": "vote_5",
       "type": "LayoutZone",
+      "catch": {
+        "tag": "vote",
+        "for": "seat_5"
+      },
       "name": "Vote",
       "transform": {
         "position": [
@@ -4059,6 +4248,10 @@
     {
       "id": "vote_6",
       "type": "LayoutZone",
+      "catch": {
+        "tag": "vote",
+        "for": "seat_6"
+      },
       "name": "Vote",
       "transform": {
         "position": [
@@ -4174,6 +4367,10 @@
     {
       "id": "vote_7",
       "type": "LayoutZone",
+      "catch": {
+        "tag": "vote",
+        "for": "seat_7"
+      },
       "name": "Vote",
       "transform": {
         "position": [
@@ -4289,6 +4486,10 @@
     {
       "id": "vote_8",
       "type": "LayoutZone",
+      "catch": {
+        "tag": "vote",
+        "for": "seat_8"
+      },
       "name": "Vote",
       "transform": {
         "position": [
@@ -4404,6 +4605,10 @@
     {
       "id": "vote_9",
       "type": "LayoutZone",
+      "catch": {
+        "tag": "vote",
+        "for": "seat_9"
+      },
       "name": "Vote",
       "transform": {
         "position": [
@@ -4519,6 +4724,10 @@
     {
       "id": "vote_10",
       "type": "LayoutZone",
+      "catch": {
+        "tag": "vote",
+        "for": "seat_10"
+      },
       "name": "Vote",
       "transform": {
         "position": [
@@ -5706,7 +5915,7 @@
     ]
   },
   "scripts": {
-    "global": "\nSIZES = { [5] = {2, 3, 2, 3, 3}, [6] = {2, 3, 4, 3, 4}, [7] = {2, 3, 3, 4, 4},\n          [8] = {3, 4, 4, 5, 5}, [9] = {3, 4, 4, 5, 5}, [10] = {3, 4, 4, 5, 5} }\n\n-- The team size and the fails it takes for the quest about to be played.\nfunction setQuest(ctx)\n  local players = #Game.getSeats()\n  local quest = Game.getVariable(\"quest\")\n  Game.setVariable(\"size\", SIZES[players][quest])\n  if quest == 4 and players >= 7 then Game.setVariable(\"needFails\", 2) else Game.setVariable(\"needFails\", 1) end\nend\n\n-- ---- where things are -------------------------------------------------------------------------------------------\n\nHOME = {}\n\nlocal function at(id)\n  local o = getObjectFromGUID(id)\n  return o and o.getPosition()\nend\n\nlocal function put(id, p)\n  local o = getObjectFromGUID(id)\n  if o and p then o.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z}) end\nend\n\nlocal function number(seat) return seat:match(\"(%d+)$\") end\n\n-- Before a seat: a share of the way from the middle of the table to its hand, and to the player's left by `left`.\nlocal function before(seat, share, left)\n  local p = at(\"hand_\" .. number(seat))\n  local x, z = p.x * share, p.z * share\n  if left then\n    local length = math.sqrt(p.x * p.x + p.z * p.z)\n    x, z = x + p.z / length * left, z - p.x / length * left\n  end\n  return {x = x, y = p.y, z = z}\nend\n\nlocal function startsWith(text, prefix) return text and text:sub(1, #prefix) == prefix end\n\n-- Every card on the table whose own id starts with one of `prefixes`, in hands and on the given zones.\nlocal function cardsIn(zones, prefixes)\n  local found = {}\n  for _, zone in ipairs(zones) do\n    local z = getObjectFromGUID(zone)\n    if z then\n      for _, o in ipairs(z.getObjects()) do\n        for _, prefix in ipairs(prefixes) do\n          if startsWith(o.getGUID(), prefix) then found[#found + 1] = o end\n        end\n      end\n    end\n  end\n  return found\nend\n\nlocal function hands()\n  local list = {}\n  for _, seat in ipairs(Game.getSeats()) do list[#list + 1] = \"hand_\" .. number(seat) end\n  return list\nend\n\n-- A card of a deck into a seat's hand (the deck names it by the card's own id).\nlocal function deal(deck, id, seat)\n  getObjectFromGUID(deck).takeObject({guid = id, position = at(\"hand_\" .. number(seat)), rotation = {x = 0, y = 0, z = 0}})\nend\n\n-- ---- the start ------------------------------------------------------------------------------------------------------\n\nPIECES = {\"reject_marker\"}\n\n-- Each player's role card into their hand, the minions' eyes for the ritual, where every piece starts.\nfunction setUp(ctx)\n  for _, id in ipairs(PIECES) do HOME[id] = at(id) end\n  local next = {}\n  local eyes = {}\n  local forMerlin = {}\n  local forPercival = {}\n  for _, seat in ipairs(Game.getSeats()) do\n    local role = Game.getRole(seat)\n    next[role] = (next[role] or 0) + 1\n    local id = \"role_\" .. role\n    if next[role] > 1 then id = id .. \"_\" .. next[role] end\n    deal(\"role_deck\", id, seat)\n    if Game.getTeam(seat) == \"evil\" and role ~= \"oberon\" then eyes[#eyes + 1] = seat end\n    -- The thumbs the game raises: every minion's but Mordred's for Merlin; Merlin's and Morgana's for Percival.\n    if Game.getTeam(seat) == \"evil\" and role ~= \"mordred\" then forMerlin[#forMerlin + 1] = seat end\n    if role == \"merlin\" or role == \"morgana\" then forPercival[#forPercival + 1] = seat end\n    if role == \"percival\" then Game.setVariable(\"percival\", true) end\n  end\n  Game.setVariable(\"minionEyes\", eyes)\n  Game.setVariable(\"thumbsMerlin\", forMerlin)\n  Game.setVariable(\"thumbsPercival\", forPercival)\nend\n\n-- The five quest cards for this many players, out of the box onto the middle of the table; the box goes with the rest.\nQUESTS = {}\nfunction layQuests(ctx)\n  local players = #Game.getSeats()\n  local group = players >= 8 and 8 or players\n  local left, right = at(\"reject_1\"), at(\"reject_5\")\n  local unit = (right.x - left.x) / 0.32   -- the track's ends are 0.32 m apart: table units per metre\n  local box = getObjectFromGUID(\"quest_box\")\n  for q = 1, 5 do\n    local card = box.takeObject({guid = \"quest_\" .. q .. \"_\" .. group,\n      position = {x = (-0.36 + 0.18 * (q - 1)) * unit, y = left.y + 0.3, z = 0.05 * unit}, rotation = {x = 0, y = 180, z = 0}})\n    QUESTS[q] = card and card.getGUID()\n  end\n  box.destruct()\nend\n\n-- ---- choosing the team ------------------------------------------------------------------------------------------\n\n-- ---- the team vote: Approve and Reject cards ----------------------------------------------------------------------\n\nlocal function spots()\n  local list = {}\n  for _, seat in ipairs(Game.getSeats()) do list[#list + 1] = \"vote_\" .. number(seat) end\n  return list\nend\n\n-- Every vote card back into its deck: those on the spots and those left in hands.\nVOTES_SHOWN = 0\nlocal function collectVotes()\n  VOTES_SHOWN = VOTES_SHOWN + 1\n  local deck = getObjectFromGUID(\"vote_deck\")\n  local all = cardsIn(spots(), {\"aye\", \"nay\"})\n  for _, card in ipairs(cardsIn(hands(), {\"aye\", \"nay\"})) do all[#all + 1] = card end\n  for _, card in ipairs(all) do deck.putObject(card) end\nend\n\nfunction votesOut(ctx)\n  -- A quick new vote: last one's cards come back first.\n  collectVotes()\n  for k, seat in ipairs(Game.getSeats()) do\n    deal(\"vote_deck\", k == 1 and \"aye\" or (\"aye_\" .. k), seat)\n    deal(\"vote_deck\", k == 1 and \"nay\" or (\"nay_\" .. k), seat)\n  end\nend\n\n-- The cards laid down turn over together, and go back to their deck a moment later with those left in hands.\nfunction votesShown(ctx)\n  for _, card in ipairs(cardsIn(spots(), {\"aye\", \"nay\"})) do card.flip() end\n  local shown = VOTES_SHOWN\n  Wait.time(function() if VOTES_SHOWN == shown then collectVotes() end end, 5)\nend\n\n-- ---- the quest: Success and Fail cards ------------------------------------------------------------------------------\n\n-- Every quest card back into its deck: from the pile, turned over, or left in hands. A turning-over still running stops.\nQUEST_SHOWN = 0\nSHOWN = {}\nlocal function collectQuest()\n  QUEST_SHOWN = QUEST_SHOWN + 1\n  local deck = getObjectFromGUID(\"quest_deck\")\n  local pile = getObjectFromGUID(\"quest_pile\")\n  for _ = 1, #pile.getObjects() do\n    local card = pile.takeObject({position = at(\"quest_drop\")})\n    if card then deck.putObject(card) end\n  end\n  for _, card in ipairs(SHOWN) do deck.putObject(card) end\n  SHOWN = {}\n  for _, card in ipairs(cardsIn(hands(), {\"success\", \"fail\"})) do deck.putObject(card) end\nend\n\nfunction questOut(ctx)\n  collectQuest()\n  local team = Game.getVariable(\"team\") or {}\n  for k, seat in ipairs(team) do\n    deal(\"quest_deck\", k == 1 and \"success\" or (\"success_\" .. k), seat)\n    deal(\"quest_deck\", k == 1 and \"fail\" or (\"fail_\" .. k), seat)\n  end\nend\n\n-- A card laid on the quest pile goes into it, face down: nobody can tell later whose it was.\nfunction toPile(ctx)\n  local card = getObjectFromGUID(ctx.it)\n  if card then getObjectFromGUID(\"quest_pile\").putObject(card) end\nend\n\n-- The pile is shuffled and its cards turned over one by one; then they and the cards not played go back.\nfunction questShown(ctx)\n  local shown = QUEST_SHOWN\n  -- The cards not played leave the hands at once: everyone has played.\n  local deck = getObjectFromGUID(\"quest_deck\")\n  for _, card in ipairs(cardsIn(hands(), {\"success\", \"fail\"})) do deck.putObject(card) end\n  Wait.time(function()\n    if QUEST_SHOWN ~= shown then return end\n    local pile = getObjectFromGUID(\"quest_pile\")\n    pile.shuffle()\n    local count = #pile.getObjects()\n    local row = at(\"reveal_row\")\n    local unit = (at(\"reject_5\").x - at(\"reject_1\").x) / 0.32\n    for i = 1, count do\n      Wait.time(function()\n        if QUEST_SHOWN ~= shown then return end\n        local card = getObjectFromGUID(\"quest_pile\").takeObject({\n          position = {x = row.x + (i - (count + 1) / 2) * 0.08 * unit, y = row.y + 0.3, z = row.z},\n          rotation = {x = 0, y = 0, z = 0}})\n        if card then\n          SHOWN[#SHOWN + 1] = card\n          local name = card.getName()\n          playSound((name == \"Fail\" or name == \"Fracaso\") and \"sting\" or \"drum\", 0.7)\n        end\n      end, 0.9 * i)\n    end\n    Wait.time(function() if QUEST_SHOWN == shown then collectQuest() end end, 0.9 * count + 5)\n  end, 0.5)\nend\n\nfunction markQuest(ctx)\n  local quest = math.floor(Game.getVariable(\"quest\"))\n  if ctx.args.result == \"fail\" then\n    local n = math.floor(Game.getVariable(\"fails\"))\n    put(n == 1 and \"evil\" or (\"evil_\" .. n), at(QUESTS[quest]))\n  else\n    local n = math.floor(Game.getVariable(\"successes\"))\n    put(n == 1 and \"good\" or (\"good_\" .. n), at(QUESTS[quest]))\n  end\nend\n\nfunction rejectTrack(ctx)\n  local n = math.floor(Game.getVariable(\"rejections\"))\n  if n == 0 then put(\"reject_marker\", HOME[\"reject_marker\"]) else put(\"reject_marker\", at(\"reject_\" .. n)) end\nend\n\n-- ---- the end ----------------------------------------------------------------------------------------------------------\n\n-- Every role card turned over in front of its player.\nfunction rolesShown(ctx)\n  for _, seat in ipairs(Game.getSeats()) do\n    for _, card in ipairs(cardsIn({\"hand_\" .. number(seat)}, {\"role_\"})) do\n      local p = before(seat, 0.56)\n      card.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z})\n      card.setRotationSmooth({x = 0, y = 0, z = 0})\n    end\n  end\nend\n"
+    "global": "\nSIZES = { [5] = {2, 3, 2, 3, 3}, [6] = {2, 3, 4, 3, 4}, [7] = {2, 3, 3, 4, 4},\n          [8] = {3, 4, 4, 5, 5}, [9] = {3, 4, 4, 5, 5}, [10] = {3, 4, 4, 5, 5} }\n\n-- The team size and the fails it takes for the quest about to be played.\nfunction setQuest(ctx)\n  local players = #Game.getSeats()\n  local quest = Game.getVariable(\"quest\")\n  Game.setVariable(\"size\", SIZES[players][quest])\n  if quest == 4 and players >= 7 then Game.setVariable(\"needFails\", 2) else Game.setVariable(\"needFails\", 1) end\nend\n\n-- ---- where things are -------------------------------------------------------------------------------------------\n\nHOME = {}\n\nlocal function at(id)\n  local o = getObjectFromGUID(id)\n  return o and o.getPosition()\nend\n\nlocal function put(id, p)\n  local o = getObjectFromGUID(id)\n  if o and p then o.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z}) end\nend\n\nlocal function number(seat) return seat:match(\"(%d+)$\") end\n\n-- Before a seat: a share of the way from the middle of the table to its hand, and to the player's left by `left`.\nlocal function before(seat, share, left)\n  local p = at(\"hand_\" .. number(seat))\n  local x, z = p.x * share, p.z * share\n  if left then\n    local length = math.sqrt(p.x * p.x + p.z * p.z)\n    x, z = x + p.z / length * left, z - p.x / length * left\n  end\n  return {x = x, y = p.y, z = z}\nend\n\nlocal function startsWith(text, prefix) return text and text:sub(1, #prefix) == prefix end\n\n-- Every card on the table whose own id starts with one of `prefixes`, in hands and on the given zones.\nlocal function cardsIn(zones, prefixes)\n  local found = {}\n  for _, zone in ipairs(zones) do\n    local z = getObjectFromGUID(zone)\n    if z then\n      for _, o in ipairs(z.getObjects()) do\n        for _, prefix in ipairs(prefixes) do\n          if startsWith(o.getGUID(), prefix) then found[#found + 1] = o end\n        end\n      end\n    end\n  end\n  return found\nend\n\nlocal function hands()\n  local list = {}\n  for _, seat in ipairs(Game.getSeats()) do list[#list + 1] = \"hand_\" .. number(seat) end\n  return list\nend\n\n-- A card of a deck into a seat's hand (the deck names it by the card's own id).\nlocal function deal(deck, id, seat)\n  getObjectFromGUID(deck).takeObject({guid = id, position = at(\"hand_\" .. number(seat)), rotation = {x = 0, y = 0, z = 0}})\nend\n\n-- ---- the start ------------------------------------------------------------------------------------------------------\n\nPIECES = {\"reject_marker\"}\n\n-- Each player's role card into their hand, the minions' eyes for the ritual, where every piece starts.\nfunction setUp(ctx)\n  for _, id in ipairs(PIECES) do HOME[id] = at(id) end\n  local next = {}\n  local eyes = {}\n  local forMerlin = {}\n  local forPercival = {}\n  for _, seat in ipairs(Game.getSeats()) do\n    local role = Game.getRole(seat)\n    next[role] = (next[role] or 0) + 1\n    local id = \"role_\" .. role\n    if next[role] > 1 then id = id .. \"_\" .. next[role] end\n    deal(\"role_deck\", id, seat)\n    if Game.getTeam(seat) == \"evil\" and role ~= \"oberon\" then eyes[#eyes + 1] = seat end\n    -- The thumbs the game raises: every minion's but Mordred's for Merlin; Merlin's and Morgana's for Percival.\n    if Game.getTeam(seat) == \"evil\" and role ~= \"mordred\" then forMerlin[#forMerlin + 1] = seat end\n    if role == \"merlin\" or role == \"morgana\" then forPercival[#forPercival + 1] = seat end\n    if role == \"percival\" then Game.setVariable(\"percival\", true) end\n  end\n  Game.setVariable(\"minionEyes\", eyes)\n  Game.setVariable(\"thumbsMerlin\", forMerlin)\n  Game.setVariable(\"thumbsPercival\", forPercival)\nend\n\n-- The five quest cards for this many players, out of the box onto the middle of the table; the box goes with the rest.\nQUESTS = {}\nfunction layQuests(ctx)\n  local players = #Game.getSeats()\n  local group = players >= 8 and 8 or players\n  local left, right = at(\"reject_1\"), at(\"reject_5\")\n  local unit = (right.x - left.x) / 0.32   -- the track's ends are 0.32 m apart: table units per metre\n  local box = getObjectFromGUID(\"quest_box\")\n  for q = 1, 5 do\n    local card = box.takeObject({guid = \"quest_\" .. q .. \"_\" .. group,\n      position = {x = (-0.36 + 0.18 * (q - 1)) * unit, y = left.y + 0.3, z = 0.05 * unit}, rotation = {x = 0, y = 180, z = 0}})\n    QUESTS[q] = card and card.getGUID()\n  end\n  box.destruct()\nend\n\n-- ---- choosing the team ------------------------------------------------------------------------------------------\n\n-- ---- the team vote: Approve and Reject cards ----------------------------------------------------------------------\n\nlocal function spots()\n  local list = {}\n  for _, seat in ipairs(Game.getSeats()) do list[#list + 1] = \"vote_\" .. number(seat) end\n  return list\nend\n\n-- Every vote card back into its deck: those on the spots and those left in hands.\nVOTES_SHOWN = 0\nlocal function collectVotes()\n  VOTES_SHOWN = VOTES_SHOWN + 1\n  local deck = getObjectFromGUID(\"vote_deck\")\n  local all = cardsIn(spots(), {\"aye\", \"nay\"})\n  for _, card in ipairs(cardsIn(hands(), {\"aye\", \"nay\"})) do all[#all + 1] = card end\n  for _, card in ipairs(all) do deck.putObject(card) end\nend\n\nfunction votesOut(ctx)\n  -- A quick new vote: last one's cards come back first.\n  collectVotes()\n  for k, seat in ipairs(Game.getSeats()) do\n    deal(\"vote_deck\", k == 1 and \"aye\" or (\"aye_\" .. k), seat)\n    deal(\"vote_deck\", k == 1 and \"nay\" or (\"nay_\" .. k), seat)\n  end\nend\n\n-- The cards laid down turn over together, and go back to their deck a moment later with those left in hands.\nfunction votesShown(ctx)\n  for _, card in ipairs(cardsIn(spots(), {\"aye\", \"nay\"})) do card.flip() end\n  local shown = VOTES_SHOWN\n  Wait.time(function() if VOTES_SHOWN == shown then collectVotes() end end, 5)\nend\n\n-- ---- the quest: Success and Fail cards ------------------------------------------------------------------------------\n\n-- Every quest card back into its deck: from the pile, turned over, or left in hands. A turning-over still running stops.\nQUEST_SHOWN = 0\nSHOWN = {}\nlocal function collectQuest()\n  QUEST_SHOWN = QUEST_SHOWN + 1\n  local deck = getObjectFromGUID(\"quest_deck\")\n  local pile = getObjectFromGUID(\"quest_pile\")\n  for _ = 1, #pile.getObjects() do\n    local card = pile.takeObject({position = at(\"quest_drop\")})\n    if card then deck.putObject(card) end\n  end\n  for _, card in ipairs(SHOWN) do deck.putObject(card) end\n  SHOWN = {}\n  for _, card in ipairs(cardsIn(hands(), {\"success\", \"fail\"})) do deck.putObject(card) end\nend\n\nfunction questOut(ctx)\n  collectQuest()\n  local team = Game.getVariable(\"team\") or {}\n  -- Two cards each, so every hand looks the same: the loyal can only succeed (two Success), a minion chooses.\n  local fails, successes = 0, 0\n  local function nextSuccess()\n    successes = successes + 1\n    return successes == 1 and \"success\" or (\"success_\" .. successes)\n  end\n  for _, seat in ipairs(team) do\n    deal(\"quest_deck\", nextSuccess(), seat)\n    if Game.getTeam(seat) == \"evil\" then\n      fails = fails + 1\n      deal(\"quest_deck\", fails == 1 and \"fail\" or (\"fail_\" .. fails), seat)\n    else\n      deal(\"quest_deck\", nextSuccess(), seat)\n    end\n  end\nend\n\n-- A card laid on the quest pile goes into it, face down: nobody can tell later whose it was.\nfunction toPile(ctx)\n  local card = getObjectFromGUID(ctx.it)\n  if card then getObjectFromGUID(\"quest_pile\").putObject(card) end\nend\n\n-- The pile is shuffled and its cards turned over one by one; then they and the cards not played go back.\nfunction questShown(ctx)\n  local shown = QUEST_SHOWN\n  -- The cards not played leave the hands at once: everyone has played.\n  local deck = getObjectFromGUID(\"quest_deck\")\n  for _, card in ipairs(cardsIn(hands(), {\"success\", \"fail\"})) do deck.putObject(card) end\n  Wait.time(function()\n    if QUEST_SHOWN ~= shown then return end\n    local pile = getObjectFromGUID(\"quest_pile\")\n    pile.shuffle()\n    local count = #pile.getObjects()\n    local row = at(\"reveal_row\")\n    local unit = (at(\"reject_5\").x - at(\"reject_1\").x) / 0.32\n    for i = 1, count do\n      Wait.time(function()\n        if QUEST_SHOWN ~= shown then return end\n        local card = getObjectFromGUID(\"quest_pile\").takeObject({\n          position = {x = row.x + (i - (count + 1) / 2) * 0.08 * unit, y = row.y + 0.3, z = row.z},\n          rotation = {x = 0, y = 0, z = 0}})\n        if card then\n          SHOWN[#SHOWN + 1] = card\n          local name = card.getName()\n          playSound((name == \"Fail\" or name == \"Fracaso\") and \"sting\" or \"drum\", 0.7)\n        end\n      end, 0.9 * i)\n    end\n    Wait.time(function() if QUEST_SHOWN == shown then collectQuest() end end, 0.9 * count + 5)\n  end, 0.5)\nend\n\nfunction markQuest(ctx)\n  local quest = math.floor(Game.getVariable(\"quest\"))\n  if ctx.args.result == \"fail\" then\n    local n = math.floor(Game.getVariable(\"fails\"))\n    put(n == 1 and \"evil\" or (\"evil_\" .. n), at(QUESTS[quest]))\n  else\n    local n = math.floor(Game.getVariable(\"successes\"))\n    put(n == 1 and \"good\" or (\"good_\" .. n), at(QUESTS[quest]))\n  end\nend\n\nfunction rejectTrack(ctx)\n  local n = math.floor(Game.getVariable(\"rejections\"))\n  if n == 0 then put(\"reject_marker\", HOME[\"reject_marker\"]) else put(\"reject_marker\", at(\"reject_\" .. n)) end\nend\n\n-- ---- the end ----------------------------------------------------------------------------------------------------------\n\n-- Every role card turned over in front of its player.\nfunction rolesShown(ctx)\n  for _, seat in ipairs(Game.getSeats()) do\n    for _, card in ipairs(cardsIn({\"hand_\" .. number(seat)}, {\"role_\"})) do\n      local p = before(seat, 0.56)\n      card.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z})\n      card.setRotationSmooth({x = 0, y = 0, z = 0})\n    end\n  end\nend\n"
   },
   "roles": {
     "teams": [
@@ -5946,11 +6155,8 @@
       "cards.nay.text.body": "NO",
       "cards.aye.text.footer": "Boca abajo en tu sitio",
       "cards.nay.text.footer": "Boca abajo en tu sitio",
-      "cards.success.text.title": "Éxito",
-      "cards.success.text.body": "ÉXITO",
       "cards.fail.text.title": "Fracaso",
       "cards.fail.text.body": "FRACASO",
-      "cards.success.text.footer": "Al montón de la misión",
       "cards.fail.text.footer": "Solo esbirros: la hunde",
       "cards.aye_2.text.title": "Aprobar",
       "cards.aye_2.text.body": "SÍ",
@@ -5958,11 +6164,8 @@
       "cards.nay_2.text.body": "NO",
       "cards.aye_2.text.footer": "Boca abajo en tu sitio",
       "cards.nay_2.text.footer": "Boca abajo en tu sitio",
-      "cards.success_2.text.title": "Éxito",
-      "cards.success_2.text.body": "ÉXITO",
       "cards.fail_2.text.title": "Fracaso",
       "cards.fail_2.text.body": "FRACASO",
-      "cards.success_2.text.footer": "Al montón de la misión",
       "cards.fail_2.text.footer": "Solo esbirros: la hunde",
       "cards.aye_3.text.title": "Aprobar",
       "cards.aye_3.text.body": "SÍ",
@@ -5970,11 +6173,8 @@
       "cards.nay_3.text.body": "NO",
       "cards.aye_3.text.footer": "Boca abajo en tu sitio",
       "cards.nay_3.text.footer": "Boca abajo en tu sitio",
-      "cards.success_3.text.title": "Éxito",
-      "cards.success_3.text.body": "ÉXITO",
       "cards.fail_3.text.title": "Fracaso",
       "cards.fail_3.text.body": "FRACASO",
-      "cards.success_3.text.footer": "Al montón de la misión",
       "cards.fail_3.text.footer": "Solo esbirros: la hunde",
       "cards.aye_4.text.title": "Aprobar",
       "cards.aye_4.text.body": "SÍ",
@@ -5982,11 +6182,8 @@
       "cards.nay_4.text.body": "NO",
       "cards.aye_4.text.footer": "Boca abajo en tu sitio",
       "cards.nay_4.text.footer": "Boca abajo en tu sitio",
-      "cards.success_4.text.title": "Éxito",
-      "cards.success_4.text.body": "ÉXITO",
       "cards.fail_4.text.title": "Fracaso",
       "cards.fail_4.text.body": "FRACASO",
-      "cards.success_4.text.footer": "Al montón de la misión",
       "cards.fail_4.text.footer": "Solo esbirros: la hunde",
       "cards.aye_5.text.title": "Aprobar",
       "cards.aye_5.text.body": "SÍ",
@@ -5994,11 +6191,8 @@
       "cards.nay_5.text.body": "NO",
       "cards.aye_5.text.footer": "Boca abajo en tu sitio",
       "cards.nay_5.text.footer": "Boca abajo en tu sitio",
-      "cards.success_5.text.title": "Éxito",
-      "cards.success_5.text.body": "ÉXITO",
       "cards.fail_5.text.title": "Fracaso",
       "cards.fail_5.text.body": "FRACASO",
-      "cards.success_5.text.footer": "Al montón de la misión",
       "cards.fail_5.text.footer": "Solo esbirros: la hunde",
       "cards.aye_6.text.title": "Aprobar",
       "cards.aye_6.text.body": "SÍ",
@@ -6006,11 +6200,8 @@
       "cards.nay_6.text.body": "NO",
       "cards.aye_6.text.footer": "Boca abajo en tu sitio",
       "cards.nay_6.text.footer": "Boca abajo en tu sitio",
-      "cards.success_6.text.title": "Éxito",
-      "cards.success_6.text.body": "ÉXITO",
       "cards.fail_6.text.title": "Fracaso",
       "cards.fail_6.text.body": "FRACASO",
-      "cards.success_6.text.footer": "Al montón de la misión",
       "cards.fail_6.text.footer": "Solo esbirros: la hunde",
       "cards.aye_7.text.title": "Aprobar",
       "cards.aye_7.text.body": "SÍ",
@@ -6018,11 +6209,8 @@
       "cards.nay_7.text.body": "NO",
       "cards.aye_7.text.footer": "Boca abajo en tu sitio",
       "cards.nay_7.text.footer": "Boca abajo en tu sitio",
-      "cards.success_7.text.title": "Éxito",
-      "cards.success_7.text.body": "ÉXITO",
       "cards.fail_7.text.title": "Fracaso",
       "cards.fail_7.text.body": "FRACASO",
-      "cards.success_7.text.footer": "Al montón de la misión",
       "cards.fail_7.text.footer": "Solo esbirros: la hunde",
       "cards.aye_8.text.title": "Aprobar",
       "cards.aye_8.text.body": "SÍ",
@@ -6030,11 +6218,8 @@
       "cards.nay_8.text.body": "NO",
       "cards.aye_8.text.footer": "Boca abajo en tu sitio",
       "cards.nay_8.text.footer": "Boca abajo en tu sitio",
-      "cards.success_8.text.title": "Éxito",
-      "cards.success_8.text.body": "ÉXITO",
       "cards.fail_8.text.title": "Fracaso",
       "cards.fail_8.text.body": "FRACASO",
-      "cards.success_8.text.footer": "Al montón de la misión",
       "cards.fail_8.text.footer": "Solo esbirros: la hunde",
       "cards.aye_9.text.title": "Aprobar",
       "cards.aye_9.text.body": "SÍ",
@@ -6042,11 +6227,8 @@
       "cards.nay_9.text.body": "NO",
       "cards.aye_9.text.footer": "Boca abajo en tu sitio",
       "cards.nay_9.text.footer": "Boca abajo en tu sitio",
-      "cards.success_9.text.title": "Éxito",
-      "cards.success_9.text.body": "ÉXITO",
       "cards.fail_9.text.title": "Fracaso",
       "cards.fail_9.text.body": "FRACASO",
-      "cards.success_9.text.footer": "Al montón de la misión",
       "cards.fail_9.text.footer": "Solo esbirros: la hunde",
       "cards.aye_10.text.title": "Aprobar",
       "cards.aye_10.text.body": "SÍ",
@@ -6054,12 +6236,54 @@
       "cards.nay_10.text.body": "NO",
       "cards.aye_10.text.footer": "Boca abajo en tu sitio",
       "cards.nay_10.text.footer": "Boca abajo en tu sitio",
-      "cards.success_10.text.title": "Éxito",
-      "cards.success_10.text.body": "ÉXITO",
       "cards.fail_10.text.title": "Fracaso",
       "cards.fail_10.text.body": "FRACASO",
-      "cards.success_10.text.footer": "Al montón de la misión",
       "cards.fail_10.text.footer": "Solo esbirros: la hunde",
+      "cards.success.text.title": "Éxito",
+      "cards.success.text.body": "ÉXITO",
+      "cards.success.text.footer": "Al montón de la misión",
+      "cards.success_2.text.title": "Éxito",
+      "cards.success_2.text.body": "ÉXITO",
+      "cards.success_2.text.footer": "Al montón de la misión",
+      "cards.success_3.text.title": "Éxito",
+      "cards.success_3.text.body": "ÉXITO",
+      "cards.success_3.text.footer": "Al montón de la misión",
+      "cards.success_4.text.title": "Éxito",
+      "cards.success_4.text.body": "ÉXITO",
+      "cards.success_4.text.footer": "Al montón de la misión",
+      "cards.success_5.text.title": "Éxito",
+      "cards.success_5.text.body": "ÉXITO",
+      "cards.success_5.text.footer": "Al montón de la misión",
+      "cards.success_6.text.title": "Éxito",
+      "cards.success_6.text.body": "ÉXITO",
+      "cards.success_6.text.footer": "Al montón de la misión",
+      "cards.success_7.text.title": "Éxito",
+      "cards.success_7.text.body": "ÉXITO",
+      "cards.success_7.text.footer": "Al montón de la misión",
+      "cards.success_8.text.title": "Éxito",
+      "cards.success_8.text.body": "ÉXITO",
+      "cards.success_8.text.footer": "Al montón de la misión",
+      "cards.success_9.text.title": "Éxito",
+      "cards.success_9.text.body": "ÉXITO",
+      "cards.success_9.text.footer": "Al montón de la misión",
+      "cards.success_10.text.title": "Éxito",
+      "cards.success_10.text.body": "ÉXITO",
+      "cards.success_10.text.footer": "Al montón de la misión",
+      "cards.success_11.text.title": "Éxito",
+      "cards.success_11.text.body": "ÉXITO",
+      "cards.success_11.text.footer": "Al montón de la misión",
+      "cards.success_12.text.title": "Éxito",
+      "cards.success_12.text.body": "ÉXITO",
+      "cards.success_12.text.footer": "Al montón de la misión",
+      "cards.success_13.text.title": "Éxito",
+      "cards.success_13.text.body": "ÉXITO",
+      "cards.success_13.text.footer": "Al montón de la misión",
+      "cards.success_14.text.title": "Éxito",
+      "cards.success_14.text.body": "ÉXITO",
+      "cards.success_14.text.footer": "Al montón de la misión",
+      "cards.success_15.text.title": "Éxito",
+      "cards.success_15.text.body": "ÉXITO",
+      "cards.success_15.text.footer": "Al montón de la misión",
       "cards.role_merlin.name": "Merlín",
       "cards.role_percival.name": "Percival",
       "cards.role_servant.name": "Leal servidor",
@@ -6076,44 +6300,49 @@
       "cards.role_minion_3.name": "Esbirro de Mordred",
       "cards.aye.name": "Aprobar",
       "cards.nay.name": "Rechazar",
-      "cards.success.name": "Éxito",
       "cards.fail.name": "Fracaso",
       "cards.aye_2.name": "Aprobar",
       "cards.nay_2.name": "Rechazar",
-      "cards.success_2.name": "Éxito",
       "cards.fail_2.name": "Fracaso",
       "cards.aye_3.name": "Aprobar",
       "cards.nay_3.name": "Rechazar",
-      "cards.success_3.name": "Éxito",
       "cards.fail_3.name": "Fracaso",
       "cards.aye_4.name": "Aprobar",
       "cards.nay_4.name": "Rechazar",
-      "cards.success_4.name": "Éxito",
       "cards.fail_4.name": "Fracaso",
       "cards.aye_5.name": "Aprobar",
       "cards.nay_5.name": "Rechazar",
-      "cards.success_5.name": "Éxito",
       "cards.fail_5.name": "Fracaso",
       "cards.aye_6.name": "Aprobar",
       "cards.nay_6.name": "Rechazar",
-      "cards.success_6.name": "Éxito",
       "cards.fail_6.name": "Fracaso",
       "cards.aye_7.name": "Aprobar",
       "cards.nay_7.name": "Rechazar",
-      "cards.success_7.name": "Éxito",
       "cards.fail_7.name": "Fracaso",
       "cards.aye_8.name": "Aprobar",
       "cards.nay_8.name": "Rechazar",
-      "cards.success_8.name": "Éxito",
       "cards.fail_8.name": "Fracaso",
       "cards.aye_9.name": "Aprobar",
       "cards.nay_9.name": "Rechazar",
-      "cards.success_9.name": "Éxito",
       "cards.fail_9.name": "Fracaso",
       "cards.aye_10.name": "Aprobar",
       "cards.nay_10.name": "Rechazar",
-      "cards.success_10.name": "Éxito",
       "cards.fail_10.name": "Fracaso",
+      "cards.success.name": "Éxito",
+      "cards.success_2.name": "Éxito",
+      "cards.success_3.name": "Éxito",
+      "cards.success_4.name": "Éxito",
+      "cards.success_5.name": "Éxito",
+      "cards.success_6.name": "Éxito",
+      "cards.success_7.name": "Éxito",
+      "cards.success_8.name": "Éxito",
+      "cards.success_9.name": "Éxito",
+      "cards.success_10.name": "Éxito",
+      "cards.success_11.name": "Éxito",
+      "cards.success_12.name": "Éxito",
+      "cards.success_13.name": "Éxito",
+      "cards.success_14.name": "Éxito",
+      "cards.success_15.name": "Éxito",
       "cards.role_merlin.description": "Sabes quiénes son los esbirros. Guía al bien sin delatarte: si el Asesino te encuentra, gana el mal.",
       "cards.role_percival.description": "Uno de los dos pulgares que viste es Merlín: protégelo. El otro es Morgana.",
       "cards.role_servant.description": "Juega siempre Éxito. Rechaza los equipos con esbirros.",
@@ -6130,44 +6359,49 @@
       "cards.role_minion_3.description": "Entra en los equipos y juega Fracaso. Finge ser leal.",
       "cards.aye.description": "SÍ",
       "cards.nay.description": "NO",
-      "cards.success.description": "ÉXITO",
       "cards.fail.description": "FRACASO",
       "cards.aye_2.description": "SÍ",
       "cards.nay_2.description": "NO",
-      "cards.success_2.description": "ÉXITO",
       "cards.fail_2.description": "FRACASO",
       "cards.aye_3.description": "SÍ",
       "cards.nay_3.description": "NO",
-      "cards.success_3.description": "ÉXITO",
       "cards.fail_3.description": "FRACASO",
       "cards.aye_4.description": "SÍ",
       "cards.nay_4.description": "NO",
-      "cards.success_4.description": "ÉXITO",
       "cards.fail_4.description": "FRACASO",
       "cards.aye_5.description": "SÍ",
       "cards.nay_5.description": "NO",
-      "cards.success_5.description": "ÉXITO",
       "cards.fail_5.description": "FRACASO",
       "cards.aye_6.description": "SÍ",
       "cards.nay_6.description": "NO",
-      "cards.success_6.description": "ÉXITO",
       "cards.fail_6.description": "FRACASO",
       "cards.aye_7.description": "SÍ",
       "cards.nay_7.description": "NO",
-      "cards.success_7.description": "ÉXITO",
       "cards.fail_7.description": "FRACASO",
       "cards.aye_8.description": "SÍ",
       "cards.nay_8.description": "NO",
-      "cards.success_8.description": "ÉXITO",
       "cards.fail_8.description": "FRACASO",
       "cards.aye_9.description": "SÍ",
       "cards.nay_9.description": "NO",
-      "cards.success_9.description": "ÉXITO",
       "cards.fail_9.description": "FRACASO",
       "cards.aye_10.description": "SÍ",
       "cards.nay_10.description": "NO",
-      "cards.success_10.description": "ÉXITO",
       "cards.fail_10.description": "FRACASO",
+      "cards.success.description": "ÉXITO",
+      "cards.success_2.description": "ÉXITO",
+      "cards.success_3.description": "ÉXITO",
+      "cards.success_4.description": "ÉXITO",
+      "cards.success_5.description": "ÉXITO",
+      "cards.success_6.description": "ÉXITO",
+      "cards.success_7.description": "ÉXITO",
+      "cards.success_8.description": "ÉXITO",
+      "cards.success_9.description": "ÉXITO",
+      "cards.success_10.description": "ÉXITO",
+      "cards.success_11.description": "ÉXITO",
+      "cards.success_12.description": "ÉXITO",
+      "cards.success_13.description": "ÉXITO",
+      "cards.success_14.description": "ÉXITO",
+      "cards.success_15.description": "ÉXITO",
       "strings.leads": "{$current.name} lidera la misión {$var.quest}: haz clic en {$var.size} jugadores para el equipo (otra vez para sacar a uno) y propónlo.",
       "strings.proposes": "{$actor.name} propone a {$var.team}. Pon Aprobar o Rechazar boca abajo en tu lugar.",
       "strings.questStarts": "{$var.team}: pongan Éxito o Fracaso boca abajo en el montón de la misión.",

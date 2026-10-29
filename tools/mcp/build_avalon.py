@@ -304,9 +304,20 @@ end
 function questOut(ctx)
   collectQuest()
   local team = Game.getVariable("team") or {}
-  for k, seat in ipairs(team) do
-    deal("quest_deck", k == 1 and "success" or ("success_" .. k), seat)
-    deal("quest_deck", k == 1 and "fail" or ("fail_" .. k), seat)
+  -- Two cards each, so every hand looks the same: the loyal can only succeed (two Success), a minion chooses.
+  local fails, successes = 0, 0
+  local function nextSuccess()
+    successes = successes + 1
+    return successes == 1 and "success" or ("success_" .. successes)
+  end
+  for _, seat in ipairs(team) do
+    deal("quest_deck", nextSuccess(), seat)
+    if Game.getTeam(seat) == "evil" then
+      fails = fails + 1
+      deal("quest_deck", fails == 1 and "fail" or ("fail_" .. fails), seat)
+    else
+      deal("quest_deck", nextSuccess(), seat)
+    end
   end
 end
 
@@ -576,7 +587,7 @@ call("create_text_deck", id="vote_deck", name="Votes", x=0.34, z=0.25, style=jso
      "style": {"paper": [0.98, 0.88, 0.86], "ink": [0.35, 0.08, 0.06], "accent": [0.66, 0.14, 0.12]}},
 ]))
 call("create_text_deck", id="quest_deck", name="Quest cards", x=-0.34, z=0.25, style=json.dumps(dict(BACK, backLabel="QUEST")), cards=json.dumps([
-    {"id": "success", "title": "Success", "body": "SUCCESS", "footer": "Onto the quest pile", "count": 10, "meta": {"quest": "success"}, "tags": ["quest"], "style": GOOD},
+    {"id": "success", "title": "Success", "body": "SUCCESS", "footer": "Onto the quest pile", "count": 15, "meta": {"quest": "success"}, "tags": ["quest"], "style": GOOD},
     {"id": "fail", "title": "Fail", "body": "FAIL", "footer": "Minions only: sinks it", "count": 10, "meta": {"quest": "fail"}, "tags": ["quest"], "style": EVIL},
 ]))
 # Where the quest cards are laid: the pile (a deck they go into face down) and the row they are turned over on.
@@ -584,6 +595,7 @@ call("place_object", objectJson=json.dumps({"id": "quest_pile", "type": "Deck", 
                                             "style": dict(BACK, backLabel="QUEST"), "transform": {"position": [0.17, 0, 0.25], "rotation": [0, 0, 180]}}))
 call("define_zone", zoneJson=json.dumps({
     "id": "quest_drop", "type": "LayoutZone", "name": "Quest pile", "facing": "faceDown",
+    "catch": {"tag": "quest", "for": "$var.team"},
     "transform": {"position": [0.04, 0.05, 0.25]}, "size": [0.12, 0.1, 0.13],
     "onEnter": [{"if": {"condition": {"hasTag": {"object": "$it", "tag": "quest"}}, "then": [
         {"if": {"condition": {"inList": {"list": "$var.played", "value": "$actor"}}, "then": [refuse("onePlayed")]}},
@@ -605,6 +617,8 @@ for seat in document["players"]["seats"]:
     n = seat["id"].split("_")[1]
     call("define_zone", zoneJson=json.dumps({
         "id": f"vote_{n}", "type": "LayoutZone", "name": "Vote", "facing": "faceDown",
+        # A vote card let go anywhere but the hand comes here, face down; the spot lights up while it is carried.
+        "catch": {"tag": "vote", "for": seat["id"]},
         "transform": {"position": [round(hx * 0.76, 3), 0.05, round(hz * 0.76, 3)], "rotation": turn}, "size": [0.11, 0.1, 0.13],
         "onEnter": [{"if": {"condition": {"hasTag": {"object": "$it", "tag": "vote"}}, "then": [
             {"if": {"condition": compare("$actor.id", seat["id"], "!="), "then": [refuse("notYourSpot")]}},
@@ -715,10 +729,13 @@ for k in range(1, 11):
     ES[f"cards.aye{suffix}.text.title"], ES[f"cards.aye{suffix}.text.body"] = "Aprobar", "SÍ"
     ES[f"cards.nay{suffix}.text.title"], ES[f"cards.nay{suffix}.text.body"] = "Rechazar", "NO"
     ES[f"cards.aye{suffix}.text.footer"] = ES[f"cards.nay{suffix}.text.footer"] = "Boca abajo en tu sitio"
-    ES[f"cards.success{suffix}.text.title"], ES[f"cards.success{suffix}.text.body"] = "Éxito", "ÉXITO"
     ES[f"cards.fail{suffix}.text.title"], ES[f"cards.fail{suffix}.text.body"] = "Fracaso", "FRACASO"
-    ES[f"cards.success{suffix}.text.footer"] = "Al montón de la misión"
     ES[f"cards.fail{suffix}.text.footer"] = "Solo esbirros: la hunde"
+# Two Success cards for every loyal player on a team of up to five, and the minions' own.
+for k in range(1, 16):
+    suffix = "" if k == 1 else f"_{k}"
+    ES[f"cards.success{suffix}.text.title"], ES[f"cards.success{suffix}.text.body"] = "Éxito", "ÉXITO"
+    ES[f"cards.success{suffix}.text.footer"] = "Al montón de la misión"
 # A deck card's name and description are its title and body (tooltips, search).
 for key in [k for k in ES if k.startswith("cards.") and k.endswith(".text.title")]:
     ES[key.replace(".text.title", ".name")] = ES[key]

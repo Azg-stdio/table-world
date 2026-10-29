@@ -5,8 +5,23 @@ using Newtonsoft.Json;
 namespace Core.Rules
 {
     /// <summary>An area of the table with special meaning. Zones never collide; they detect objects inside their box.</summary>
+    /// <summary>
+    /// A zone that catches pieces (M12): a piece tagged <see cref="Tag"/> that a player in <see cref="For"/> lets go
+    /// anywhere but their own hand lands here, as if dropped here, and its rules run. While they carry it, the spot is
+    /// lit for them alone. A vote card goes to its player's spot; a quest card to the quest pile.
+    /// </summary>
+    public sealed class CatchDef
+    {
+        public string Tag { get; set; } = "";
+        /// <summary>Whose pieces: a seat, a list of seats (<c>$var.team</c>), <c>team:</c>, <c>role:</c>; null or <c>all</c> is everyone.</summary>
+        public string? For { get; set; }
+    }
+
     public abstract class Zone
     {
+        /// <summary>Pieces this zone catches (M12); null catches nothing.</summary>
+        public CatchDef? Catch { get; set; }
+
         [JsonProperty(Order = -3)]
         public string Id { get; set; } = "";
 

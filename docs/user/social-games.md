@@ -29,7 +29,9 @@ Five examples ship in `games/`, each built through the MCP tools from a plain-te
   raise their thumbs (the game does it; not Mordred) while Merlin looks; Merlin and Morgana raise theirs while Percival looks; everyone
   opens their eyes. The leader clicks the players they choose, on their chalker or their name (again to take one off):
   an arrow floats over each one chosen and a crown over the leader. Then the leader presses Propose. Everyone gets an Approve and a Reject card: lay one face down on the spot in front of you; when
-  the last is down they turn over together. The team gets Success and Fail cards: lay one on the quest pile in the middle;
+  the last is down they turn over together. Pick up a card and your spot lights up; let go anywhere but your hand and it goes there face down. The team gets two
+  cards each: the loyal two Success, the minions a Success and a Fail, so every hand looks the same; lay one on the
+  quest pile in the middle (it lights up too);
   the pile is shuffled and turned over one by one. At the end every role card turns over.
 - **The mood (Avalon).** The game plays in a candlelit tavern with parchment panels. Names read in their colours
   (the loyal in blue, the minions in red, Approve green, Reject red). The tavern music plays under the talk; when eyes

@@ -131,6 +131,17 @@ Containment: only `Bag` and `InfiniteBag` hold objects (via the child's `contain
 
 Every zone has `name`, `tags`, `transform`, `size` (box in m, default 0.1 on each axis; ignored by `SnapPoint`) and an optional `parent` object it moves with (TTS `AttachedSnapPoints`). `HiddenZone.visibleTo` lists seat ids or `host`. A seat's `handZone` must be a `HandZone` owned by that seat.
 
+**Zones that catch pieces** (M12). `"catch": {"tag": "vote", "for": "seat_1"}` makes a zone the home of a player's
+pieces with that tag: while a game runs, such a piece that player lets go anywhere but their own hand lands in the
+zone, as if they had dropped it there (its `facing`, layout and `onEnter` rules apply; a `refuse` sends it back). While
+they carry it, the zone is lit for them alone. `for` is a seat, a list of seats (`$var.team`), `team:` or `role:`; left
+out or `all`, everyone. Scripts' moves are never caught.
+
+```jsonc
+{ "id": "vote_1", "type": "LayoutZone", "facing": "faceDown", "catch": { "tag": "vote", "for": "seat_1" }, "onEnter": [ /* castBallot */ ] }
+{ "id": "quest_drop", "type": "LayoutZone", "facing": "faceDown", "catch": { "tag": "quest", "for": "$var.team" } }
+```
+
 ## Players
 
 ```jsonc

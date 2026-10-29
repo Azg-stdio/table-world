@@ -31,6 +31,9 @@ run through `python -I tools/unity/playmode_tests.py` (one `--filter` name per r
 | T13.13 | M | T13.7 | A UI audit any screen can run: text contrast against what is really behind it (WCAG AA) and room from panel edges and frames (Miguel 2026-10-29: the start panel's text was too close to the edges and hard to read) | `UiAudit.Check` + `UiAuditTests` pass on Avalon in both themes before the start, with the role and banner, the Music panel, the table menu, the Escape menu and eyes closed | P0 | done 2026-10-29 |
 | T13.14 | S | T13.7 | The parchment's own frame line holds the text: the picture cropped so the line lies in its 9-slice border, panels padded past it | `UiAuditTests` (frame inset) and screenshots | P0 | done 2026-10-29 |
 | T13.15 | S | — | Seated phases: `seated: true` (and every eyes-closed phase) sits everyone in their chalker's eyes and holds them there; Avalon's ritual is seated (Miguel 2026-10-29: in third person the ritual was hard to watch) | `TheRitual_SeatsYou_AndKeepsYouSeated_UntilItEnds` | P0 | done 2026-10-29 |
+| T13.16 | S | T13.8 | Zones that catch pieces: `catch` {tag, for}; a caught piece let go anywhere but the hand lands in its zone (its rules run, a refusal sends it back), and a beam and a glowing ring light the zone for the carrier while they hold it (Miguel 2026-10-29) | core `CatchZoneTests`; PlayMode `CatchGuideTests`; Avalon's vote spots and quest pile catch | P0 | done 2026-10-29 |
+| T13.17 | S | — | Avalon: the loyal get two Success cards and the minions a Success and a Fail, so hands look alike (Miguel 2026-10-29) | `AvalonPlayTests` over the protocol; the Success deck holds 15 | P0 | done 2026-10-29 |
+| T13.18 | S | — | A cursor pack for the table (grab, point, target-pick, wait) | Miguel brings a full licensed pack (the PixelRPGCursors Lite sample has two cursors and was set aside, Miguel 2026-10-29) | P2 | todo (waiting for a pack) |
 | T13.11 | ⚗ | T13.2–T13.6 | Avalon played through in the Editor with everything on, then over Relay with friends | Hot-seat playthrough with a driver script, console clean; playtest notes in this file | P0 | in progress (Editor playthrough of the ritual done; the Relay playtest is tonight) |
 
 Done checks are played like a player: load Avalon in the Editor, sit at a seat, run the ritual, watch and listen.
@@ -316,6 +319,7 @@ hangs). Record frame times (tavern vs game night) and anything left for Miguel t
 | 2026-10-29 | Tavern vs game night, Avalon with 5 seats, Medium preset, Editor Play mode, 17 s each (FrameStats) | Tavern: median 4.48 ms, avg 4.74–4.94, p95 5.32–6.36, 400–444 draw calls. Game night: median 4.41 ms, avg 4.66, p95 5.25, 530 draw calls. Tavern costs +0.07 ms median: within the 1 ms budget, so no Low-preset cut was needed |
 | 2026-10-29 | Importing AlkaKrab's Fantasy RPG Music Pack Vol.3 (907 MB zip) and 10 Ambient RPG Tracks (383 MB) with `import_music` | 4.5 s for both; 43 + 10 tracks kept as OGG, 107 MB + 48 MB in the library; lengths read from the OGG headers |
 | 2026-10-29 | Tests | core 586/586, MCP 21/21, PlayMode 199/199 after fixing the role line test (198/199 before) |
+| 2026-10-29 | Tests after catching zones and the two-Success deal | core 589/589, MCP 21/21, PlayMode 204/204 |
 | 2026-10-29 | Tests after the UI audit, parchment crop and seated phases | core 586/586, MCP 21/21, PlayMode 201/202 with the known flaky karaoke screen test (UnityWebBrowser TitleChange), which passed alone |
 
 ## Playtest notes (2026-10-29 evening, Miguel and friends)

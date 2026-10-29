@@ -1016,6 +1016,29 @@ namespace TableWorld.View
                         return;
                 }
             }
+            // A piece a zone catches for this player (a vote card, a quest card): let go anywhere but the hand, it goes
+            // to its spot, as if laid there (M12). A refusal (one vote already down) puts it back where it was.
+            if (_table.Game?.CatchingZone(view.Id, _table.LocalSeat) is { } catcher)
+            {
+                _playFromHand = null;
+                var p = catcher.Transform.Position;
+                var move = _table.Execute(new MoveCommand
+                {
+                    ObjectId = view.Id, Actor = _table.LocalSeat, Position = new Vec3(p.X, 0f, p.Z),
+                    Rotation = view.Model.Transform.Rotation,
+                });
+                if (!move.Ok)
+                {
+                    view.SnapToState();
+                    _table.PresentHands();
+                }
+                else if (view.Body != null && !view.Body.isKinematic)
+                {
+                    view.Body.linearVelocity = Vector3.zero;
+                    view.Body.angularVelocity = Vector3.zero;
+                }
+                return;
+            }
             if (_playFromHand is { } hand)
             {
                 _playFromHand = null;

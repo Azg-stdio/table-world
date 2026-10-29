@@ -44,6 +44,10 @@ namespace Core.Engine
 
         public CommandResult Execute(Command command)
         {
+            // A piece a zone catches, let go anywhere but the player's own hand, lands in that zone (M12).
+            if (command is MoveCommand move && !move.ByScript && move.Actor != null && CatchingZone(move.ObjectId, move.Actor) is { } catcher
+                && !Geometry.Contains(catcher, new Vec3(move.Position.X, catcher.Transform.Position.Y, move.Position.Z)) && !InOwnHand(move.Actor, move.Position))
+                move.Position = new Vec3(catcher.Transform.Position.X, Math.Max(move.Position.Y, 0f), catcher.Transform.Position.Z);
             switch (command)
             {
                 case StartGameCommand start:
@@ -781,6 +785,52 @@ namespace Core.Engine
                     throw new RuleException("op", ErrorCodes.InvalidValue, $"Unknown script change '{c.Op}'.");
             }
         }
+
+        /// <summary>
+        /// The zone that catches <paramref name="objectId"/> for <paramref name="seat"/> (<see cref="Zone.Catch"/>), while a
+        /// game runs: the nearest of those whose tag the piece carries and whose audience holds the seat; null for none.
+        /// </summary>
+        public Zone? CatchingZone(string objectId, string? seat)
+        {
+            if (seat == null || Session is not { Started: true, Over: false } || !(Table.Find(objectId) is { } piece) || piece.Tags.Count == 0)
+                return null;
+            Zone? best = null;
+            var bestDistance = float.MaxValue;
+            foreach (var zone in State.Zones)
+            {
+                if (zone.Catch is not { } rule || !piece.Tags.Contains(rule.Tag))
+                    continue;
+                if (rule.For != null && rule.For != "all" && !CatchesFor(rule.For, seat))
+                    continue;
+                var dx = zone.Transform.Position.X - piece.Transform.Position.X;
+                var dz = zone.Transform.Position.Z - piece.Transform.Position.Z;
+                var distance = dx * dx + dz * dz;
+                if (distance < bestDistance)
+                {
+                    best = zone;
+                    bestDistance = distance;
+                }
+            }
+            return best;
+        }
+
+        private bool CatchesFor(string audience, string seat)
+        {
+            if (State.Players.Seats.Any(s => s.Id == audience))
+                return audience == seat;
+            try
+            {
+                return InAudience(audience, seat);
+            }
+            catch (RuleException)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>Whether <paramref name="at"/> lies in one of <paramref name="seat"/>'s hand zones.</summary>
+        private bool InOwnHand(string seat, Vec3 at) =>
+            State.Zones.OfType<HandZone>().Any(h => h.Owner == seat && Geometry.Contains(h, new Vec3(at.X, h.Transform.Position.Y, at.Z)));
 
         private bool HasZoneRules => State.Zones.Any(z => z.OnEnter.Count > 0 || z.OnLeave.Count > 0) || State.Events.ContainsKey(GameEvents.OnReveal);
 

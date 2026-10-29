@@ -2469,6 +2469,9 @@
         "type": {
           "const": "HandZone"
         },
+        "catch": {
+          "$ref": "#/$defs/CatchDef"
+        },
         "name": {
           "type": "string"
         },
@@ -2527,6 +2530,18 @@
       "required": [
         "type"
       ]
+    },
+    "CatchDef": {
+      "type": "object",
+      "properties": {
+        "tag": {
+          "type": "string"
+        },
+        "for": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
     },
     "Effect": {
       "oneOf": [
@@ -3562,6 +3577,9 @@
         "type": {
           "const": "HiddenZone"
         },
+        "catch": {
+          "$ref": "#/$defs/CatchDef"
+        },
         "name": {
           "type": "string"
         },
@@ -3633,6 +3651,9 @@
         "type": {
           "const": "ScriptingZone"
         },
+        "catch": {
+          "$ref": "#/$defs/CatchDef"
+        },
         "name": {
           "type": "string"
         },
@@ -3697,6 +3718,9 @@
         },
         "type": {
           "const": "SnapPoint"
+        },
+        "catch": {
+          "$ref": "#/$defs/CatchDef"
         },
         "name": {
           "type": "string"
@@ -3765,6 +3789,9 @@
         },
         "type": {
           "const": "LayoutZone"
+        },
+        "catch": {
+          "$ref": "#/$defs/CatchDef"
         },
         "name": {
           "type": "string"
@@ -3854,6 +3881,9 @@
         },
         "type": {
           "const": "RandomizeZone"
+        },
+        "catch": {
+          "$ref": "#/$defs/CatchDef"
         },
         "name": {
           "type": "string"

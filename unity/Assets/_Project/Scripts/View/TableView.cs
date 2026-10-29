@@ -73,6 +73,9 @@ namespace TableWorld.View
         public AssetLibrary Assets { get; private set; }
         public IReadOnlyDictionary<string, ObjectView> Views => _views;
 
+        /// <summary>Where table objects (and zone markers) live.</summary>
+        public Transform ObjectsRoot => _objectsRoot;
+
         /// <summary>Raised after every command, successful or not.</summary>
         public event Action<Command, CommandResult> CommandExecuted;
 
@@ -88,6 +91,9 @@ namespace TableWorld.View
             // The table's music (G27) plays on every machine.
             if (GetComponent<MusicPlayerView>() == null)
                 gameObject.AddComponent<MusicPlayerView>();
+            // The light over the spot a carried piece will go to (M12).
+            if (GetComponent<CatchGuide>() == null)
+                gameObject.AddComponent<CatchGuide>();
             // Voice chat and the other players' chalkers (T7.3).
             if (GetComponent<Voice.VoiceChat>() == null)
             {
@@ -833,7 +839,9 @@ namespace TableWorld.View
             if (Engine == null)
                 return;
             var interaction = _interaction != null ? _interaction : (_interaction = GetComponent<TableInteraction>());
-            var quiet = !Engine.State.HasRules || ShowZones || interaction != null && interaction.Held != null;
+            // Carrying a piece that has its own spot (a zone catches it), the spot's light says where: the outlines stay away.
+            var carried = interaction != null ? interaction.Held : null;
+            var quiet = !Engine.State.HasRules || ShowZones || carried != null && Game?.CatchingZone(carried.Id, LocalSeat) == null;
             if (quiet != _quietShown)
             {
                 _quietShown = quiet;

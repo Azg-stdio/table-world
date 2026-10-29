@@ -201,6 +201,14 @@ namespace Core.Rules
 
             CheckUi(actionIds);
             CheckRoles();
+            for (var i = 0; i < _state.Zones.Count; i++)
+                if (_state.Zones[i].Catch is { } catcher)
+                {
+                    if (string.IsNullOrWhiteSpace(catcher.Tag))
+                        Add($"zones[{i}].catch.tag", ErrorCodes.MissingField, "A zone that catches pieces names their tag.", "\"catch\": {\"tag\": \"vote\", \"for\": \"seat_1\"}");
+                    if (catcher.For != null && catcher.For != "all" && !References.IsReference(catcher.For) && _state.Players.Seats.All(s => s.Id != catcher.For))
+                        Audience(catcher.For, $"zones[{i}].catch.for");
+                }
             if (_state.Music is { } tableMusic)
             {
                 foreach (var pair in tableMusic.Playlists)
