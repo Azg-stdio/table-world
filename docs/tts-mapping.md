@@ -16,7 +16,7 @@ Status: **v0**, checked against the 6 local saves on 2026-10-22 (T1.3). The impo
 | TTS field | Ours | Notes |
 |---|---|---|
 | `SaveName`, `GameMode`, `VersionNumber` | `game.name`, metadata | — |
-| `Table`, `TableURL` | `environment.table` | The table is sized to the layout (98 % of the pieces in play, plus 15 cm; never below our 1.6 × 1.0 m), because TTS tables are far bigger than ours: Pokémon spreads ±2.3 m, Gloomhaven ±4.4 m. `Table_None` → `hidden` (no table of ours; the game's own models are the surface), the median height of the pieces in play becomes our table height, and `lowestY` is 30 cm under the lowest piece. Table images (`TableURL`) not mapped yet |
+| `Table`, `TableURL` | `environment.table` | The table is sized to the layout (98 % of the pieces in play, plus 15 cm; never below our 1.6 × 1.0 m), because TTS tables are far bigger than ours: Pokémon spreads ±2.3 m, Gloomhaven ±4.4 m. `Table_Circular` → `shape: round` (a disc as wide as the layout needs). `Table_None` → `hidden` (no table of ours; the game's own models are the surface), the median height of the pieces in play becomes our table height, and `lowestY` is 30 cm under the lowest piece. Table images (`TableURL`) not mapped yet |
 | `Sky`, `SkyURL`, `Lighting` | ambience | M6, ignored before |
 | `Hands.HandTransforms[]` | `HandZone` per `Color` | `Hands.Enable`, `Hands.DisableUnused` |
 | `SnapPoints[]` (global) | `SnapPoint` zones | `Position`, `Rotation`, `Rotation_snap` |

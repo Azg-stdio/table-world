@@ -210,9 +210,13 @@ namespace TableWorld.Mcp
 
         /// <summary>A new empty game: standard deck assets, seats around the table, one hand zone per seat.</summary>
         public EditResult NewGame(string id, string name, int players, int minPlayers, int maxPlayers, string? description, int dicePerSeat = 0,
-            string[]? seatNames = null, string? room = null)
+            string[]? seatNames = null, string? room = null, string? shape = null)
         {
             var preset = RoomPreset.GameNight;
+            var tableShape = TableShape.Rectangle;
+            if (shape != null && (!Enum.TryParse(shape, ignoreCase: true, out tableShape) || !Enum.IsDefined(typeof(TableShape), tableShape)))
+                return EditResult.Rejected(new ValidationError("shape", ErrorCodes.InvalidValue, $"No table shape called '{shape}'.",
+                    "Use rectangle or round."));
             if (room != null && (!Enum.TryParse(room, ignoreCase: true, out preset) || !Enum.IsDefined(typeof(RoomPreset), preset)))
                 return EditResult.Rejected(new ValidationError("room", ErrorCodes.InvalidValue, $"No room called '{room}'.",
                     "Use gameNight, karaoke or none."));
@@ -236,9 +240,13 @@ namespace TableWorld.Mcp
                 },
             };
             // Each hand faces its seat; five seats or more need a bigger table, which the environment carries.
-            var (tableSize, places) = SeatLayout.Arrange(players);
-            if (tableSize != TableLookDef.DefaultSize || preset != RoomPreset.GameNight)
-                doc.Environment = new EnvironmentDef { Room = preset, Table = { Size = tableSize != TableLookDef.DefaultSize ? tableSize : (Vec2?)null } };
+            var (tableSize, places) = SeatLayout.Arrange(players, tableShape);
+            if (tableSize != TableLookDef.DefaultSize || preset != RoomPreset.GameNight || tableShape != TableShape.Rectangle)
+                doc.Environment = new EnvironmentDef
+                {
+                    Room = preset,
+                    Table = { Size = tableSize != TableLookDef.DefaultSize ? tableSize : (Vec2?)null, Shape = tableShape },
+                };
             var index = 0;
             foreach (var place in places)
             {

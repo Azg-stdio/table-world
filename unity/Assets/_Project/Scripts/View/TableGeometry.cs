@@ -15,6 +15,12 @@ namespace TableWorld.View
         /// <summary>Playing surface of the loaded table, metres.</summary>
         public static Vector2 Size { get; private set; } = DefaultSize;
 
+        /// <summary>A round table (M12): a disc <see cref="Size"/>.x across, with a ring for a rim.</summary>
+        public static bool Round { get; private set; }
+
+        /// <summary>Half the width of a round table, metres.</summary>
+        public static float Radius => Size.x / 2f;
+
         /// <summary>No table: the game's own objects are the surface (TTS <c>Table_None</c>), or a room people walk in.</summary>
         public static bool Hidden { get; private set; }
 
@@ -33,7 +39,8 @@ namespace TableWorld.View
         public static void Use(Core.Rules.EnvironmentDef environment)
         {
             var look = environment?.Table;
-            Size = look?.Size is { } size ? new Vector2(size.X, size.Y) : DefaultSize;
+            Round = look != null && look.Shape == Core.Rules.TableShape.Round;
+            Size = look != null ? new Vector2(look.SurfaceSize.X, look.SurfaceSize.Y) : DefaultSize;
             Walk = environment != null && environment.Room == Core.Rules.RoomPreset.Karaoke && environment.RoomAsset == null;
             Hidden = (look?.Hidden ?? false) || Walk;
             _lostBelow = look?.LowestY ?? LostBelow;
@@ -54,6 +61,14 @@ namespace TableWorld.View
 
         public static Vector3 ClampToDropArea(Vector3 point)
         {
+            if (Round && !Hidden)
+            {
+                var flat = new Vector2(point.x, point.z);
+                var room = Radius - DropMargin;
+                if (flat.magnitude > room)
+                    flat = flat.normalized * room;
+                return new Vector3(flat.x, point.y, flat.y);
+            }
             var hx = Size.x / 2f - DropMargin;
             var hz = Size.y / 2f - DropMargin;
             return new Vector3(Mathf.Clamp(point.x, -hx, hx), point.y, Mathf.Clamp(point.z, -hz, hz));
@@ -61,7 +76,12 @@ namespace TableWorld.View
 
         public static bool IsLost(Vector3 position) =>
             position.y < _lostBelow ||
-            Mathf.Abs(position.x) > Size.x / 2f + LostBeyond ||
-            Mathf.Abs(position.z) > Size.y / 2f + LostBeyond;
+            (Round && !Hidden
+                ? new Vector2(position.x, position.z).magnitude > Radius + LostBeyond
+                : Mathf.Abs(position.x) > Size.x / 2f + LostBeyond || Mathf.Abs(position.z) > Size.y / 2f + LostBeyond);
+
+        /// <summary>Whether a point (x, z) lies on the playing surface.</summary>
+        public static bool OnSurface(Vector3 point) =>
+            Round ? new Vector2(point.x, point.z).magnitude <= Radius : Mathf.Abs(point.x) <= Size.x / 2f && Mathf.Abs(point.z) <= Size.y / 2f;
     }
 }

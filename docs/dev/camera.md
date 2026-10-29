@@ -63,6 +63,10 @@ waits until the phase ends.
 | O | lifts you | sits you |
 | P, Z | top-down, quick zoom; again goes back to the seat | as before |
 
+Sitting down, the head starts 28° down (`TableCamera.SeatPitch`): your cards and the faces across the table. On a
+big table (a round one for ten) that put the far faces under the top bar, so the head starts a little above the table's
+middle instead (`StartPitch`: the angle from your eyes down to the middle, less 4°), never higher than 12°.
+
 The game starts seated. The setting **Camera: Free camera only** (`GameSettings.FreeCamera`) keeps the orbit camera for
 Space and the start of a game, for motion sickness or taste; O still sits you. Your hand then stands at your edge of
 the table as in TTS instead of in your chalker's hands. A spectator has no seat and stays lifted.

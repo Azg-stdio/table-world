@@ -22,6 +22,7 @@ ritual and the Assassin's choice, from the player's music library (list_music); 
 close, red when the Assassin strikes; a gong, drums, bells and a sting mark the moments.
 """
 import json
+import math
 import os
 import subprocess
 import sys
@@ -78,7 +79,8 @@ def call(tool, **arguments):
 rpc("initialize", {"protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": {"name": "build_avalon", "version": "1"}})
 rpc("notifications/initialized", notify=True)
 
-call("new_game", id="avalon", name="Avalon", players=10, minPlayers=5, maxPlayers=10,
+# A round table: ten round it, everyone sees everyone (whose eyes are open, whose thumb is up).
+call("new_game", id="avalon", name="Avalon", players=10, minPlayers=5, maxPlayers=10, shape="round",
      description="Hidden loyalties: good completes three quests, evil fails three or finds Merlin at the end. "
                  "A leader picks each quest's team, everyone votes on it, and the team succeeds or fails it in secret.")
 
@@ -614,12 +616,15 @@ for seat in document["players"]["seats"]:
     hand = hands[seat["handZone"]]
     hx, _, hz = hand["transform"]["position"]
     turn = hand["transform"].get("rotation", [0, 0, 0])
+    # A step in front of the hand, towards the middle (yaw 0 faces a seat on the south edge, so inward is +z).
+    inward = (math.sin(math.radians(turn[1])), math.cos(math.radians(turn[1])))
+    vx, vz = hx + inward[0] * 0.19, hz + inward[1] * 0.19
     n = seat["id"].split("_")[1]
     call("define_zone", zoneJson=json.dumps({
         "id": f"vote_{n}", "type": "LayoutZone", "name": "Vote", "facing": "faceDown",
         # A vote card let go anywhere but the hand comes here, face down; the spot lights up while it is carried.
         "catch": {"tag": "vote", "for": seat["id"]},
-        "transform": {"position": [round(hx * 0.76, 3), 0.05, round(hz * 0.76, 3)], "rotation": turn}, "size": [0.11, 0.1, 0.13],
+        "transform": {"position": [round(vx, 3), 0.05, round(vz, 3)], "rotation": turn}, "size": [0.11, 0.1, 0.13],
         "onEnter": [{"if": {"condition": {"hasTag": {"object": "$it", "tag": "vote"}}, "then": [
             {"if": {"condition": compare("$actor.id", seat["id"], "!="), "then": [refuse("notYourSpot")]}},
             {"if": {"condition": {"inList": {"list": "$var.voted", "value": seat["id"]}}, "then": [refuse("oneVote")]}},

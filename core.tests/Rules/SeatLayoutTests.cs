@@ -95,6 +95,75 @@ namespace Core.Tests.Rules
             Assert.Throws<ArgumentOutOfRangeException>(() => SeatLayout.Arrange(SeatLayout.MaxSeats + 1));
         }
 
+        [Theory]
+        [InlineData(1)]
+        [InlineData(3)]
+        [InlineData(4)]
+        [InlineData(5)]
+        [InlineData(7)]
+        [InlineData(10)]
+        [InlineData(12)]
+        public void RoundTables_SeatEveryoneEvenlyRound_FacingTheCentre(int seats)
+        {
+            var (size, places) = SeatLayout.Arrange(seats, TableShape.Round);
+            Assert.Equal(size.X, size.Y);
+            Assert.True(size.X >= SeatLayout.RoundMinDiameter);
+            Assert.Equal(Enumerable.Range(1, seats).Select(n => $"seat_{n}"), places.Select(p => p.SeatId));
+            Assert.Equal(Enumerable.Range(1, seats).Select(n => $"hand_{n}"), places.Select(p => p.HandId));
+            const float depth = 0.12f;
+            foreach (var place in places)
+            {
+                // Every corner of the hand lies on the disc.
+                var yaw = place.Yaw * (float)Math.PI / 180f;
+                var inward = (X: (float)Math.Sin(yaw), Z: (float)Math.Cos(yaw));
+                foreach (var (a, b) in new[] { (1f, 1f), (1f, -1f), (-1f, 1f), (-1f, -1f) })
+                {
+                    var x = place.Position.X + inward.X * a * depth / 2 + inward.Z * b * place.Width / 2;
+                    var z = place.Position.Z + inward.Z * a * depth / 2 - inward.X * b * place.Width / 2;
+                    Assert.True(Math.Sqrt(x * x + z * z) <= size.X / 2, $"{seats} seats: {place.SeatId} leaves the table");
+                }
+                // It faces the centre: a step inward brings it nearer.
+                var inFront = SeatLayout.InFrontOf(place, 0f, 0.1f);
+                Assert.True(Math.Sqrt(inFront.X * inFront.X + inFront.Z * inFront.Z) < Math.Sqrt(place.Position.X * place.Position.X + place.Position.Z * place.Position.Z) || seats == 1);
+            }
+            for (var i = 0; i < places.Count; i++)
+            for (var j = i + 1; j < places.Count; j++)
+            {
+                var dx = places[i].Position.X - places[j].Position.X;
+                var dz = places[i].Position.Z - places[j].Position.Z;
+                var reach = Math.Sqrt(places[i].Width * places[i].Width + depth * depth);
+                Assert.True(Math.Sqrt(dx * dx + dz * dz) >= reach, $"{seats} seats: {places[i].SeatId} touches {places[j].SeatId}");
+            }
+            // Clockwise from above, from the south: the second seat is to the west.
+            Assert.True(places[0].Position.Z < 0f || seats == 1);
+            if (seats >= 3)
+                Assert.True(places[1].Position.X < 0f);
+        }
+
+        [Fact]
+        public void TenRoundTheRoundTable_FitOnTwoMetres()
+        {
+            var (size, places) = SeatLayout.Arrange(10, TableShape.Round);
+            Assert.InRange(size.X, 1.9f, 2.1f);
+            Assert.All(places, p => Assert.Equal(SeatLayout.HandWidth, p.Width));
+            var previous = 0f;
+            for (var seats = 1; seats <= SeatLayout.MaxSeats; seats++)
+            {
+                var diameter = SeatLayout.Arrange(seats, TableShape.Round).TableSize.X;
+                Assert.True(diameter >= previous, $"{seats} seats: the round table shrank");
+                previous = diameter;
+            }
+        }
+
+        [Fact]
+        public void ARoundTable_IsAsDeepAsItIsWide()
+        {
+            var look = new TableLookDef { Size = new Vec2(2.2f, 1.4f), Shape = TableShape.Round };
+            Assert.Equal(new Vec2(2.2f, 2.2f), look.SurfaceSize);
+            Assert.Equal(new Vec2(1.6f, 1.6f), new TableLookDef { Shape = TableShape.Round }.SurfaceSize);
+            Assert.Equal(TableLookDef.DefaultSize, new TableLookDef().SurfaceSize);
+        }
+
         private static (float MinX, float MaxX, float MinZ, float MaxZ) Footprint(SeatLayout.Place place)
         {
             const float depth = 0.12f;

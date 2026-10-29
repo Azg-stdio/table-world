@@ -180,10 +180,18 @@ namespace Core.Tts
                 var lowest = onTable.Count > 0 ? onTable.Min(p => p.Y) - shift : 0f;
                 look.LowestY = Math.Min(-0.05f, lowest - 0.3f);
             }
+            // TTS's circular table is round here too, as wide as the layout needs.
+            if (ttsTable == "Table_Circular")
+            {
+                look.Shape = TableShape.Round;
+                var size = look.SurfaceSize;
+                if (size.X > TableLookDef.DefaultSize.X)
+                    look.Size = size;
+            }
             // A custom table (Table_Custom) shows its image over the playing surface.
             if (ttsTable == "Table_Custom" && !string.IsNullOrWhiteSpace(tableUrl))
                 look.FeltAsset = Asset(tableUrl, AssetType.Image);
-            if (look.Size != null || look.Hidden || look.FeltAsset != null)
+            if (look.Size != null || look.Hidden || look.FeltAsset != null || look.Shape != TableShape.Rectangle)
                 State.Environment = new EnvironmentDef { Table = look };
         }
 

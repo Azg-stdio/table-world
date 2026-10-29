@@ -223,7 +223,8 @@ namespace TableWorld.View
             {
                 StartBlend();
                 _headYaw = 0f;
-                _headPitch = SeatPitch;
+                _eye = at;
+                _headPitch = StartPitch();
             }
             _eye = at;
             _seatYaw = yaw;
@@ -238,6 +239,22 @@ namespace TableWorld.View
                 Apply();
         }
 
+        /// <summary>
+        /// Where the head starts, degrees down: <see cref="SeatPitch"/>, or on a big table (a round one for ten) a little
+        /// above its middle, so the faces across it stay clear of the top bar.
+        /// </summary>
+        private float StartPitch()
+        {
+            var toMiddle = new Vector2(_eye.x, _eye.z).magnitude;
+            if (toMiddle < 0.05f || _eye.y <= 0f)
+                return SeatPitch;
+            var middle = Mathf.Atan2(_eye.y, toMiddle) * Mathf.Rad2Deg;
+            return Mathf.Clamp(middle - MiddleMargin, 12f, SeatPitch);
+        }
+
+        /// <summary>Seated, how far above the table's middle the head starts on a big table, in degrees.</summary>
+        public const float MiddleMargin = 4f;
+
         /// <summary>Sits you in your chalker's eyes, the head straight, leaning back. Without a seat yet, as soon as there is one.</summary>
         public void Sit()
         {
@@ -250,7 +267,7 @@ namespace TableWorld.View
                 StartBlend();
             _seated = true;
             _headYaw = 0f;
-            _headPitch = SeatPitch;
+            _headPitch = StartPitch();
             _lean = 0f;
             _beforeQuickZoom = null;
             _beforeTopDown = null;

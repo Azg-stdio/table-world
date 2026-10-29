@@ -1189,6 +1189,7 @@ object or object or object or object or object or object or object or object or 
 | Field | Type | Required |
 |---|---|---|
 | `size` | array of number |  |
+| `shape` | one of `rectangle`, `round` |  |
 | `hidden` | boolean |  |
 | `lowestY` | number |  |
 | `feltColor` | array of number |  |

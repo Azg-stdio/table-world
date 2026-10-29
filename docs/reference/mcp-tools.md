@@ -219,7 +219,7 @@ Load a game document (or a saved game in progress) from a JSON file.
 
 ### `new_game`
 
-Start a new game document: name, player seats with a hand zone each, and the builtin standard deck images. Up to 4 seats are seat_south, seat_north, seat_east, seat_west (hands hand_<side>) on a 1.6 x 1.0 m table; 5 to 12 seats are seat_1..seat_N clockwise from the south side (hands hand_<n>, seat list order is turn order) on a table that grows to fit them. get_table_state shows where each hand lies. Make one table for every player count: players = the most players, minPlayers = the fewest; start_game then picks who plays. People beyond the seats can still join a session and watch. Replaces the current document.
+Start a new game document: name, player seats with a hand zone each, and the builtin standard deck images. Up to 4 seats are seat_south, seat_north, seat_east, seat_west (hands hand_<side>) on a 1.6 x 1.0 m table; 5 to 12 seats are seat_1..seat_N clockwise from the south side (hands hand_<n>, seat list order is turn order) on a table that grows to fit them. shape round puts every seat (seat_1..seat_N, hands hand_<n>, clockwise from the south) evenly round a round table, 1.6 m across and growing to about 2 m for ten, so everyone sees everyone. get_table_state shows where each hand lies. Make one table for every player count: players = the most players, minPlayers = the fewest; start_game then picks who plays. People beyond the seats can still join a session and watch. Replaces the current document.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
@@ -232,6 +232,7 @@ Start a new game document: name, player seats with a hand zone each, and the bui
 | `dicePerSeat` | integer | `0` | Dice for each seat in its colour (d6, tagged owner:<seat>), in front of its hand; 0 for none. |
 | `seatNames` | string | none | Optional names players read for the seats, comma-separated in seat order (e.g. 'Hunter, Mage, Thief'); a seat without one is called by its colour. |
 | `room` | string | none | The room round the table: gameNight (default: a dim room, a warm lamp over the table, chairs), karaoke (sofas round the table, a big screen, a stage light on the singer) or none (a plain background). |
+| `shape` | string | none | The table's outline: rectangle (default) or round (seats evenly round it, everyone facing the centre; good for many players). |
 
 ### `perform_action`
 

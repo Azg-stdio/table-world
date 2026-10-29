@@ -29,7 +29,9 @@ get_rules_reference
 **`new_game`**: a new, empty game with its seats, 1 to 12. Up to four seats are named `seat_south`, `seat_north`,
 `seat_east` and `seat_west`, each with a hand zone (`hand_south`, ...), on the 1.6 × 1.0 m table. Five or more are
 `seat_1` to `seat_12` in clockwise order from the south side (hands `hand_1`, ...; that order is the turn order), and
-the table grows so every hand has room. Make one table for all player counts: `players` is the most players and
+the table grows so every hand has room. `shape: round` puts every seat (`seat_1`… clockwise from the south, hands
+`hand_1`…) evenly round a round table instead, everyone facing the middle, so everyone sees everyone: good for party
+games. Make one table for all player counts: `players` is the most players and
 `minPlayers` the fewest; `start_game` then says who plays (`seats`, or `players` to spread a number of players evenly
 around the table), and the empty seats sit the game out. In the game window players sit down with the **+** over each
 seat, and Start plays the seats they sat at. More people than seats can join a session online: they watch, talk and

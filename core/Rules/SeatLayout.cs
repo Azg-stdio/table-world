@@ -9,6 +9,7 @@ namespace Core.Rules
     /// <c>seat_north</c>, <c>seat_east</c>, <c>seat_west</c>) on the default 1.6 × 1.0 m table; five or more are numbered
     /// <c>seat_1</c>… in clockwise order seen from above, starting at the east end of the south side, so list order is
     /// turn order. More people than seats can still join a session: they watch, talk and take a seat that frees up.
+    /// Round, every seat is numbered, clockwise from the south (<see cref="ArrangeRound"/>).
     /// </summary>
     public static class SeatLayout
     {
@@ -85,11 +86,21 @@ namespace Core.Rules
             return chosen;
         }
 
-        /// <summary>The table size (width × depth, metres) and the places for <paramref name="seats"/> seats (1 to <see cref="MaxSeats"/>).</summary>
-        public static (Vec2 TableSize, List<Place> Places) Arrange(int seats)
+        /// <summary>Smallest round table, metres across (as wide as the default table).</summary>
+        public const float RoundMinDiameter = 1.6f;
+        /// <summary>How far in from a round table's edge the hands' centres lie.</summary>
+        public const float RoundInset = 0.12f;
+
+        /// <summary>
+        /// The table size (width × depth, metres) and the places for <paramref name="seats"/> seats (1 to
+        /// <see cref="MaxSeats"/>), round the table's <paramref name="shape"/>.
+        /// </summary>
+        public static (Vec2 TableSize, List<Place> Places) Arrange(int seats, TableShape shape = TableShape.Rectangle)
         {
             if (seats < 1 || seats > MaxSeats)
                 throw new ArgumentOutOfRangeException(nameof(seats), $"1 to {MaxSeats} seats.");
+            if (shape == TableShape.Round)
+                return ArrangeRound(seats);
             var places = new List<Place>();
             if (seats <= 4)
             {
@@ -137,6 +148,38 @@ namespace Core.Rules
             Side(north, a => (a, halfD - LongInset), 180f);
             Side(shortSide, a => (halfW - ShortInset, -a), 270f);
             return (new Vec2(width, depth), places);
+        }
+
+        /// <summary>
+        /// Seats evenly round a round table, <c>seat_1</c>… clockwise seen from above starting at the south, each hand
+        /// facing the centre. The table grows past <see cref="RoundMinDiameter"/> when neighbouring hands would be closer
+        /// than <see cref="HandPitch"/> (ten seats: about 2 m across).
+        /// </summary>
+        public static (Vec2 TableSize, List<Place> Places) ArrangeRound(int seats)
+        {
+            if (seats < 1 || seats > MaxSeats)
+                throw new ArgumentOutOfRangeException(nameof(seats), $"1 to {MaxSeats} seats.");
+            var places = new List<Place>();
+            // The chord between neighbours' centres is at least a hand's pitch.
+            var handRadius = seats < 2 ? 0f : HandPitch / 2f / (float)Math.Sin(Math.PI / seats);
+            var diameter = (float)Math.Round(Math.Max(RoundMinDiameter, 2f * (handRadius + RoundInset)), 2);
+            handRadius = diameter / 2f - RoundInset;
+            var chord = seats < 2 ? HandWidth + 0.05f : 2f * handRadius * (float)Math.Sin(Math.PI / seats);
+            var width = (float)Math.Round(Math.Min(HandWidth, chord - 0.05f), 2);
+            for (var i = 0; i < seats; i++)
+            {
+                var yaw = 360f * i / seats;
+                var rad = yaw * (float)Math.PI / 180f;
+                // Yaw 0 faces a seat on the south edge: a hand lies opposite the way it faces, seen from the centre.
+                var x = -handRadius * (float)Math.Sin(rad);
+                var z = -handRadius * (float)Math.Cos(rad);
+                places.Add(new Place
+                {
+                    SeatId = $"seat_{i + 1}", HandId = $"hand_{i + 1}", Color = Colors[i],
+                    Position = new Vec3((float)Math.Round(x, 3), 0.05f, (float)Math.Round(z, 3)), Yaw = (float)Math.Round(yaw, 2), Width = width,
+                });
+            }
+            return (new Vec2(diameter, diameter), places);
         }
     }
 }

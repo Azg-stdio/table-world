@@ -809,6 +809,13 @@ namespace TableWorld.View.Chalkers
         /// </summary>
         public static (Vector3 Position, Vector3 Facing) AroundTable(float share)
         {
+            if (TableGeometry.Round)
+            {
+                // Round, the same way: from the near side's middle, going right.
+                var angle = share * 2f * Mathf.PI;
+                var away = new Vector3(Mathf.Sin(angle), 0f, -Mathf.Cos(angle));
+                return (away * (TableGeometry.Radius + SeatDistance), -away);
+            }
             var half = TableGeometry.Size / 2f;
             var corner = Mathf.PI * SeatDistance / 2f;
             // Near side, its right corner, right side, far corner, far side, far-left corner, left side, near-left corner.
@@ -856,6 +863,12 @@ namespace TableWorld.View.Chalkers
         /// </summary>
         public static (Vector3 Position, Vector3 Facing) AtEdge(Vector3 direction, Vector3? near)
         {
+            if (TableGeometry.Round)
+            {
+                // A round table has no corners: straight out from the centre.
+                var away = new Vector3(direction.x, 0f, direction.z).normalized;
+                return (away * (TableGeometry.Radius + SeatDistance), -away);
+            }
             var half = TableGeometry.Size / 2f;
             var tx = Mathf.Abs(direction.x) < 1e-4f ? float.MaxValue : half.x / Mathf.Abs(direction.x);
             var tz = Mathf.Abs(direction.z) < 1e-4f ? float.MaxValue : half.y / Mathf.Abs(direction.z);

@@ -50,7 +50,7 @@ Optional. The room around the table, so a game (a mod) can set its own place. Om
   "wallColor": [0.16, 0.12, 0.1], "floorColor": [0.22, 0.14, 0.09],   // colours 0–1
   "lighting": { "ambientIntensity": 0.3, "ambientColor": [0.6, 0.6, 0.62], "lampIntensity": 3.2, "lampColor": [1, 0.83, 0.62],
                 "tableLightIntensity": 2.6, "tableLightColor": [1, 0.99, 0.97] },   // intensities 0–8
-  "table": { "feltColor": [0.09, 0.27, 0.19], "feltAsset": "felt_image", "woodColor": [0.36, 0.22, 0.12] },
+  "table": { "shape": "rectangle", "size": [1.6, 1.0], "feltColor": [0.09, 0.27, 0.19], "feltAsset": "felt_image", "woodColor": [0.36, 0.22, 0.12] },   // shape: rectangle | round
   "look": { "fog": 0, "fogColor": [0.06, 0.04, 0.03], "vignette": 0.5, "bloom": 0.5 }   // post-processing, 0–1 each; null keeps the room's
 }
 ```
@@ -59,6 +59,11 @@ Optional. The room around the table, so a game (a mod) can set its own place. Om
 the camera. Its tabletop is bare planks unless the game sets a felt colour or image. Its look is a soft vignette and a
 bloom that only catches flames and lamps (anything far brighter than white: never a lit card). Fog is available to any
 room but off in the tavern: it dimmed the flames and the hearth more than it added.
+
+**A round table** (`"shape": "round"`, M12) is a disc as wide as the larger of `size`'s two values, with a ring for a
+rim and one pedestal. Pieces are kept on the disc and count as fallen off past its edge; each chair stands straight out
+from the centre. `new_game` with `shape: round` seats everyone evenly round it (`seat_1`… clockwise from the south),
+1.6 m across and growing so neighbouring hands keep 55 cm apart: about 2 m for ten (Avalon).
 
 **Light while playing.** The `light` effect changes the room or the table light; the change fades over `seconds`
 (default 1.5, at most 30), on every screen. A table that loads shows its light at once.
@@ -73,7 +78,7 @@ room but off in the tavern: it dimmed the flames and the hearth more than it add
 
 `"physics": "full" | "semiLock" | "locked"` (top level, default `full`, omitted when full). Semi-lock: objects slide and fall but cannot tip over (dice still tumble). Locked: nothing moves on its own; a dropped object is set down where it was released. Changed with `SetPhysicsCommand`, which only the host may send (`host_only` for a client). TTS keeps this as a host option, not in the save; we save it so a game can ship with the mode it needs.
 
-The TTS importer maps `Sky` → `room`/`roomAsset`, `Table` + `TableURL` → `table.feltAsset`, and `Lighting` → `lighting`. Player avatars join this block when physics characters exist (M6).
+The TTS importer maps `Sky` → `room`/`roomAsset`, `Table` + `TableURL` → `table.feltAsset` (`Table_Circular` → `table.shape: round`), and `Lighting` → `lighting`. Player avatars join this block when physics characters exist (M6).
 
 ## Assets
 

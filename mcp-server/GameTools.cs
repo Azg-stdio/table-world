@@ -23,7 +23,7 @@ namespace TableWorld.Mcp
 
         // ---- authoring ----------------------------------------------------------------------------------------------
 
-        [McpServerTool(Name = "new_game"), Description("Start a new game document: name, player seats with a hand zone each, and the builtin standard deck images. Up to 4 seats are seat_south, seat_north, seat_east, seat_west (hands hand_<side>) on a 1.6 x 1.0 m table; 5 to 12 seats are seat_1..seat_N clockwise from the south side (hands hand_<n>, seat list order is turn order) on a table that grows to fit them. get_table_state shows where each hand lies. Make one table for every player count: players = the most players, minPlayers = the fewest; start_game then picks who plays. People beyond the seats can still join a session and watch. Replaces the current document.")]
+        [McpServerTool(Name = "new_game"), Description("Start a new game document: name, player seats with a hand zone each, and the builtin standard deck images. Up to 4 seats are seat_south, seat_north, seat_east, seat_west (hands hand_<side>) on a 1.6 x 1.0 m table; 5 to 12 seats are seat_1..seat_N clockwise from the south side (hands hand_<n>, seat list order is turn order) on a table that grows to fit them. shape round puts every seat (seat_1..seat_N, hands hand_<n>, clockwise from the south) evenly round a round table, 1.6 m across and growing to about 2 m for ten, so everyone sees everyone. get_table_state shows where each hand lies. Make one table for every player count: players = the most players, minPlayers = the fewest; start_game then picks who plays. People beyond the seats can still join a session and watch. Replaces the current document.")]
         public static string NewGame(GameSession session,
             [Description("Short id, lowercase, e.g. 'war'.")] string id,
             [Description("Display name.")] string name,
@@ -33,9 +33,10 @@ namespace TableWorld.Mcp
             [Description("One-paragraph summary of the rules.")] string? description = null,
             [Description("Dice for each seat in its colour (d6, tagged owner:<seat>), in front of its hand; 0 for none.")] int dicePerSeat = 0,
             [Description("Optional names players read for the seats, comma-separated in seat order (e.g. 'Hunter, Mage, Thief'); a seat without one is called by its colour.")] string? seatNames = null,
-            [Description("The room round the table: gameNight (default: a dim room, a warm lamp over the table, chairs), karaoke (sofas round the table, a big screen, a stage light on the singer) or none (a plain background).")] string? room = null) =>
+            [Description("The room round the table: gameNight (default: a dim room, a warm lamp over the table, chairs), karaoke (sofas round the table, a big screen, a stage light on the singer) or none (a plain background).")] string? room = null,
+            [Description("The table's outline: rectangle (default) or round (seats evenly round it, everyone facing the centre; good for many players).")] string? shape = null) =>
             session.Locked(() => Reply(session.NewGame(id, name, players, minPlayers ?? players, maxPlayers ?? players, description, dicePerSeat,
-                seatNames?.Split(',').Select(n => n.Trim()).ToArray(), room), session));
+                seatNames?.Split(',').Select(n => n.Trim()).ToArray(), room, shape), session));
 
         [McpServerTool(Name = "set_messages"), Description("The game's own words for the lines the engine writes in the log, e.g. in the game's language: {\"win\":\"¡{seat} gana!\",\"choseInSecret\":\"{seat} eligió en secreto.\",\"chose\":\"{seat} eligió {option}.\"}. Keys: win, choseInSecret, chose ({seat}, {action}, {option}, {choice}), blindRound, reveal ({count}), shows ({card}). A key left out keeps the English line. Option labels are set on choice params (\"labels\": {\"dungeon\":\"Mazmorra\"}).")]
         public static string SetMessages(GameSession session, [Description("JSON object: message key to text.")] string messagesJson) =>

@@ -20,6 +20,18 @@ namespace Core.Rules
     }
 
     /// <summary>How the game's panels look (M12): the default dark glass, or parchment and wood for a medieval game.</summary>
+    /// <summary>The table's outline seen from above.</summary>
+    public enum TableShape
+    {
+        /// <summary>A rectangle as wide and deep as the table's size. The default.</summary>
+        Rectangle,
+        /// <summary>
+        /// A disc as wide as the larger of the table's two sizes (TTS <c>Table_Circular</c>): everyone round it sees
+        /// everyone else, as in a party game for many.
+        /// </summary>
+        Round,
+    }
+
     public enum HudTheme
     {
         Default,
@@ -115,6 +127,23 @@ namespace Core.Rules
         /// (Pokémon spans ±2.3 m, Gloomhaven ±4.4 m), so imported tables say how much room they need.
         /// </summary>
         public Vec2? Size { get; set; }
+        /// <summary>The table's outline: a rectangle, or a disc as wide as the larger of <see cref="Size"/>'s values.</summary>
+        public TableShape Shape { get; set; }
+
+        /// <summary>The playing surface's width × depth, metres: a round table is as deep as it is wide.</summary>
+        [Newtonsoft.Json.JsonIgnore]
+        public Vec2 SurfaceSize
+        {
+            get
+            {
+                var size = Size ?? DefaultSize;
+                if (Shape != TableShape.Round)
+                    return size;
+                var diameter = System.Math.Max(size.X, size.Y);
+                return new Vec2(diameter, diameter);
+            }
+        }
+
         /// <summary>No table at all (TTS <c>Table_None</c>): the game brings its own surface as objects.</summary>
         public bool Hidden { get; set; }
         /// <summary>

@@ -175,6 +175,16 @@ namespace TableWorld.Mcp.Tests
             var tooMany = await Call("new_game", ("id", "crowd"), ("name", "Crowd"), ("players", 13));
             Assert.False((bool)tooMany["ok"]!);
             Assert.Equal("players", (string?)tooMany["errors"]![0]!["path"]);
+            // Round: ten evenly round a disc, all numbered; an unknown shape is refused.
+            Ok(await Call("new_game", ("id", "round"), ("name", "Round"), ("players", 10), ("shape", "round")));
+            var round = await Call("get_rules_document");
+            Assert.Equal("round", (string?)round["environment"]!["table"]!["shape"]);
+            Assert.Equal((float)round["environment"]!["table"]!["size"]![0]!, (float)round["environment"]!["table"]!["size"]![1]!);
+            Assert.Equal("seat_1", (string?)round["players"]!["seats"]![0]!["id"]);
+            Ok(await Call("validate_rules"));
+            var oval = await Call("new_game", ("id", "oval"), ("name", "Oval"), ("players", 4), ("shape", "oval"));
+            Assert.False((bool)oval["ok"]!);
+            Assert.Equal("shape", (string?)oval["errors"]![0]!["path"]);
         }
 
         [Fact]

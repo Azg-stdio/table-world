@@ -616,16 +616,29 @@ namespace TableWorld.View
             Quad("Wall East", new Vector3(h.x, wallMid, 0f), Quaternion.Euler(0f, 90f, 0f), new Vector2(h.z * 2f, wallHeight), wall, 0.1f);
             Quad("Wall West", new Vector3(-h.x, wallMid, 0f), Quaternion.Euler(0f, -90f, 0f), new Vector2(h.z * 2f, wallHeight), wall, 0.1f);
             // A dark rug under the table grounds it.
-            if (!TableGeometry.Hidden)
+            if (!TableGeometry.Hidden && !TableGeometry.Round)
                 Quad("Rug", new Vector3(0f, FloorY + 0.003f, 0f), Quaternion.Euler(90f, 0f, 0f), new Vector2(TableGeometry.Size.x + 1.4f, TableGeometry.Size.y + 1.2f), new Color(0.25f, 0.08f, 0.07f), 0f);
+            else if (!TableGeometry.Hidden)
+                Disc("Rug", new Vector3(0f, FloorY + 0.003f, 0f), TableGeometry.Radius + 0.75f, 0.004f, new Color(0.25f, 0.08f, 0.07f));
 
-            // Table legs, under the corners.
+            // Table legs, under the corners; a round table stands on one pedestal and a cross of feet.
             var legTop = -TableGeometry.Thickness;
             var legHeight = legTop - FloorY;
             var lx = TableGeometry.Size.x / 2f - 0.08f;
             var lz = TableGeometry.Size.y / 2f - 0.08f;
-            foreach (var (x, z) in TableGeometry.Hidden ? new (float, float)[0] : new[] { (lx, lz), (-lx, lz), (lx, -lz), (-lx, -lz) })
+            foreach (var (x, z) in TableGeometry.Hidden || TableGeometry.Round ? new (float, float)[0] : new[] { (lx, lz), (-lx, lz), (lx, -lz), (-lx, -lz) })
                 Box("Leg", new Vector3(x, legTop - legHeight / 2f, z), new Vector3(0.07f, legHeight, 0.07f), DefaultWood * 0.8f, 0.3f);
+            if (!TableGeometry.Hidden && TableGeometry.Round)
+            {
+                Disc("Leg", new Vector3(0f, FloorY + legHeight / 2f, 0f), 0.09f, legHeight, DefaultWood * 0.8f);
+                Disc("Leg", new Vector3(0f, legTop - 0.03f, 0f), TableGeometry.Radius * 0.35f, 0.06f, DefaultWood * 0.7f);
+                var reach = Mathf.Min(0.9f, TableGeometry.Radius * 0.7f);
+                foreach (var yaw in new[] { 45f, 135f })
+                {
+                    var foot = Box("Leg", new Vector3(0f, FloorY + 0.04f, 0f), new Vector3(2f * reach, 0.08f, 0.1f), DefaultWood * 0.8f, 0.3f);
+                    foot.transform.rotation = Quaternion.Euler(0f, yaw, 0f);
+                }
+            }
 
             // The lamp: a shade over the table and a warm spot that lights the whole table and casts soft shadows. The tavern
             // hangs a chandelier of candles instead (BuildTavern), with the same light.
@@ -756,6 +769,7 @@ namespace TableWorld.View
             if (_tableRoot != null)
             {
                 _tableRoot.gameObject.SetActive(!TableGeometry.Hidden);
+                FitRound();
                 var size = TableGeometry.Size;
                 var thickness = TableGeometry.Thickness;
                 var rimWidth = TableGeometry.RimWidth;
@@ -789,13 +803,89 @@ namespace TableWorld.View
                 camera.FitTable(TableGeometry.Size);
         }
 
+        /// <summary>
+        /// A round table (M12) swaps the scene's box top and four rims for a disc and a ring made for its size, with the
+        /// same materials, layer and physics; a square one swaps them back.
+        /// </summary>
+        private void FitRound()
+        {
+            var round = TableGeometry.Round;
+            Transform surface = null, rim = null, disc = null, ring = null;
+            foreach (Transform part in _tableRoot)
+            {
+                if (part.name == "Surface")
+                    surface = part;
+                else if (part.name == "RimNorth")
+                    rim = part;
+                else if (part.name == RoundSurfaceName)
+                    disc = part;
+                else if (part.name == RoundRimName)
+                    ring = part;
+            }
+            foreach (Transform part in _tableRoot)
+            {
+                if (part.name == "Surface" || part.name.StartsWith("Rim") && part.name != RoundRimName)
+                    part.gameObject.SetActive(!round);
+            }
+            if (!round)
+            {
+                if (disc != null)
+                    disc.gameObject.SetActive(false);
+                if (ring != null)
+                    ring.gameObject.SetActive(false);
+                return;
+            }
+            var radius = TableGeometry.Radius;
+            disc = RoundPart(disc, RoundSurfaceName, surface, RoundTableMesh.Disc(radius, TableGeometry.Thickness), true);
+            ring = RoundPart(ring, RoundRimName, rim, RoundTableMesh.Ring(radius, TableGeometry.RimWidth, TableGeometry.RimHeight, TableGeometry.Thickness), false);
+        }
+
+        public const string RoundSurfaceName = "SurfaceRound";
+        public const string RoundRimName = "RimRound";
+
+        /// <summary>A round part like <paramref name="like"/> (its material, layer, physics material), with this mesh.</summary>
+        private Transform RoundPart(Transform part, string name, Transform like, Mesh mesh, bool convex)
+        {
+            if (part == null)
+            {
+                var go = new GameObject(name, typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider));
+                go.transform.SetParent(_tableRoot, false);
+                part = go.transform;
+                if (like != null)
+                {
+                    go.layer = like.gameObject.layer;
+                    go.tag = like.gameObject.tag;
+                    go.isStatic = true;
+                    var source = like.GetComponent<Renderer>();
+                    var renderer = go.GetComponent<MeshRenderer>();
+                    renderer.sharedMaterial = source.sharedMaterial;
+                    renderer.shadowCastingMode = source.shadowCastingMode;
+                    renderer.receiveShadows = source.receiveShadows;
+                    renderer.renderingLayerMask = source.renderingLayerMask;
+                    go.GetComponent<MeshCollider>().sharedMaterial = like.GetComponent<Collider>()?.sharedMaterial;
+                }
+            }
+            part.gameObject.SetActive(true);
+            part.localPosition = Vector3.zero;
+            part.localRotation = Quaternion.identity;
+            part.localScale = Vector3.one;
+            var filter = part.GetComponent<MeshFilter>();
+            if (filter.sharedMesh != null)
+                Destroy(filter.sharedMesh);
+            filter.sharedMesh = mesh;
+            var collider = part.GetComponent<MeshCollider>();
+            collider.convex = convex;
+            collider.sharedMesh = mesh;
+            return part;
+        }
+
         private void DressTable(TableLookDef look)
         {
             if (_tableRoot == null)
                 return;
-            foreach (var renderer in _tableRoot.GetComponentsInChildren<Renderer>())
+            foreach (var renderer in _tableRoot.GetComponentsInChildren<Renderer>(true))
             {
-                if (renderer.name == "Surface")
+                if (renderer.name == "Surface" || renderer.name == RoundSurfaceName)
                 {
                     var felt = renderer.material;
                     // The tavern's table is bare planks unless the game asks for a cloth (a colour or an image).
@@ -838,6 +928,21 @@ namespace TableWorld.View
             box.GetComponent<Renderer>().sharedMaterial = NewMaterial(color, smoothness);
             box.GetComponent<Renderer>().renderingLayerMask = RoomLayers;
             return box;
+        }
+
+        /// <summary>A flat or tall round part of the room (a rug, a pedestal): a cylinder <paramref name="height"/> tall, centred on <paramref name="centre"/>.</summary>
+        private GameObject Disc(string name, Vector3 centre, float radius, float height, Color color)
+        {
+            var disc = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            disc.name = name;
+            Object.Destroy(disc.GetComponent<Collider>());
+            disc.transform.SetParent(_room.transform, false);
+            disc.transform.position = centre;
+            // Unity's cylinder is 2 units tall and 1 across.
+            disc.transform.localScale = new Vector3(radius * 2f, height / 2f, radius * 2f);
+            disc.GetComponent<Renderer>().sharedMaterial = NewMaterial(color, 0.25f);
+            disc.GetComponent<Renderer>().renderingLayerMask = RoomLayers;
+            return disc;
         }
 
         /// <summary>A lamp shade: an open cylinder narrowing upward, approximated by a scaled, squashed cylinder.</summary>
