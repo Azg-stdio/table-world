@@ -1425,6 +1425,14 @@
     margin-bottom: 2px;
 }
 
+/* Folded, the turn line has the room the buttons left: one line, as wide as it needs, the font shrinking to fit
+   (TextFit) rather than wrapping. */
+.top-bar--folded .turn-label {
+    max-width: 38%;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
 .top-fold {
     flex-shrink: 0;
     min-width: 30px;

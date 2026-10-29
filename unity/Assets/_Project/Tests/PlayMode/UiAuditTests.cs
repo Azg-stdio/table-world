@@ -84,6 +84,16 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsTrue(_table.Execute(start).Ok);
             yield return Settle();
             Readable($"{theme}, the role and the ritual's first banner");
+            // Folded, the turn's line stays one line: a little wider, its font smaller when it must.
+            _hud.FoldTop(true);
+            yield return Settle();
+            var turn = _root.Q<Label>("turnLabel");
+            Assert.That(turn.text, Is.Not.Empty);
+            Assert.Less(turn.layout.height, 2f * _hud.TurnFit.Size, $"'{turn.text}' fits on one line folded");
+            Assert.GreaterOrEqual(_hud.TurnFit.Size, TextFit.MinSize);
+            Readable($"{theme}, the game started, the bar folded");
+            _hud.FoldTop(false);
+            yield return Settle();
         }
 
         /// <summary>A seated phase (Avalon's ritual) sits everyone in their chalker's eyes and keeps them there until it ends.</summary>

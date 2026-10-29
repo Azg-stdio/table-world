@@ -68,6 +68,10 @@ namespace TableWorld.View.Hud
         public const string ParchmentTheme = "theme-parchment";
 
         private TableCamera _tableCamera;
+        private TextFit _turnFit;
+
+        /// <summary>The turn line's fitting (tests read its size).</summary>
+        public TextFit TurnFit => _turnFit;
 
         /// <summary>The game panel's latest lines as the engine wrote them, before their names are coloured.</summary>
         private string _logPlain = "";
@@ -205,6 +209,7 @@ namespace TableWorld.View.Hud
             };
             Ui.Changed += OnLanguageChanged;
             _turnLabel = _root.Q<Label>("turnLabel");
+            _turnFit = TextFit.Attach(_turnLabel);
             _seatList = _root.Q("seatList");
             _selectionPanel = _root.Q("selectionPanel");
             _selectionTitle = _root.Q<Label>("selectionTitle");
@@ -559,6 +564,8 @@ namespace TableWorld.View.Hud
         private void ShowDrawers()
         {
             _root.Q("topMore")?.EnableInClassList(Hidden, TopFolded);
+            _root.Q("topBar")?.EnableInClassList("top-bar--folded", TopFolded);
+            _turnFit?.Fit();
             if (_root.Q<Button>("topFold") is { } fold)
             {
                 fold.text = TopFolded ? "▼" : "▲";
@@ -1289,6 +1296,7 @@ namespace TableWorld.View.Hud
             // A long turn line is cut short in the bar; the whole of it is on hover.
             _turnLabel.tooltip = _turnLabel.text;
             _turnLabel.text = Rich(_turnLabel, _turnLabel.text);
+            _turnFit?.Fit();
 
             _gameActions.Clear();
             if (!state.HasRules)
