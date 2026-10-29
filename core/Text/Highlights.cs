@@ -61,9 +61,22 @@ namespace Core.Text
         /// darkened. Anything else that looks like a tag is shown as written, never read as one.
         /// </summary>
         public static string Colorize(TableState state, string line, bool lightBackground = false) =>
-            Colorize(Terms(state), line, lightBackground);
+            Colorize(Terms(state), line, lightBackground ? LightPanel : DarkPanel);
 
-        public static string Colorize(IReadOnlyDictionary<string, float[]> terms, string line, bool lightBackground = false)
+        /// <summary><paramref name="line"/> coloured for a panel of colour <paramref name="background"/> (sRGB 0–1).</summary>
+        public static string Colorize(TableState state, string line, float[] background) => Colorize(Terms(state), line, background);
+
+        public static string Colorize(IReadOnlyDictionary<string, float[]> terms, string line, bool lightBackground = false) =>
+            Colorize(terms, line, lightBackground ? LightPanel : DarkPanel);
+
+        /// <summary>
+        /// The panels coloured words are made readable on when the caller does not know its own: the lightest dark glass
+        /// and the darkest parchment they may be drawn on (a translucent strip over a lit table), so they read on any.
+        /// </summary>
+        public static readonly float[] DarkPanel = { 0.16f, 0.15f, 0.14f };
+        public static readonly float[] LightPanel = { 0.78f, 0.72f, 0.58f };
+
+        public static string Colorize(IReadOnlyDictionary<string, float[]> terms, string line, float[] background)
         {
             if (string.IsNullOrEmpty(line))
                 return line ?? "";
@@ -74,7 +87,7 @@ namespace Core.Text
                 foreach (Match match in regex.Matches(line))
                 {
                     Plain(output, line.Substring(at, match.Index - at));
-                    output.Append("<color=").Append(Hex(Readable(terms[match.Value], lightBackground))).Append('>');
+                    output.Append("<color=").Append(Hex(Readable(terms[match.Value], background))).Append('>');
                     Plain(output, match.Value);
                     output.Append("</color>");
                     at = match.Index + match.Length;
@@ -142,31 +155,44 @@ namespace Core.Text
             return true;
         }
 
-        /// <summary>Brightness as the eye sees it (0 black, 1 white).</summary>
-        public static float Luminance(float[] rgb) => 0.2126f * rgb[0] + 0.7152f * rgb[1] + 0.0722f * rgb[2];
+        private static float Channel(float c) => c <= 0.03928f ? c / 12.92f : (float)Math.Pow((c + 0.055f) / 1.055f, 2.4f);
 
-        public const float MinOnDark = 0.36f;
-        public const float MaxOnLight = 0.3f;
+        /// <summary>WCAG relative luminance of an sRGB colour (0 black, 1 white).</summary>
+        public static float Luminance(float[] rgb) => 0.2126f * Channel(rgb[0]) + 0.7152f * Channel(rgb[1]) + 0.0722f * Channel(rgb[2]);
+
+        /// <summary>WCAG contrast ratio of two sRGB colours (1 to 21).</summary>
+        public static float Contrast(float[] a, float[] b)
+        {
+            var la = Luminance(a);
+            var lb = Luminance(b);
+            return (Math.Max(la, lb) + 0.05f) / (Math.Min(la, lb) + 0.05f);
+        }
+
+        /// <summary>The contrast a coloured word keeps with its panel: WCAG AA for body text, with a little to spare.</summary>
+        public const float MinContrast = 4.7f;
 
         /// <summary>
-        /// A colour that reads on the panel: on a dark panel no darker than <see cref="MinOnDark"/> (mixed towards white),
-        /// on a light one no lighter than <see cref="MaxOnLight"/> (mixed towards black). Its hue stays.
+        /// A colour that reads on <paramref name="background"/>: mixed towards white on a dark panel, towards black on a
+        /// light one, just enough to reach <see cref="MinContrast"/>. Its hue stays.
         /// </summary>
-        public static float[] Readable(float[] rgb, bool lightBackground)
+        public static float[] Readable(float[] rgb, float[] background)
         {
-            var l = Luminance(rgb);
-            if (!lightBackground && l < MinOnDark)
+            if (Contrast(rgb, background) >= MinContrast)
+                return rgb;
+            var light = Luminance(background) > 0.18f;
+            var target = light ? 0f : 1f;
+            var colour = rgb;
+            for (var step = 1; step <= 20; step++)
             {
-                var t = (MinOnDark - l) / (1f - l);
-                return rgb.Select(c => c + (1f - c) * t).ToArray();
+                var t = step / 20f;
+                colour = rgb.Select(c => c + (target - c) * t).ToArray();
+                if (Contrast(colour, background) >= MinContrast)
+                    break;
             }
-            if (lightBackground && l > MaxOnLight)
-            {
-                var t = MaxOnLight / l;
-                return rgb.Select(c => c * t).ToArray();
-            }
-            return rgb;
+            return colour;
         }
+
+        public static float[] Readable(float[] rgb, bool lightBackground) => Readable(rgb, lightBackground ? LightPanel : DarkPanel);
 
         public static string Hex(float[] rgb) =>
             "#" + string.Concat(rgb.Take(3).Select(c => ((int)Math.Round(Math.Max(0f, Math.Min(1f, c)) * 255f)).ToString("x2", CultureInfo.InvariantCulture)));

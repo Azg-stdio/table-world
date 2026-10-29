@@ -40,6 +40,12 @@ flowchart LR
   theme lives under that class at the end of Hud.uss. Engine lines are coloured as they are shown
   ([Highlights.cs](../../../core/Text/Highlights.cs), `HudController.Rich`): seats, teams, roles and vote options in
   their colours, readable on the theme's panels. What players type is never rich text.
+- **Readable, measured** (M12): [UiAudit.cs](../../../unity/Assets/_Project/Scripts/View/Hud/UiAudit.cs) checks every
+  visible text against what is really behind it (panel colours, the average of a background image, translucent layers
+  composed down to the table), each coloured word too, at WCAG AA (4.5:1, 3:1 for large text and disabled controls),
+  and that text keeps clear of its panel's edges and inside a 9-sliced frame's border. `UiAuditTests` runs it on Avalon
+  in both themes on every screen players meet; when you add or restyle a panel, add its screen there. In Play mode,
+  `unity command script eval_file --file tools/unity-probes/UiAudit.cs` audits whatever is on screen.
 - **UI never changes the table itself**: every button sends a command (`TableView.Execute`), so it undoes, syncs
   and reaches scripts like any other.
 - **Script UI is table state** (`UiNode` trees): the host's scripts change it with host-only commands and every client

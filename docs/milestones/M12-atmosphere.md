@@ -28,6 +28,9 @@ run through `python -I tools/unity/playmode_tests.py` (one `--filter` name per r
 | T13.9 | S | — | `set_environment` MCP tool (room, theme, lighting, table, music) | contract test; `build_avalon.py` uses it; `docs/reference/mcp-tools.md` regenerated | P1 | done 2026-10-29 |
 | T13.10 | — | — | Release script for itch.io | — | — | dropped (Miguel 2026-10-29: work only in the game for now) |
 | T13.12 | M | T13.5 | Post-processing that suits the scene, chosen from screenshots, not blindly (Miguel 2026-10-29: "mystery can benefit from ambient occlusion, maybe a little fog or gloom"): a per-game `look` (ambient occlusion, fog, bloom on flames only, vignette, colour grade), with the tavern's defaults | Before/after screenshots from a seat and from above for each effect kept; cards and text stay as readable as before (no bloom on white cards, fog never reaches the table); frame time per effect recorded; effects off on Low | P1 | done 2026-10-29 (vignette and bloom on; fog off by default, see the record) |
+| T13.13 | M | T13.7 | A UI audit any screen can run: text contrast against what is really behind it (WCAG AA) and room from panel edges and frames (Miguel 2026-10-29: the start panel's text was too close to the edges and hard to read) | `UiAudit.Check` + `UiAuditTests` pass on Avalon in both themes before the start, with the role and banner, the Music panel, the table menu, the Escape menu and eyes closed | P0 | done 2026-10-29 |
+| T13.14 | S | T13.7 | The parchment's own frame line holds the text: the picture cropped so the line lies in its 9-slice border, panels padded past it | `UiAuditTests` (frame inset) and screenshots | P0 | done 2026-10-29 |
+| T13.15 | S | — | Seated phases: `seated: true` (and every eyes-closed phase) sits everyone in their chalker's eyes and holds them there; Avalon's ritual is seated (Miguel 2026-10-29: in third person the ritual was hard to watch) | `TheRitual_SeatsYou_AndKeepsYouSeated_UntilItEnds` | P0 | done 2026-10-29 |
 | T13.11 | ⚗ | T13.2–T13.6 | Avalon played through in the Editor with everything on, then over Relay with friends | Hot-seat playthrough with a driver script, console clean; playtest notes in this file | P0 | in progress (Editor playthrough of the ritual done; the Relay playtest is tonight) |
 
 Done checks are played like a player: load Avalon in the Editor, sit at a seat, run the ritual, watch and listen.
@@ -298,6 +301,10 @@ hangs). Record frame times (tavern vs game night) and anything left for Miguel t
   candles and fire their glow and leave lit cards alone. All four are per-game settings (`environment.look`).
 - **Zone outlines** on a table with rules show only while this player carries something, or with **Show zones** in
   the table menu; free-play tables keep TTS's behaviour. Hidden zones and snap points always show.
+- **The UI audit's first run** (T13.13) found on parchment: the disabled Start button at 2.4:1 (the default half-opacity
+  fade), red "Failed" at 4.1:1, the panel's fold button at 1.4:1, text 1 px inside the parchment's frame line, the
+  banner's words 7 px into its wooden frame, faded seat chips at 2.8:1, and seat names coloured for parchment on the dark
+  top bar. Coloured words are now adjusted by WCAG contrast against the label's real background.
 - **Found while testing:** the music state's `index` 0 was not saved (its default was -1), so a client's copy of the
   table differed from the host's whenever a playlist started at its first track, and every client resynced. Fixed with
   `[DefaultValue(-1)]`; `TheMusic_CopiesOverTheWire_Exactly` guards it.
@@ -309,6 +316,7 @@ hangs). Record frame times (tavern vs game night) and anything left for Miguel t
 | 2026-10-29 | Tavern vs game night, Avalon with 5 seats, Medium preset, Editor Play mode, 17 s each (FrameStats) | Tavern: median 4.48 ms, avg 4.74–4.94, p95 5.32–6.36, 400–444 draw calls. Game night: median 4.41 ms, avg 4.66, p95 5.25, 530 draw calls. Tavern costs +0.07 ms median: within the 1 ms budget, so no Low-preset cut was needed |
 | 2026-10-29 | Importing AlkaKrab's Fantasy RPG Music Pack Vol.3 (907 MB zip) and 10 Ambient RPG Tracks (383 MB) with `import_music` | 4.5 s for both; 43 + 10 tracks kept as OGG, 107 MB + 48 MB in the library; lengths read from the OGG headers |
 | 2026-10-29 | Tests | core 586/586, MCP 21/21, PlayMode 199/199 after fixing the role line test (198/199 before) |
+| 2026-10-29 | Tests after the UI audit, parchment crop and seated phases | core 586/586, MCP 21/21, PlayMode 201/202 with the known flaky karaoke screen test (UnityWebBrowser TitleChange), which passed alone |
 
 ## Playtest notes (2026-10-29 evening, Miguel and friends)
 

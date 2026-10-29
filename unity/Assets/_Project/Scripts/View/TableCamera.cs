@@ -163,8 +163,16 @@ namespace TableWorld.View
 
         public View Current => new View { Pivot = _pivot, Yaw = _yaw, Pitch = _pitch, Distance = _distance };
 
+        /// <summary>
+        /// The game holds this player in their chalker's eyes (a seated phase, M12): every way out of the seat (O, the
+        /// wheel, Space, a quick zoom, top-down) waits until it lets go.
+        /// </summary>
+        public bool HoldSeated { get; set; }
+
         public void SetView(View view)
         {
+            if (HoldSeated && _seated)
+                return;
             if (_seated)
             {
                 StartBlend();
@@ -255,7 +263,7 @@ namespace TableWorld.View
         /// </summary>
         public void Lift()
         {
-            if (!_seated)
+            if (!_seated || HoldSeated)
                 return;
             var rotation = Quaternion.Euler(_headPitch, _seatYaw + _headYaw, 0f);
             var from = _eye;

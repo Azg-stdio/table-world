@@ -4833,7 +4833,8 @@
       "name": "Your role",
       "hostEnds": true,
       "next": "ritual_close",
-      "banner": "Look at your role card in your hand and keep it to yourself. The host starts the ritual with Next."
+      "banner": "Look at your role card in your hand and keep it to yourself. The host starts the ritual with Next.",
+      "seated": true
     },
     {
       "id": "ritual_close",
@@ -4879,7 +4880,8 @@
       "sleepText": "Everyone, close your eyes.",
       "voice": "none",
       "seconds": 4,
-      "next": "ritual_minions"
+      "next": "ritual_minions",
+      "seated": true
     },
     {
       "id": "ritual_minions",
@@ -4898,7 +4900,8 @@
       "voice": "none",
       "seconds": 10,
       "next": "ritual_merlin",
-      "banner": "Minions of Mordred: whoever has their eyes open is on your side. Look around!"
+      "banner": "Minions of Mordred: whoever has their eyes open is on your side. Look around!",
+      "seated": true
     },
     {
       "id": "ritual_merlin",
@@ -4918,7 +4921,8 @@
       "seconds": 10,
       "raised": "$var.thumbsMerlin",
       "next": "ritual_percival",
-      "banner": "Merlin: the raised thumbs are the minions (Mordred keeps his down)."
+      "banner": "Merlin: the raised thumbs are the minions (Mordred keeps his down).",
+      "seated": true
     },
     {
       "id": "ritual_percival",
@@ -4947,7 +4951,8 @@
       "seconds": 10,
       "raised": "$var.thumbsPercival",
       "next": "ritual_open",
-      "banner": "Percival: one raised thumb is Merlin, the other Morgana."
+      "banner": "Percival: one raised thumb is Merlin, the other Morgana.",
+      "seated": true
     },
     {
       "id": "ritual_open",
@@ -4979,7 +4984,8 @@
       ],
       "seconds": 4,
       "next": "propose",
-      "banner": "Everyone, open your eyes."
+      "banner": "Everyone, open your eyes.",
+      "seated": true
     },
     {
       "id": "propose",

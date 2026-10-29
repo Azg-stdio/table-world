@@ -20,6 +20,9 @@ namespace Core.Engine
         /// <summary>True while the phase in play closes some eyes (it names who is awake).</summary>
         public bool EyesClosedPhase => Session is { Started: true, Over: false } && CurrentPhase()?.Awake != null;
 
+        /// <summary>The phase holds every player in their chalker's eyes (<see cref="PhaseDef.Seated"/>, or eyes closed).</summary>
+        public bool SeatedPhase => Session is { Started: true, Over: false } && CurrentPhase() is { } phase && (phase.Seated || phase.Awake != null);
+
         /// <summary>
         /// Whether <paramref name="seat"/> is awake now, as <paramref name="viewer"/> can tell (null: the host, who knows
         /// all). Outside an eyes-closed phase everyone is awake.

@@ -114,6 +114,12 @@ namespace Core.Rules
 
         /// <summary>Big words for the players awake in this phase ("Minions, open your eyes"); <c>{$ref}</c> parts are filled in.</summary>
         public string? Banner { get; set; }
+
+        /// <summary>
+        /// Everyone sits in their own chalker's eyes while the phase lasts, and cannot lift out (M12): a ritual where the
+        /// players must see each other's faces. A phase that closes eyes (<see cref="Awake"/>) is seated anyway.
+        /// </summary>
+        public bool Seated { get; set; }
     }
 
     /// <summary>

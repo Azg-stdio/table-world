@@ -487,7 +487,7 @@ namespace TableWorld.Mcp
                 ["phases"] = new JArray(phases.Split(',').Select(p => p.Trim()).Where(p => p.Length > 0)),
             }), session));
 
-        [McpServerTool(Name = "add_phase"), Description("Add or replace a phase: {\"id\":\"play\",\"name\":\"Play\",\"actions\":[\"play_card\"],\"advanceWhen\":{\"currentPlayerEnds\":true},\"onEnter\":[effects],\"onExit\":[effects]}. advanceWhen takes exactly one of immediate, allPlayersActed, currentPlayerEnds, condition. Appends the phase to the turn if it is not there. A phase may close eyes: \"awake\" (nobody, team:<id>, role:<id>, a seat or $var.<list>) keeps the others asleep (dark screen with \"sleepText\", no actions, no sight or sound of the awake), and \"voice\" (all, awake, team, none) sets who hears whom. " + Format)]
+        [McpServerTool(Name = "add_phase"), Description("Add or replace a phase: {\"id\":\"play\",\"name\":\"Play\",\"actions\":[\"play_card\"],\"advanceWhen\":{\"currentPlayerEnds\":true},\"onEnter\":[effects],\"onExit\":[effects]}. advanceWhen takes exactly one of immediate, allPlayersActed, currentPlayerEnds, condition. Appends the phase to the turn if it is not there. A phase may close eyes: \"awake\" (nobody, team:<id>, role:<id>, a seat or $var.<list>) keeps the others asleep (dark screen with \"sleepText\", no actions, no sight or sound of the awake), and \"voice\" (all, awake, team, none) sets who hears whom. \"seated\": true keeps every player in their own chalker's eyes for the phase (a ritual where faces matter); eyes-closed phases are seated anyway. " + Format)]
         public static string AddPhase(GameSession session, [Description("The phase as JSON.")] string phaseJson) =>
             session.Locked(() => Reply(session.Edit(doc =>
             {

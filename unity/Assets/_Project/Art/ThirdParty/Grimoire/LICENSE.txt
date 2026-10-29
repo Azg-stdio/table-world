@@ -2,4 +2,6 @@ Grimoire parchment (Grimoire0.png, 3000 x 3000)
 
 Licence: CC0 1.0 Universal (public domain dedication), per the project owner (Miguel), 2026-10-29.
 
-parchment.png is the original scaled down to 1024 x 1024. It is the background of the parchment theme's panels (Hud.uss).
+parchment.png is the original cropped to (280, 140, 2715, 2865), 60 px outside its inner frame line, and scaled to
+1024 x 1146: the line then lies 25 px from each edge, inside the 40 px border slices the panels use (Hud.uss), so text
+always sits inside the frame.

@@ -426,6 +426,8 @@ MOOD = {
 }
 for phase in RITUAL:
     phase["onEnter"] = MOOD.get(phase["id"], []) + phase.get("onEnter", [])
+    # The whole ritual is watched from your own chair: faces, open eyes and thumbs are what it is about.
+    phase["seated"] = True
     call("add_phase", phaseJson=json.dumps(phase))
 
 # ---- choosing the team: the leader clicks players --------------------------------------------------------------------

@@ -1328,6 +1328,7 @@ object or object or object or object or object or object or object or object or 
 | `raised` | string |  |
 | `next` | string |  |
 | `banner` | string |  |
+| `seated` | boolean |  |
 
 ### AdvanceRule
 

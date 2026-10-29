@@ -185,7 +185,9 @@ Effects can only set declared variables and resources; the validator rejects und
   open your eyes"), with `{$ref}` parts filled in. `raised` (an audience like `awake`: `team:`, `role:`, a seat, a list such as `$var.thumbs`)
   raises those players' thumbs on their chalkers for the phase, seen only by the awake: the game does it, nobody presses
   a key (Avalon's minions for Merlin). `hostEnds: true` makes a phase wait for the host's Next ("read your
-  card; the host starts when everyone is ready"), with or without `seconds`.
+  card; the host starts when everyone is ready"), with or without `seconds`. `seated: true` sits every player in their
+  own chalker's eyes for the phase and keeps them there (no lifting out, no top-down view) until it ends: a ritual where
+  faces, open eyes and thumbs are the point. A phase that closes eyes (`awake`) is seated anyway.
 - A `gotoPhase` in `onGameStart` opens the game in that phase (a setup or a ritual) instead of the turn's first.
 
 ### Eyes closed and voice

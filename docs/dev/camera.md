@@ -48,6 +48,11 @@ flowchart LR
 
 ## Seated and lifted
 
+A game can hold everyone seated: during a phase with `seated: true` (or one that closes eyes), `TableCamera.HoldSeated`
+is on, the HUD sits the player down if they were lifted, and every way out (O, the wheel, Space, quick zoom, top-down)
+waits until the phase ends.
+
+
 | | Seated | Lifted |
 |---|---|---|
 | Right drag | turns the head (110° each way, 35° up, 80° down) | orbits |

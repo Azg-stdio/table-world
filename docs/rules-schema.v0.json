@@ -4502,6 +4502,9 @@
         },
         "banner": {
           "type": "string"
+        },
+        "seated": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false

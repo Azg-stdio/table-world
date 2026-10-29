@@ -210,8 +210,10 @@ namespace TableWorld.View.Hud
                 {
                     case UiElementType.Label:
                         // Names in the game's panels read in their colours too (M12): "Leader: Red", "Fails 1".
-                        ((Label)element).text = Core.Text.Highlights.Colorize(state, game.Format(Written(state, def) ?? "", viewer),
-                            state.Environment?.Theme == HudTheme.Parchment);
+                        var line = game.Format(Written(state, def) ?? "", viewer);
+                        ((Label)element).text = UiAudit.BackgroundOf(element) is { } behind
+                            ? Core.Text.Highlights.Colorize(state, line, new[] { behind.r, behind.g, behind.b })
+                            : Core.Text.Highlights.Colorize(state, line, state.Environment?.Theme == HudTheme.Parchment);
                         break;
                     case UiElementType.Counter:
                         element.Q<Label>(className: "game-ui-label").text = Written(state, def) ?? "";

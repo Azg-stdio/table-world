@@ -82,10 +82,16 @@ namespace Core.Tests.Text
             var state = State();
             // Seat c is a dark green: lightened on a dark panel, kept on a light one.
             var dark = Highlights.Readable(Highlights.Terms(state)[Names.Of(state, state.Players.Seats[2])], false);
-            Assert.True(Highlights.Luminance(dark) >= Highlights.MinOnDark - 0.001f);
+            Assert.True(Highlights.Contrast(dark, Highlights.DarkPanel) >= Highlights.MinContrast);
             Assert.True(dark[1] > dark[0], "it stays green");
             var white = Highlights.Readable(new[] { 0.95f, 0.95f, 0.95f }, true);
-            Assert.True(Highlights.Luminance(white) <= Highlights.MaxOnLight + 0.001f);
+            Assert.True(Highlights.Contrast(white, Highlights.LightPanel) >= Highlights.MinContrast);
+            // Every seat colour reads on both panels.
+            foreach (var colour in SeatLayout.Colors)
+                foreach (var panel in new[] { Highlights.DarkPanel, Highlights.LightPanel })
+                    Assert.True(Highlights.Contrast(Highlights.Readable(SeatLayout.Rgb(colour), panel), panel) >= Highlights.MinContrast, colour);
+            // A colour that already reads is left as it is.
+            Assert.Equal(new[] { 0.2f, 0.1f, 0.05f }, Highlights.Readable(new[] { 0.2f, 0.1f, 0.05f }, Highlights.LightPanel));
         }
 
         [Fact]

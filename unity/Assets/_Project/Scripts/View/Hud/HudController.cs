@@ -67,6 +67,8 @@ namespace TableWorld.View.Hud
 
         public const string ParchmentTheme = "theme-parchment";
 
+        private TableCamera _tableCamera;
+
         /// <summary>The game panel's latest lines as the engine wrote them, before their names are coloured.</summary>
         private string _logPlain = "";
 
@@ -77,6 +79,19 @@ namespace TableWorld.View.Hud
         public string Rich(string plain) =>
             string.IsNullOrEmpty(plain) || _table?.Engine == null ? plain ?? ""
                 : Highlights.Colorize(_table.Engine.State, plain, _table.Engine.State.Environment?.Theme == HudTheme.Parchment);
+
+        /// <summary>
+        /// <see cref="Rich"/> for the panel <paramref name="label"/> is really drawn on (a dark bar or parchment), read from
+        /// its resolved style; before the first layout, the theme's panel.
+        /// </summary>
+        public string Rich(VisualElement label, string plain)
+        {
+            if (string.IsNullOrEmpty(plain) || _table?.Engine == null)
+                return plain ?? "";
+            if (UiAudit.BackgroundOf(label) is { } behind)
+                return Highlights.Colorize(_table.Engine.State, plain, new[] { behind.r, behind.g, behind.b });
+            return Rich(plain);
+        }
         private Label _phaseTimer;
         private Button _phaseNext;
         /// <summary>Optional roles ticked for the next start, by table (a new table starts with none).</summary>
@@ -139,6 +154,7 @@ namespace TableWorld.View.Hud
         private LookCamera _look;
 
         public TableOverlay Overlay => _overlay;
+        public MusicPanel Music => _music;
         private float _nextGameRefresh;
 
         /// <summary>At most this many action buttons; a game offering more should use parameters with fewer choices.</summary>
@@ -1057,6 +1073,19 @@ namespace TableWorld.View.Hud
         {
             var game = _table.Game;
             var seat = _table.Spectating ? null : _table.LocalSeat;
+            // A seated phase (a ritual) puts every player in their chalker's eyes and keeps them there (M12).
+            var hold = game != null && seat != null && game.SeatedPhase;
+            if (_tableCamera == null && Camera.main != null)
+                _tableCamera = Camera.main.GetComponent<TableCamera>();
+            if (_tableCamera != null && hold != _tableCamera.HoldSeated)
+            {
+                if (hold && !_tableCamera.IsSeated)
+                {
+                    _tableCamera.HoldSeated = false;
+                    _tableCamera.Sit();
+                }
+                _tableCamera.HoldSeated = hold;
+            }
             var asleep = game != null && seat != null && game.EyesClosedPhase && !game.IsAwake(seat, seat);
             _sleepOverlay?.EnableInClassList(Hidden, !asleep);
             if (asleep && _sleepText != null)
@@ -1094,7 +1123,7 @@ namespace TableWorld.View.Hud
             _phaseBar?.EnableInClassList(Hidden, phase == null || !hostEnds && banner == null);
             if (phase == null || _phaseBar == null)
                 return;
-            _phaseBanner.text = Rich(banner ?? "");
+            _phaseBanner.text = Rich(_phaseBanner, banner ?? "");
             _phaseBanner.EnableInClassList(Hidden, banner == null);
             _phaseNext.EnableInClassList(Hidden, !hostEnds || !_table.HostsTable);
             _phaseTimer.EnableInClassList(Hidden, timed == 0);
@@ -1178,7 +1207,7 @@ namespace TableWorld.View.Hud
                 : Ui.T("Turn {turn} · {phaseName} · {currentSeat}", ("turn", session.Turn), ("phaseName", PhaseName(state, session.Phase)), ("currentSeat", Names.Seat(state, session.CurrentSeat)));
             // A long turn line is cut short in the bar; the whole of it is on hover.
             _turnLabel.tooltip = _turnLabel.text;
-            _turnLabel.text = Rich(_turnLabel.text);
+            _turnLabel.text = Rich(_turnLabel, _turnLabel.text);
 
             _gameActions.Clear();
             if (!state.HasRules)
@@ -1194,10 +1223,10 @@ namespace TableWorld.View.Hud
             _gamePanel.RemoveFromClassList(Hidden);
             var role = _table.LocalSeat == null ? new List<string>() : GameEngine.RoleLines(state, _table.LocalSeat);
             role.AddRange(VoteLines(game));
-            _gameRole.text = Rich(string.Join("\n", role));
+            _gameRole.text = Rich(_gameRole, string.Join("\n", role));
             _gameRole.EnableInClassList(Hidden, role.Count == 0);
             _logPlain = LatestLogLines(session);
-            _gameLog.text = Rich(_logPlain);
+            _gameLog.text = Rich(_gameLog, _logPlain);
             _gameLog.EnableInClassList(Hidden, string.IsNullOrEmpty(_logPlain));
             if (session == null)
             {

@@ -37,6 +37,8 @@ Five examples ship in `games/`, each built through the MCP tools from a plain-te
   eyes open. The music comes from the host's music library ([Music](music.md)).
 - **Out of the game.** A lynched or executed player is out: no more actions or votes, and the others no longer hear
   them.
+- **The ritual is watched from your chair.** When it starts, everyone sits down in their own chalker's eyes, and nobody
+  can lift out until it ends, so the open eyes and raised thumbs are seen face to face.
 - **Faces.** You play from your chair in first person, eye to eye with the others; **O** lifts you out over the table and sits you back. Press **K** to
   wink at the face you are looking at. Whoever is looking at you sees it; in Wink Murder, a wink from the Murderer
   kills.
