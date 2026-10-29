@@ -161,6 +161,7 @@
         <ui:VisualElement name="topBar" class="top-bar">
             <ui:Label name="turnLabel" class="turn-label" text="Free play" />
             <ui:VisualElement name="seatList" class="seat-list" picking-mode="Ignore" />
+            <ui:VisualElement name="topMore" class="top-more">
             <ui:Button name="gamesButton" class="hud-button" text="Games" />
             <ui:Button name="playersButton" class="hud-button hidden" text="Players" />
             <ui:Button name="notesButton" class="hud-button" text="Notes" />
@@ -173,7 +174,10 @@
             <ui:Button name="joinButton" class="hud-button" text="Join" />
             <ui:Button name="saveButton" class="hud-button" text="Save (F5)" />
             <ui:Button name="loadButton" class="hud-button" text="Load (F9)" />
+            </ui:VisualElement>
+            <ui:Button name="topFold" class="hud-button top-fold" text="▲" tooltip="Fold the bar to the turn and the players" />
         </ui:VisualElement>
+        <ui:VisualElement name="toolDock" class="tool-dock" picking-mode="Ignore">
         <ui:VisualElement name="toolBar" class="tool-bar">
             <ui:Button name="toolGrab" class="tool-button tool-button--active" text="Grab" tooltip="Pick up and move (Esc)" />
             <ui:Button name="toolDraw" class="tool-button" text="Draw" tooltip="Draw on the table in your colour" />
@@ -182,6 +186,8 @@
             <ui:Button name="toolGizmo" class="tool-button" text="Gizmo" tooltip="Click an object to place it exactly" />
             <ui:Button name="blindButton" class="tool-button tool-button--gap" text="Blind round" />
             <ui:Button name="calculatorButton" class="tool-button" text="Calculator" tooltip="Put a calculator on the table in front of you: press its keys, or type while it is selected" />
+        </ui:VisualElement>
+        <ui:Button name="toolDrawer" class="tool-drawer" text="▶" tooltip="Table tools" />
         </ui:VisualElement>
         <ui:VisualElement name="gamePanel" class="game-panel hidden">
             <ui:Label name="gameRole" class="game-role hidden" />

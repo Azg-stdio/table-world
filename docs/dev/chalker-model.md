@@ -66,6 +66,14 @@ fan's places directly, so a model with longer arms than the shapes still reaches
 a cartoon's fists that would dwarf real-size cards. In first person your own model draws only its shadow
 ([camera.md](camera.md)).
 
+A raised thumb is computed, not posed by hand: `MeasureFist` reads the right hand on the bind pose (along the fingers
+to the middle knuckle, across from the little finger's knuckle to the index's, and which way a turn curls the
+fingertips into the palm), and `ThumbsUp` turns the hand so the thumb's side faces up and the knuckles the table, curls
+the four `Rig.RightFingers` chains, and straightens `Rig.RightThumb` upward; the arm holds the fist above the shoulder,
+out to the side, clear of the head from every chair. A chalker with its eyes closed rests its card hand at the table's
+edge. `ThumbsUpTests` checks the result on the worn model. To study a new rig, `tools/unity-probes/HandRig.cs` (Edit mode)
+prints each right-hand bone's offset from the wrist along the hand's own axes and its length.
+
 The placeholder worn today is `Art/Placeholder/TomLizard` (an unlicensed test model, see its `NOTICE.txt`; it must
 not ship). The lab's M key switches between it and the shapes; `Chalker.UseModel` does the same in code.
 

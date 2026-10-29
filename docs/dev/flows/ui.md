@@ -46,6 +46,8 @@ flowchart LR
   and that text keeps clear of its panel's edges and inside a 9-sliced frame's border. `UiAuditTests` runs it on Avalon
   in both themes on every screen players meet; when you add or restyle a panel, add its screen there. In Play mode,
   `unity command script eval_file --file tools/unity-probes/UiAudit.cs` audits whatever is on screen.
+- **Folding** (M12): the top bar's extras live in `#topMore`, hidden by `HudController.FoldTop`; the table tools live in
+  `#toolDock` and `#toolBar` is hidden by `OpenTools`. Both choices are kept in PlayerPrefs.
 - **UI never changes the table itself**: every button sends a command (`TableView.Execute`), so it undoes, syncs
   and reaches scripts like any other.
 - **Script UI is table state** (`UiNode` trees): the host's scripts change it with host-only commands and every client

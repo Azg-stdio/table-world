@@ -226,6 +226,7 @@ namespace TableWorld.View.Hud
                 _phaseNext.clicked += () => EndTimedPhase();
             }
             _gameActions = _root.Q("gameActions");
+            Drawers();
             _gameUi = new GameUiRenderer(_root.Q("gameUi"), _table);
             if (_interaction != null)
             {
@@ -514,6 +515,86 @@ namespace TableWorld.View.Hud
             foreach (var (name, t) in new[] { ("toolGrab", TableInteraction.Tool.Grab), ("toolDraw", TableInteraction.Tool.Draw),
                          ("toolArrow", TableInteraction.Tool.Arrow), ("toolErase", TableInteraction.Tool.Erase), ("toolGizmo", TableInteraction.Tool.Gizmo) })
                 _root.Q<Button>(name)?.EnableInClassList("tool-button--active", t == tool);
+            ShowDrawers();
+        }
+
+        // ---- folding the top bar and the tool drawer (M12) -------------------------------------------------------------
+
+        private const string TopFoldedPref = "tw.hud.topFolded";
+        private const string ToolsOpenPref = "tw.hud.toolsOpen";
+
+        /// <summary>The top bar shows only the turn and the players (and its fold button).</summary>
+        public bool TopFolded { get; private set; }
+
+        /// <summary>The table tools' drawer is open.</summary>
+        public bool ToolsOpen { get; private set; }
+
+        private void Drawers()
+        {
+            TopFolded = Pref(TopFoldedPref, false);
+            ToolsOpen = Pref(ToolsOpenPref, false);
+            if (_root.Q<Button>("topFold") is { } fold)
+                fold.clicked += () => FoldTop(!TopFolded);
+            if (_root.Q<Button>("toolDrawer") is { } drawer)
+                drawer.clicked += () => OpenTools(!ToolsOpen);
+            ShowDrawers();
+        }
+
+        /// <summary>Folds the top bar to the turn and the players, or opens it; remembered on this computer.</summary>
+        public void FoldTop(bool folded)
+        {
+            TopFolded = folded;
+            SavePref(TopFoldedPref, folded);
+            ShowDrawers();
+        }
+
+        /// <summary>Opens or closes the table tools' drawer; remembered on this computer.</summary>
+        public void OpenTools(bool open)
+        {
+            ToolsOpen = open;
+            SavePref(ToolsOpenPref, open);
+            ShowDrawers();
+        }
+
+        private void ShowDrawers()
+        {
+            _root.Q("topMore")?.EnableInClassList(Hidden, TopFolded);
+            if (_root.Q<Button>("topFold") is { } fold)
+            {
+                fold.text = TopFolded ? "▼" : "▲";
+                fold.tooltip = TopFolded ? Ui.T("Show the whole bar") : Ui.T("Fold the bar to the turn and the players");
+            }
+            _root.Q("toolBar")?.EnableInClassList(Hidden, !ToolsOpen);
+            if (_root.Q<Button>("toolDrawer") is { } drawer)
+            {
+                // Closed, the tab still says which tool is in hand when it is not the hand itself.
+                var tool = _interaction != null && _interaction.ActiveTool != TableInteraction.Tool.Grab ? _interaction.ActiveTool.ToString() : null;
+                drawer.text = ToolsOpen ? "◀" : tool == null ? "▶" : "▶ " + Ui.T(tool);
+                drawer.tooltip = ToolsOpen ? Ui.T("Hide the table tools") : Ui.T("Table tools");
+            }
+        }
+
+        private static bool Pref(string key, bool fallback)
+        {
+            try
+            {
+                return PlayerPrefs.HasKey(key) ? PlayerPrefs.GetInt(key) == 1 : fallback;
+            }
+            catch (UnityException)
+            {
+                return fallback;
+            }
+        }
+
+        private static void SavePref(string key, bool value)
+        {
+            try
+            {
+                PlayerPrefs.SetInt(key, value ? 1 : 0);
+            }
+            catch (UnityException)
+            {
+            }
         }
 
         /// <summary>What Escape does (also called by tests).</summary>
@@ -682,7 +763,7 @@ namespace TableWorld.View.Hud
                 return;
             _screenBar?.Update();
             // A room people walk in has no table to grab, draw or measure on.
-            _root.Q("toolBar")?.EnableInClassList(Hidden, TableGeometry.Walk);
+            _root.Q("toolDock")?.EnableInClassList(Hidden, TableGeometry.Walk);
             ShowWalkGuide();
             var seatsKey = $"{_table.LocalSeat}|{_table.Spectating}|{CurrentTurnSeat()}|{_table.Networked}|" +
                            (_session != null ? string.Join(",", _session.Occupants.Select(o => o.Key + "=" + o.Value + "=" + _session.NameOf(o.Value))) : "");

@@ -41,11 +41,12 @@ namespace TableWorld.View.Hud
             public string Detail = "";
 
             /// <summary>How far from passing (0 passes, 1 is nothing at all).</summary>
-            public float Severity => Needed <= 0f ? 0f : Mathf.Clamp01(1f - Value / Needed);
+            public float Severity => Kind == "overflow" ? 1f : Needed <= 0f ? 0f : Mathf.Clamp01(1f - Value / Needed);
 
             public override string ToString() =>
                 Kind == "contrast"
                     ? $"contrast {Value:0.0}:1 (needs {Needed:0.#}) {Where} \"{Text}\" {Detail}"
+                    : Kind == "overflow" ? $"overflow {-Value:0}px {Where} \"{Text}\" {Detail}"
                     : $"{Kind} {Value:0}px (needs {Needed:0}) {Where} \"{Text}\" {Detail}";
         }
 
@@ -82,6 +83,14 @@ namespace TableWorld.View.Hud
                         });
                 }
                 Edges(text, panel, plain, where, problems);
+                // A control spilling out of the bar or panel it sits in (cut off by the screen, or under its neighbour).
+                if (text.parent != null && Behind(text.parent, out _, out var container) && container != null && container != text)
+                {
+                    var box = container.worldBound;
+                    var spill = Mathf.Max(box.xMin - bounds.xMin, bounds.xMax - box.xMax, box.yMin - bounds.yMin, bounds.yMax - box.yMax);
+                    if (spill > 1f)
+                        problems.Add(new Problem { Kind = "overflow", Where = where, Text = Short(plain), Value = -spill, Needed = 0f, Detail = $"out of {Path(container)}" });
+                }
             }
             return problems.OrderByDescending(p => p.Severity).ThenBy(p => p.Where).ToList();
         }

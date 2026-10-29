@@ -26,6 +26,12 @@ namespace TableWorld.View.Chalkers
             public string LeftEye, RightEye;
             /// <summary>The holding (left) hand's thumb tip and index finger's middle joint: the cards are pinched between them.</summary>
             public string LeftThumbTip, LeftIndexTip;
+            /// <summary>
+            /// The free (right) hand's finger chains, base to tip (index, middle, ring, pinky), and its thumb, base to tip:
+            /// curled into a fist with the thumb up for a raised thumb. Empty: the hand keeps its shape.
+            /// </summary>
+            public string[][] RightFingers = new string[0][];
+            public string[] RightThumb = new string[0];
             public string[] InnerBrows, OuterBrows, Tail;
             /// <summary>Materials (by a part of their name) whose skin takes the seat's colour.</summary>
             public string[] Skin;
@@ -46,6 +52,12 @@ namespace TableWorld.View.Chalkers
                 RightThigh = "thigh_r", RightCalf = "calf_r", RightFoot = "foot_r",
                 LeftEye = "L_eye", RightEye = "R_eye",
                 LeftThumbTip = "thumb_03_l", LeftIndexTip = "index_02_l",
+                RightFingers = new[]
+                {
+                    new[] { "index_01_r", "index_02_r", "index_03_r" }, new[] { "middle_01_r", "middle_02_r", "middle_03_r" },
+                    new[] { "ring_01_r", "ring_02_r", "ring_03_r" }, new[] { "pinky_01_r", "pinky_02_r", "pinky_03_r" },
+                },
+                RightThumb = new[] { "thumb_01_r", "thumb_02_r", "thumb_03_r" },
                 InnerBrows = new[] { "C_brow_mid", "L_brow_mid", "R_brow_mid" },
                 OuterBrows = new[] { "L_brow_outer", "R_brow_outer" },
                 Tail = new[] { "tail1", "tail2", "tail3", "tail4" },
@@ -168,6 +180,7 @@ namespace TableWorld.View.Chalkers
                 _fingers[side] = tip == hand ? Vector3.up : hand.InverseTransformDirection(tip.position - hand.position).normalized;
                 _backOfHand[side] = Vector3.ProjectOnPlane(hand.InverseTransformDirection(_container.up), _fingers[side]).normalized;
             }
+            MeasureFist();
             BuildLids(renderers);
 
             // The eyes are mapped onto the head's texture (their pupils are painted there).
@@ -334,6 +347,10 @@ namespace TableWorld.View.Chalkers
                     // (CardsInHand), wherever the hand is.
                     // Out on its own side and forward at chest height: the card is in front of the shoulder, not the face.
                     target = root.TransformPoint(new Vector3(side == 0 ? -0.26f : 0.26f, 0.22f, 0.34f));
+                    // Asleep (eyes closed in a night or a ritual), nobody reads cards: the hand rests low at the table's edge,
+                    // so the only hand up is a raised thumb (Avalon's minions, seen by Merlin).
+                    if (chalker.EyesClosed)
+                        target = root.TransformPoint(new Vector3(side == 0 ? -0.22f : 0.22f, 0.07f, 0.36f));
                 }
                 // Resting on the table (seated, the hand down at the table's height, doing nothing else): the hand lies flat,
                 // palm down and fingers forward, lifted by its own thickness so it does not sink into the table.
@@ -346,7 +363,19 @@ namespace TableWorld.View.Chalkers
                 var pole = holds && Bone(upper) is { } upperBone
                     ? upperBone.position + (side == 0 ? -root.right : root.right) * 0.35f - root.up * 0.3f
                     : elbow - root.forward * 0.1f;
+                // A raised thumb: the fist up in front of the shoulder, at head height, the elbow out and down, where every
+                // face around the table sees it over the cards.
+                var thumbUp = side == 1 && chalker.ThumbUp && !chalker.Microphone && _fist && Bone(upper) != null;
+                if (thumbUp)
+                {
+                    var shoulder = Bone(upper).position;
+                    // Out to the side and up to the top of the head: clear of the head's outline from every chair.
+                    target = shoulder + root.forward * 0.2f + root.up * 0.24f + root.right * 0.13f;
+                    pole = shoulder + root.right * 0.4f - root.up * 0.3f - root.forward * 0.05f;
+                }
                 Reach(upper, lower, end, target, pole);
+                if (thumbUp)
+                    ThumbsUp(root);
                 // A holding hand keeps its wrist in line with the forearm, as the model was made: turning it to fit the fan
                 // twisted it.
                 if (rests && Bone(end) is { } flat)
@@ -394,6 +423,81 @@ namespace TableWorld.View.Chalkers
 
             Face(face, mouth, pupils, leftShut, rightShut, head);
             FaceDepth = root.InverseTransformPoint(Eyes).z;
+        }
+
+        // ---- the raised thumb (a fist, its thumb up) ------------------------------------------------------------------
+
+        private bool _fist;
+        /// <summary>The right hand's own axes, in its local space, measured on the bind pose: along the fingers, across the
+        /// hand toward the thumb's side, and out of the back of the hand.</summary>
+        private Vector3 _alongFingers, _towardThumb;
+        /// <summary>Which way a turn about the across axis curls the fingers into the palm (+1 or -1).</summary>
+        private float _curl = 1f;
+
+        /// <summary>Curl per joint, base to tip, in degrees: a loose, rounded fist.</summary>
+        private static readonly float[] CurlDegrees = { 78f, 92f, 62f };
+
+        /// <summary>
+        /// Reads the right hand on the bind pose (docs/dev/chalker-model.md): its fingers run from the wrist to their
+        /// knuckles, the thumb's side is from the little finger's knuckle to the index's, the palm is where the fingertips
+        /// bend. A rig without finger bones keeps its hand as it is.
+        /// </summary>
+        private void MeasureFist()
+        {
+            var hand = Bone(_rig.RightHand);
+            if (hand == null || _rig.RightFingers.Length < 2 || _rig.RightThumb.Length < 2)
+                return;
+            var index = _rig.RightFingers[0];
+            var pinky = _rig.RightFingers[_rig.RightFingers.Length - 1];
+            var middle = _rig.RightFingers[_rig.RightFingers.Length / 2];
+            if (Bone(index[0]) == null || Bone(pinky[0]) == null || Bone(middle[0]) == null || Bone(middle[middle.Length - 1]) == null)
+                return;
+            var along = (Bone(middle[0]).position - hand.position).normalized;
+            var across = Vector3.ProjectOnPlane(Bone(index[0]).position - Bone(pinky[0]).position, along).normalized;
+            _alongFingers = hand.InverseTransformDirection(along);
+            _towardThumb = hand.InverseTransformDirection(across);
+            // The way the fingertip bends from the line of its finger is toward the palm: turn the base joint a little and
+            // keep the sign that moves the tip that way.
+            var tip = Bone(middle[middle.Length - 1]);
+            var palm = Vector3.ProjectOnPlane(tip.position - Bone(middle[0]).position, along);
+            palm = palm.sqrMagnitude > 1e-8f ? Vector3.ProjectOnPlane(palm, across).normalized : -Vector3.Cross(along, across);
+            var baseJoint = Bone(middle[0]);
+            var rest = baseJoint.rotation;
+            var before = tip.position;
+            baseJoint.rotation = Quaternion.AngleAxis(30f, across) * rest;
+            _curl = Vector3.Dot(tip.position - before, palm) >= 0f ? 1f : -1f;
+            baseJoint.rotation = rest;
+            _fist = true;
+        }
+
+        /// <summary>
+        /// The right hand as a thumbs-up, after the arm reached: the hand turned so the knuckles face the table and the
+        /// thumb's side faces up, the four fingers curled into the palm, the thumb straightened upward.
+        /// </summary>
+        private void ThumbsUp(Transform root)
+        {
+            var hand = Bone(_rig.RightHand);
+            var fingers = (root.forward * 0.9f + root.right * 0.25f - root.up * 0.15f).normalized;
+            var up = Vector3.ProjectOnPlane(root.up, fingers).normalized;
+            var localAlong = _alongFingers;
+            var localAcross = Vector3.ProjectOnPlane(_towardThumb, localAlong).normalized;
+            hand.rotation = Quaternion.LookRotation(up, fingers) * Quaternion.Inverse(Quaternion.LookRotation(localAcross, localAlong));
+            var axis = hand.TransformDirection(_towardThumb).normalized;
+            foreach (var finger in _rig.RightFingers)
+                for (var i = 0; i < finger.Length; i++)
+                    if (Bone(finger[i]) is { } joint)
+                        joint.rotation = Quaternion.AngleAxis(_curl * CurlDegrees[Mathf.Min(i, CurlDegrees.Length - 1)], axis) * joint.rotation;
+            // The thumb straight up out of the fist, leaning a touch forward over the knuckles.
+            var thumb = _rig.RightThumb;
+            var point = (up + fingers * 0.2f).normalized;
+            var tipBone = Bone(thumb[thumb.Length - 1]);
+            for (var i = 0; i < thumb.Length - 1; i++)
+                if (Bone(thumb[i]) is { } joint && tipBone != null)
+                {
+                    var current = tipBone.position - joint.position;
+                    if (current.sqrMagnitude > 1e-8f)
+                        joint.rotation = Quaternion.FromToRotation(current, point) * joint.rotation;
+                }
         }
 
         /// <summary>How far ahead of the chalker's root the eyes are (as last posed): a raised hand of cards goes in front.</summary>

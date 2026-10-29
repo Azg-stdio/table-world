@@ -34,6 +34,8 @@ run through `python -I tools/unity/playmode_tests.py` (one `--filter` name per r
 | T13.16 | S | T13.8 | Zones that catch pieces: `catch` {tag, for}; a caught piece let go anywhere but the hand lands in its zone (its rules run, a refusal sends it back), and a beam and a glowing ring light the zone for the carrier while they hold it (Miguel 2026-10-29) | core `CatchZoneTests`; PlayMode `CatchGuideTests`; Avalon's vote spots and quest pile catch | P0 | done 2026-10-29 |
 | T13.17 | S | — | Avalon: the loyal get two Success cards and the minions a Success and a Fail, so hands look alike (Miguel 2026-10-29) | `AvalonPlayTests` over the protocol; the Success deck holds 15 | P0 | done 2026-10-29 |
 | T13.18 | S | — | A cursor pack for the table (grab, point, target-pick, wait) | Miguel brings a full licensed pack (the PixelRPGCursors Lite sample has two cursors and was set aside, Miguel 2026-10-29) | P2 | todo (waiting for a pack) |
+| T13.19 | S | — | A raised thumb reads as one on the worn model: the right hand made a fist from its measured bones (fingers curled into the palm, thumb straight up), held above the shoulder out to the side; a sleeper's cards rest low (Miguel 2026-10-29: at Merlin's step the hands were confusing) | `ThumbsUpTests`; renders from Merlin's chair | P0 | done 2026-10-29 |
+| T13.20 | S | T13.13 | The HUD folds: the top bar to the turn and the players (▲/▼), the table tools into a drawer behind a tab on the left edge that names the tool in hand; remembered per computer (Miguel 2026-10-29) | `UiAuditTests` audits the bar open and folded and the drawer open; the audit now flags controls that spill out of their bar | P0 | done 2026-10-29 |
 | T13.11 | ⚗ | T13.2–T13.6 | Avalon played through in the Editor with everything on, then over Relay with friends | Hot-seat playthrough with a driver script, console clean; playtest notes in this file | P0 | in progress (Editor playthrough of the ritual done; the Relay playtest is tonight) |
 
 Done checks are played like a player: load Avalon in the Editor, sit at a seat, run the ritual, watch and listen.
@@ -308,6 +310,12 @@ hangs). Record frame times (tavern vs game night) and anything left for Miguel t
   fade), red "Failed" at 4.1:1, the panel's fold button at 1.4:1, text 1 px inside the parchment's frame line, the
   banner's words 7 px into its wooden frame, faded seat chips at 2.8:1, and seat names coloured for parchment on the dark
   top bar. Coloured words are now adjusted by WCAG contrast against the label's real background.
+- **The thumbs-up** (T13.19) was an arm raised beside the head with the model's bind-pose hand: open, fingers splayed.
+  Reading the rig showed the hand's own axes (fingers along +x curling to −y, the thumb's side +z); the fist and the
+  thumb are now computed from those, for any rig with Unreal-style finger bones. Merlin's question "which hands are
+  up?" also needed the sleepers' card hands down, so a chalker with its eyes closed rests its cards at the table's edge.
+- **A stale table** explained Miguel's Merlin holding a Fail card: a game already running (or a save) keeps the script
+  it started with. `TheLoyal_HoldOnlySuccessCards_AndMinionsASuccessAndAFail` checks the deal in 36 games.
 - **Found while testing:** the music state's `index` 0 was not saved (its default was -1), so a client's copy of the
   table differed from the host's whenever a playlist started at its first track, and every client resynced. Fixed with
   `[DefaultValue(-1)]`; `TheMusic_CopiesOverTheWire_Exactly` guards it.
@@ -319,6 +327,7 @@ hangs). Record frame times (tavern vs game night) and anything left for Miguel t
 | 2026-10-29 | Tavern vs game night, Avalon with 5 seats, Medium preset, Editor Play mode, 17 s each (FrameStats) | Tavern: median 4.48 ms, avg 4.74–4.94, p95 5.32–6.36, 400–444 draw calls. Game night: median 4.41 ms, avg 4.66, p95 5.25, 530 draw calls. Tavern costs +0.07 ms median: within the 1 ms budget, so no Low-preset cut was needed |
 | 2026-10-29 | Importing AlkaKrab's Fantasy RPG Music Pack Vol.3 (907 MB zip) and 10 Ambient RPG Tracks (383 MB) with `import_music` | 4.5 s for both; 43 + 10 tracks kept as OGG, 107 MB + 48 MB in the library; lengths read from the OGG headers |
 | 2026-10-29 | Tests | core 586/586, MCP 21/21, PlayMode 199/199 after fixing the role line test (198/199 before) |
+| 2026-10-29 | Tests after the thumbs-up, resting sleepers and the folding HUD | core 590/590, MCP 21/21, PlayMode 205/205 |
 | 2026-10-29 | Tests after catching zones and the two-Success deal | core 589/589, MCP 21/21, PlayMode 204/204 |
 | 2026-10-29 | Tests after the UI audit, parchment crop and seated phases | core 586/586, MCP 21/21, PlayMode 201/202 with the known flaky karaoke screen test (UnityWebBrowser TitleChange), which passed alone |
 

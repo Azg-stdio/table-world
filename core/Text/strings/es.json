@@ -789,5 +789,9 @@
   "ui:Stop": "Detener",
   "ui:Tick that you may use this music (its licence allows it) to import it.": "Marca que puedes usar esta música (su licencia lo permite) para importarla.",
   "ui:Your music library is empty. Put music packs (zips or folders of MP3, OGG or WAV) in {folder}, or paste a path above, and import them. Only import music you may use.": "Tu biblioteca de música está vacía. Pon paquetes de música (zips o carpetas de MP3, OGG o WAV) en {folder}, o pega una ruta arriba, e impórtalos. Importa solo música que puedas usar.",
-  "ui:{pack} · {length} · {tags}": "{pack} · {length} · {tags}"
+  "ui:{pack} · {length} · {tags}": "{pack} · {length} · {tags}",
+  "ui:Show the whole bar": "Mostrar toda la barra",
+  "ui:Fold the bar to the turn and the players": "Plegar la barra al turno y los jugadores",
+  "ui:Hide the table tools": "Ocultar las herramientas de la mesa",
+  "ui:Table tools": "Herramientas de la mesa"
 }

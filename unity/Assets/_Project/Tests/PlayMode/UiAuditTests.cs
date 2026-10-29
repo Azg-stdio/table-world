@@ -66,8 +66,19 @@ namespace TableWorld.Tests.PlayMode
         private IEnumerator Start(string theme)
         {
             Assert.IsTrue(_table.Load(Avalon(theme), Path.Combine(Application.dataPath, "..", "..", "games")));
+            // The whole top bar and the tools' drawer open, then the bar folded to the turn and the players.
+            _hud.FoldTop(false);
+            _hud.OpenTools(true);
             yield return Settle();
-            Readable($"{theme}, before the start");
+            Readable($"{theme}, before the start, the bar and the tools open");
+            _hud.FoldTop(true);
+            yield return Settle();
+            Readable($"{theme}, before the start, the bar folded");
+            Assert.IsFalse(_root.Q<Label>("turnLabel").ClassListContains("hidden"));
+            Assert.IsTrue(_root.Q("topMore").ClassListContains("hidden"));
+            _hud.FoldTop(false);
+            _hud.OpenTools(false);
+            Assert.IsTrue(_root.Q("toolBar").ClassListContains("hidden"), "the closed drawer hides the tools");
             var start = new StartGameCommand { Language = "es" };
             start.Seats.AddRange(_table.Engine.State.Players.Seats.Take(5).Select(s => s.Id));
             Assert.IsTrue(_table.Execute(start).Ok);

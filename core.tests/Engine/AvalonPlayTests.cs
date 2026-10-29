@@ -140,6 +140,49 @@ namespace Core.Tests.Engine
                               $"actions per game median {actions[actions.Count / 2]}, max {actions[^1]}");
         }
 
+        /// <summary>
+        /// When a quest starts, every member of the team holds two quest cards: the loyal two Success (Merlin and Percival
+        /// too), a minion a Success and a Fail. Seen at every count, with and without the optional roles.
+        /// </summary>
+        [Fact]
+        public void TheLoyal_HoldOnlySuccessCards_AndMinionsASuccessAndAFail()
+        {
+            var quests = 0;
+            for (var players = 5; players <= 10; players++)
+                for (ulong seed = 1; seed <= 6; seed++)
+                {
+                    var optional = seed % 2 == 0 ? new[] { "percival", "morgana" } : new string[0];
+                    var game = Load(players, seed, out var scripts, optional);
+                    var chooser = new DeterministicRandom(seed * 7);
+                    var now = 0.0;
+                    var lastVisit = -1;
+                    for (var steps = 0; !game.Session!.Over && steps < 3000; steps++)
+                    {
+                        now += 2;
+                        scripts.Tick(now);
+                        var s = game.Session;
+                        if (s.Phase == "quest" && s.PhaseVisit != lastVisit && ((JArray)s.Variables["played"]!).Count == 0)
+                        {
+                            lastVisit = s.PhaseVisit;
+                            quests++;
+                            foreach (var seat in ((JArray)s.Variables["team"]!).Select(t => (string)t!))
+                            {
+                                var cards = game.Table.ObjectsIn("hand_" + Number(seat))
+                                    .Where(o => o.Tags.Contains("quest")).Select(o => TableEngine.OwnId(o).Split('_')[0]).OrderBy(c => c).ToList();
+                                var expected = game.TeamOf(seat) == "good" ? new[] { "success", "success" } : new[] { "fail", "success" };
+                                Assert.True(expected.SequenceEqual(cards),
+                                    $"{players} players seed {seed}: {seat} ({game.RoleOf(seat, null)}) holds [{string.Join(", ", cards)}]");
+                            }
+                        }
+                        var next = Next(game, chooser);
+                        if (next == null)
+                            break;
+                        game.Execute(next.Value.Command);
+                    }
+                }
+            Assert.True(quests > 50, $"only {quests} quests seen");
+        }
+
         [Fact]
         public void QuestSizes_FollowTheTable_AndGoodCannotFail()
         {

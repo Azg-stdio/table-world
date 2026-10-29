@@ -118,6 +118,8 @@ Everything below already passes automated tests on one machine (two processes, s
 - [ ] Ritual light and cues: when eyes close the room fades to cold darkness with a gong; the awake hear the drum and bells and the sleepers do not; eyes open brings the warm light and a chime; quest cards turn with drums and a sting for each Fail; nothing is too loud or repetitive.
 - [ ] Coloured names: seat names, Loyal/Minions, Approve/Reject and Success/Fail read in their colours in the game panel, the role line and the log, on the parchment panels too.
 - [ ] Zone outlines: the vote spots and hands stay hidden until someone carries a card, then show; right-click the felt → Show zones keeps them on.
+- [ ] Raised thumbs (Avalon, Merlin's step): from Merlin's chair each minion's thumb is a clear fist with the thumb up over its head, and no other hand is raised.
+- [ ] Folding the HUD: ▲ folds the top bar to the turn and the players, ▼ opens it again; the tab on the left opens and closes the table tools and names the tool in hand; both are remembered after a restart.
 - [ ] Chat: Enter, type, Enter: everyone sees it with your seat colour; `/roll 2d6` shows the same dice for everyone; the Log tab reads the same on every screen and never names a card someone could not see; typing never flips or moves anything.
 
 **After the session**

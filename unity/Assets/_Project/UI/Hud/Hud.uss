@@ -1380,10 +1380,57 @@
 }
 
 /* Left-button tools (G28): a column at the left edge; the active one is lit. */
-.tool-bar {
+/* The table tools are a drawer on the left edge: a tab opens and closes it (M12). */
+.tool-dock {
     position: absolute;
     left: 12px;
     top: 38%;
+    flex-direction: row;
+    align-items: flex-start;
+}
+
+.tool-drawer {
+    margin: 0 0 0 4px;
+    padding: 10px 6px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    background-color: rgba(16, 18, 22, 0.82);
+    color: rgb(240, 236, 226);
+    font-size: 14px;
+}
+
+.tool-drawer:hover {
+    background-color: rgb(66, 76, 92);
+}
+
+.theme-parchment .tool-drawer {
+    background-color: rgba(44, 28, 16, 0.94);
+    border-color: rgb(150, 110, 50);
+    color: rgb(250, 238, 210);
+}
+
+/* What the top bar shows besides the turn and the players: folded away with its fold button. */
+.top-more {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.top-more > * {
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.top-fold {
+    flex-shrink: 0;
+    min-width: 30px;
+}
+
+.tool-bar {
     padding: 4px;
     border-radius: 6px;
     background-color: rgba(16, 18, 22, 0.82);
