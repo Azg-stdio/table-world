@@ -85,8 +85,10 @@ it (`Chalker.ReachFor`, within 1.1 m). Other players' chalkers reach for what th
 ## Holding cards
 
 Another player's chalker holds that seat's cards in a fan (`HandHold`) in its left hand, the right one free (it rests,
-reaches, raises a thumb), instead of standing them at its hand zone. The holding hand keeps its wrist as the model was
-made, the fingers along the forearm closing over the fan's foot: turning the wrist to fit the fan twisted it.
+reaches, raises a thumb), instead of standing them at its hand zone. The arm is posed first, wrist raised at chest height
+on the hand's own side so the forearm rises and the hand, left as the model was made, points its fingers up; then the
+cards are put in those fingers, on the side facing the eyes (`ChalkerModel.CardsInHand`). Moving the hand to the cards
+left it hanging under them or twisted it.
 The cards stay in the hand zone as far as the rules are concerned: this is view only, like the TTS stand it replaces.
 `TableView.HoldHand` places each card every frame, at the render rate, so cards move with the hands. A seat nobody sits
 in keeps its cards standing at the zone, and so does yours, always: read from above, TTS style, with the hand bar. The

@@ -477,6 +477,9 @@ namespace TableWorld.View.Chalkers
             var mouth = _mouthFollower.Update(level, dt);
             _face.Draw(face, mouth, pupils, EyesShut.Left, EyesShut.Right);
             _model?.Follow(this, face, mouth, pupils, EyesShut.Left, EyesShut.Right, dt);
+            // A worn model's hand is where the model put it: the cards go into it, not the hand to the cards.
+            if (_model != null && CardHold is { } held && _model.CardsInHand(held) is { } inHand)
+                CardHold = inHand;
             HoldMic();
         }
 

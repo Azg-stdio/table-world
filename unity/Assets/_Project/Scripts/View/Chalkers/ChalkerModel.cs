@@ -326,8 +326,10 @@ namespace TableWorld.View.Chalkers
                 if (holds)
                 {
                     var grip = chalker.CardHold.Value;
-                    // The fan is held on the left hand's own side (no arm across the chest); the wrist just below its foot.
-                    target = grip.Grip - grip.Up * (_handLength[side] * 0.5f);
+                    // The wrist up at chest height on the hand's own side, the elbow below: the forearm rises, so the hand,
+                    // left as the model was made, points its fingers up. The cards are then put in those fingers
+                    // (CardsInHand), wherever the hand is.
+                    target = grip.Grip + root.up * 0.08f - root.forward * 0.05f;
                 }
                 // Resting on the table (seated, the hand down at the table's height, doing nothing else): the hand lies flat,
                 // palm down and fingers forward, lifted by its own thickness so it does not sink into the table.
@@ -403,6 +405,24 @@ namespace TableWorld.View.Chalkers
             var end = Bone(endName);
             if (upper != null && lower != null && end != null)
                 TwoBoneIk.Solve(upper, lower, end, target, pole, -_container.up, _container.forward);
+        }
+
+        /// <summary>
+        /// The hold moved into the left hand as posed (after <see cref="Follow"/>): the cards' foot between its fingers,
+        /// standing up along them, their faces still toward the holder's eyes. Null when the rig has no left hand.
+        /// </summary>
+        public HandHold? CardsInHand(HandHold hold)
+        {
+            var palm = Bone(_rig.LeftHand);
+            if (palm == null)
+                return null;
+            var fingers = palm.TransformDirection(_fingers[0]).normalized;
+            // A card stands more upright than the fingers point: half of up mixed in.
+            var up = (fingers + _container.up * 0.8f).normalized;
+            // On the side of the fingers that faces the holder: the fingers behind the cards, not through them.
+            var toward = Vector3.ProjectOnPlane(hold.Face, fingers).normalized;
+            var grip = palm.position + fingers * (_handLength[0] * 0.55f) + toward * (_handLength[0] * 0.22f);
+            return new HandHold(grip, up, hold.Face);
         }
 
         /// <summary>Midway between the eyes as posed (the first-person camera sits there).</summary>
