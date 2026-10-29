@@ -1,0 +1,10 @@
+Aquilarius Retro Textures (128 x 128 tileable textures)
+
+Licence: CC0 1.0 Universal (public domain dedication), per the project owner (Miguel), 2026-10-29.
+
+Files used, renamed from the pack's numbering:
+  Resources/Tavern/wall-brick.png  <- t12.png
+  Resources/Tavern/planks.png      <- t33.png
+  Resources/Tavern/beams.png       <- t7.png
+  Resources/Tavern/cobbles.png     <- t11.png
+They dress the tavern room (EnvironmentView.Tavern.cs). The rest of the pack is not in the repository.

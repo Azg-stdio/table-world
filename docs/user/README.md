@@ -14,6 +14,7 @@
 | [Social games](social-games.md) | Hidden roles, votes, nights, winks: playing them, hosting fairly, and the pieces to build your own |
 | [Languages](languages.md) | Playing in your language, picking a game's language, translating a game (with your agent or by hand), and adding a language to Table World |
 | [Preparing your assets](preparing-assets.md) | Card sheets and the image size limit, tokens, tiles, boards and dice, 3D models (scale, origin, triangles, collision), sounds and PDFs, where the files live |
+| [Music](music.md) | Your music library (importing packs, listening), a game's playlists and sound cues, and what friends receive while playing |
 | [Rules and scripting](rules-and-scripting.md) | The rules format in game terms, using War and UNO-lite, and Lua scripting: events, script UI, the sandbox, differences from TTS |
 | Example briefs: [War](examples/war-brief.md), [Match the Pile](examples/uno-lite-brief.md) | The template filled in for the two sample rulebooks |
 

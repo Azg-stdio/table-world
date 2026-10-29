@@ -64,6 +64,19 @@ namespace TableWorld.View.Hud
         private Label _sleepText;
         private VisualElement _phaseBar;
         private Label _phaseBanner;
+
+        public const string ParchmentTheme = "theme-parchment";
+
+        /// <summary>The game panel's latest lines as the engine wrote them, before their names are coloured.</summary>
+        private string _logPlain = "";
+
+        /// <summary>
+        /// A line of the game with its seats, teams, roles and vote options in their colours (M12, <see cref="Highlights"/>),
+        /// readable on the panel of the table's theme.
+        /// </summary>
+        public string Rich(string plain) =>
+            string.IsNullOrEmpty(plain) || _table?.Engine == null ? plain ?? ""
+                : Highlights.Colorize(_table.Engine.State, plain, _table.Engine.State.Environment?.Theme == HudTheme.Parchment);
         private Label _phaseTimer;
         private Button _phaseNext;
         /// <summary>Optional roles ticked for the next start, by table (a new table starts with none).</summary>
@@ -110,6 +123,7 @@ namespace TableWorld.View.Hud
         public SaveLibrary Saves => _saves;
         public SavesPanel SavesPanel => _savesPanel;
         private PlayersPanel _players;
+        private MusicPanel _music;
 
         /// <summary>Everyone at a hosted table, with the host's controls (G23).</summary>
         public PlayersPanel Players => _players;
@@ -217,6 +231,9 @@ namespace TableWorld.View.Hud
             {
                 _chat = new ChatPanel(_root, _table, _session);
                 _players = new PlayersPanel(_root, _table, _session);
+                _music = new MusicPanel(_root, _table);
+                if (_table.GetComponent<MusicPlayerView>() is { } player)
+                    player.TrackStarted += title => ShowStatus(Ui.T("Music: {title}", ("title", title)), error: false);
                 _emoteWheel = new EmoteWheel(_root, emote =>
                 {
                     _session?.Emote(emote.ToString());
@@ -500,6 +517,8 @@ namespace TableWorld.View.Hud
                 _gamesPanel.AddToClassList(Hidden);
             else if (_players != null && _players.Visible)
                 _players.Hide();
+            else if (_music != null && _music.Visible)
+                _music.Hide();
             else if (_savesPanel != null && _savesPanel.Visible)
                 CloseSaves();
             else if (_agent != null && _agent.Visible)
@@ -705,6 +724,7 @@ namespace TableWorld.View.Hud
             // While a calculator is selected, Enter is its = key, not the chat.
             _chat?.Update(TypingInUi() || (_interaction != null && (_interaction.IgnoreDevices || _interaction.Selected?.Model is Calculator)));
             _players?.Update();
+            _music?.Update();
             _notes?.Update();
             _reader?.Update();
             _emoteWheel?.Update(TypingInUi() || (_interaction != null && _interaction.IgnoreDevices));
@@ -1074,10 +1094,11 @@ namespace TableWorld.View.Hud
             _phaseBar?.EnableInClassList(Hidden, phase == null || !hostEnds && banner == null);
             if (phase == null || _phaseBar == null)
                 return;
-            _phaseBanner.text = banner ?? "";
+            _phaseBanner.text = Rich(banner ?? "");
             _phaseBanner.EnableInClassList(Hidden, banner == null);
             _phaseNext.EnableInClassList(Hidden, !hostEnds || !_table.HostsTable);
             _phaseTimer.EnableInClassList(Hidden, timed == 0);
+            _root.Q("phaseCandle")?.EnableInClassList(Hidden, timed == 0);
             var key = (phase.Id, session.PhaseVisit);
             if (key != _timedPhase)
             {
@@ -1139,6 +1160,8 @@ namespace TableWorld.View.Hud
                     .Where(l => state.Actions.FirstOrDefault(a => a.Id == l.Action.ActionId) is { Button: true, OnPlayer: false }).ToList()
                 : new List<(string Seat, LegalAction Action)>();
             var turns = state.FreeTurns;
+            // The table's look for the panels (M12): parchment for a medieval game, the dark glass otherwise.
+            _root.EnableInClassList(ParchmentTheme, state.Environment?.Theme == HudTheme.Parchment);
             // Another table loaded (even one that looks the same) redraws: its toggles and buttons are its own.
             var key = $"{System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(game)}|{state.HasRules}|{session?.Turn}|{session?.Phase}|{session?.CurrentSeat}|{session?.Over}|{session?.LogTotal}|{session?.Log.Count}|" +
                       $"{turns?.Current}|{turns?.Count}|{turns?.Reverse}|{_table.LocalSeat}|{string.Join(",", SeatedSeats())}|" +
@@ -1155,6 +1178,7 @@ namespace TableWorld.View.Hud
                 : Ui.T("Turn {turn} · {phaseName} · {currentSeat}", ("turn", session.Turn), ("phaseName", PhaseName(state, session.Phase)), ("currentSeat", Names.Seat(state, session.CurrentSeat)));
             // A long turn line is cut short in the bar; the whole of it is on hover.
             _turnLabel.tooltip = _turnLabel.text;
+            _turnLabel.text = Rich(_turnLabel.text);
 
             _gameActions.Clear();
             if (!state.HasRules)
@@ -1170,10 +1194,11 @@ namespace TableWorld.View.Hud
             _gamePanel.RemoveFromClassList(Hidden);
             var role = _table.LocalSeat == null ? new List<string>() : GameEngine.RoleLines(state, _table.LocalSeat);
             role.AddRange(VoteLines(game));
-            _gameRole.text = string.Join("\n", role);
+            _gameRole.text = Rich(string.Join("\n", role));
             _gameRole.EnableInClassList(Hidden, role.Count == 0);
-            _gameLog.text = LatestLogLines(session);
-            _gameLog.EnableInClassList(Hidden, string.IsNullOrEmpty(_gameLog.text));
+            _logPlain = LatestLogLines(session);
+            _gameLog.text = Rich(_logPlain);
+            _gameLog.EnableInClassList(Hidden, string.IsNullOrEmpty(_logPlain));
             if (session == null)
             {
                 AddStartButtons(state);
@@ -1294,7 +1319,7 @@ namespace TableWorld.View.Hud
                 return session.Log.LastOrDefault() ?? "";
             }
             if (total == _logShown)
-                return _gameLog.text;
+                return _logPlain;
             var added = Math.Min(total - _logShown, Math.Min(session.Log.Count, MaxLogLines));
             _logShown = total;
             return string.Join("\n", session.Log.Skip(session.Log.Count - added));

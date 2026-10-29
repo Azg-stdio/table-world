@@ -1,0 +1,5 @@
+Grimoire parchment (Grimoire0.png, 3000 x 3000)
+
+Licence: CC0 1.0 Universal (public domain dedication), per the project owner (Miguel), 2026-10-29.
+
+parchment.png is the original scaled down to 1024 x 1024. It is the background of the parchment theme's panels (Hud.uss).

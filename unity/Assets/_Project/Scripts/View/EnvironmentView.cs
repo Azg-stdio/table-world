@@ -22,7 +22,7 @@ namespace TableWorld.View
     /// replace the chairs (<see cref="Chalkers.ChalkersView"/>).
     /// </para>
     /// </summary>
-    public sealed class EnvironmentView : MonoBehaviour
+    public sealed partial class EnvironmentView : MonoBehaviour
     {
         // Game night defaults (linear colours, URP non-physical intensities).
         public static readonly Color DefaultWall = new Color(0.16f, 0.12f, 0.1f);
@@ -84,6 +84,7 @@ namespace TableWorld.View
 
         private void LateUpdate()
         {
+            FaceFlames();
             if (_fixture == null || _camera == null)
                 return;
             var above = _camera.transform.position.y > LampHeight;
@@ -218,8 +219,9 @@ namespace TableWorld.View
             _room = null;
             _lamp = null;
             _tableLight = null;
-            _sideLights.Clear();
-            _fill = null;
+            _lights.Clear();
+            _flames.Clear();
+            _flickers = false;
             _screen = null;
             _stage = null;
             _accents.Clear();
@@ -230,77 +232,233 @@ namespace TableWorld.View
             var karaoke = env.Room == RoomPreset.Karaoke && env.RoomAsset == null;
             var wall = ToColor(env.WallColor, karaoke ? KaraokeWall : DefaultWall);
             var floor = ToColor(env.FloorColor, karaoke ? KaraokeFloor : DefaultFloor);
-            var gameNight = (env.Room == RoomPreset.GameNight || karaoke) && env.RoomAsset == null;
+            var tavern = env.Room == RoomPreset.Tavern && env.RoomAsset == null;
+            if (tavern)
+            {
+                wall = ToColor(env.WallColor, TavernWall);
+                floor = ToColor(env.FloorColor, TavernFloor);
+            }
+            var gameNight = (env.Room == RoomPreset.GameNight || karaoke || tavern) && env.RoomAsset == null;
+            UsePresetLight(tavern);
+            _tavern = tavern;
             if (gameNight)
-                BuildGameNight(wall, floor);
+                BuildGameNight(wall, floor, tavern);
             if (karaoke)
                 BuildKaraoke();
+            if (tavern)
+                BuildTavern(wall, floor);
+            foreach (var light in _lights)
+                _flickers |= light.Flicker > 0f;
             if (_camera != null)
                 _camera.backgroundColor = wall * 0.5f;
             ApplySky(env);
 
             _gameNight = gameNight;
-            ApplyLighting();
+            _roomNow = _tableNow = new Vector4(1, 1, 1, 1);
+            ApplyLighting(true);
             // Without a room the old directional light keeps the table readable.
             if (_sun != null)
                 _sun.enabled = !gameNight;
 
             DressTable(env.Table);
+            ApplyLook(env.Look, tavern);
+        }
+
+        // ---- the room's post-processing (M12, T13.12) ------------------------------------------------------------------
+
+        /// <summary>The tavern's look: soft dark edges and flames that glow; no fog (it dimmed the flames and the hearth, M12 record).</summary>
+        public const float TavernFog = 0f, TavernVignette = 0.5f, TavernBloom = 0.5f;
+        public static readonly Color TavernFogColor = new Color(0.06f, 0.04f, 0.03f);
+
+        /// <summary>Fog density (exponential squared) at fog 1: the table, a metre or two away, loses 3 % at 0.5; the walls a third.</summary>
+        public const float MaxFogDensity = 0.22f;
+        /// <summary>Bloom starts far above white: only flames and lamps (HDR, several times white) glow, never a lit card.</summary>
+        public const float BloomThreshold = 2.5f;
+
+        private Volume _roomLook;
+        private VolumeProfile _roomProfile;
+
+        /// <summary>The look in force (tests read it): fog density, vignette and bloom intensities.</summary>
+        public (float Fog, float Vignette, float Bloom) Look { get; private set; }
+
+        private void ApplyLook(LookDef look, bool tavern)
+        {
+            var fog = Mathf.Clamp01(look?.Fog ?? (tavern ? TavernFog : 0f));
+            var vignette = Mathf.Clamp01(look?.Vignette ?? (tavern ? TavernVignette : 0f));
+            var bloom = Mathf.Clamp01(look?.Bloom ?? (tavern ? TavernBloom : 0f));
+            RenderSettings.fog = fog > 0f;
+            RenderSettings.fogMode = FogMode.ExponentialSquared;
+            RenderSettings.fogDensity = fog * MaxFogDensity;
+            RenderSettings.fogColor = ToColor(look?.FogColor, tavern ? TavernFogColor : _camera != null ? _camera.backgroundColor : Color.black);
+            if (_roomLook == null)
+            {
+                var go = new GameObject("Room Look");
+                go.transform.SetParent(transform, false);
+                _roomLook = go.AddComponent<Volume>();
+                _roomLook.isGlobal = true;
+                _roomLook.priority = 1f;
+                _roomProfile = ScriptableObject.CreateInstance<VolumeProfile>();
+                _roomProfile.name = "Room look";
+                _roomLook.sharedProfile = _roomProfile;
+            }
+            if (!_roomProfile.TryGet<Vignette>(out var edges))
+                edges = _roomProfile.Add<Vignette>(true);
+            edges.intensity.Override(0.32f * vignette);
+            edges.smoothness.Override(0.45f);
+            edges.color.Override(Color.black);
+            if (!_roomProfile.TryGet<Bloom>(out var glow))
+                glow = _roomProfile.Add<Bloom>(true);
+            glow.threshold.Override(BloomThreshold);
+            glow.intensity.Override(1.2f * bloom);
+            glow.scatter.Override(0.65f);
+            _roomLook.enabled = vignette > 0f || bloom > 0f;
+            Look = (RenderSettings.fogDensity, edges.intensity.value, glow.intensity.value);
         }
 
         private bool _gameNight;
-        private readonly System.Collections.Generic.List<Light> _sideLights = new System.Collections.Generic.List<Light>();
-        private Light _fill;
         private const float FillIntensity = 0.7f;
         private static readonly Color FillColor = new Color(1f, 0.8f, 0.6f);
 
+        // The preset's own light, before a game's overrides (game night's, or the tavern's).
+        private Color _ambient, _lampColor, _tableLightColor;
+        private float _ambientIntensity, _lampIntensity, _tableLightIntensity;
+
+        private void UsePresetLight(bool tavern)
+        {
+            _ambient = tavern ? TavernAmbient : DefaultAmbient;
+            _ambientIntensity = tavern ? TavernAmbientIntensity : DefaultAmbientIntensity;
+            _lampColor = tavern ? TavernLamp : DefaultLamp;
+            _lampIntensity = tavern ? TavernLampIntensity : DefaultLampIntensity;
+            _tableLightColor = tavern ? TavernTableLight : DefaultTableLight;
+            _tableLightIntensity = tavern ? TavernTableLightIntensity : DefaultTableLightIntensity;
+        }
+
+        /// <summary>What a room light is, for its base colour and intensity and whether a room tint colours it.</summary>
+        private enum LightKind { Lamp, TableLight, Side, Fill, Accent, Stage, Flame }
+
+        /// <summary>
+        /// A light the room drives: its base colour and intensity (the preset's, or the game's for the lamp and the table
+        /// light), whether it belongs to the room or the table, and how it flickers (candles, a fire). Every frame its
+        /// light shows base × the current scale and tint of its part × its flicker.
+        /// </summary>
+        private sealed class RoomLight
+        {
+            public Light Light;
+            public LightKind Kind;
+            public Color Color;
+            public float Intensity;
+            public bool Room;
+            public bool Tinted = true;
+            /// <summary>How deep the flicker goes (0 none, 0.12 a candle) and how fast (noise per second).</summary>
+            public float Flicker;
+            public float Speed = 6f;
+            public float Seed;
+            /// <summary>Flame sprites that grow and dim with this light's flicker (null for none).</summary>
+            public Transform Flame;
+            public Vector3 FlameScale;
+        }
+
+        private readonly List<RoomLight> _lights = new List<RoomLight>();
+
+        /// <summary>The current and target scale (w) and tint (rgb) of the room's lights and of the table's.</summary>
+        private Vector4 _roomNow = new Vector4(1, 1, 1, 1), _roomFrom = new Vector4(1, 1, 1, 1), _roomTarget = new Vector4(1, 1, 1, 1);
+        private Vector4 _tableNow = new Vector4(1, 1, 1, 1), _tableFrom = new Vector4(1, 1, 1, 1), _tableTarget = new Vector4(1, 1, 1, 1);
+        private float _fadeSeconds;
+        private float _fadeTime = 1f;
+
+        /// <summary>True while a light change is still fading in (tests read it).</summary>
+        public bool Fading => _fadeTime < 1f;
+
+        private RoomLight Register(Light light, LightKind kind, bool room, Color color, float intensity)
+        {
+            var entry = new RoomLight { Light = light, Kind = kind, Room = room, Color = color, Intensity = intensity };
+            _lights.Add(entry);
+            return entry;
+        }
+
         /// <summary>
         /// Light: the room preset, then the game's overrides, then its scales and tint (TTS <c>Lighting</c>, which a script
-        /// may change while playing).
+        /// may change while playing). A change while playing fades over <see cref="LightingDef.Fade"/> seconds; a table that
+        /// loads (<paramref name="instant"/>) shows its light at once.
         /// </summary>
-        public void ApplyLighting()
+        public void ApplyLighting() => ApplyLighting(false);
+
+        public void ApplyLighting(bool instant)
         {
             var lighting = (_table != null && _table.Engine != null ? _table.Engine.State.Environment : null)?.Lighting ?? new LightingDef();
             var scale = lighting.LightScale ?? 1f;
             var tint = lighting.LightTint is { Length: 3 } t ? new Color(t[0], t[1], t[2]) : Color.white;
             // Each light alone, on top of the TTS scale and tint: the room (lamp, fill) and the table (felt, pieces).
             Color Tint(float[] c) => c is { Length: 3 } ? new Color(c[0], c[1], c[2]) : Color.white;
-            var roomScale = scale * (lighting.RoomScale ?? 1f);
             var roomTint = tint * Tint(lighting.RoomTint);
-            var tableScale = scale * (lighting.TableScale ?? 1f);
             var tableTint = tint * Tint(lighting.TableTint);
+            var roomTarget = new Vector4(roomTint.r, roomTint.g, roomTint.b, scale * (lighting.RoomScale ?? 1f));
+            var tableTarget = new Vector4(tableTint.r, tableTint.g, tableTint.b, scale * (lighting.TableScale ?? 1f));
             RenderSettings.ambientMode = AmbientMode.Flat;
             // Indoors, shiny and metal pieces reflect the room (its probe), not the default sky, which tints them cyan.
             RenderSettings.reflectionIntensity = 1f;
-            RenderSettings.ambientLight = ToColor(lighting.AmbientColor, DefaultAmbient)
-                * (lighting.AmbientIntensity ?? (_gameNight ? DefaultAmbientIntensity : 1f)) * (lighting.AmbientScale ?? 1f);
-            if (_lamp != null)
-            {
-                _lamp.color = ToColor(lighting.LampColor, DefaultLamp) * roomTint;
-                _lamp.intensity = (lighting.LampIntensity ?? DefaultLampIntensity) * roomScale;
-            }
-            if (_tableLight != null)
-            {
-                _tableLight.color = ToColor(lighting.TableLightColor, DefaultTableLight) * tableTint;
-                _tableLight.intensity = (lighting.TableLightIntensity ?? DefaultTableLightIntensity) * (_bigTable ? DirectionalShare : 1f) * tableScale;
-            }
-            foreach (var side in _sideLights)
-                if (side != null)
+            RenderSettings.ambientLight = ToColor(lighting.AmbientColor, _ambient)
+                * (lighting.AmbientIntensity ?? (_gameNight ? _ambientIntensity : 1f)) * (lighting.AmbientScale ?? 1f);
+            foreach (var light in _lights)
+                switch (light.Kind)
                 {
-                    side.color = DefaultTableLight * tableTint;
-                    side.intensity = SideLightIntensity * tableScale;
+                    case LightKind.Lamp:
+                        light.Color = ToColor(lighting.LampColor, _lampColor);
+                        light.Intensity = lighting.LampIntensity ?? _lampIntensity;
+                        break;
+                    case LightKind.TableLight:
+                        light.Color = ToColor(lighting.TableLightColor, _tableLightColor);
+                        light.Intensity = (lighting.TableLightIntensity ?? _tableLightIntensity) * (_bigTable ? DirectionalShare : 1f);
+                        break;
+                    case LightKind.Side:
+                        light.Color = ToColor(lighting.TableLightColor, _tableLightColor);
+                        break;
                 }
-            if (_fill != null)
-            {
-                _fill.color = FillColor * roomTint;
-                _fill.intensity = FillIntensity * roomScale;
-            }
-            foreach (var accent in _accents)
-                if (accent != null)
-                    accent.intensity = AccentIntensity * roomScale;
-            if (_stage != null)
-                _stage.intensity = StageLightIntensity * roomScale;
+            _fadeSeconds = instant ? 0f : Mathf.Clamp(lighting.Fade ?? LightingDef.DefaultFade, 0f, 30f);
+            _roomFrom = _roomNow;
+            _tableFrom = _tableNow;
+            _roomTarget = roomTarget;
+            _tableTarget = tableTarget;
+            _fadeTime = 0f;
+            StepLights(0f);
         }
+
+        private void Update() => StepLights(Time.deltaTime);
+
+        /// <summary>Moves the fade on by <paramref name="delta"/> seconds and writes every light (and flame) of the room.</summary>
+        private void StepLights(float delta)
+        {
+            if (_fadeTime < 1f)
+            {
+                _fadeTime = _fadeSeconds <= 0f ? 1f : Mathf.Min(1f, _fadeTime + delta / _fadeSeconds);
+                var k = Mathf.SmoothStep(0f, 1f, _fadeTime);
+                _roomNow = Vector4.Lerp(_roomFrom, _roomTarget, k);
+                _tableNow = Vector4.Lerp(_tableFrom, _tableTarget, k);
+            }
+            else if (!_flickers)
+                return;
+            var time = Time.time;
+            foreach (var light in _lights)
+            {
+                if (light.Light == null)
+                    continue;
+                var part = light.Room ? _roomNow : _tableNow;
+                var flicker = 1f;
+                if (light.Flicker > 0f)
+                    flicker = 1f + light.Flicker * (Mathf.PerlinNoise(time * light.Speed + light.Seed, light.Seed * 1.7f) * 2f - 1f);
+                light.Light.intensity = light.Intensity * part.w * flicker;
+                light.Light.color = light.Tinted ? light.Color * new Color(part.x, part.y, part.z) : light.Color;
+                if (light.Flame != null)
+                {
+                    // A flame stays lit in the dark (a candle burns whatever the room), a little smaller.
+                    var size = Mathf.Lerp(0.75f, 1f, Mathf.Clamp01(part.w)) * (0.85f + 0.15f * flicker);
+                    light.Flame.localScale = light.FlameScale * size;
+                }
+            }
+        }
+
+        /// <summary>Some light flickers (a candle, a fire): the lights are written every frame, not only while fading.</summary>
+        private bool _flickers;
 
         private const float AccentIntensity = 1.4f;
 
@@ -363,6 +521,7 @@ namespace TableWorld.View
                 accent.shadows = LightShadows.None;
                 SetLayers(accent, RoomLayers);
                 _accents.Add(accent);
+                Register(accent, LightKind.Accent, true, color, AccentIntensity).Tinted = false;
             }
 
             // The stage light lights the singer (a piece-layer chalker) and their sofa (also on the pieces layer).
@@ -378,6 +537,7 @@ namespace TableWorld.View
             _stage.shadows = LightShadows.None;
             SetLayers(_stage, PiecesLayers | RoomLayers);
             _stage.enabled = false;
+            Register(_stage, LightKind.Stage, true, _stage.color, StageLightIntensity).Tinted = false;
 
             // Where people walk: sofas facing the screen instead of a table.
             if (TableGeometry.Walk)
@@ -428,7 +588,7 @@ namespace TableWorld.View
             }
         }
 
-        private void BuildGameNight(Color wall, Color floor)
+        private void BuildGameNight(Color wall, Color floor, bool tavern = false)
         {
             _room = new GameObject("Room (game night)");
             _room.transform.SetParent(transform, false);
@@ -467,7 +627,8 @@ namespace TableWorld.View
             foreach (var (x, z) in TableGeometry.Hidden ? new (float, float)[0] : new[] { (lx, lz), (-lx, lz), (lx, -lz), (-lx, -lz) })
                 Box("Leg", new Vector3(x, legTop - legHeight / 2f, z), new Vector3(0.07f, legHeight, 0.07f), DefaultWood * 0.8f, 0.3f);
 
-            // The lamp: a shade over the table and a warm spot that lights the whole table and casts soft shadows.
+            // The lamp: a shade over the table and a warm spot that lights the whole table and casts soft shadows. The tavern
+            // hangs a chandelier of candles instead (BuildTavern), with the same light.
             var shade = Cone("Lamp Shade", new Vector3(0f, LampHeight + 0.08f, 0f), 0.22f, 0.16f, new Color(0.12f, 0.1f, 0.08f));
             _fixture = shade;
             Box("Lamp Cord", new Vector3(0f, (LampHeight + 0.16f + CeilingY) / 2f, 0f), new Vector3(0.008f, CeilingY - LampHeight - 0.16f, 0.008f), new Color(0.05f, 0.05f, 0.05f), 0f);
@@ -494,6 +655,18 @@ namespace TableWorld.View
                         part.gameObject.SetActive(false);
             }
 
+            if (tavern)
+            {
+                // Renamed first: Destroy waits for the frame's end, and the fixture parts are gathered by name below.
+                foreach (Transform part in _room.transform)
+                    if (part.name == "Lamp Cord" || part.name == "Lamp Shade")
+                    {
+                        part.name = "Removed";
+                        Object.Destroy(part.gameObject);
+                    }
+                _fixture = null;
+            }
+
             _fixtureParts.Clear();
             foreach (Transform part in _room.transform)
                 if (part.name == "Lamp Cord" || part.name == "Lamp Shade")
@@ -512,6 +685,7 @@ namespace TableWorld.View
             _lamp.shadowNearPlane = 0.1f;
             // The lamp lights the room only, but everything (the table, the pieces) still casts its shadow on the floor.
             SetLayers(_lamp, RoomLayers);
+            Register(_lamp, LightKind.Lamp, true, _lampColor, _lampIntensity);
             var lampData = _lamp.GetUniversalAdditionalLightData();
             lampData.customShadowLayers = true;
             lampData.shadowRenderingLayers = uint.MaxValue;
@@ -529,6 +703,7 @@ namespace TableWorld.View
             _tableLight.shadowStrength = 0.8f;
             _tableLight.shadowNearPlane = 0.1f;
             SetLayers(_tableLight, PiecesLayers);
+            Register(_tableLight, LightKind.TableLight, false, _tableLightColor, _tableLightIntensity);
             Settings.GraphicsPresets.ApplyLights(_lamp, _tableLight);
 
             // A big table (an imported TTS game) is lit evenly from above, as TTS lights it: the lamp's spot reaches
@@ -554,7 +729,7 @@ namespace TableWorld.View
                 side.color = DefaultTableLight;
                 side.shadows = LightShadows.None;
                 SetLayers(side, PiecesLayers);
-                _sideLights.Add(side);
+                Register(side, LightKind.Side, false, DefaultTableLight, SideLightIntensity);
             }
 
             // A faint warm fill so the far side of the table and the room are not black.
@@ -568,7 +743,7 @@ namespace TableWorld.View
             fill.color = FillColor;
             fill.shadows = LightShadows.None;
             SetLayers(fill, RoomLayers);
-            _fill = fill;
+            Register(fill, LightKind.Fill, true, FillColor, FillIntensity);
         }
 
         /// <summary>Felt colour or image, wood colour; per-instance materials so the shared material assets stay untouched.</summary>
@@ -623,13 +798,15 @@ namespace TableWorld.View
                 if (renderer.name == "Surface")
                 {
                     var felt = renderer.material;
-                    felt.color = ToColor(look.FeltColor, look.FeltAsset != null ? Color.white : DefaultFelt);
-                    felt.mainTexture = look.FeltAsset != null ? _table.Assets?.Texture(look.FeltAsset) : null;
-                    felt.mainTextureScale = Vector2.one;
+                    // The tavern's table is bare planks unless the game asks for a cloth (a colour or an image).
+                    var planks = _tavern && look.FeltAsset == null && look.FeltColor == null ? Resources.Load<Texture2D>(TavernTextures + "planks") : null;
+                    felt.color = ToColor(look.FeltColor, look.FeltAsset != null ? Color.white : planks != null ? TavernTabletop : _tavern ? TavernFelt : DefaultFelt);
+                    felt.mainTexture = look.FeltAsset != null ? _table.Assets?.Texture(look.FeltAsset) : planks;
+                    felt.mainTextureScale = planks != null ? new Vector2(TableGeometry.Size.x / 0.6f, TableGeometry.Size.y / 0.6f) : Vector2.one;
                 }
                 else if (renderer.name.StartsWith("Rim"))
                 {
-                    renderer.material.color = ToColor(look.WoodColor, DefaultWood);
+                    renderer.material.color = ToColor(look.WoodColor, _tavern ? TavernWood : DefaultWood);
                     // The wooden frame belongs to the room's warm light; the felt is a game surface.
                     renderer.renderingLayerMask = _room != null ? RoomLayers : PiecesLayers;
                 }

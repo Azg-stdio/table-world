@@ -220,7 +220,11 @@ namespace TableWorld.View.Hud
                     from.style.color = Readable(ZoneViewFactory.SeatColor(seat.Color));
                 row.Add(from);
             }
-            var text = new Label(entry.Text) { pickingMode = PickingMode.Ignore, enableRichText = false };
+            // What players type stays as typed; the game's own lines show seats, teams and options in their colours (M12).
+            var said = entry.Kind == ChatKind.Say || entry.Kind == ChatKind.Roll;
+            var state = _table.Engine?.State;
+            var text = new Label(said || state == null ? entry.Text : Core.Text.Highlights.Colorize(state, entry.Text, state.Environment?.Theme == Core.Rules.HudTheme.Parchment))
+                { pickingMode = PickingMode.Ignore, enableRichText = !said && state != null };
             text.AddToClassList("chat-text");
             text.AddToClassList("chat-text--" + entry.Kind.ToString().ToLowerInvariant());
             row.Add(text);

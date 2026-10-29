@@ -209,7 +209,9 @@ namespace TableWorld.View.Hud
                 switch (def.Type)
                 {
                     case UiElementType.Label:
-                        ((Label)element).text = game.Format(Written(state, def) ?? "", viewer);
+                        // Names in the game's panels read in their colours too (M12): "Leader: Red", "Fails 1".
+                        ((Label)element).text = Core.Text.Highlights.Colorize(state, game.Format(Written(state, def) ?? "", viewer),
+                            state.Environment?.Theme == HudTheme.Parchment);
                         break;
                     case UiElementType.Counter:
                         element.Q<Label>(className: "game-ui-label").text = Written(state, def) ?? "";

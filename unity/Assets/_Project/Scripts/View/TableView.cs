@@ -29,6 +29,21 @@ namespace TableWorld.View
 
         private readonly Dictionary<string, ObjectView> _views = new Dictionary<string, ObjectView>();
         private readonly List<GameObject> _zoneViews = new List<GameObject>();
+
+        /// <summary>
+        /// Zone outlines that only help while placing something (M12): layout spots, hands, shuffle areas, dice areas. On a
+        /// table with rules they show while this player carries a piece, or always with <see cref="ShowZones"/>; a
+        /// free-play table (TTS) always shows them. Hidden zones and snap points always show.
+        /// </summary>
+        private readonly List<GameObject> _quietZones = new List<GameObject>();
+        private bool? _quietShown;
+        private TableInteraction _interaction;
+
+        /// <summary>This player's choice to see every zone outline (the table menu's Show zones).</summary>
+        public static bool ShowZones { get; set; }
+
+        /// <summary>Whether the quiet zone outlines are on screen now (tests read it).</summary>
+        public bool QuietZonesShown => _quietShown ?? true;
         private readonly Dictionary<string, float> _awakeSince = new Dictionary<string, float>();
         private readonly List<ObjectView> _scratch = new List<ObjectView>();
 
@@ -817,6 +832,15 @@ namespace TableWorld.View
             DrawScriptControls();
             if (Engine == null)
                 return;
+            var interaction = _interaction != null ? _interaction : (_interaction = GetComponent<TableInteraction>());
+            var quiet = !Engine.State.HasRules || ShowZones || interaction != null && interaction.Held != null;
+            if (quiet != _quietShown)
+            {
+                _quietShown = quiet;
+                _quietZones.RemoveAll(z => z == null);
+                foreach (var zone in _quietZones)
+                    zone.SetActive(quiet);
+            }
             RecordTimeline();
             // The language is picked at the start (on the host, or arriving with the session on a client): card words and
             // localized images are drawn again in it.
@@ -1803,6 +1827,11 @@ namespace TableWorld.View
                 if (view == null)
                     return;
                 _zoneViews.Add(view);
+                if (zone is LayoutZone || zone is RandomizeZone || zone is ScriptingZone || zone is HandZone)
+                {
+                    _quietZones.Add(view);
+                    view.SetActive(QuietZonesShown);
+                }
                 if (zone is HiddenZone hiddenZone && view.transform.Find(ZoneViewFactory.FogName) is { } fog)
                     _fogs.Add((hiddenZone, fog.gameObject));
             }
@@ -1821,6 +1850,7 @@ namespace TableWorld.View
                     Destroy(zone);
                 }
             _zoneViews.Clear();
+            _quietZones.Clear();
             _glides.Clear();
             _fogs.Clear();
             foreach (var view in _views.Values)

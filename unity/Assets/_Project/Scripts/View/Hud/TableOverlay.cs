@@ -186,6 +186,8 @@ namespace TableWorld.View.Hud
                 Item(Ui.T("Clear my drawings"), () => Run(new ClearDrawingsCommand { Seat = _table.LocalSeat }));
             if (_table.MayChangeTable && drawings.Count > 0)
                 Item(Ui.T("Clear all drawings"), () => Run(new ClearDrawingsCommand()));
+            if (_table.Engine.State.HasRules)
+                Item(TableView.ShowZones ? Ui.T("● Show zones") : Ui.T("Show zones"), () => TableView.ShowZones = !TableView.ShowZones);
             Item(Ui.T("Undo (Ctrl+Z)"), () => _table.Undo());
             Item(Ui.T("Redo (Ctrl+Y)"), () => _table.Redo());
             if (_table.MayChangeTable && !_table.Engine.State.HasRules)

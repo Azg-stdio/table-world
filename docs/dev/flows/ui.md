@@ -9,7 +9,7 @@ Three kinds of UI, all UI Toolkit, all styled in USS (never inline styles), one 
 
 ```mermaid
 flowchart LR
-    hud["HudController<br/>(Hud.uxml + Hud.uss)"] --> panels["Players, Chat, Saves, Notebook,<br/>HandBar, EscapeMenu, ControlsHelp"]
+    hud["HudController<br/>(Hud.uxml + Hud.uss)"] --> panels["Players, Music, Chat, Saves, Notebook,<br/>HandBar, EscapeMenu, ControlsHelp"]
     rules["Rules document: ui panels"] --> gameui["GameUiRenderer"]
     lua["Lua: UI.setXml, setAttribute"] --> tree["UiNode tree in the table<br/>(host-owned, synced)"]
     tree --> screen["ScriptUiView: screen UI"]
@@ -36,6 +36,10 @@ flowchart LR
 
 - **Load the `unity:ui-uitk` skill** before writing UXML, USS or UI Toolkit C# (CLAUDE.md §4). Styling lives in USS;
   code sets only positions, sizes and runtime images.
+- **Themes** (M12): a table's `environment.theme` puts a class on the HUD root (`theme-parchment`); every rule of a
+  theme lives under that class at the end of Hud.uss. Engine lines are coloured as they are shown
+  ([Highlights.cs](../../../core/Text/Highlights.cs), `HudController.Rich`): seats, teams, roles and vote options in
+  their colours, readable on the theme's panels. What players type is never rich text.
 - **UI never changes the table itself**: every button sends a command (`TableView.Execute`), so it undoes, syncs
   and reaches scripts like any other.
 - **Script UI is table state** (`UiNode` trees): the host's scripts change it with host-only commands and every client

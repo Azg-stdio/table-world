@@ -19,6 +19,9 @@ namespace TableWorld.Editor
         public const string FontFolder = "Assets/_Project/Art/ThirdParty/Inter/";
         public const string RegularFontAssetPath = FontFolder + "InterRegularSDF.asset";
         public const string SemiBoldFontAssetPath = FontFolder + "InterSemiBoldSDF.asset";
+        /// <summary>Cinzel (SIL OFL), the parchment theme's serif for banners, roles and titles (M12).</summary>
+        public const string DisplayFontFolder = "Assets/_Project/Art/ThirdParty/Cinzel/";
+        public const string DisplayFontAssetPath = DisplayFontFolder + "CinzelSDF.asset";
 
         /// <summary>
         /// The HUD is laid out for this resolution and scaled to the screen. 1600×900 makes a 15 px label 18 px on a
@@ -59,8 +62,9 @@ namespace TableWorld.Editor
         /// <summary>Regular and SemiBold SDF font assets; SemiBold is the bold face of Regular (<c>-unity-font-style: bold</c>).</summary>
         public static FontAsset GetOrCreateFonts()
         {
-            var regular = GetOrCreateFontAsset("Inter-Regular.ttf", RegularFontAssetPath);
-            var semiBold = GetOrCreateFontAsset("Inter-SemiBold.ttf", SemiBoldFontAssetPath);
+            var regular = GetOrCreateFontAsset(FontFolder + "Inter-Regular.ttf", RegularFontAssetPath);
+            var semiBold = GetOrCreateFontAsset(FontFolder + "Inter-SemiBold.ttf", SemiBoldFontAssetPath);
+            GetOrCreateFontAsset(DisplayFontFolder + "Cinzel.ttf", DisplayFontAssetPath);
             var weights = regular.fontWeightTable;
             if (weights != null && weights.Length > 7 && weights[7].regularTypeface != semiBold)
             {
@@ -76,9 +80,9 @@ namespace TableWorld.Editor
             var existing = AssetDatabase.LoadAssetAtPath<FontAsset>(path);
             if (existing != null)
                 return existing;
-            var font = AssetDatabase.LoadAssetAtPath<Font>(FontFolder + ttf);
+            var font = AssetDatabase.LoadAssetAtPath<Font>(ttf);
             if (font == null)
-                throw new FileNotFoundException($"UI font missing: {FontFolder}{ttf}");
+                throw new FileNotFoundException($"UI font missing: {ttf}");
             var asset = FontAsset.CreateFontAsset(font, SamplingPointSize, AtlasPadding, GlyphRenderMode.SDFAA, 1024, 1024,
                 AtlasPopulationMode.Dynamic, enableMultiAtlasSupport: true);
             asset.name = Path.GetFileNameWithoutExtension(path);
@@ -127,9 +131,11 @@ namespace TableWorld.Editor
         public static string RebuildFontAtlases()
         {
             var report = "";
-            foreach (var path in new[] { RegularFontAssetPath, SemiBoldFontAssetPath })
+            foreach (var path in new[] { RegularFontAssetPath, SemiBoldFontAssetPath, DisplayFontAssetPath })
             {
                 var asset = AssetDatabase.LoadAssetAtPath<FontAsset>(path);
+                if (asset == null)
+                    continue;
                 Populate(asset);
                 report += $"{asset.name}: {asset.atlasTextures.Length} atlas(es), {asset.atlasPopulationMode}; ";
             }

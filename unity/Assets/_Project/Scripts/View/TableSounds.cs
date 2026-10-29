@@ -136,6 +136,10 @@ namespace TableWorld.View
         {
             if (!result.Ok)
                 return;
+            // A rule's cue (M12): played here when it is for this player (or for everyone).
+            foreach (var e in result.Events)
+                if (e is SoundCue cue && cue.For(_table.Spectating ? null : _table.LocalSeat))
+                    Cue(cue.Sound, cue.Volume);
             switch (command)
             {
                 case ShuffleCommand c:
@@ -165,6 +169,73 @@ namespace TableWorld.View
                     Play(nameof(Clips.CardSlide), _clips.CardSlide, Camera.main != null ? Camera.main.transform.position : Vector3.zero, 0.4f);
                     break;
             }
+        }
+
+        private AudioSource _cueSource;
+        private readonly Dictionary<string, AudioClip> _cues = new Dictionary<string, AudioClip>();
+
+        /// <summary>
+        /// Plays a cue that marks a moment, not a place: a built-in one (made in code, <see cref="Core.Music.CueSynth"/>),
+        /// a track of the music library, or one of the table's audio assets. Counted in <see cref="Played"/> as
+        /// <c>cue:&lt;name&gt;</c>.
+        /// </summary>
+        public void Cue(string sound, float volume)
+        {
+            Played["cue:" + sound] = Played.TryGetValue("cue:" + sound, out var n) ? n + 1 : 1;
+            if (_cueSource == null)
+            {
+                _cueSource = new GameObject("Cues").AddComponent<AudioSource>();
+                _cueSource.transform.SetParent(transform, false);
+                _cueSource.playOnAwake = false;
+                _cueSource.spatialBlend = 0f;
+            }
+            if (_cues.TryGetValue(sound, out var clip) && clip != null)
+            {
+                _cueSource.PlayOneShot(clip, Mathf.Clamp01(volume) * Volume);
+                return;
+            }
+            if (Core.Music.CueSynth.Make(sound) is { } samples)
+            {
+                clip = AudioClip.Create("cue " + sound, samples.Length, 1, Core.Music.CueSynth.Rate, false);
+                clip.SetData(samples, 0);
+                _cues[sound] = clip;
+                _cueSource.PlayOneShot(clip, Mathf.Clamp01(volume) * Volume);
+                return;
+            }
+            StartCoroutine(LoadCue(sound, volume));
+        }
+
+        /// <summary>A library track or an audio asset as a cue: loaded once, then played like the built-in ones.</summary>
+        private System.Collections.IEnumerator LoadCue(string sound, float volume)
+        {
+            string path = null;
+            if (sound.StartsWith(SoundCues.LibraryPrefix))
+                path = MusicPlayerView.Library.PathOf(sound);
+            else if (_table.Engine?.State.Assets.Find(a => a.Id == sound && a.Type == AssetType.Audio) is { } asset)
+            {
+                if (_table.Assets?.ReadPackageFile(asset) == null && _table.FetchAsset?.Invoke(asset) is { } bytes)
+                {
+                    path = System.IO.Path.Combine(Application.temporaryCachePath, "cue-" + asset.Id.GetHashCode().ToString("x") + System.IO.Path.GetExtension(asset.Path));
+                    System.IO.File.WriteAllBytes(path, bytes);
+                }
+                else if (_table.PackageRoot != null)
+                    path = System.IO.Path.Combine(_table.PackageRoot, asset.Path);
+            }
+            if (path == null || !System.IO.File.Exists(path))
+            {
+                Debug.LogWarning($"[Sound] No sound '{sound}' on this machine.");
+                yield break;
+            }
+            var type = System.IO.Path.GetExtension(path).ToLowerInvariant() switch { ".ogg" => AudioType.OGGVORBIS, ".wav" => AudioType.WAV, _ => AudioType.MPEG };
+            using var request = UnityEngine.Networking.UnityWebRequestMultimedia.GetAudioClip(new System.Uri(System.IO.Path.GetFullPath(path)).AbsoluteUri, type);
+            yield return request.SendWebRequest();
+            if (request.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
+                yield break;
+            var clip = UnityEngine.Networking.DownloadHandlerAudioClip.GetContent(request);
+            if (clip == null)
+                yield break;
+            _cues[sound] = clip;
+            _cueSource.PlayOneShot(clip, Mathf.Clamp01(volume) * Volume);
         }
 
         private void OnPing(Vector3 point) => Play(nameof(Clips.Ping), _clips.Ping, point, 0.5f);

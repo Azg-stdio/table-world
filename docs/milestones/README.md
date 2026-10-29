@@ -20,7 +20,7 @@ Status values: `todo` · `in progress` · `blocked (why)` · `done YYYY-MM-DD` �
 | [M9](M9-languages.md) | Languages | Table World's interface in English and Spanish; games in several languages, the host picking one (ADR 0011) | T10.1–T10.9 | todo (design proposed 2026-10-26) |
 | [M10](M10-social-games.md) | Social games | Avalon, Werewolf and Wink Murder with secrets per seat, roles, eyes-closed phases, votes and seated chalkers (ADR 0012) | T11.1–T11.17, T11.4b, T11.15b | in progress (2026-10-26: all built and tested headless; left: playtests with friends over Relay, voice on two machines, the artist's chalker model) |
 | [M11](M11-karaoke.md) | Karaoke | One singer at a time in time for every listener, a karaoke room, songs from local files (YouTube if Miguel chooses; ADR 0013) | T12.1–T12.8 | todo (2026-10-27: timing simulated; waiting on the song-source decision) |
-| [M12](M12-atmosphere.md) | Atmosphere | Rooms with candles and fire, soundtracks and sound cues per game, coloured words in the log, a themed HUD (parchment) | T13.1–T13.11 | todo (planned 2026-10-29 for the Avalon playtest) |
+| [M12](M12-atmosphere.md) | Atmosphere | Rooms with candles and fire, soundtracks and sound cues per game, coloured words in the log, a themed HUD (parchment) | T13.1–T13.12 | in progress (2026-10-29: all built and tested in the Editor; the Relay playtest T13.11 is tonight) |
 
 ## Order
 

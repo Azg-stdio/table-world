@@ -309,7 +309,14 @@ namespace TableWorld.View.Net
 
         private void NewHost()
         {
-            _host = new SessionHost(_table.Game) { Assets = new AssetHost(asset => _table.Assets?.ReadPackageFile(asset)) };
+            _host = new SessionHost(_table.Game)
+            {
+                Assets = new AssetHost(asset => _table.Assets?.ReadPackageFile(asset))
+                {
+                    // The game's library tracks travel from the host's own library to players who lack the pack (M12).
+                    ReadTrack = track => MusicPlayerView.Library.PathOf(track.Url, track.Hash) is { } path ? System.IO.File.ReadAllBytes(path) : null,
+                },
+            };
             _host.Assets.Build(_table.Engine.State);
             foreach (var warning in _host.Assets.Warnings)
                 Debug.LogWarning("[Net] " + warning);
@@ -320,6 +327,16 @@ namespace TableWorld.View.Net
                     _table.ApplyRemote(command, result);
             };
             _host.Executed += OnHostExecuted;
+            _host.Executed += (origin, command, result) =>
+            {
+                // A file added or the music changed while people are at the table: those already here fetch what is new.
+                if (!result.Events.Any(e => e is MusicChanged || e is AssetAdded))
+                    return;
+                var before = _host.Assets.ManifestKey;
+                _host.Assets.Build(_table.Engine.State);
+                if (_host.Assets.ManifestKey != before)
+                    Send(new Outgoing(null, _host.Assets.ManifestMessage()));
+            };
             _host.MayHost = _roster.MayHost;
         }
 
@@ -485,7 +502,8 @@ namespace TableWorld.View.Net
                 return;
             _client = new SessionClient(clientId.ToString());
             var store = new DirectoryAssetStore(CacheFolder);
-            _assets = new AssetClient(store);
+            // A track this player imported into their own music library is never downloaded (M12).
+            _assets = new AssetClient(new LibraryAwareStore(store, hash => MusicPlayerView.Library.PathByHash(hash)));
             // Keep the cache within its size (T5.3), off the main thread; files this table needs are fetched again if trimmed.
             System.Threading.Tasks.Task.Run(() =>
             {

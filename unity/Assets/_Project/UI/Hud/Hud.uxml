@@ -9,6 +9,7 @@
         <ui:VisualElement name="phaseBar" class="phase-bar hidden" picking-mode="Ignore">
             <ui:Label name="phaseBanner" class="phase-banner" picking-mode="Ignore" />
             <ui:VisualElement class="phase-row" picking-mode="Ignore">
+                <ui:VisualElement name="phaseCandle" class="phase-candle" picking-mode="Ignore" />
                 <ui:Label name="phaseTimer" class="phase-timer" picking-mode="Ignore" />
                 <ui:Button name="phaseNext" class="hud-button phase-next" text="Next" />
             </ui:VisualElement>
@@ -37,6 +38,29 @@
                 <ui:ScrollView name="playersList" class="search-list" />
                 <ui:Label name="playersHint" class="selection-detail" />
                 <ui:Button name="playersClose" class="hud-button" text="Close" />
+            </ui:VisualElement>
+            <ui:VisualElement name="musicPanel" class="search-panel music-panel hidden">
+                <ui:Label class="selection-title" text="Music" />
+                <ui:Label name="musicNow" class="music-now" />
+                <ui:VisualElement name="musicControls" class="music-controls">
+                    <ui:Button name="musicBack" class="hud-button" text="◀" />
+                    <ui:Button name="musicPlay" class="hud-button" text="Pause" />
+                    <ui:Button name="musicSkip" class="hud-button" text="▶" />
+                    <ui:Button name="musicShuffle" class="hud-button" text="Shuffle" />
+                    <ui:VisualElement name="musicPlaylists" class="music-playlists" />
+                </ui:VisualElement>
+                <ui:VisualElement class="music-bar">
+                    <ui:TextField name="musicSearch" class="settings-text music-search" />
+                    <ui:Button name="musicFolder" class="hud-button" text="Music folder" />
+                </ui:VisualElement>
+                <ui:ScrollView name="musicList" class="search-list" />
+                <ui:VisualElement class="music-bar">
+                    <ui:TextField name="musicImportPath" class="settings-text music-search" />
+                    <ui:Toggle name="musicRights" class="music-rights" text="I may use this music" />
+                    <ui:Button name="musicImport" class="hud-button" text="Import a pack" />
+                </ui:VisualElement>
+                <ui:Label name="musicHint" class="selection-detail" />
+                <ui:Button name="musicClose" class="hud-button" text="Close" />
             </ui:VisualElement>
             <ui:VisualElement name="notesPanel" class="help-panel notes-panel hidden">
                 <ui:Label class="help-title" text="Notebook" />
@@ -140,6 +164,7 @@
             <ui:Button name="gamesButton" class="hud-button" text="Games" />
             <ui:Button name="playersButton" class="hud-button hidden" text="Players" />
             <ui:Button name="notesButton" class="hud-button" text="Notes" />
+            <ui:Button name="musicButton" class="hud-button" text="Music" />
             <ui:Button name="helpButton" class="hud-button" text="Controls" />
             <ui:Label name="netStatus" class="seat-name net-status" />
             <ui:TextField name="netAddress" class="net-address" value="127.0.0.1:7777" />

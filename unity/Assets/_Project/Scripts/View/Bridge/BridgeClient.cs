@@ -250,6 +250,14 @@ namespace TableWorld.View.Bridge
                 case "screenshot":
                     StartCoroutine(Screenshot(message));
                     break;
+                case "preview_music":
+                {
+                    // The agent lets the player hear a track while building (M12): on this machine only.
+                    var player = _table.GetComponent<MusicPlayerView>();
+                    player?.Preview((string)message["url"], (string)message["path"]);
+                    Send(new JObject { ["id"] = (string)message["id"], ["type"] = "preview_music", ["ok"] = player != null });
+                    break;
+                }
             }
         }
 

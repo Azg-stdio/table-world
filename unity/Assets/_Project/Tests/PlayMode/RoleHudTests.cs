@@ -80,8 +80,10 @@ namespace TableWorld.Tests.PlayMode
             Assert.IsFalse(line.ClassListContains("hidden"));
             var seat = _table.LocalSeat;
             var role = GameEngine.RoleName(_table.Game.State, _table.Game.State.Roles, _table.Game.Session.Roles[seat]);
-            StringAssert.StartsWith($"You are {role} (", line.text);
-            Assert.AreEqual(string.Join("\n", GameEngine.RoleLines(_table.Game.State, seat)), line.text);
+            // The line shows the role and team in their colours (M12); its words are the engine's.
+            var words = Core.Text.Highlights.Strip(line.text);
+            StringAssert.StartsWith($"You are {role} (", words);
+            Assert.AreEqual(string.Join("\n", GameEngine.RoleLines(_table.Game.State, seat)), words);
             Assert.IsNull(Toggle("Percival"), "no toggles once the game runs");
         }
 

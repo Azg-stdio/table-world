@@ -1,0 +1,9 @@
+MegaPackFree (pixel-art UI bundle: MediavelFree.png)
+
+Licence: CC0 1.0 Universal (public domain dedication), per the project owner (Miguel), 2026-10-29.
+
+Files used, cropped from UIBundleFree/MediavelFree.png (pixel rectangles left, top, right, bottom):
+  medieval-frame.png  <- (3, 21, 74, 93): the wooden frame with iron corners, without its chains
+  medieval-board.png  <- (220, 34, 256, 63): the small plank board
+  candle.png          <- (204, 2, 222, 31): the lit candle
+They dress the parchment theme of the HUD (Hud.uss, .theme-parchment). The rest of the pack is not in the repository.

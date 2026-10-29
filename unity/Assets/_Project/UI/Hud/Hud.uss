@@ -1903,3 +1903,278 @@
     align-self: center;
     margin-top: 6px;
 }
+
+/* ---- Parchment theme (M12): a game sets environment.theme "parchment"; the HUD root gets .theme-parchment. ---------- */
+/* Parchment panels with ink text, a dark wooden top bar, wooden buttons, the banner in an iron-cornered wooden frame,
+   and Cinzel for what is announced (banner, role, turn, titles). Pixel-art frames are 9-sliced and drawn three times
+   their size. */
+
+.theme-parchment .game-panel,
+.theme-parchment .selection-panel,
+.theme-parchment .game-ui-panel,
+.theme-parchment .chat-panel--open,
+.theme-parchment .context-menu,
+.theme-parchment .tooltip,
+.theme-parchment .status-label {
+    background-image: url("project://database/Assets/_Project/Art/ThirdParty/Grimoire/parchment.png");
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-slice-left: 90;
+    -unity-slice-right: 90;
+    -unity-slice-top: 90;
+    -unity-slice-bottom: 90;
+    -unity-slice-scale: 0.25px;
+    background-color: rgb(226, 210, 170);
+    border-width: 2px;
+    border-color: rgb(92, 62, 34);
+    color: rgb(46, 34, 22);
+}
+
+.theme-parchment .game-log,
+.theme-parchment .selection-detail,
+.theme-parchment .menu-item,
+.theme-parchment .chat-text,
+.theme-parchment .chat-from,
+.theme-parchment .status-label,
+.theme-parchment .tooltip {
+    color: rgb(52, 38, 24);
+}
+
+.theme-parchment .chat-text--notice {
+    color: rgb(40, 62, 96);
+}
+
+.theme-parchment .chat-text--roll {
+    color: rgb(120, 70, 10);
+}
+
+.theme-parchment .game-role,
+.theme-parchment .selection-title,
+.theme-parchment .menu-title,
+.theme-parchment .game-ui-title {
+    -unity-font-definition: url("project://database/Assets/_Project/Art/ThirdParty/Cinzel/CinzelSDF.asset");
+    color: rgb(128, 82, 20);
+}
+
+.theme-parchment .menu-section {
+    color: rgb(110, 90, 66);
+}
+
+.theme-parchment .menu-item:hover {
+    background-color: rgba(92, 62, 34, 0.2);
+}
+
+.theme-parchment .chat-row {
+    background-color: rgba(226, 210, 170, 0.9);
+    border-width: 1px;
+    border-color: rgba(92, 62, 34, 0.6);
+}
+
+.theme-parchment .chat-panel--open .chat-row {
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+}
+
+.theme-parchment .top-bar {
+    background-color: rgba(44, 28, 16, 0.94);
+    border-bottom-width: 2px;
+    border-color: rgb(150, 110, 50);
+}
+
+.theme-parchment .turn-label {
+    -unity-font-definition: url("project://database/Assets/_Project/Art/ThirdParty/Cinzel/CinzelSDF.asset");
+    color: rgb(240, 214, 150);
+}
+
+.theme-parchment .hud-button,
+.theme-parchment .tool-button {
+    border-width: 1px;
+    border-color: rgb(150, 110, 50);
+    background-color: rgb(92, 58, 30);
+    color: rgb(250, 238, 210);
+}
+
+.theme-parchment .hud-button:hover,
+.theme-parchment .tool-button:hover {
+    background-color: rgb(120, 78, 40);
+}
+
+.theme-parchment .hud-button:active {
+    background-color: rgb(64, 40, 20);
+}
+
+.theme-parchment .hud-button--picked,
+.theme-parchment .tool-button--active {
+    border-color: rgb(250, 214, 120);
+    background-color: rgb(140, 92, 36);
+}
+
+.theme-parchment .tool-bar {
+    background-color: rgba(44, 28, 16, 0.94);
+    border-width: 1px;
+    border-color: rgb(150, 110, 50);
+}
+
+.theme-parchment .game-ui-label,
+.theme-parchment .game-ui-counter-value {
+    color: rgb(52, 38, 24);
+}
+
+.theme-parchment .game-ui-titlebar {
+    background-color: rgba(92, 62, 34, 0.15);
+}
+
+.theme-parchment .phase-banner {
+    background-image: url("project://database/Assets/_Project/Art/ThirdParty/MegaPackFree/medieval-frame.png");
+    -unity-slice-left: 13;
+    -unity-slice-right: 13;
+    -unity-slice-top: 13;
+    -unity-slice-bottom: 13;
+    -unity-slice-scale: 3px;
+    background-color: rgba(0, 0, 0, 0);
+    border-radius: 0;
+    padding: 34px 56px;
+    -unity-font-definition: url("project://database/Assets/_Project/Art/ThirdParty/Cinzel/CinzelSDF.asset");
+    color: rgb(250, 226, 160);
+    -unity-text-outline-width: 0.2px;
+    -unity-text-outline-color: rgb(30, 16, 6);
+}
+
+.theme-parchment .phase-timer {
+    color: rgb(250, 226, 160);
+    -unity-text-outline-width: 0.2px;
+    -unity-text-outline-color: rgb(30, 16, 6);
+}
+
+/* A candle beside the countdown. */
+.phase-candle {
+    display: none;
+}
+
+.theme-parchment .phase-candle {
+    display: flex;
+    width: 27px;
+    height: 44px;
+    margin-right: 6px;
+    background-image: url("project://database/Assets/_Project/Art/ThirdParty/MegaPackFree/candle.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* The Music panel (M12): what plays, the host's controls and playlists, the library to search, listen to and import. */
+.music-panel {
+    top: 54%;
+    height: 70%;
+}
+
+.music-panel > .selection-title,
+.music-panel > .music-now,
+.music-panel > .music-controls,
+.music-panel > .music-bar,
+.music-panel > .selection-detail,
+.music-panel > .hud-button {
+    flex-shrink: 0;
+}
+
+.music-now {
+    font-size: 16px;
+    color: rgb(240, 236, 226);
+    margin-bottom: 6px;
+    white-space: normal;
+}
+
+.music-controls {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.music-playlists {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-left: 12px;
+}
+
+.music-bar {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.music-search {
+    flex-grow: 1;
+}
+
+.music-rights {
+    margin: 0 8px;
+    color: rgb(220, 216, 206);
+}
+
+.music-row {
+    flex-shrink: 0;
+    flex-direction: row;
+    align-items: center;
+    min-height: 30px;
+    padding: 2px 4px;
+    border-bottom-width: 1px;
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+.music-title {
+    width: 220px;
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: rgb(240, 236, 226);
+}
+
+.music-detail {
+    flex-grow: 1;
+    flex-shrink: 1;
+    font-size: 13px;
+    color: rgb(170, 168, 160);
+}
+
+.music-action {
+    flex-shrink: 0;
+}
+
+.theme-parchment .music-panel,
+.theme-parchment .search-panel {
+    background-image: url("project://database/Assets/_Project/Art/ThirdParty/Grimoire/parchment.png");
+    -unity-slice-left: 90;
+    -unity-slice-right: 90;
+    -unity-slice-top: 90;
+    -unity-slice-bottom: 90;
+    -unity-slice-scale: 0.25px;
+    background-color: rgb(226, 210, 170);
+    border-width: 2px;
+    border-color: rgb(92, 62, 34);
+}
+
+.theme-parchment .music-now,
+.theme-parchment .music-title,
+.theme-parchment .music-rights,
+.theme-parchment .player-name {
+    color: rgb(52, 38, 24);
+}
+
+.theme-parchment .music-detail {
+    color: rgb(100, 80, 58);
+}
+
+.theme-parchment .music-row {
+    border-color: rgba(92, 62, 34, 0.25);
+}
+
+.music-rights .unity-toggle__checkmark {
+    width: 16px;
+    height: 16px;
+    margin-right: 6px;
+    border-width: 1px;
+    border-radius: 3px;
+    border-color: rgb(150, 110, 50);
+    background-color: rgb(40, 30, 22);
+}
+
+.music-rights:checked .unity-toggle__checkmark {
+    background-color: rgb(242, 196, 82);
+}

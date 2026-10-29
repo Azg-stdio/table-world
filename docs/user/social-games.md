@@ -31,6 +31,10 @@ Five examples ship in `games/`, each built through the MCP tools from a plain-te
   an arrow floats over each one chosen and a crown over the leader. Then the leader presses Propose. Everyone gets an Approve and a Reject card: lay one face down on the spot in front of you; when
   the last is down they turn over together. The team gets Success and Fail cards: lay one on the quest pile in the middle;
   the pile is shuffled and turned over one by one. At the end every role card turns over.
+- **The mood (Avalon).** The game plays in a candlelit tavern with parchment panels. Names read in their colours
+  (the loyal in blue, the minions in red, Approve green, Reject red). The tavern music plays under the talk; when eyes
+  close the room fades to cold darkness, a gong sounds and darker music plays, and the light and music come back when
+  eyes open. The music comes from the host's music library ([Music](music.md)).
 - **Out of the game.** A lynched or executed player is out: no more actions or votes, and the others no longer hear
   them.
 - **Faces.** You play from your chair in first person, eye to eye with the others; **O** lifts you out over the table and sits you back. Press **K** to

@@ -113,6 +113,11 @@ Everything below already passes automated tests on one machine (two processes, s
 - [ ] Hands of cards: your chalker holds your cards in a fan; pointing at them (or H) brings them up to your face, and your friends see your chalker raise them. The other players' chalkers hold theirs, backs out.
 - [ ] Social games (M10): open Avalon with 5 or more. Before Start, tick optional roles; after Start, each of you reads your own role in gold above the log, and nobody else's. Vote on a team: the buttons show to everyone, "2 of 5 voted" while it runs, then the names. On a quest only the team votes, and only the number of fails shows.
 - [ ] Eyes closed and winks (M10): in a game with a night phase, the sleepers' screens go dark and they hear nothing of the awake; the awake see the sleepers' chalkers with eyes shut and heads down. Press K while looking at a friend's face: your chalker winks with one eye, and whoever looks at you sees it.
+- [ ] Atmosphere (M12, Avalon): the tavern reads as a warm candlelit room from every seat; cards, text and colours stay readable; the candles and the fire flicker without being distracting; frame rate is as smooth as in the game night room.
+- [ ] Music: everyone hears the tavern playlist from the start, the dark one through the ritual and back after; a friend without the music pack hears it after a few seconds (note how long); Settings → Sound → Music changes only your own volume; the host's Music panel switches playlists for everyone.
+- [ ] Ritual light and cues: when eyes close the room fades to cold darkness with a gong; the awake hear the drum and bells and the sleepers do not; eyes open brings the warm light and a chime; quest cards turn with drums and a sting for each Fail; nothing is too loud or repetitive.
+- [ ] Coloured names: seat names, Loyal/Minions, Approve/Reject and Success/Fail read in their colours in the game panel, the role line and the log, on the parchment panels too.
+- [ ] Zone outlines: the vote spots and hands stay hidden until someone carries a card, then show; right-click the felt → Show zones keeps them on.
 - [ ] Chat: Enter, type, Enter: everyone sees it with your seat colour; `/roll 2d6` shows the same dice for everyone; the Log tab reads the same on every screen and never names a card someone could not see; typing never flips or moves anything.
 
 **After the session**

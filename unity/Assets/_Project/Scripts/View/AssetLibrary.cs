@@ -602,7 +602,7 @@ namespace TableWorld.View
         /// <summary>The asset's file in the game package, or null. Paths were validated to stay inside the package.</summary>
         public byte[] ReadPackageFile(Asset asset) => PackageFile(asset) is { } file ? File.ReadAllBytes(file) : null;
 
-        private string PackageFile(Asset asset)
+        public string PackageFile(Asset asset)
         {
             if (_packageRoot == null || asset.IsBuiltin || !Asset.IsSafePath(asset.Path))
                 return null;

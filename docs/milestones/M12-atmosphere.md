@@ -17,17 +17,18 @@ run through `python -I tools/unity/playmode_tests.py` (one `--filter` name per r
 
 | Id | Size | Depends on | Task | Done check | Priority | Status |
 |---|---|---|---|---|---|---|
-| T13.1 | S | — | CC0 art brought in with its licences (parchment, retro textures, UI sheets); no music in the repo or the build | Folders under `Art/ThirdParty/` with a `LICENSE.txt` each; nothing from `free-assets/` committed whole; sizes in the table below | P0 | todo |
-| T13.2 | S | — | Light changes fade, and Avalon's ritual darkens the room | `light` effects in `build_avalon.py`; EnvironmentView lerps lights over ~1.5 s (PlayMode test); screenshot of the dark ritual | P0 | todo |
-| T13.3 | M | — | Music: the local music library (packs imported from zips or folders), playlists in the game file, autoplay, crossfade, a Music panel to listen and pick, MCP tools to browse and use it | core tests on `MusicLibrary`, `MusicDef`, `MusicEffect`; PlayMode test: a `library:` track resolves to the local file and plays; a joiner without the pack receives the track from the host, a joiner with it plays its own copy; Avalon starts its tavern playlist, switches to the ritual one and back; panel and MCP tools work | P0 | todo |
-| T13.4 | M | T13.1 | Sound cues: the `sound` effect, built-in cue bank, Avalon's cues | core test: `sound` → `PlaySoundCommand` with audience; PlayMode: `TableSounds.Played["cue:gong"]` increments on the command; every Avalon moment below has a cue | P0 | todo |
-| T13.5 | M | — | The tavern room preset (candles, fireplace, stone, beams) | `room: "tavern"` builds it (PlayMode test counts its lights and parts, all on the room layer except as noted); Avalon uses it; screenshots from the seat and from above; frame time within 1 ms of game night at Medium | P0 | todo |
-| T13.6 | M | — | Coloured words: seats, teams, vote options and roles in colour in the log, role line, banner and chat relay | core: `RichText` tags on every seat/team/option name, `RichText.Strip` used by MCP and tests; HUD renders colours (PlayMode test reads a `<color` in the label text); chat typed by players stays plain | P0 | todo |
-| T13.7 | M | T13.1 | HUD theme per game: `parchment` (medieval) beside `default` | `environment.theme` toggles a root USS class; parchment panels, banner and buttons use the 9-sliced frames; Cinzel headings; Spanish glyphs render; screenshots of both themes | P1 | todo |
-| T13.8 | S | — | Declutter: zone outlines only when useful; quest results in the game panel | Rules games hide zone outlines unless hovering, dragging or the host toggles "Show zones"; Avalon's quest row shows in colour in the game panel | P1 | todo |
-| T13.9 | S | — | `set_environment` MCP tool (room, theme, lighting, table, music) | contract test; `build_avalon.py` uses it; `docs/reference/mcp-tools.md` regenerated | P1 | todo |
+| T13.1 | S | — | CC0 art brought in with its licences (parchment, retro textures, UI sheets); no music in the repo or the build | Folders under `Art/ThirdParty/` with a `LICENSE.txt` each; nothing from `free-assets/` committed whole; sizes in the table below | P0 | done 2026-10-29 |
+| T13.2 | S | — | Light changes fade, and Avalon's ritual darkens the room | `light` effects in `build_avalon.py`; EnvironmentView lerps lights over ~1.5 s (PlayMode test); screenshot of the dark ritual | P0 | done 2026-10-29 |
+| T13.3 | M | — | Music: the local music library (packs imported from zips or folders), playlists in the game file, autoplay, crossfade, a Music panel to listen and pick, MCP tools to browse and use it | core tests on `MusicLibrary`, `MusicDef`, `MusicEffect`; PlayMode test: a `library:` track resolves to the local file and plays; a joiner without the pack receives the track from the host, a joiner with it plays its own copy; Avalon starts its tavern playlist, switches to the ritual one and back; panel and MCP tools work | P0 | done 2026-10-29 (one machine; the transfer to a friend without the pack is tested in core (asset sync), not yet over Relay) |
+| T13.4 | M | T13.1 | Sound cues: the `sound` effect, built-in cue bank, Avalon's cues | core test: `sound` → `PlaySoundCommand` with audience; PlayMode: `TableSounds.Played["cue:gong"]` increments on the command; every Avalon moment below has a cue | P0 | done 2026-10-29 (the built-in cues are made in code; nobody has listened to them yet) |
+| T13.5 | M | — | The tavern room preset (candles, fireplace, stone, beams) | `room: "tavern"` builds it (PlayMode test counts its lights and parts, all on the room layer except as noted); Avalon uses it; screenshots from the seat and from above; frame time within 1 ms of game night at Medium | P0 | done 2026-10-29 |
+| T13.6 | M | — | Coloured words: seats, teams, vote options and roles in colour in the log, role line, banner and chat relay | core: `RichText` tags on every seat/team/option name, `RichText.Strip` used by MCP and tests; HUD renders colours (PlayMode test reads a `<color` in the label text); chat typed by players stays plain | P0 | done 2026-10-29 (design changed: coloured at display, see below) |
+| T13.7 | M | T13.1 | HUD theme per game: `parchment` (medieval) beside `default` | `environment.theme` toggles a root USS class; parchment panels, banner and buttons use the 9-sliced frames; Cinzel headings; Spanish glyphs render; screenshots of both themes | P1 | done 2026-10-29 (pixel frame on the banner; buttons plain wood: the plank sprite read badly) |
+| T13.8 | S | — | Declutter: zone outlines only when useful; quest results in the game panel | Rules games hide zone outlines unless hovering, dragging or the host toggles "Show zones"; Avalon's quest row shows in colour in the game panel | P1 | done 2026-10-29 |
+| T13.9 | S | — | `set_environment` MCP tool (room, theme, lighting, table, music) | contract test; `build_avalon.py` uses it; `docs/reference/mcp-tools.md` regenerated | P1 | done 2026-10-29 |
 | T13.10 | — | — | Release script for itch.io | — | — | dropped (Miguel 2026-10-29: work only in the game for now) |
-| T13.11 | ⚗ | T13.2–T13.6 | Avalon played through in the Editor with everything on, then over Relay with friends | Hot-seat playthrough with a driver script, console clean; playtest notes in this file | P0 | todo |
+| T13.12 | M | T13.5 | Post-processing that suits the scene, chosen from screenshots, not blindly (Miguel 2026-10-29: "mystery can benefit from ambient occlusion, maybe a little fog or gloom"): a per-game `look` (ambient occlusion, fog, bloom on flames only, vignette, colour grade), with the tavern's defaults | Before/after screenshots from a seat and from above for each effect kept; cards and text stay as readable as before (no bloom on white cards, fog never reaches the table); frame time per effect recorded; effects off on Low | P1 | done 2026-10-29 (vignette and bloom on; fog off by default, see the record) |
+| T13.11 | ⚗ | T13.2–T13.6 | Avalon played through in the Editor with everything on, then over Relay with friends | Hot-seat playthrough with a driver script, console clean; playtest notes in this file | P0 | in progress (Editor playthrough of the ritual done; the Relay playtest is tonight) |
 
 Done checks are played like a player: load Avalon in the Editor, sit at a seat, run the ritual, watch and listen.
 
@@ -276,11 +277,38 @@ reflection), with the tavern, music, cues, colours and theme on: watch the ritua
 screenshot each moment, keep the console clean, then run the full PlayMode suite (one filter at a time if the whole run
 hangs). Record frame times (tavern vs game night) and anything left for Miguel to judge by ear.
 
+## Decisions made while building (2026-10-29)
+
+- **Coloured words are added at display time, not stored** (T13.6). Storing `<color>` tags in every engine line would
+  have changed what logs, MCP replies and hundreds of tests read. Instead `Core.Text.Highlights` colours a plain line
+  as the HUD shows it: seats from their seat colour, `teams[].color`, `list[].color` (else the team's), `vote.colors`,
+  and `game.highlights` for any other words. Whole words, longest first, adjusted to read on dark or parchment panels;
+  text that looks like a tag is shown as written (`<noparse>`). Player chat stays plain.
+- **The music library** lives in `%LOCALAPPDATA%/TableWorld/Music` (not `persistentDataPath`), so the agent's MCP
+  server reads the same folder. Library tracks a game names join the host's file list after its images; a joiner's
+  store answers from its own library by hash first (`LibraryAwareStore`). The host now re-sends the file list when the
+  music or the assets change while people are at the table, which also fixes assets added mid-game never reaching
+  players already there.
+- **Cues are synthesised** (`Core.Music.CueSynth`): gong, chime, bell, drum, sting, fanfare, page, whoosh, knock. No
+  sound file or licence is needed; a game can still name its own audio or a library stinger.
+- **The tavern's tabletop is planks**, not a red cloth: the red read salmon under the table light and fought Tom's red.
+- **Post-processing** (T13.12): ambient occlusion was already on in the PC renderer. Fog was tried and turned off: at
+  the density that greyed the walls it dimmed every flame and the hearth to dull orange, and the room was already dark.
+  A soft vignette and a bloom with its threshold at 2.5× white (flames drawn at 4×, the lamp bulb at 3×) give the
+  candles and fire their glow and leave lit cards alone. All four are per-game settings (`environment.look`).
+- **Zone outlines** on a table with rules show only while this player carries something, or with **Show zones** in
+  the table menu; free-play tables keep TTS's behaviour. Hidden zones and snap points always show.
+- **Found while testing:** the music state's `index` 0 was not saved (its default was -1), so a client's copy of the
+  table differed from the host's whenever a playlist started at its first track, and every client resynced. Fixed with
+  `[DefaultValue(-1)]`; `TheMusic_CopiesOverTheWire_Exactly` guards it.
+
 ## Simulation record
 
 | Date | What | Numbers |
 |---|---|---|
-| | | |
+| 2026-10-29 | Tavern vs game night, Avalon with 5 seats, Medium preset, Editor Play mode, 17 s each (FrameStats) | Tavern: median 4.48 ms, avg 4.74–4.94, p95 5.32–6.36, 400–444 draw calls. Game night: median 4.41 ms, avg 4.66, p95 5.25, 530 draw calls. Tavern costs +0.07 ms median: within the 1 ms budget, so no Low-preset cut was needed |
+| 2026-10-29 | Importing AlkaKrab's Fantasy RPG Music Pack Vol.3 (907 MB zip) and 10 Ambient RPG Tracks (383 MB) with `import_music` | 4.5 s for both; 43 + 10 tracks kept as OGG, 107 MB + 48 MB in the library; lengths read from the OGG headers |
+| 2026-10-29 | Tests | core 586/586, MCP 21/21, PlayMode 199/199 after fixing the role line test (198/199 before) |
 
 ## Playtest notes (2026-10-29 evening, Miguel and friends)
 

@@ -103,3 +103,6 @@ TestResults/
 *.log
 .DS_Store
 Thumbs.db
+
+# Audio
+/free-assets
