@@ -1157,6 +1157,8 @@ namespace TableWorld.View.Hud
         /// Eyes closed (ADR 0012): while the phase keeps this player asleep, the table is dark behind the phase's words. A
         /// spectator, and a host without a seat, keep watching.
         /// </summary>
+        private bool _eyesWereClosed;
+
         private void RefreshSleep()
         {
             var game = _table.Game;
@@ -1174,6 +1176,12 @@ namespace TableWorld.View.Hud
                 }
                 _tableCamera.HoldSeated = hold;
             }
+            // Everyone opens their eyes: every player looks straight ahead again, so the one who was turned towards the
+            // others (Merlin at the minions) does not give themselves away (Miguel 2026-10-29).
+            var eyesClosed = game != null && game.EyesClosedPhase;
+            if (_eyesWereClosed && !eyesClosed && seat != null && _tableCamera != null)
+                _tableCamera.ResetView();
+            _eyesWereClosed = eyesClosed;
             var asleep = game != null && seat != null && game.EyesClosedPhase && !game.IsAwake(seat, seat);
             _sleepOverlay?.EnableInClassList(Hidden, !asleep);
             if (asleep && _sleepText != null)

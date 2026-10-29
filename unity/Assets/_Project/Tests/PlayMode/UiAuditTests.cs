@@ -118,13 +118,24 @@ namespace TableWorld.Tests.PlayMode
             yield return null;
             Assert.IsTrue(camera.IsSeated, "nothing lifts you out during the ritual");
             // Through the ritual to the team pick: free to lift again.
+            var sawEyesOpen = false;
             for (var i = 0; i < 8 && _table.Engine.State.Session.Phase.StartsWith("ritual"); i++)
             {
                 var session = _table.Engine.State.Session;
+                // Eyes closed, a player turns to look at someone (Merlin at the minions).
+                var closed = _table.Game.EyesClosedPhase;
+                if (closed)
+                    camera.TurnHead(60f, 10f);
                 Assert.IsTrue(_table.Execute(new EndTimedPhaseCommand { Phase = session.Phase, Visit = session.PhaseVisit }).Ok);
                 yield return Settle();
                 Assert.IsTrue(camera.IsSeated || !_table.Engine.State.Session.Phase.StartsWith("ritual"));
+                if (closed && !_table.Game.EyesClosedPhase)
+                {
+                    sawEyesOpen = true;
+                    Assert.AreEqual(0f, camera.HeadYaw, 0.01f, "everyone's eyes open: the head is straight again");
+                }
             }
+            Assert.IsTrue(sawEyesOpen, "the ritual closes and opens everyone's eyes");
             Assert.AreEqual("propose", _table.Engine.State.Session.Phase);
             Assert.IsFalse(camera.HoldSeated);
             camera.Lift();

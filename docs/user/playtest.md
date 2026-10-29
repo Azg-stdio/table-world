@@ -122,6 +122,7 @@ Everything below already passes automated tests on one machine (two processes, s
 - [ ] Folding the HUD: ▲ folds the top bar to the turn and the players, ▼ opens it again; the tab on the left opens and closes the table tools and names the tool in hand; both are remembered after a restart.
 - [ ] Round table (Avalon): ten chairs evenly round a round table; from any chair turning the head shows every other player; a card let go near the edge stays on the table; the folded top bar shows the whole turn line on one line.
 - [ ] Switching seats (hot seat, from the top bar's chips): every other player's chalker stays visible, including the seats you looked out of before.
+- [ ] Eyes open (Avalon, end of the ritual): as Merlin, turn to look at a minion; when everyone opens their eyes your view is straight ahead again, like everyone else's.
 - [ ] Chat: Enter, type, Enter: everyone sees it with your seat colour; `/roll 2d6` shows the same dice for everyone; the Log tab reads the same on every screen and never names a card someone could not see; typing never flips or moves anything.
 
 **After the session**

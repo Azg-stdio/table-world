@@ -50,7 +50,9 @@ flowchart LR
 
 A game can hold everyone seated: during a phase with `seated: true` (or one that closes eyes), `TableCamera.HoldSeated`
 is on, the HUD sits the player down if they were lifted, and every way out (O, the wheel, Space, quick zoom, top-down)
-waits until the phase ends.
+waits until the phase ends. When everyone's eyes open again (an eyes-closed stretch ends), every screen does what
+Space does: the head goes straight back, so whoever had turned to look at someone (Merlin at the minions) is not given
+away by where they were looking.
 
 
 | | Seated | Lifted |
