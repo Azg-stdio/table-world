@@ -28,17 +28,16 @@
     text-overflow: ellipsis;
 }
 
+/* Two lines when long ("Turn 5 · The Assassin strikes · Orange") rather than cut to "Turn 5 · El ...". */
 .turn-label {
-    flex-shrink: 1;
-    min-width: 120px;
-    max-width: 30%;
+    flex-shrink: 0;
+    min-width: 160px;
+    max-width: 22%;
     -unity-font-style: bold;
-    font-size: 18px;
+    font-size: 16px;
     color: rgb(240, 236, 226);
     margin-right: 16px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    white-space: normal;
 }
 
 .seat-list {
@@ -314,7 +313,7 @@
     /* Between a game's top-left and top-right panels (30% each). */
     max-width: 38%;
     margin-top: 8px;
-    padding: 8px 10px;
+    padding: 12px 16px;
     border-radius: 6px;
     background-color: rgba(16, 18, 22, 0.82);
 }
@@ -341,20 +340,21 @@
 }
 
 /* A timed phase (a ritual's step): big words for the awake, the seconds left, and the host's button to move on. */
+/* Below the game panel (role, latest lines, buttons), which grows down from the top bar. */
 .phase-bar {
     position: absolute;
     left: 0;
     right: 0;
-    top: 22%;
+    top: 40%;
     align-items: center;
 }
 
 .phase-banner {
     max-width: 70%;
-    padding: 14px 28px;
+    padding: 18px 32px;
     border-radius: 10px;
     background-color: rgba(10, 12, 18, 0.78);
-    font-size: 34px;
+    font-size: 30px;
     -unity-font-style: bold;
     color: rgb(242, 214, 140);
     white-space: normal;
@@ -473,7 +473,7 @@
     position: absolute;
     min-width: 220px;
     max-width: 30%;
-    padding: 10px;
+    padding: 12px 16px;
     border-radius: 6px;
     background-color: rgba(16, 18, 22, 0.82);
 }
@@ -500,8 +500,8 @@
 .game-ui-titlebar {
     flex-direction: row;
     align-items: center;
-    margin: -4px -4px 4px -4px;
-    padding: 2px 4px;
+    margin: -6px -10px 8px -10px;
+    padding: 4px 10px;
     border-radius: 4px;
     background-color: rgba(255, 255, 255, 0.06);
 }

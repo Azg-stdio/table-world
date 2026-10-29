@@ -4888,6 +4888,9 @@
             "type": "string"
           }
         },
+        "logTotal": {
+          "type": "integer"
+        },
         "eliminated": {
           "type": "array",
           "items": {

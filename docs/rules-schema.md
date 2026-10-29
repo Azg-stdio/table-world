@@ -416,7 +416,7 @@ starts, and who knows whom:
 
 ## Session (written by the engine)
 
-`StartGameCommand` adds a `session` object: `language` (what players read, see Languages; English when unset), `started`, `over`, `winner`, `turn`, `currentSeat`, `phase`, `acted`, `actionCounts`, `variables`, `resources`, `log` (last 50 messages), `secrets` (secret choices waiting for a reveal), `roles`, `traits`, `teams` and `knows` (see Roles) and `randomState`. It is saved with the table, so a saved game resumes exactly, including the shuffle sequence. An authored game file has no session.
+`StartGameCommand` adds a `session` object: `language` (what players read, see Languages; English when unset), `started`, `over`, `winner`, `turn`, `currentSeat`, `phase`, `acted`, `actionCounts`, `variables`, `resources`, `log` (last 50 messages), `logTotal` (messages logged since the start, counting those dropped from `log`), `secrets` (secret choices waiting for a reveal), `roles`, `traits`, `teams` and `knows` (see Roles) and `randomState`. It is saved with the table, so a saved game resumes exactly, including the shuffle sequence. An authored game file has no session.
 
 ## UI
 

@@ -24,6 +24,8 @@ namespace TableWorld.View.Chalkers
             public string LeftUpperArm, LeftForearm, LeftHand, RightUpperArm, RightForearm, RightHand;
             public string LeftThigh, LeftCalf, LeftFoot, RightThigh, RightCalf, RightFoot;
             public string LeftEye, RightEye;
+            /// <summary>The holding (left) hand's thumb tip and index finger's middle joint: the cards are pinched between them.</summary>
+            public string LeftThumbTip, LeftIndexTip;
             public string[] InnerBrows, OuterBrows, Tail;
             /// <summary>Materials (by a part of their name) whose skin takes the seat's colour.</summary>
             public string[] Skin;
@@ -43,6 +45,7 @@ namespace TableWorld.View.Chalkers
                 LeftThigh = "thigh_l", LeftCalf = "calf_l", LeftFoot = "foot_l",
                 RightThigh = "thigh_r", RightCalf = "calf_r", RightFoot = "foot_r",
                 LeftEye = "L_eye", RightEye = "R_eye",
+                LeftThumbTip = "thumb_03_l", LeftIndexTip = "index_02_l",
                 InnerBrows = new[] { "C_brow_mid", "L_brow_mid", "R_brow_mid" },
                 OuterBrows = new[] { "L_brow_outer", "R_brow_outer" },
                 Tail = new[] { "tail1", "tail2", "tail3", "tail4" },
@@ -414,21 +417,25 @@ namespace TableWorld.View.Chalkers
         }
 
         /// <summary>
-        /// The hold moved into the left hand as posed (after <see cref="Follow"/>): the cards' foot between its fingers,
-        /// standing up along them, their faces still toward the holder's eyes. Null when the rig has no left hand.
+        /// The hold moved into the left hand as posed (after <see cref="Follow"/>): the cards' foot pinched between its thumb
+        /// and index finger, the cards standing up out of the pinch as the hold leans them, their faces still toward the
+        /// holder's eyes. Null when the rig has no left hand.
         /// </summary>
         public HandHold? CardsInHand(HandHold hold)
         {
             var palm = Bone(_rig.LeftHand);
             if (palm == null)
                 return null;
-            var fingers = palm.TransformDirection(_fingers[0]).normalized;
-            // A card stands more upright than the fingers point: half of up mixed in.
-            var up = (fingers + _container.up * 0.8f).normalized;
-            // On the side of the fingers that faces the holder: the fingers behind the cards, not through them.
-            var toward = Vector3.ProjectOnPlane(hold.Face, fingers).normalized;
-            var grip = palm.position + fingers * (_handLength[0] * 0.55f) + toward * (_handLength[0] * 0.22f);
-            return new HandHold(grip, up, hold.Face);
+            Vector3 grip;
+            if (Bone(_rig.LeftThumbTip) is { } thumb && Bone(_rig.LeftIndexTip) is { } index)
+                grip = (thumb.position + index.position) / 2f;
+            else
+            {
+                // No finger bones: on top of the fist, over the knuckles.
+                var fingers = palm.TransformDirection(_fingers[0]).normalized;
+                grip = palm.position + fingers * (_handLength[0] * 0.55f) + _container.up * (_handLength[0] * 0.45f);
+            }
+            return new HandHold(grip, hold.Up, hold.Face);
         }
 
         /// <summary>Midway between the eyes as posed (the first-person camera sits there).</summary>

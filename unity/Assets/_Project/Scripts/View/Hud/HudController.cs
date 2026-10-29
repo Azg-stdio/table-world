@@ -51,6 +51,10 @@ namespace TableWorld.View.Hud
         private Label _selectionDetail;
         private VisualElement _actions;
         private Label _status;
+        /// <summary>When the status line goes away: it says what just happened, not what is true now.</summary>
+        private float _statusUntil;
+        public const float StatusSeconds = 5f;
+        public const float ErrorStatusSeconds = 9f;
         private VisualElement _gamePanel;
         private Label _gameLog;
         /// <summary>This player's hidden role and what it knows (ADR 0012), above the log.</summary>
@@ -659,6 +663,8 @@ namespace TableWorld.View.Hud
                 _shownSelection = null;
             }
             FollowTurnInHotSeat();
+            if (_status != null && Time.unscaledTime > _statusUntil)
+                _status.AddToClassList(Hidden);
             _diceTotals?.Update(Camera.main);
             _seatJoins?.Update(Camera.main);
             // A game's bottom panels stand above the hand while it shows cards, never over them.
@@ -1134,7 +1140,7 @@ namespace TableWorld.View.Hud
                 : new List<(string Seat, LegalAction Action)>();
             var turns = state.FreeTurns;
             // Another table loaded (even one that looks the same) redraws: its toggles and buttons are its own.
-            var key = $"{System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(game)}|{state.HasRules}|{session?.Turn}|{session?.Phase}|{session?.CurrentSeat}|{session?.Over}|{session?.Log.Count}|" +
+            var key = $"{System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(game)}|{state.HasRules}|{session?.Turn}|{session?.Phase}|{session?.CurrentSeat}|{session?.Over}|{session?.LogTotal}|{session?.Log.Count}|" +
                       $"{turns?.Current}|{turns?.Count}|{turns?.Reverse}|{_table.LocalSeat}|{string.Join(",", SeatedSeats())}|" +
                       $"{RoleKey(session)}|{string.Join(",", _optionalRoles)}|{_startLanguage}|{session?.Secrets.Count}|{string.Join(",", _voteLeft.Values)}|" +
                       string.Join(",", legal.Select(l => $"{l.Seat}/{l.Action.ActionId}/{l.Action.Choices.Count}"));
@@ -1279,17 +1285,19 @@ namespace TableWorld.View.Hud
         {
             if (session == null)
                 return "";
-            if (_logSession != session || session.Log.Count < _logShown)
+            // Counted over the whole game: the log keeps only its last lines, so once full its length stops changing.
+            var total = Math.Max(session.LogTotal, session.Log.Count);
+            if (_logSession != session || total < _logShown)
             {
                 _logSession = session;
-                _logShown = session.Log.Count;
+                _logShown = total;
                 return session.Log.LastOrDefault() ?? "";
             }
-            if (session.Log.Count == _logShown)
+            if (total == _logShown)
                 return _gameLog.text;
-            var added = session.Log.Skip(_logShown).ToList();
-            _logShown = session.Log.Count;
-            return string.Join("\n", added.Skip(Math.Max(0, added.Count - MaxLogLines)));
+            var added = Math.Min(total - _logShown, Math.Min(session.Log.Count, MaxLogLines));
+            _logShown = total;
+            return string.Join("\n", session.Log.Skip(session.Log.Count - added));
         }
 
         private void AddGameButton(string text, Action action)
@@ -1493,6 +1501,7 @@ namespace TableWorld.View.Hud
                 : Ui.T("{name} rejected: {message} {suggestion}", ("name", name), ("message", result.Error.Message), ("suggestion", result.Error.Suggestion));
             _status.EnableInClassList("status-label--error", !result.Ok);
             _status.RemoveFromClassList(Hidden);
+            _statusUntil = Time.unscaledTime + (result.Ok ? StatusSeconds : ErrorStatusSeconds);
             _shownSelectionHash = null;
         }
 
@@ -1750,6 +1759,7 @@ namespace TableWorld.View.Hud
             _status.text = text;
             _status.EnableInClassList("status-label--error", error);
             _status.RemoveFromClassList(Hidden);
+            _statusUntil = Time.unscaledTime + (error ? ErrorStatusSeconds : StatusSeconds);
         }
     }
 }

@@ -67,8 +67,9 @@
       ],
       "text": {
         "title": "Quest 1",
-        "kind": "Team of",
-        "body": "2"
+        "kind": "Players who go",
+        "body": "2",
+        "footer": "1 Fail sinks it"
       },
       "style": {
         "paper": [
@@ -109,8 +110,9 @@
       ],
       "text": {
         "title": "Quest 2",
-        "kind": "Team of",
-        "body": "3"
+        "kind": "Players who go",
+        "body": "3",
+        "footer": "1 Fail sinks it"
       },
       "style": {
         "paper": [
@@ -151,8 +153,9 @@
       ],
       "text": {
         "title": "Quest 3",
-        "kind": "Team of",
-        "body": "2"
+        "kind": "Players who go",
+        "body": "2",
+        "footer": "1 Fail sinks it"
       },
       "style": {
         "paper": [
@@ -193,8 +196,9 @@
       ],
       "text": {
         "title": "Quest 4",
-        "kind": "Team of",
-        "body": "3"
+        "kind": "Players who go",
+        "body": "3",
+        "footer": "1 Fail sinks it"
       },
       "style": {
         "paper": [
@@ -235,8 +239,9 @@
       ],
       "text": {
         "title": "Quest 5",
-        "kind": "Team of",
-        "body": "3"
+        "kind": "Players who go",
+        "body": "3",
+        "footer": "1 Fail sinks it"
       },
       "style": {
         "paper": [
@@ -277,8 +282,9 @@
       ],
       "text": {
         "title": "Quest 1",
-        "kind": "Team of",
-        "body": "2"
+        "kind": "Players who go",
+        "body": "2",
+        "footer": "1 Fail sinks it"
       },
       "style": {
         "paper": [
@@ -319,8 +325,9 @@
       ],
       "text": {
         "title": "Quest 2",
-        "kind": "Team of",
-        "body": "3"
+        "kind": "Players who go",
+        "body": "3",
+        "footer": "1 Fail sinks it"
       },
       "style": {
         "paper": [
@@ -361,8 +368,9 @@
       ],
       "text": {
         "title": "Quest 3",
-        "kind": "Team of",
-        "body": "4"
+        "kind": "Players who go",
+        "body": "4",
+        "footer": "1 Fail sinks it"
       },
       "style": {
         "paper": [
@@ -403,8 +411,9 @@
       ],
       "text": {
         "title": "Quest 4",
-        "kind": "Team of",
-        "body": "3"
+        "kind": "Players who go",
+        "body": "3",
+        "footer": "1 Fail sinks it"
       },
       "style": {
         "paper": [
@@ -445,8 +454,9 @@
       ],
       "text": {
         "title": "Quest 5",
-        "kind": "Team of",
-        "body": "4"
+        "kind": "Players who go",
+        "body": "4",
+        "footer": "1 Fail sinks it"
       },
       "style": {
         "paper": [
@@ -487,8 +497,9 @@
       ],
       "text": {
         "title": "Quest 1",
-        "kind": "Team of",
-        "body": "2"
+        "kind": "Players who go",
+        "body": "2",
+        "footer": "1 Fail sinks it"
       },
       "style": {
         "paper": [
@@ -529,8 +540,9 @@
       ],
       "text": {
         "title": "Quest 2",
-        "kind": "Team of",
-        "body": "3"
+        "kind": "Players who go",
+        "body": "3",
+        "footer": "1 Fail sinks it"
       },
       "style": {
         "paper": [
@@ -571,8 +583,9 @@
       ],
       "text": {
         "title": "Quest 3",
-        "kind": "Team of",
-        "body": "3"
+        "kind": "Players who go",
+        "body": "3",
+        "footer": "1 Fail sinks it"
       },
       "style": {
         "paper": [
@@ -613,9 +626,9 @@
       ],
       "text": {
         "title": "Quest 4",
-        "kind": "Team of",
+        "kind": "Players who go",
         "body": "4",
-        "footer": "2 fails to sink it"
+        "footer": "2 Fails sink it"
       },
       "style": {
         "paper": [
@@ -656,8 +669,9 @@
       ],
       "text": {
         "title": "Quest 5",
-        "kind": "Team of",
-        "body": "4"
+        "kind": "Players who go",
+        "body": "4",
+        "footer": "1 Fail sinks it"
       },
       "style": {
         "paper": [
@@ -698,8 +712,9 @@
       ],
       "text": {
         "title": "Quest 1",
-        "kind": "Team of",
-        "body": "3"
+        "kind": "Players who go",
+        "body": "3",
+        "footer": "1 Fail sinks it"
       },
       "style": {
         "paper": [
@@ -740,8 +755,9 @@
       ],
       "text": {
         "title": "Quest 2",
-        "kind": "Team of",
-        "body": "4"
+        "kind": "Players who go",
+        "body": "4",
+        "footer": "1 Fail sinks it"
       },
       "style": {
         "paper": [
@@ -782,8 +798,9 @@
       ],
       "text": {
         "title": "Quest 3",
-        "kind": "Team of",
-        "body": "4"
+        "kind": "Players who go",
+        "body": "4",
+        "footer": "1 Fail sinks it"
       },
       "style": {
         "paper": [
@@ -824,9 +841,9 @@
       ],
       "text": {
         "title": "Quest 4",
-        "kind": "Team of",
+        "kind": "Players who go",
         "body": "5",
-        "footer": "2 fails to sink it"
+        "footer": "2 Fails sink it"
       },
       "style": {
         "paper": [
@@ -867,8 +884,9 @@
       ],
       "text": {
         "title": "Quest 5",
-        "kind": "Team of",
-        "body": "5"
+        "kind": "Players who go",
+        "body": "5",
+        "footer": "1 Fail sinks it"
       },
       "style": {
         "paper": [
@@ -1316,14 +1334,14 @@
         {
           "id": "role_merlin",
           "name": "Merlin",
-          "description": "You see the minions' thumbs (not Mordred's). Stay hidden from the Assassin.",
+          "description": "You know the minions. Steer good quietly: if the Assassin finds you, evil wins.",
           "tags": [
             "role"
           ],
           "text": {
             "title": "Merlin",
-            "kind": "Loyal servants of Arthur",
-            "body": "You see the minions' thumbs (not Mordred's). Stay hidden from the Assassin."
+            "kind": "Good side",
+            "body": "You know the minions. Steer good quietly: if the Assassin finds you, evil wins."
           },
           "style": {
             "paper": [
@@ -1346,14 +1364,14 @@
         {
           "id": "role_percival",
           "name": "Percival",
-          "description": "You see two thumbs: Merlin's and Morgana's, not which is which.",
+          "description": "One of the two thumbs you saw is Merlin. Protect Merlin; the other is Morgana.",
           "tags": [
             "role"
           ],
           "text": {
             "title": "Percival",
-            "kind": "Loyal servants of Arthur",
-            "body": "You see two thumbs: Merlin's and Morgana's, not which is which."
+            "kind": "Good side",
+            "body": "One of the two thumbs you saw is Merlin. Protect Merlin; the other is Morgana."
           },
           "style": {
             "paper": [
@@ -1376,14 +1394,14 @@
         {
           "id": "role_servant",
           "name": "Loyal servant",
-          "description": "Play Success, find the minions.",
+          "description": "Always play Success. Reject teams with minions on them.",
           "tags": [
             "role"
           ],
           "text": {
             "title": "Loyal servant",
-            "kind": "Loyal servants of Arthur",
-            "body": "Play Success, find the minions."
+            "kind": "Good side",
+            "body": "Always play Success. Reject teams with minions on them."
           },
           "style": {
             "paper": [
@@ -1406,14 +1424,14 @@
         {
           "id": "role_servant_2",
           "name": "Loyal servant",
-          "description": "Play Success, find the minions.",
+          "description": "Always play Success. Reject teams with minions on them.",
           "tags": [
             "role"
           ],
           "text": {
             "title": "Loyal servant",
-            "kind": "Loyal servants of Arthur",
-            "body": "Play Success, find the minions."
+            "kind": "Good side",
+            "body": "Always play Success. Reject teams with minions on them."
           },
           "style": {
             "paper": [
@@ -1436,14 +1454,14 @@
         {
           "id": "role_servant_3",
           "name": "Loyal servant",
-          "description": "Play Success, find the minions.",
+          "description": "Always play Success. Reject teams with minions on them.",
           "tags": [
             "role"
           ],
           "text": {
             "title": "Loyal servant",
-            "kind": "Loyal servants of Arthur",
-            "body": "Play Success, find the minions."
+            "kind": "Good side",
+            "body": "Always play Success. Reject teams with minions on them."
           },
           "style": {
             "paper": [
@@ -1466,14 +1484,14 @@
         {
           "id": "role_servant_4",
           "name": "Loyal servant",
-          "description": "Play Success, find the minions.",
+          "description": "Always play Success. Reject teams with minions on them.",
           "tags": [
             "role"
           ],
           "text": {
             "title": "Loyal servant",
-            "kind": "Loyal servants of Arthur",
-            "body": "Play Success, find the minions."
+            "kind": "Good side",
+            "body": "Always play Success. Reject teams with minions on them."
           },
           "style": {
             "paper": [
@@ -1496,14 +1514,14 @@
         {
           "id": "role_servant_5",
           "name": "Loyal servant",
-          "description": "Play Success, find the minions.",
+          "description": "Always play Success. Reject teams with minions on them.",
           "tags": [
             "role"
           ],
           "text": {
             "title": "Loyal servant",
-            "kind": "Loyal servants of Arthur",
-            "body": "Play Success, find the minions."
+            "kind": "Good side",
+            "body": "Always play Success. Reject teams with minions on them."
           },
           "style": {
             "paper": [
@@ -1526,14 +1544,14 @@
         {
           "id": "role_assassin",
           "name": "Assassin",
-          "description": "If good completes three quests, name Merlin: evil wins.",
+          "description": "Make quests fail. If good wins three, guess Merlin: right, and evil wins.",
           "tags": [
             "role"
           ],
           "text": {
             "title": "Assassin",
-            "kind": "Minions of Mordred",
-            "body": "If good completes three quests, name Merlin: evil wins."
+            "kind": "Evil side",
+            "body": "Make quests fail. If good wins three, guess Merlin: right, and evil wins."
           },
           "style": {
             "paper": [
@@ -1556,14 +1574,14 @@
         {
           "id": "role_morgana",
           "name": "Morgana",
-          "description": "Percival sees your thumb up, as Merlin's: he cannot tell you apart.",
+          "description": "Make quests fail. Percival may take you for Merlin: play along.",
           "tags": [
             "role"
           ],
           "text": {
             "title": "Morgana",
-            "kind": "Minions of Mordred",
-            "body": "Percival sees your thumb up, as Merlin's: he cannot tell you apart."
+            "kind": "Evil side",
+            "body": "Make quests fail. Percival may take you for Merlin: play along."
           },
           "style": {
             "paper": [
@@ -1586,14 +1604,14 @@
         {
           "id": "role_mordred",
           "name": "Mordred",
-          "description": "Merlin does not see you among the minions.",
+          "description": "Make quests fail. Merlin does not know you are evil.",
           "tags": [
             "role"
           ],
           "text": {
             "title": "Mordred",
-            "kind": "Minions of Mordred",
-            "body": "Merlin does not see you among the minions."
+            "kind": "Evil side",
+            "body": "Make quests fail. Merlin does not know you are evil."
           },
           "style": {
             "paper": [
@@ -1616,14 +1634,14 @@
         {
           "id": "role_oberon",
           "name": "Oberon",
-          "description": "Keep your eyes closed with the minions: they do not know you.",
+          "description": "Make quests fail. The other minions do not know you, nor you them.",
           "tags": [
             "role"
           ],
           "text": {
             "title": "Oberon",
-            "kind": "Minions of Mordred",
-            "body": "Keep your eyes closed with the minions: they do not know you."
+            "kind": "Evil side",
+            "body": "Make quests fail. The other minions do not know you, nor you them."
           },
           "style": {
             "paper": [
@@ -1646,14 +1664,14 @@
         {
           "id": "role_minion",
           "name": "Minion of Mordred",
-          "description": "Play Fail when it suits you; hide among the loyal.",
+          "description": "Get on teams and play Fail. Pretend to be loyal.",
           "tags": [
             "role"
           ],
           "text": {
             "title": "Minion of Mordred",
-            "kind": "Minions of Mordred",
-            "body": "Play Fail when it suits you; hide among the loyal."
+            "kind": "Evil side",
+            "body": "Get on teams and play Fail. Pretend to be loyal."
           },
           "style": {
             "paper": [
@@ -1676,14 +1694,14 @@
         {
           "id": "role_minion_2",
           "name": "Minion of Mordred",
-          "description": "Play Fail when it suits you; hide among the loyal.",
+          "description": "Get on teams and play Fail. Pretend to be loyal.",
           "tags": [
             "role"
           ],
           "text": {
             "title": "Minion of Mordred",
-            "kind": "Minions of Mordred",
-            "body": "Play Fail when it suits you; hide among the loyal."
+            "kind": "Evil side",
+            "body": "Get on teams and play Fail. Pretend to be loyal."
           },
           "style": {
             "paper": [
@@ -1706,14 +1724,14 @@
         {
           "id": "role_minion_3",
           "name": "Minion of Mordred",
-          "description": "Play Fail when it suits you; hide among the loyal.",
+          "description": "Get on teams and play Fail. Pretend to be loyal.",
           "tags": [
             "role"
           ],
           "text": {
             "title": "Minion of Mordred",
-            "kind": "Minions of Mordred",
-            "body": "Play Fail when it suits you; hide among the loyal."
+            "kind": "Evil side",
+            "body": "Get on teams and play Fail. Pretend to be loyal."
           },
           "style": {
             "paper": [
@@ -1771,7 +1789,7 @@
         {
           "id": "aye",
           "name": "Approve",
-          "description": "Yes",
+          "description": "YES",
           "tags": [
             "vote"
           ],
@@ -1780,7 +1798,8 @@
           },
           "text": {
             "title": "Approve",
-            "body": "Yes"
+            "body": "YES",
+            "footer": "Face down on your spot"
           },
           "style": {
             "paper": [
@@ -1803,7 +1822,7 @@
         {
           "id": "aye_2",
           "name": "Approve",
-          "description": "Yes",
+          "description": "YES",
           "tags": [
             "vote"
           ],
@@ -1812,7 +1831,8 @@
           },
           "text": {
             "title": "Approve",
-            "body": "Yes"
+            "body": "YES",
+            "footer": "Face down on your spot"
           },
           "style": {
             "paper": [
@@ -1835,7 +1855,7 @@
         {
           "id": "aye_3",
           "name": "Approve",
-          "description": "Yes",
+          "description": "YES",
           "tags": [
             "vote"
           ],
@@ -1844,7 +1864,8 @@
           },
           "text": {
             "title": "Approve",
-            "body": "Yes"
+            "body": "YES",
+            "footer": "Face down on your spot"
           },
           "style": {
             "paper": [
@@ -1867,7 +1888,7 @@
         {
           "id": "aye_4",
           "name": "Approve",
-          "description": "Yes",
+          "description": "YES",
           "tags": [
             "vote"
           ],
@@ -1876,7 +1897,8 @@
           },
           "text": {
             "title": "Approve",
-            "body": "Yes"
+            "body": "YES",
+            "footer": "Face down on your spot"
           },
           "style": {
             "paper": [
@@ -1899,7 +1921,7 @@
         {
           "id": "aye_5",
           "name": "Approve",
-          "description": "Yes",
+          "description": "YES",
           "tags": [
             "vote"
           ],
@@ -1908,7 +1930,8 @@
           },
           "text": {
             "title": "Approve",
-            "body": "Yes"
+            "body": "YES",
+            "footer": "Face down on your spot"
           },
           "style": {
             "paper": [
@@ -1931,7 +1954,7 @@
         {
           "id": "aye_6",
           "name": "Approve",
-          "description": "Yes",
+          "description": "YES",
           "tags": [
             "vote"
           ],
@@ -1940,7 +1963,8 @@
           },
           "text": {
             "title": "Approve",
-            "body": "Yes"
+            "body": "YES",
+            "footer": "Face down on your spot"
           },
           "style": {
             "paper": [
@@ -1963,7 +1987,7 @@
         {
           "id": "aye_7",
           "name": "Approve",
-          "description": "Yes",
+          "description": "YES",
           "tags": [
             "vote"
           ],
@@ -1972,7 +1996,8 @@
           },
           "text": {
             "title": "Approve",
-            "body": "Yes"
+            "body": "YES",
+            "footer": "Face down on your spot"
           },
           "style": {
             "paper": [
@@ -1995,7 +2020,7 @@
         {
           "id": "aye_8",
           "name": "Approve",
-          "description": "Yes",
+          "description": "YES",
           "tags": [
             "vote"
           ],
@@ -2004,7 +2029,8 @@
           },
           "text": {
             "title": "Approve",
-            "body": "Yes"
+            "body": "YES",
+            "footer": "Face down on your spot"
           },
           "style": {
             "paper": [
@@ -2027,7 +2053,7 @@
         {
           "id": "aye_9",
           "name": "Approve",
-          "description": "Yes",
+          "description": "YES",
           "tags": [
             "vote"
           ],
@@ -2036,7 +2062,8 @@
           },
           "text": {
             "title": "Approve",
-            "body": "Yes"
+            "body": "YES",
+            "footer": "Face down on your spot"
           },
           "style": {
             "paper": [
@@ -2059,7 +2086,7 @@
         {
           "id": "aye_10",
           "name": "Approve",
-          "description": "Yes",
+          "description": "YES",
           "tags": [
             "vote"
           ],
@@ -2068,7 +2095,8 @@
           },
           "text": {
             "title": "Approve",
-            "body": "Yes"
+            "body": "YES",
+            "footer": "Face down on your spot"
           },
           "style": {
             "paper": [
@@ -2091,7 +2119,7 @@
         {
           "id": "nay",
           "name": "Reject",
-          "description": "No",
+          "description": "NO",
           "tags": [
             "vote"
           ],
@@ -2100,7 +2128,8 @@
           },
           "text": {
             "title": "Reject",
-            "body": "No"
+            "body": "NO",
+            "footer": "Face down on your spot"
           },
           "style": {
             "paper": [
@@ -2123,7 +2152,7 @@
         {
           "id": "nay_2",
           "name": "Reject",
-          "description": "No",
+          "description": "NO",
           "tags": [
             "vote"
           ],
@@ -2132,7 +2161,8 @@
           },
           "text": {
             "title": "Reject",
-            "body": "No"
+            "body": "NO",
+            "footer": "Face down on your spot"
           },
           "style": {
             "paper": [
@@ -2155,7 +2185,7 @@
         {
           "id": "nay_3",
           "name": "Reject",
-          "description": "No",
+          "description": "NO",
           "tags": [
             "vote"
           ],
@@ -2164,7 +2194,8 @@
           },
           "text": {
             "title": "Reject",
-            "body": "No"
+            "body": "NO",
+            "footer": "Face down on your spot"
           },
           "style": {
             "paper": [
@@ -2187,7 +2218,7 @@
         {
           "id": "nay_4",
           "name": "Reject",
-          "description": "No",
+          "description": "NO",
           "tags": [
             "vote"
           ],
@@ -2196,7 +2227,8 @@
           },
           "text": {
             "title": "Reject",
-            "body": "No"
+            "body": "NO",
+            "footer": "Face down on your spot"
           },
           "style": {
             "paper": [
@@ -2219,7 +2251,7 @@
         {
           "id": "nay_5",
           "name": "Reject",
-          "description": "No",
+          "description": "NO",
           "tags": [
             "vote"
           ],
@@ -2228,7 +2260,8 @@
           },
           "text": {
             "title": "Reject",
-            "body": "No"
+            "body": "NO",
+            "footer": "Face down on your spot"
           },
           "style": {
             "paper": [
@@ -2251,7 +2284,7 @@
         {
           "id": "nay_6",
           "name": "Reject",
-          "description": "No",
+          "description": "NO",
           "tags": [
             "vote"
           ],
@@ -2260,7 +2293,8 @@
           },
           "text": {
             "title": "Reject",
-            "body": "No"
+            "body": "NO",
+            "footer": "Face down on your spot"
           },
           "style": {
             "paper": [
@@ -2283,7 +2317,7 @@
         {
           "id": "nay_7",
           "name": "Reject",
-          "description": "No",
+          "description": "NO",
           "tags": [
             "vote"
           ],
@@ -2292,7 +2326,8 @@
           },
           "text": {
             "title": "Reject",
-            "body": "No"
+            "body": "NO",
+            "footer": "Face down on your spot"
           },
           "style": {
             "paper": [
@@ -2315,7 +2350,7 @@
         {
           "id": "nay_8",
           "name": "Reject",
-          "description": "No",
+          "description": "NO",
           "tags": [
             "vote"
           ],
@@ -2324,7 +2359,8 @@
           },
           "text": {
             "title": "Reject",
-            "body": "No"
+            "body": "NO",
+            "footer": "Face down on your spot"
           },
           "style": {
             "paper": [
@@ -2347,7 +2383,7 @@
         {
           "id": "nay_9",
           "name": "Reject",
-          "description": "No",
+          "description": "NO",
           "tags": [
             "vote"
           ],
@@ -2356,7 +2392,8 @@
           },
           "text": {
             "title": "Reject",
-            "body": "No"
+            "body": "NO",
+            "footer": "Face down on your spot"
           },
           "style": {
             "paper": [
@@ -2379,7 +2416,7 @@
         {
           "id": "nay_10",
           "name": "Reject",
-          "description": "No",
+          "description": "NO",
           "tags": [
             "vote"
           ],
@@ -2388,7 +2425,8 @@
           },
           "text": {
             "title": "Reject",
-            "body": "No"
+            "body": "NO",
+            "footer": "Face down on your spot"
           },
           "style": {
             "paper": [
@@ -2446,7 +2484,7 @@
         {
           "id": "success",
           "name": "Success",
-          "description": "OK",
+          "description": "SUCCESS",
           "tags": [
             "quest"
           ],
@@ -2455,7 +2493,8 @@
           },
           "text": {
             "title": "Success",
-            "body": "OK"
+            "body": "SUCCESS",
+            "footer": "Onto the quest pile"
           },
           "style": {
             "paper": [
@@ -2478,7 +2517,7 @@
         {
           "id": "success_2",
           "name": "Success",
-          "description": "OK",
+          "description": "SUCCESS",
           "tags": [
             "quest"
           ],
@@ -2487,7 +2526,8 @@
           },
           "text": {
             "title": "Success",
-            "body": "OK"
+            "body": "SUCCESS",
+            "footer": "Onto the quest pile"
           },
           "style": {
             "paper": [
@@ -2510,7 +2550,7 @@
         {
           "id": "success_3",
           "name": "Success",
-          "description": "OK",
+          "description": "SUCCESS",
           "tags": [
             "quest"
           ],
@@ -2519,7 +2559,8 @@
           },
           "text": {
             "title": "Success",
-            "body": "OK"
+            "body": "SUCCESS",
+            "footer": "Onto the quest pile"
           },
           "style": {
             "paper": [
@@ -2542,7 +2583,7 @@
         {
           "id": "success_4",
           "name": "Success",
-          "description": "OK",
+          "description": "SUCCESS",
           "tags": [
             "quest"
           ],
@@ -2551,7 +2592,8 @@
           },
           "text": {
             "title": "Success",
-            "body": "OK"
+            "body": "SUCCESS",
+            "footer": "Onto the quest pile"
           },
           "style": {
             "paper": [
@@ -2574,7 +2616,7 @@
         {
           "id": "success_5",
           "name": "Success",
-          "description": "OK",
+          "description": "SUCCESS",
           "tags": [
             "quest"
           ],
@@ -2583,7 +2625,8 @@
           },
           "text": {
             "title": "Success",
-            "body": "OK"
+            "body": "SUCCESS",
+            "footer": "Onto the quest pile"
           },
           "style": {
             "paper": [
@@ -2606,7 +2649,7 @@
         {
           "id": "success_6",
           "name": "Success",
-          "description": "OK",
+          "description": "SUCCESS",
           "tags": [
             "quest"
           ],
@@ -2615,7 +2658,8 @@
           },
           "text": {
             "title": "Success",
-            "body": "OK"
+            "body": "SUCCESS",
+            "footer": "Onto the quest pile"
           },
           "style": {
             "paper": [
@@ -2638,7 +2682,7 @@
         {
           "id": "success_7",
           "name": "Success",
-          "description": "OK",
+          "description": "SUCCESS",
           "tags": [
             "quest"
           ],
@@ -2647,7 +2691,8 @@
           },
           "text": {
             "title": "Success",
-            "body": "OK"
+            "body": "SUCCESS",
+            "footer": "Onto the quest pile"
           },
           "style": {
             "paper": [
@@ -2670,7 +2715,7 @@
         {
           "id": "success_8",
           "name": "Success",
-          "description": "OK",
+          "description": "SUCCESS",
           "tags": [
             "quest"
           ],
@@ -2679,7 +2724,8 @@
           },
           "text": {
             "title": "Success",
-            "body": "OK"
+            "body": "SUCCESS",
+            "footer": "Onto the quest pile"
           },
           "style": {
             "paper": [
@@ -2702,7 +2748,7 @@
         {
           "id": "success_9",
           "name": "Success",
-          "description": "OK",
+          "description": "SUCCESS",
           "tags": [
             "quest"
           ],
@@ -2711,7 +2757,8 @@
           },
           "text": {
             "title": "Success",
-            "body": "OK"
+            "body": "SUCCESS",
+            "footer": "Onto the quest pile"
           },
           "style": {
             "paper": [
@@ -2734,7 +2781,7 @@
         {
           "id": "success_10",
           "name": "Success",
-          "description": "OK",
+          "description": "SUCCESS",
           "tags": [
             "quest"
           ],
@@ -2743,7 +2790,8 @@
           },
           "text": {
             "title": "Success",
-            "body": "OK"
+            "body": "SUCCESS",
+            "footer": "Onto the quest pile"
           },
           "style": {
             "paper": [
@@ -2766,7 +2814,7 @@
         {
           "id": "fail",
           "name": "Fail",
-          "description": "X",
+          "description": "FAIL",
           "tags": [
             "quest"
           ],
@@ -2775,7 +2823,8 @@
           },
           "text": {
             "title": "Fail",
-            "body": "X"
+            "body": "FAIL",
+            "footer": "Minions only: sinks it"
           },
           "style": {
             "paper": [
@@ -2798,7 +2847,7 @@
         {
           "id": "fail_2",
           "name": "Fail",
-          "description": "X",
+          "description": "FAIL",
           "tags": [
             "quest"
           ],
@@ -2807,7 +2856,8 @@
           },
           "text": {
             "title": "Fail",
-            "body": "X"
+            "body": "FAIL",
+            "footer": "Minions only: sinks it"
           },
           "style": {
             "paper": [
@@ -2830,7 +2880,7 @@
         {
           "id": "fail_3",
           "name": "Fail",
-          "description": "X",
+          "description": "FAIL",
           "tags": [
             "quest"
           ],
@@ -2839,7 +2889,8 @@
           },
           "text": {
             "title": "Fail",
-            "body": "X"
+            "body": "FAIL",
+            "footer": "Minions only: sinks it"
           },
           "style": {
             "paper": [
@@ -2862,7 +2913,7 @@
         {
           "id": "fail_4",
           "name": "Fail",
-          "description": "X",
+          "description": "FAIL",
           "tags": [
             "quest"
           ],
@@ -2871,7 +2922,8 @@
           },
           "text": {
             "title": "Fail",
-            "body": "X"
+            "body": "FAIL",
+            "footer": "Minions only: sinks it"
           },
           "style": {
             "paper": [
@@ -2894,7 +2946,7 @@
         {
           "id": "fail_5",
           "name": "Fail",
-          "description": "X",
+          "description": "FAIL",
           "tags": [
             "quest"
           ],
@@ -2903,7 +2955,8 @@
           },
           "text": {
             "title": "Fail",
-            "body": "X"
+            "body": "FAIL",
+            "footer": "Minions only: sinks it"
           },
           "style": {
             "paper": [
@@ -2926,7 +2979,7 @@
         {
           "id": "fail_6",
           "name": "Fail",
-          "description": "X",
+          "description": "FAIL",
           "tags": [
             "quest"
           ],
@@ -2935,7 +2988,8 @@
           },
           "text": {
             "title": "Fail",
-            "body": "X"
+            "body": "FAIL",
+            "footer": "Minions only: sinks it"
           },
           "style": {
             "paper": [
@@ -2958,7 +3012,7 @@
         {
           "id": "fail_7",
           "name": "Fail",
-          "description": "X",
+          "description": "FAIL",
           "tags": [
             "quest"
           ],
@@ -2967,7 +3021,8 @@
           },
           "text": {
             "title": "Fail",
-            "body": "X"
+            "body": "FAIL",
+            "footer": "Minions only: sinks it"
           },
           "style": {
             "paper": [
@@ -2990,7 +3045,7 @@
         {
           "id": "fail_8",
           "name": "Fail",
-          "description": "X",
+          "description": "FAIL",
           "tags": [
             "quest"
           ],
@@ -2999,7 +3054,8 @@
           },
           "text": {
             "title": "Fail",
-            "body": "X"
+            "body": "FAIL",
+            "footer": "Minions only: sinks it"
           },
           "style": {
             "paper": [
@@ -3022,7 +3078,7 @@
         {
           "id": "fail_9",
           "name": "Fail",
-          "description": "X",
+          "description": "FAIL",
           "tags": [
             "quest"
           ],
@@ -3031,7 +3087,8 @@
           },
           "text": {
             "title": "Fail",
-            "body": "X"
+            "body": "FAIL",
+            "footer": "Minions only: sinks it"
           },
           "style": {
             "paper": [
@@ -3054,7 +3111,7 @@
         {
           "id": "fail_10",
           "name": "Fail",
-          "description": "X",
+          "description": "FAIL",
           "tags": [
             "quest"
           ],
@@ -3063,7 +3120,8 @@
           },
           "text": {
             "title": "Fail",
-            "body": "X"
+            "body": "FAIL",
+            "footer": "Minions only: sinks it"
           },
           "style": {
             "paper": [
@@ -5293,7 +5351,8 @@
             ]
           }
         }
-      ]
+      ],
+      "onPlayer": true
     }
   ],
   "events": {
@@ -5345,7 +5404,7 @@
     ]
   },
   "scripts": {
-    "global": "\nSIZES = { [5] = {2, 3, 2, 3, 3}, [6] = {2, 3, 4, 3, 4}, [7] = {2, 3, 3, 4, 4},\n          [8] = {3, 4, 4, 5, 5}, [9] = {3, 4, 4, 5, 5}, [10] = {3, 4, 4, 5, 5} }\n\n-- The team size and the fails it takes for the quest about to be played.\nfunction setQuest(ctx)\n  local players = #Game.getSeats()\n  local quest = Game.getVariable(\"quest\")\n  Game.setVariable(\"size\", SIZES[players][quest])\n  if quest == 4 and players >= 7 then Game.setVariable(\"needFails\", 2) else Game.setVariable(\"needFails\", 1) end\nend\n\n-- ---- where things are -------------------------------------------------------------------------------------------\n\nHOME = {}\n\nlocal function at(id)\n  local o = getObjectFromGUID(id)\n  return o and o.getPosition()\nend\n\nlocal function put(id, p)\n  local o = getObjectFromGUID(id)\n  if o and p then o.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z}) end\nend\n\nlocal function number(seat) return seat:match(\"(%d+)$\") end\n\n-- Before a seat: a share of the way from the middle of the table to its hand, and to the player's left by `left`.\nlocal function before(seat, share, left)\n  local p = at(\"hand_\" .. number(seat))\n  local x, z = p.x * share, p.z * share\n  if left then\n    local length = math.sqrt(p.x * p.x + p.z * p.z)\n    x, z = x + p.z / length * left, z - p.x / length * left\n  end\n  return {x = x, y = p.y, z = z}\nend\n\nlocal function startsWith(text, prefix) return text and text:sub(1, #prefix) == prefix end\n\n-- Every card on the table whose own id starts with one of `prefixes`, in hands and on the given zones.\nlocal function cardsIn(zones, prefixes)\n  local found = {}\n  for _, zone in ipairs(zones) do\n    local z = getObjectFromGUID(zone)\n    if z then\n      for _, o in ipairs(z.getObjects()) do\n        for _, prefix in ipairs(prefixes) do\n          if startsWith(o.getGUID(), prefix) then found[#found + 1] = o end\n        end\n      end\n    end\n  end\n  return found\nend\n\nlocal function hands()\n  local list = {}\n  for _, seat in ipairs(Game.getSeats()) do list[#list + 1] = \"hand_\" .. number(seat) end\n  return list\nend\n\n-- A card of a deck into a seat's hand (the deck names it by the card's own id).\nlocal function deal(deck, id, seat)\n  getObjectFromGUID(deck).takeObject({guid = id, position = at(\"hand_\" .. number(seat)), rotation = {x = 0, y = 0, z = 0}})\nend\n\n-- ---- the start ------------------------------------------------------------------------------------------------------\n\nPIECES = {\"reject_marker\"}\n\n-- Each player's role card into their hand, the minions' eyes for the ritual, where every piece starts.\nfunction setUp(ctx)\n  for _, id in ipairs(PIECES) do HOME[id] = at(id) end\n  local next = {}\n  local eyes = {}\n  local forMerlin = {}\n  local forPercival = {}\n  for _, seat in ipairs(Game.getSeats()) do\n    local role = Game.getRole(seat)\n    next[role] = (next[role] or 0) + 1\n    local id = \"role_\" .. role\n    if next[role] > 1 then id = id .. \"_\" .. next[role] end\n    deal(\"role_deck\", id, seat)\n    if Game.getTeam(seat) == \"evil\" and role ~= \"oberon\" then eyes[#eyes + 1] = seat end\n    -- The thumbs the game raises: every minion's but Mordred's for Merlin; Merlin's and Morgana's for Percival.\n    if Game.getTeam(seat) == \"evil\" and role ~= \"mordred\" then forMerlin[#forMerlin + 1] = seat end\n    if role == \"merlin\" or role == \"morgana\" then forPercival[#forPercival + 1] = seat end\n    if role == \"percival\" then Game.setVariable(\"percival\", true) end\n  end\n  Game.setVariable(\"minionEyes\", eyes)\n  Game.setVariable(\"thumbsMerlin\", forMerlin)\n  Game.setVariable(\"thumbsPercival\", forPercival)\nend\n\n-- The five quest cards for this many players, out of the box onto the middle of the table; the box goes with the rest.\nQUESTS = {}\nfunction layQuests(ctx)\n  local players = #Game.getSeats()\n  local group = players >= 8 and 8 or players\n  local left, right = at(\"reject_1\"), at(\"reject_5\")\n  local unit = (right.x - left.x) / 0.32   -- the track's ends are 0.32 m apart: table units per metre\n  local box = getObjectFromGUID(\"quest_box\")\n  for q = 1, 5 do\n    local card = box.takeObject({guid = \"quest_\" .. q .. \"_\" .. group,\n      position = {x = (-0.36 + 0.18 * (q - 1)) * unit, y = left.y + 0.3, z = 0.05 * unit}, rotation = {x = 0, y = 180, z = 0}})\n    QUESTS[q] = card and card.getGUID()\n  end\n  box.destruct()\nend\n\n-- ---- choosing the team ------------------------------------------------------------------------------------------\n\n-- ---- the team vote: Approve and Reject cards ----------------------------------------------------------------------\n\nlocal function spots()\n  local list = {}\n  for _, seat in ipairs(Game.getSeats()) do list[#list + 1] = \"vote_\" .. number(seat) end\n  return list\nend\n\n-- Every vote card back into its deck: those on the spots and those left in hands.\nVOTES_SHOWN = 0\nlocal function collectVotes()\n  VOTES_SHOWN = VOTES_SHOWN + 1\n  local deck = getObjectFromGUID(\"vote_deck\")\n  local all = cardsIn(spots(), {\"aye\", \"nay\"})\n  for _, card in ipairs(cardsIn(hands(), {\"aye\", \"nay\"})) do all[#all + 1] = card end\n  for _, card in ipairs(all) do deck.putObject(card) end\nend\n\nfunction votesOut(ctx)\n  -- A quick new vote: last one's cards come back first.\n  collectVotes()\n  for k, seat in ipairs(Game.getSeats()) do\n    deal(\"vote_deck\", k == 1 and \"aye\" or (\"aye_\" .. k), seat)\n    deal(\"vote_deck\", k == 1 and \"nay\" or (\"nay_\" .. k), seat)\n  end\nend\n\n-- The cards laid down turn over together, and go back to their deck a moment later with those left in hands.\nfunction votesShown(ctx)\n  for _, card in ipairs(cardsIn(spots(), {\"aye\", \"nay\"})) do card.flip() end\n  local shown = VOTES_SHOWN\n  Wait.time(function() if VOTES_SHOWN == shown then collectVotes() end end, 5)\nend\n\n-- ---- the quest: Success and Fail cards ------------------------------------------------------------------------------\n\n-- Every quest card back into its deck: from the pile, turned over, or left in hands. A turning-over still running stops.\nQUEST_SHOWN = 0\nSHOWN = {}\nlocal function collectQuest()\n  QUEST_SHOWN = QUEST_SHOWN + 1\n  local deck = getObjectFromGUID(\"quest_deck\")\n  local pile = getObjectFromGUID(\"quest_pile\")\n  for _ = 1, #pile.getObjects() do\n    local card = pile.takeObject({position = at(\"quest_drop\")})\n    if card then deck.putObject(card) end\n  end\n  for _, card in ipairs(SHOWN) do deck.putObject(card) end\n  SHOWN = {}\n  for _, card in ipairs(cardsIn(hands(), {\"success\", \"fail\"})) do deck.putObject(card) end\nend\n\nfunction questOut(ctx)\n  collectQuest()\n  local team = Game.getVariable(\"team\") or {}\n  for k, seat in ipairs(team) do\n    deal(\"quest_deck\", k == 1 and \"success\" or (\"success_\" .. k), seat)\n    deal(\"quest_deck\", k == 1 and \"fail\" or (\"fail_\" .. k), seat)\n  end\nend\n\n-- A card laid on the quest pile goes into it, face down: nobody can tell later whose it was.\nfunction toPile(ctx)\n  local card = getObjectFromGUID(ctx.it)\n  if card then getObjectFromGUID(\"quest_pile\").putObject(card) end\nend\n\n-- The pile is shuffled and its cards turned over one by one; then they and the cards not played go back.\nfunction questShown(ctx)\n  local shown = QUEST_SHOWN\n  Wait.time(function()\n    if QUEST_SHOWN ~= shown then return end\n    local pile = getObjectFromGUID(\"quest_pile\")\n    pile.shuffle()\n    local count = #pile.getObjects()\n    local row = at(\"reveal_row\")\n    local unit = (at(\"reject_5\").x - at(\"reject_1\").x) / 0.32\n    for i = 1, count do\n      Wait.time(function()\n        if QUEST_SHOWN ~= shown then return end\n        local card = getObjectFromGUID(\"quest_pile\").takeObject({\n          position = {x = row.x + (i - (count + 1) / 2) * 0.08 * unit, y = row.y + 0.3, z = row.z},\n          rotation = {x = 0, y = 0, z = 0}})\n        if card then SHOWN[#SHOWN + 1] = card end\n      end, 0.9 * i)\n    end\n    Wait.time(function() if QUEST_SHOWN == shown then collectQuest() end end, 0.9 * count + 5)\n  end, 0.5)\nend\n\nfunction markQuest(ctx)\n  local quest = math.floor(Game.getVariable(\"quest\"))\n  if ctx.args.result == \"fail\" then\n    local n = math.floor(Game.getVariable(\"fails\"))\n    put(n == 1 and \"evil\" or (\"evil_\" .. n), at(QUESTS[quest]))\n  else\n    local n = math.floor(Game.getVariable(\"successes\"))\n    put(n == 1 and \"good\" or (\"good_\" .. n), at(QUESTS[quest]))\n  end\nend\n\nfunction rejectTrack(ctx)\n  local n = math.floor(Game.getVariable(\"rejections\"))\n  if n == 0 then put(\"reject_marker\", HOME[\"reject_marker\"]) else put(\"reject_marker\", at(\"reject_\" .. n)) end\nend\n\n-- ---- the end ----------------------------------------------------------------------------------------------------------\n\n-- Every role card turned over in front of its player.\nfunction rolesShown(ctx)\n  for _, seat in ipairs(Game.getSeats()) do\n    for _, card in ipairs(cardsIn({\"hand_\" .. number(seat)}, {\"role_\"})) do\n      local p = before(seat, 0.56)\n      card.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z})\n      card.setRotationSmooth({x = 0, y = 0, z = 0})\n    end\n  end\nend\n"
+    "global": "\nSIZES = { [5] = {2, 3, 2, 3, 3}, [6] = {2, 3, 4, 3, 4}, [7] = {2, 3, 3, 4, 4},\n          [8] = {3, 4, 4, 5, 5}, [9] = {3, 4, 4, 5, 5}, [10] = {3, 4, 4, 5, 5} }\n\n-- The team size and the fails it takes for the quest about to be played.\nfunction setQuest(ctx)\n  local players = #Game.getSeats()\n  local quest = Game.getVariable(\"quest\")\n  Game.setVariable(\"size\", SIZES[players][quest])\n  if quest == 4 and players >= 7 then Game.setVariable(\"needFails\", 2) else Game.setVariable(\"needFails\", 1) end\nend\n\n-- ---- where things are -------------------------------------------------------------------------------------------\n\nHOME = {}\n\nlocal function at(id)\n  local o = getObjectFromGUID(id)\n  return o and o.getPosition()\nend\n\nlocal function put(id, p)\n  local o = getObjectFromGUID(id)\n  if o and p then o.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z}) end\nend\n\nlocal function number(seat) return seat:match(\"(%d+)$\") end\n\n-- Before a seat: a share of the way from the middle of the table to its hand, and to the player's left by `left`.\nlocal function before(seat, share, left)\n  local p = at(\"hand_\" .. number(seat))\n  local x, z = p.x * share, p.z * share\n  if left then\n    local length = math.sqrt(p.x * p.x + p.z * p.z)\n    x, z = x + p.z / length * left, z - p.x / length * left\n  end\n  return {x = x, y = p.y, z = z}\nend\n\nlocal function startsWith(text, prefix) return text and text:sub(1, #prefix) == prefix end\n\n-- Every card on the table whose own id starts with one of `prefixes`, in hands and on the given zones.\nlocal function cardsIn(zones, prefixes)\n  local found = {}\n  for _, zone in ipairs(zones) do\n    local z = getObjectFromGUID(zone)\n    if z then\n      for _, o in ipairs(z.getObjects()) do\n        for _, prefix in ipairs(prefixes) do\n          if startsWith(o.getGUID(), prefix) then found[#found + 1] = o end\n        end\n      end\n    end\n  end\n  return found\nend\n\nlocal function hands()\n  local list = {}\n  for _, seat in ipairs(Game.getSeats()) do list[#list + 1] = \"hand_\" .. number(seat) end\n  return list\nend\n\n-- A card of a deck into a seat's hand (the deck names it by the card's own id).\nlocal function deal(deck, id, seat)\n  getObjectFromGUID(deck).takeObject({guid = id, position = at(\"hand_\" .. number(seat)), rotation = {x = 0, y = 0, z = 0}})\nend\n\n-- ---- the start ------------------------------------------------------------------------------------------------------\n\nPIECES = {\"reject_marker\"}\n\n-- Each player's role card into their hand, the minions' eyes for the ritual, where every piece starts.\nfunction setUp(ctx)\n  for _, id in ipairs(PIECES) do HOME[id] = at(id) end\n  local next = {}\n  local eyes = {}\n  local forMerlin = {}\n  local forPercival = {}\n  for _, seat in ipairs(Game.getSeats()) do\n    local role = Game.getRole(seat)\n    next[role] = (next[role] or 0) + 1\n    local id = \"role_\" .. role\n    if next[role] > 1 then id = id .. \"_\" .. next[role] end\n    deal(\"role_deck\", id, seat)\n    if Game.getTeam(seat) == \"evil\" and role ~= \"oberon\" then eyes[#eyes + 1] = seat end\n    -- The thumbs the game raises: every minion's but Mordred's for Merlin; Merlin's and Morgana's for Percival.\n    if Game.getTeam(seat) == \"evil\" and role ~= \"mordred\" then forMerlin[#forMerlin + 1] = seat end\n    if role == \"merlin\" or role == \"morgana\" then forPercival[#forPercival + 1] = seat end\n    if role == \"percival\" then Game.setVariable(\"percival\", true) end\n  end\n  Game.setVariable(\"minionEyes\", eyes)\n  Game.setVariable(\"thumbsMerlin\", forMerlin)\n  Game.setVariable(\"thumbsPercival\", forPercival)\nend\n\n-- The five quest cards for this many players, out of the box onto the middle of the table; the box goes with the rest.\nQUESTS = {}\nfunction layQuests(ctx)\n  local players = #Game.getSeats()\n  local group = players >= 8 and 8 or players\n  local left, right = at(\"reject_1\"), at(\"reject_5\")\n  local unit = (right.x - left.x) / 0.32   -- the track's ends are 0.32 m apart: table units per metre\n  local box = getObjectFromGUID(\"quest_box\")\n  for q = 1, 5 do\n    local card = box.takeObject({guid = \"quest_\" .. q .. \"_\" .. group,\n      position = {x = (-0.36 + 0.18 * (q - 1)) * unit, y = left.y + 0.3, z = 0.05 * unit}, rotation = {x = 0, y = 180, z = 0}})\n    QUESTS[q] = card and card.getGUID()\n  end\n  box.destruct()\nend\n\n-- ---- choosing the team ------------------------------------------------------------------------------------------\n\n-- ---- the team vote: Approve and Reject cards ----------------------------------------------------------------------\n\nlocal function spots()\n  local list = {}\n  for _, seat in ipairs(Game.getSeats()) do list[#list + 1] = \"vote_\" .. number(seat) end\n  return list\nend\n\n-- Every vote card back into its deck: those on the spots and those left in hands.\nVOTES_SHOWN = 0\nlocal function collectVotes()\n  VOTES_SHOWN = VOTES_SHOWN + 1\n  local deck = getObjectFromGUID(\"vote_deck\")\n  local all = cardsIn(spots(), {\"aye\", \"nay\"})\n  for _, card in ipairs(cardsIn(hands(), {\"aye\", \"nay\"})) do all[#all + 1] = card end\n  for _, card in ipairs(all) do deck.putObject(card) end\nend\n\nfunction votesOut(ctx)\n  -- A quick new vote: last one's cards come back first.\n  collectVotes()\n  for k, seat in ipairs(Game.getSeats()) do\n    deal(\"vote_deck\", k == 1 and \"aye\" or (\"aye_\" .. k), seat)\n    deal(\"vote_deck\", k == 1 and \"nay\" or (\"nay_\" .. k), seat)\n  end\nend\n\n-- The cards laid down turn over together, and go back to their deck a moment later with those left in hands.\nfunction votesShown(ctx)\n  for _, card in ipairs(cardsIn(spots(), {\"aye\", \"nay\"})) do card.flip() end\n  local shown = VOTES_SHOWN\n  Wait.time(function() if VOTES_SHOWN == shown then collectVotes() end end, 5)\nend\n\n-- ---- the quest: Success and Fail cards ------------------------------------------------------------------------------\n\n-- Every quest card back into its deck: from the pile, turned over, or left in hands. A turning-over still running stops.\nQUEST_SHOWN = 0\nSHOWN = {}\nlocal function collectQuest()\n  QUEST_SHOWN = QUEST_SHOWN + 1\n  local deck = getObjectFromGUID(\"quest_deck\")\n  local pile = getObjectFromGUID(\"quest_pile\")\n  for _ = 1, #pile.getObjects() do\n    local card = pile.takeObject({position = at(\"quest_drop\")})\n    if card then deck.putObject(card) end\n  end\n  for _, card in ipairs(SHOWN) do deck.putObject(card) end\n  SHOWN = {}\n  for _, card in ipairs(cardsIn(hands(), {\"success\", \"fail\"})) do deck.putObject(card) end\nend\n\nfunction questOut(ctx)\n  collectQuest()\n  local team = Game.getVariable(\"team\") or {}\n  for k, seat in ipairs(team) do\n    deal(\"quest_deck\", k == 1 and \"success\" or (\"success_\" .. k), seat)\n    deal(\"quest_deck\", k == 1 and \"fail\" or (\"fail_\" .. k), seat)\n  end\nend\n\n-- A card laid on the quest pile goes into it, face down: nobody can tell later whose it was.\nfunction toPile(ctx)\n  local card = getObjectFromGUID(ctx.it)\n  if card then getObjectFromGUID(\"quest_pile\").putObject(card) end\nend\n\n-- The pile is shuffled and its cards turned over one by one; then they and the cards not played go back.\nfunction questShown(ctx)\n  local shown = QUEST_SHOWN\n  -- The cards not played leave the hands at once: everyone has played.\n  local deck = getObjectFromGUID(\"quest_deck\")\n  for _, card in ipairs(cardsIn(hands(), {\"success\", \"fail\"})) do deck.putObject(card) end\n  Wait.time(function()\n    if QUEST_SHOWN ~= shown then return end\n    local pile = getObjectFromGUID(\"quest_pile\")\n    pile.shuffle()\n    local count = #pile.getObjects()\n    local row = at(\"reveal_row\")\n    local unit = (at(\"reject_5\").x - at(\"reject_1\").x) / 0.32\n    for i = 1, count do\n      Wait.time(function()\n        if QUEST_SHOWN ~= shown then return end\n        local card = getObjectFromGUID(\"quest_pile\").takeObject({\n          position = {x = row.x + (i - (count + 1) / 2) * 0.08 * unit, y = row.y + 0.3, z = row.z},\n          rotation = {x = 0, y = 0, z = 0}})\n        if card then SHOWN[#SHOWN + 1] = card end\n      end, 0.9 * i)\n    end\n    Wait.time(function() if QUEST_SHOWN == shown then collectQuest() end end, 0.9 * count + 5)\n  end, 0.5)\nend\n\nfunction markQuest(ctx)\n  local quest = math.floor(Game.getVariable(\"quest\"))\n  if ctx.args.result == \"fail\" then\n    local n = math.floor(Game.getVariable(\"fails\"))\n    put(n == 1 and \"evil\" or (\"evil_\" .. n), at(QUESTS[quest]))\n  else\n    local n = math.floor(Game.getVariable(\"successes\"))\n    put(n == 1 and \"good\" or (\"good_\" .. n), at(QUESTS[quest]))\n  end\nend\n\nfunction rejectTrack(ctx)\n  local n = math.floor(Game.getVariable(\"rejections\"))\n  if n == 0 then put(\"reject_marker\", HOME[\"reject_marker\"]) else put(\"reject_marker\", at(\"reject_\" .. n)) end\nend\n\n-- ---- the end ----------------------------------------------------------------------------------------------------------\n\n-- Every role card turned over in front of its player.\nfunction rolesShown(ctx)\n  for _, seat in ipairs(Game.getSeats()) do\n    for _, card in ipairs(cardsIn({\"hand_\" .. number(seat)}, {\"role_\"})) do\n      local p = before(seat, 0.56)\n      card.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z})\n      card.setRotationSmooth({x = 0, y = 0, z = 0})\n    end\n  end\nend\n"
   },
   "roles": {
     "teams": [
@@ -5363,55 +5422,55 @@
         "id": "merlin",
         "name": "Merlin",
         "team": "good",
-        "description": "You see the minions' thumbs (not Mordred's). Stay hidden from the Assassin."
+        "description": "You know the minions. Steer good quietly: if the Assassin finds you, evil wins."
       },
       {
         "id": "percival",
         "name": "Percival",
         "team": "good",
         "optional": true,
-        "description": "You see two thumbs: Merlin's and Morgana's, not which is which."
+        "description": "One of the two thumbs you saw is Merlin. Protect Merlin; the other is Morgana."
       },
       {
         "id": "servant",
         "name": "Loyal servant",
         "team": "good",
         "count": "fill",
-        "description": "Play Success, find the minions."
+        "description": "Always play Success. Reject teams with minions on them."
       },
       {
         "id": "assassin",
         "name": "Assassin",
         "team": "evil",
-        "description": "If good completes three quests, name Merlin: evil wins."
+        "description": "Make quests fail. If good wins three, guess Merlin: right, and evil wins."
       },
       {
         "id": "morgana",
         "name": "Morgana",
         "team": "evil",
         "optional": true,
-        "description": "Percival sees your thumb up, as Merlin's: he cannot tell you apart."
+        "description": "Make quests fail. Percival may take you for Merlin: play along."
       },
       {
         "id": "mordred",
         "name": "Mordred",
         "team": "evil",
         "optional": true,
-        "description": "Merlin does not see you among the minions."
+        "description": "Make quests fail. Merlin does not know you are evil."
       },
       {
         "id": "oberon",
         "name": "Oberon",
         "team": "evil",
         "optional": true,
-        "description": "Keep your eyes closed with the minions: they do not know you."
+        "description": "Make quests fail. The other minions do not know you, nor you them."
       },
       {
         "id": "minion",
         "name": "Minion of Mordred",
         "team": "evil",
         "count": "fill",
-        "description": "Play Fail when it suits you; hide among the loyal."
+        "description": "Get on teams and play Fail. Pretend to be loyal."
       }
     ],
     "byPlayers": {
@@ -5476,7 +5535,7 @@
       "strings.questFails": "Quest {$var.quest} fails.",
       "strings.questSucceeds": "Quest {$var.quest} succeeds.",
       "strings.threeFailed": "Three quests failed.",
-      "strings.threeSucceeded": "Three quests succeeded. The Assassin names Merlin.",
+      "strings.threeSucceeded": "Three quests succeeded. Assassin: click the player you think is Merlin.",
       "strings.wasMerlin": "{$param.target.name} was Merlin.",
       "strings.wasNotMerlin": "{$param.target.name} was not Merlin."
     },
@@ -5520,143 +5579,183 @@
       "teams.good.name": "Leales servidores de Arturo",
       "teams.evil.name": "Esbirros de Mordred",
       "roles.merlin.name": "Merlín",
-      "roles.merlin.description": "Ves los pulgares de los esbirros (no el de Mordred). Escóndete del Asesino.",
+      "roles.merlin.description": "Sabes quiénes son los esbirros. Guía al bien sin delatarte: si el Asesino te encuentra, gana el mal.",
       "cards.role_merlin.text.title": "Merlín",
-      "cards.role_merlin.text.kind": "Leales servidores de Arturo",
-      "cards.role_merlin.text.body": "Ves los pulgares de los esbirros (no el de Mordred). Escóndete del Asesino.",
+      "cards.role_merlin.text.kind": "Bando del bien",
+      "cards.role_merlin.text.body": "Sabes quiénes son los esbirros. Guía al bien sin delatarte: si el Asesino te encuentra, gana el mal.",
       "roles.percival.name": "Percival",
-      "roles.percival.description": "Ves dos pulgares: el de Merlín y el de Morgana, sin saber cuál es cuál.",
+      "roles.percival.description": "Uno de los dos pulgares que viste es Merlín: protégelo. El otro es Morgana.",
       "cards.role_percival.text.title": "Percival",
-      "cards.role_percival.text.kind": "Leales servidores de Arturo",
-      "cards.role_percival.text.body": "Ves dos pulgares: el de Merlín y el de Morgana, sin saber cuál es cuál.",
+      "cards.role_percival.text.kind": "Bando del bien",
+      "cards.role_percival.text.body": "Uno de los dos pulgares que viste es Merlín: protégelo. El otro es Morgana.",
       "roles.servant.name": "Leal servidor",
-      "roles.servant.description": "Juega Éxito y descubre a los esbirros.",
+      "roles.servant.description": "Juega siempre Éxito. Rechaza los equipos con esbirros.",
       "cards.role_servant.text.title": "Leal servidor",
-      "cards.role_servant.text.kind": "Leales servidores de Arturo",
-      "cards.role_servant.text.body": "Juega Éxito y descubre a los esbirros.",
+      "cards.role_servant.text.kind": "Bando del bien",
+      "cards.role_servant.text.body": "Juega siempre Éxito. Rechaza los equipos con esbirros.",
       "cards.role_servant_2.text.title": "Leal servidor",
-      "cards.role_servant_2.text.kind": "Leales servidores de Arturo",
-      "cards.role_servant_2.text.body": "Juega Éxito y descubre a los esbirros.",
+      "cards.role_servant_2.text.kind": "Bando del bien",
+      "cards.role_servant_2.text.body": "Juega siempre Éxito. Rechaza los equipos con esbirros.",
       "cards.role_servant_3.text.title": "Leal servidor",
-      "cards.role_servant_3.text.kind": "Leales servidores de Arturo",
-      "cards.role_servant_3.text.body": "Juega Éxito y descubre a los esbirros.",
+      "cards.role_servant_3.text.kind": "Bando del bien",
+      "cards.role_servant_3.text.body": "Juega siempre Éxito. Rechaza los equipos con esbirros.",
       "cards.role_servant_4.text.title": "Leal servidor",
-      "cards.role_servant_4.text.kind": "Leales servidores de Arturo",
-      "cards.role_servant_4.text.body": "Juega Éxito y descubre a los esbirros.",
+      "cards.role_servant_4.text.kind": "Bando del bien",
+      "cards.role_servant_4.text.body": "Juega siempre Éxito. Rechaza los equipos con esbirros.",
       "cards.role_servant_5.text.title": "Leal servidor",
-      "cards.role_servant_5.text.kind": "Leales servidores de Arturo",
-      "cards.role_servant_5.text.body": "Juega Éxito y descubre a los esbirros.",
+      "cards.role_servant_5.text.kind": "Bando del bien",
+      "cards.role_servant_5.text.body": "Juega siempre Éxito. Rechaza los equipos con esbirros.",
       "roles.assassin.name": "Asesino",
-      "roles.assassin.description": "Si el bien cumple tres misiones, nombra a Merlín: gana el mal.",
+      "roles.assassin.description": "Haz fracasar misiones. Si el bien gana tres, adivina quién es Merlín: si aciertas, gana el mal.",
       "cards.role_assassin.text.title": "Asesino",
-      "cards.role_assassin.text.kind": "Esbirros de Mordred",
-      "cards.role_assassin.text.body": "Si el bien cumple tres misiones, nombra a Merlín: gana el mal.",
+      "cards.role_assassin.text.kind": "Bando del mal",
+      "cards.role_assassin.text.body": "Haz fracasar misiones. Si el bien gana tres, adivina quién es Merlín: si aciertas, gana el mal.",
       "roles.morgana.name": "Morgana",
-      "roles.morgana.description": "Percival ve tu pulgar arriba, igual que el de Merlín: no sabe quién es quién.",
+      "roles.morgana.description": "Haz fracasar misiones. Percival puede creer que eres Merlín: síguele el juego.",
       "cards.role_morgana.text.title": "Morgana",
-      "cards.role_morgana.text.kind": "Esbirros de Mordred",
-      "cards.role_morgana.text.body": "Percival ve tu pulgar arriba, igual que el de Merlín: no sabe quién es quién.",
+      "cards.role_morgana.text.kind": "Bando del mal",
+      "cards.role_morgana.text.body": "Haz fracasar misiones. Percival puede creer que eres Merlín: síguele el juego.",
       "roles.mordred.name": "Mordred",
-      "roles.mordred.description": "Merlín no te ve entre los esbirros.",
+      "roles.mordred.description": "Haz fracasar misiones. Merlín no sabe que eres del mal.",
       "cards.role_mordred.text.title": "Mordred",
-      "cards.role_mordred.text.kind": "Esbirros de Mordred",
-      "cards.role_mordred.text.body": "Merlín no te ve entre los esbirros.",
+      "cards.role_mordred.text.kind": "Bando del mal",
+      "cards.role_mordred.text.body": "Haz fracasar misiones. Merlín no sabe que eres del mal.",
       "roles.oberon.name": "Oberón",
-      "roles.oberon.description": "Mantén los ojos cerrados con los esbirros: ellos no te conocen.",
+      "roles.oberon.description": "Haz fracasar misiones. Los otros esbirros no te conocen, ni tú a ellos.",
       "cards.role_oberon.text.title": "Oberón",
-      "cards.role_oberon.text.kind": "Esbirros de Mordred",
-      "cards.role_oberon.text.body": "Mantén los ojos cerrados con los esbirros: ellos no te conocen.",
+      "cards.role_oberon.text.kind": "Bando del mal",
+      "cards.role_oberon.text.body": "Haz fracasar misiones. Los otros esbirros no te conocen, ni tú a ellos.",
       "roles.minion.name": "Esbirro de Mordred",
-      "roles.minion.description": "Juega Fracaso cuando te convenga; escóndete entre los leales.",
+      "roles.minion.description": "Entra en los equipos y juega Fracaso. Finge ser leal.",
       "cards.role_minion.text.title": "Esbirro de Mordred",
-      "cards.role_minion.text.kind": "Esbirros de Mordred",
-      "cards.role_minion.text.body": "Juega Fracaso cuando te convenga; escóndete entre los leales.",
+      "cards.role_minion.text.kind": "Bando del mal",
+      "cards.role_minion.text.body": "Entra en los equipos y juega Fracaso. Finge ser leal.",
       "cards.role_minion_2.text.title": "Esbirro de Mordred",
-      "cards.role_minion_2.text.kind": "Esbirros de Mordred",
-      "cards.role_minion_2.text.body": "Juega Fracaso cuando te convenga; escóndete entre los leales.",
+      "cards.role_minion_2.text.kind": "Bando del mal",
+      "cards.role_minion_2.text.body": "Entra en los equipos y juega Fracaso. Finge ser leal.",
       "cards.role_minion_3.text.title": "Esbirro de Mordred",
-      "cards.role_minion_3.text.kind": "Esbirros de Mordred",
-      "cards.role_minion_3.text.body": "Juega Fracaso cuando te convenga; escóndete entre los leales.",
+      "cards.role_minion_3.text.kind": "Bando del mal",
+      "cards.role_minion_3.text.body": "Entra en los equipos y juega Fracaso. Finge ser leal.",
       "cards.aye.text.title": "Aprobar",
-      "cards.aye.text.body": "Sí",
+      "cards.aye.text.body": "SÍ",
       "cards.nay.text.title": "Rechazar",
-      "cards.nay.text.body": "No",
+      "cards.nay.text.body": "NO",
+      "cards.aye.text.footer": "Boca abajo en tu sitio",
+      "cards.nay.text.footer": "Boca abajo en tu sitio",
       "cards.success.text.title": "Éxito",
-      "cards.success.text.body": "OK",
+      "cards.success.text.body": "ÉXITO",
       "cards.fail.text.title": "Fracaso",
-      "cards.fail.text.body": "X",
+      "cards.fail.text.body": "FRACASO",
+      "cards.success.text.footer": "Al montón de la misión",
+      "cards.fail.text.footer": "Solo esbirros: la hunde",
       "cards.aye_2.text.title": "Aprobar",
-      "cards.aye_2.text.body": "Sí",
+      "cards.aye_2.text.body": "SÍ",
       "cards.nay_2.text.title": "Rechazar",
-      "cards.nay_2.text.body": "No",
+      "cards.nay_2.text.body": "NO",
+      "cards.aye_2.text.footer": "Boca abajo en tu sitio",
+      "cards.nay_2.text.footer": "Boca abajo en tu sitio",
       "cards.success_2.text.title": "Éxito",
-      "cards.success_2.text.body": "OK",
+      "cards.success_2.text.body": "ÉXITO",
       "cards.fail_2.text.title": "Fracaso",
-      "cards.fail_2.text.body": "X",
+      "cards.fail_2.text.body": "FRACASO",
+      "cards.success_2.text.footer": "Al montón de la misión",
+      "cards.fail_2.text.footer": "Solo esbirros: la hunde",
       "cards.aye_3.text.title": "Aprobar",
-      "cards.aye_3.text.body": "Sí",
+      "cards.aye_3.text.body": "SÍ",
       "cards.nay_3.text.title": "Rechazar",
-      "cards.nay_3.text.body": "No",
+      "cards.nay_3.text.body": "NO",
+      "cards.aye_3.text.footer": "Boca abajo en tu sitio",
+      "cards.nay_3.text.footer": "Boca abajo en tu sitio",
       "cards.success_3.text.title": "Éxito",
-      "cards.success_3.text.body": "OK",
+      "cards.success_3.text.body": "ÉXITO",
       "cards.fail_3.text.title": "Fracaso",
-      "cards.fail_3.text.body": "X",
+      "cards.fail_3.text.body": "FRACASO",
+      "cards.success_3.text.footer": "Al montón de la misión",
+      "cards.fail_3.text.footer": "Solo esbirros: la hunde",
       "cards.aye_4.text.title": "Aprobar",
-      "cards.aye_4.text.body": "Sí",
+      "cards.aye_4.text.body": "SÍ",
       "cards.nay_4.text.title": "Rechazar",
-      "cards.nay_4.text.body": "No",
+      "cards.nay_4.text.body": "NO",
+      "cards.aye_4.text.footer": "Boca abajo en tu sitio",
+      "cards.nay_4.text.footer": "Boca abajo en tu sitio",
       "cards.success_4.text.title": "Éxito",
-      "cards.success_4.text.body": "OK",
+      "cards.success_4.text.body": "ÉXITO",
       "cards.fail_4.text.title": "Fracaso",
-      "cards.fail_4.text.body": "X",
+      "cards.fail_4.text.body": "FRACASO",
+      "cards.success_4.text.footer": "Al montón de la misión",
+      "cards.fail_4.text.footer": "Solo esbirros: la hunde",
       "cards.aye_5.text.title": "Aprobar",
-      "cards.aye_5.text.body": "Sí",
+      "cards.aye_5.text.body": "SÍ",
       "cards.nay_5.text.title": "Rechazar",
-      "cards.nay_5.text.body": "No",
+      "cards.nay_5.text.body": "NO",
+      "cards.aye_5.text.footer": "Boca abajo en tu sitio",
+      "cards.nay_5.text.footer": "Boca abajo en tu sitio",
       "cards.success_5.text.title": "Éxito",
-      "cards.success_5.text.body": "OK",
+      "cards.success_5.text.body": "ÉXITO",
       "cards.fail_5.text.title": "Fracaso",
-      "cards.fail_5.text.body": "X",
+      "cards.fail_5.text.body": "FRACASO",
+      "cards.success_5.text.footer": "Al montón de la misión",
+      "cards.fail_5.text.footer": "Solo esbirros: la hunde",
       "cards.aye_6.text.title": "Aprobar",
-      "cards.aye_6.text.body": "Sí",
+      "cards.aye_6.text.body": "SÍ",
       "cards.nay_6.text.title": "Rechazar",
-      "cards.nay_6.text.body": "No",
+      "cards.nay_6.text.body": "NO",
+      "cards.aye_6.text.footer": "Boca abajo en tu sitio",
+      "cards.nay_6.text.footer": "Boca abajo en tu sitio",
       "cards.success_6.text.title": "Éxito",
-      "cards.success_6.text.body": "OK",
+      "cards.success_6.text.body": "ÉXITO",
       "cards.fail_6.text.title": "Fracaso",
-      "cards.fail_6.text.body": "X",
+      "cards.fail_6.text.body": "FRACASO",
+      "cards.success_6.text.footer": "Al montón de la misión",
+      "cards.fail_6.text.footer": "Solo esbirros: la hunde",
       "cards.aye_7.text.title": "Aprobar",
-      "cards.aye_7.text.body": "Sí",
+      "cards.aye_7.text.body": "SÍ",
       "cards.nay_7.text.title": "Rechazar",
-      "cards.nay_7.text.body": "No",
+      "cards.nay_7.text.body": "NO",
+      "cards.aye_7.text.footer": "Boca abajo en tu sitio",
+      "cards.nay_7.text.footer": "Boca abajo en tu sitio",
       "cards.success_7.text.title": "Éxito",
-      "cards.success_7.text.body": "OK",
+      "cards.success_7.text.body": "ÉXITO",
       "cards.fail_7.text.title": "Fracaso",
-      "cards.fail_7.text.body": "X",
+      "cards.fail_7.text.body": "FRACASO",
+      "cards.success_7.text.footer": "Al montón de la misión",
+      "cards.fail_7.text.footer": "Solo esbirros: la hunde",
       "cards.aye_8.text.title": "Aprobar",
-      "cards.aye_8.text.body": "Sí",
+      "cards.aye_8.text.body": "SÍ",
       "cards.nay_8.text.title": "Rechazar",
-      "cards.nay_8.text.body": "No",
+      "cards.nay_8.text.body": "NO",
+      "cards.aye_8.text.footer": "Boca abajo en tu sitio",
+      "cards.nay_8.text.footer": "Boca abajo en tu sitio",
       "cards.success_8.text.title": "Éxito",
-      "cards.success_8.text.body": "OK",
+      "cards.success_8.text.body": "ÉXITO",
       "cards.fail_8.text.title": "Fracaso",
-      "cards.fail_8.text.body": "X",
+      "cards.fail_8.text.body": "FRACASO",
+      "cards.success_8.text.footer": "Al montón de la misión",
+      "cards.fail_8.text.footer": "Solo esbirros: la hunde",
       "cards.aye_9.text.title": "Aprobar",
-      "cards.aye_9.text.body": "Sí",
+      "cards.aye_9.text.body": "SÍ",
       "cards.nay_9.text.title": "Rechazar",
-      "cards.nay_9.text.body": "No",
+      "cards.nay_9.text.body": "NO",
+      "cards.aye_9.text.footer": "Boca abajo en tu sitio",
+      "cards.nay_9.text.footer": "Boca abajo en tu sitio",
       "cards.success_9.text.title": "Éxito",
-      "cards.success_9.text.body": "OK",
+      "cards.success_9.text.body": "ÉXITO",
       "cards.fail_9.text.title": "Fracaso",
-      "cards.fail_9.text.body": "X",
+      "cards.fail_9.text.body": "FRACASO",
+      "cards.success_9.text.footer": "Al montón de la misión",
+      "cards.fail_9.text.footer": "Solo esbirros: la hunde",
       "cards.aye_10.text.title": "Aprobar",
-      "cards.aye_10.text.body": "Sí",
+      "cards.aye_10.text.body": "SÍ",
       "cards.nay_10.text.title": "Rechazar",
-      "cards.nay_10.text.body": "No",
+      "cards.nay_10.text.body": "NO",
+      "cards.aye_10.text.footer": "Boca abajo en tu sitio",
+      "cards.nay_10.text.footer": "Boca abajo en tu sitio",
       "cards.success_10.text.title": "Éxito",
-      "cards.success_10.text.body": "OK",
+      "cards.success_10.text.body": "ÉXITO",
       "cards.fail_10.text.title": "Fracaso",
-      "cards.fail_10.text.body": "X",
+      "cards.fail_10.text.body": "FRACASO",
+      "cards.success_10.text.footer": "Al montón de la misión",
+      "cards.fail_10.text.footer": "Solo esbirros: la hunde",
       "cards.role_merlin.name": "Merlín",
       "cards.role_percival.name": "Percival",
       "cards.role_servant.name": "Leal servidor",
@@ -5711,60 +5810,60 @@
       "cards.nay_10.name": "Rechazar",
       "cards.success_10.name": "Éxito",
       "cards.fail_10.name": "Fracaso",
-      "cards.role_merlin.description": "Ves los pulgares de los esbirros (no el de Mordred). Escóndete del Asesino.",
-      "cards.role_percival.description": "Ves dos pulgares: el de Merlín y el de Morgana, sin saber cuál es cuál.",
-      "cards.role_servant.description": "Juega Éxito y descubre a los esbirros.",
-      "cards.role_servant_2.description": "Juega Éxito y descubre a los esbirros.",
-      "cards.role_servant_3.description": "Juega Éxito y descubre a los esbirros.",
-      "cards.role_servant_4.description": "Juega Éxito y descubre a los esbirros.",
-      "cards.role_servant_5.description": "Juega Éxito y descubre a los esbirros.",
-      "cards.role_assassin.description": "Si el bien cumple tres misiones, nombra a Merlín: gana el mal.",
-      "cards.role_morgana.description": "Percival ve tu pulgar arriba, igual que el de Merlín: no sabe quién es quién.",
-      "cards.role_mordred.description": "Merlín no te ve entre los esbirros.",
-      "cards.role_oberon.description": "Mantén los ojos cerrados con los esbirros: ellos no te conocen.",
-      "cards.role_minion.description": "Juega Fracaso cuando te convenga; escóndete entre los leales.",
-      "cards.role_minion_2.description": "Juega Fracaso cuando te convenga; escóndete entre los leales.",
-      "cards.role_minion_3.description": "Juega Fracaso cuando te convenga; escóndete entre los leales.",
-      "cards.aye.description": "Sí",
-      "cards.nay.description": "No",
-      "cards.success.description": "OK",
-      "cards.fail.description": "X",
-      "cards.aye_2.description": "Sí",
-      "cards.nay_2.description": "No",
-      "cards.success_2.description": "OK",
-      "cards.fail_2.description": "X",
-      "cards.aye_3.description": "Sí",
-      "cards.nay_3.description": "No",
-      "cards.success_3.description": "OK",
-      "cards.fail_3.description": "X",
-      "cards.aye_4.description": "Sí",
-      "cards.nay_4.description": "No",
-      "cards.success_4.description": "OK",
-      "cards.fail_4.description": "X",
-      "cards.aye_5.description": "Sí",
-      "cards.nay_5.description": "No",
-      "cards.success_5.description": "OK",
-      "cards.fail_5.description": "X",
-      "cards.aye_6.description": "Sí",
-      "cards.nay_6.description": "No",
-      "cards.success_6.description": "OK",
-      "cards.fail_6.description": "X",
-      "cards.aye_7.description": "Sí",
-      "cards.nay_7.description": "No",
-      "cards.success_7.description": "OK",
-      "cards.fail_7.description": "X",
-      "cards.aye_8.description": "Sí",
-      "cards.nay_8.description": "No",
-      "cards.success_8.description": "OK",
-      "cards.fail_8.description": "X",
-      "cards.aye_9.description": "Sí",
-      "cards.nay_9.description": "No",
-      "cards.success_9.description": "OK",
-      "cards.fail_9.description": "X",
-      "cards.aye_10.description": "Sí",
-      "cards.nay_10.description": "No",
-      "cards.success_10.description": "OK",
-      "cards.fail_10.description": "X",
+      "cards.role_merlin.description": "Sabes quiénes son los esbirros. Guía al bien sin delatarte: si el Asesino te encuentra, gana el mal.",
+      "cards.role_percival.description": "Uno de los dos pulgares que viste es Merlín: protégelo. El otro es Morgana.",
+      "cards.role_servant.description": "Juega siempre Éxito. Rechaza los equipos con esbirros.",
+      "cards.role_servant_2.description": "Juega siempre Éxito. Rechaza los equipos con esbirros.",
+      "cards.role_servant_3.description": "Juega siempre Éxito. Rechaza los equipos con esbirros.",
+      "cards.role_servant_4.description": "Juega siempre Éxito. Rechaza los equipos con esbirros.",
+      "cards.role_servant_5.description": "Juega siempre Éxito. Rechaza los equipos con esbirros.",
+      "cards.role_assassin.description": "Haz fracasar misiones. Si el bien gana tres, adivina quién es Merlín: si aciertas, gana el mal.",
+      "cards.role_morgana.description": "Haz fracasar misiones. Percival puede creer que eres Merlín: síguele el juego.",
+      "cards.role_mordred.description": "Haz fracasar misiones. Merlín no sabe que eres del mal.",
+      "cards.role_oberon.description": "Haz fracasar misiones. Los otros esbirros no te conocen, ni tú a ellos.",
+      "cards.role_minion.description": "Entra en los equipos y juega Fracaso. Finge ser leal.",
+      "cards.role_minion_2.description": "Entra en los equipos y juega Fracaso. Finge ser leal.",
+      "cards.role_minion_3.description": "Entra en los equipos y juega Fracaso. Finge ser leal.",
+      "cards.aye.description": "SÍ",
+      "cards.nay.description": "NO",
+      "cards.success.description": "ÉXITO",
+      "cards.fail.description": "FRACASO",
+      "cards.aye_2.description": "SÍ",
+      "cards.nay_2.description": "NO",
+      "cards.success_2.description": "ÉXITO",
+      "cards.fail_2.description": "FRACASO",
+      "cards.aye_3.description": "SÍ",
+      "cards.nay_3.description": "NO",
+      "cards.success_3.description": "ÉXITO",
+      "cards.fail_3.description": "FRACASO",
+      "cards.aye_4.description": "SÍ",
+      "cards.nay_4.description": "NO",
+      "cards.success_4.description": "ÉXITO",
+      "cards.fail_4.description": "FRACASO",
+      "cards.aye_5.description": "SÍ",
+      "cards.nay_5.description": "NO",
+      "cards.success_5.description": "ÉXITO",
+      "cards.fail_5.description": "FRACASO",
+      "cards.aye_6.description": "SÍ",
+      "cards.nay_6.description": "NO",
+      "cards.success_6.description": "ÉXITO",
+      "cards.fail_6.description": "FRACASO",
+      "cards.aye_7.description": "SÍ",
+      "cards.nay_7.description": "NO",
+      "cards.success_7.description": "ÉXITO",
+      "cards.fail_7.description": "FRACASO",
+      "cards.aye_8.description": "SÍ",
+      "cards.nay_8.description": "NO",
+      "cards.success_8.description": "ÉXITO",
+      "cards.fail_8.description": "FRACASO",
+      "cards.aye_9.description": "SÍ",
+      "cards.nay_9.description": "NO",
+      "cards.success_9.description": "ÉXITO",
+      "cards.fail_9.description": "FRACASO",
+      "cards.aye_10.description": "SÍ",
+      "cards.nay_10.description": "NO",
+      "cards.success_10.description": "ÉXITO",
+      "cards.fail_10.description": "FRACASO",
       "strings.leads": "{$current.name} lidera la misión {$var.quest}: haz clic en {$var.size} jugadores para el equipo (otra vez para sacar a uno) y propónlo.",
       "strings.proposes": "{$actor.name} propone a {$var.team}. Pon Aprobar o Rechazar boca abajo en tu lugar.",
       "strings.questStarts": "{$var.team}: pongan Éxito o Fracaso boca abajo en el montón de la misión.",
@@ -5777,92 +5876,110 @@
       "strings.questFails": "La misión {$var.quest} fracasa.",
       "strings.questSucceeds": "La misión {$var.quest} tiene éxito.",
       "strings.threeFailed": "Tres misiones fracasaron.",
-      "strings.threeSucceeded": "Tres misiones tuvieron éxito. El Asesino nombra a Merlín.",
+      "strings.threeSucceeded": "Tres misiones tuvieron éxito. Asesino: haz clic en quien creas que es Merlín.",
       "strings.wasMerlin": "{$param.target.name} era Merlín.",
       "strings.wasNotMerlin": "{$param.target.name} no era Merlín.",
       "objects.quest_box.name": "Cartas de misión",
       "objects.quest_1_5.name": "Misión 1",
       "objects.quest_1_5.text.title": "Misión 1",
-      "objects.quest_1_5.text.kind": "Equipo de",
+      "objects.quest_1_5.text.kind": "Jugadores que van",
       "objects.quest_1_5.text.body": "2",
+      "objects.quest_1_5.text.footer": "La hunde 1 Fracaso",
       "objects.quest_2_5.name": "Misión 2",
       "objects.quest_2_5.text.title": "Misión 2",
-      "objects.quest_2_5.text.kind": "Equipo de",
+      "objects.quest_2_5.text.kind": "Jugadores que van",
       "objects.quest_2_5.text.body": "3",
+      "objects.quest_2_5.text.footer": "La hunde 1 Fracaso",
       "objects.quest_3_5.name": "Misión 3",
       "objects.quest_3_5.text.title": "Misión 3",
-      "objects.quest_3_5.text.kind": "Equipo de",
+      "objects.quest_3_5.text.kind": "Jugadores que van",
       "objects.quest_3_5.text.body": "2",
+      "objects.quest_3_5.text.footer": "La hunde 1 Fracaso",
       "objects.quest_4_5.name": "Misión 4",
       "objects.quest_4_5.text.title": "Misión 4",
-      "objects.quest_4_5.text.kind": "Equipo de",
+      "objects.quest_4_5.text.kind": "Jugadores que van",
       "objects.quest_4_5.text.body": "3",
+      "objects.quest_4_5.text.footer": "La hunde 1 Fracaso",
       "objects.quest_5_5.name": "Misión 5",
       "objects.quest_5_5.text.title": "Misión 5",
-      "objects.quest_5_5.text.kind": "Equipo de",
+      "objects.quest_5_5.text.kind": "Jugadores que van",
       "objects.quest_5_5.text.body": "3",
+      "objects.quest_5_5.text.footer": "La hunde 1 Fracaso",
       "objects.quest_1_6.name": "Misión 1",
       "objects.quest_1_6.text.title": "Misión 1",
-      "objects.quest_1_6.text.kind": "Equipo de",
+      "objects.quest_1_6.text.kind": "Jugadores que van",
       "objects.quest_1_6.text.body": "2",
+      "objects.quest_1_6.text.footer": "La hunde 1 Fracaso",
       "objects.quest_2_6.name": "Misión 2",
       "objects.quest_2_6.text.title": "Misión 2",
-      "objects.quest_2_6.text.kind": "Equipo de",
+      "objects.quest_2_6.text.kind": "Jugadores que van",
       "objects.quest_2_6.text.body": "3",
+      "objects.quest_2_6.text.footer": "La hunde 1 Fracaso",
       "objects.quest_3_6.name": "Misión 3",
       "objects.quest_3_6.text.title": "Misión 3",
-      "objects.quest_3_6.text.kind": "Equipo de",
+      "objects.quest_3_6.text.kind": "Jugadores que van",
       "objects.quest_3_6.text.body": "4",
+      "objects.quest_3_6.text.footer": "La hunde 1 Fracaso",
       "objects.quest_4_6.name": "Misión 4",
       "objects.quest_4_6.text.title": "Misión 4",
-      "objects.quest_4_6.text.kind": "Equipo de",
+      "objects.quest_4_6.text.kind": "Jugadores que van",
       "objects.quest_4_6.text.body": "3",
+      "objects.quest_4_6.text.footer": "La hunde 1 Fracaso",
       "objects.quest_5_6.name": "Misión 5",
       "objects.quest_5_6.text.title": "Misión 5",
-      "objects.quest_5_6.text.kind": "Equipo de",
+      "objects.quest_5_6.text.kind": "Jugadores que van",
       "objects.quest_5_6.text.body": "4",
+      "objects.quest_5_6.text.footer": "La hunde 1 Fracaso",
       "objects.quest_1_7.name": "Misión 1",
       "objects.quest_1_7.text.title": "Misión 1",
-      "objects.quest_1_7.text.kind": "Equipo de",
+      "objects.quest_1_7.text.kind": "Jugadores que van",
       "objects.quest_1_7.text.body": "2",
+      "objects.quest_1_7.text.footer": "La hunde 1 Fracaso",
       "objects.quest_2_7.name": "Misión 2",
       "objects.quest_2_7.text.title": "Misión 2",
-      "objects.quest_2_7.text.kind": "Equipo de",
+      "objects.quest_2_7.text.kind": "Jugadores que van",
       "objects.quest_2_7.text.body": "3",
+      "objects.quest_2_7.text.footer": "La hunde 1 Fracaso",
       "objects.quest_3_7.name": "Misión 3",
       "objects.quest_3_7.text.title": "Misión 3",
-      "objects.quest_3_7.text.kind": "Equipo de",
+      "objects.quest_3_7.text.kind": "Jugadores que van",
       "objects.quest_3_7.text.body": "3",
+      "objects.quest_3_7.text.footer": "La hunde 1 Fracaso",
       "objects.quest_4_7.name": "Misión 4",
       "objects.quest_4_7.text.title": "Misión 4",
-      "objects.quest_4_7.text.kind": "Equipo de",
+      "objects.quest_4_7.text.kind": "Jugadores que van",
       "objects.quest_4_7.text.body": "4",
-      "objects.quest_4_7.text.footer": "2 fracasos para hundirla",
+      "objects.quest_4_7.text.footer": "La hunden 2 Fracasos",
       "objects.quest_5_7.name": "Misión 5",
       "objects.quest_5_7.text.title": "Misión 5",
-      "objects.quest_5_7.text.kind": "Equipo de",
+      "objects.quest_5_7.text.kind": "Jugadores que van",
       "objects.quest_5_7.text.body": "4",
+      "objects.quest_5_7.text.footer": "La hunde 1 Fracaso",
       "objects.quest_1_8.name": "Misión 1",
       "objects.quest_1_8.text.title": "Misión 1",
-      "objects.quest_1_8.text.kind": "Equipo de",
+      "objects.quest_1_8.text.kind": "Jugadores que van",
       "objects.quest_1_8.text.body": "3",
+      "objects.quest_1_8.text.footer": "La hunde 1 Fracaso",
       "objects.quest_2_8.name": "Misión 2",
       "objects.quest_2_8.text.title": "Misión 2",
-      "objects.quest_2_8.text.kind": "Equipo de",
+      "objects.quest_2_8.text.kind": "Jugadores que van",
       "objects.quest_2_8.text.body": "4",
+      "objects.quest_2_8.text.footer": "La hunde 1 Fracaso",
       "objects.quest_3_8.name": "Misión 3",
       "objects.quest_3_8.text.title": "Misión 3",
-      "objects.quest_3_8.text.kind": "Equipo de",
+      "objects.quest_3_8.text.kind": "Jugadores que van",
       "objects.quest_3_8.text.body": "4",
+      "objects.quest_3_8.text.footer": "La hunde 1 Fracaso",
       "objects.quest_4_8.name": "Misión 4",
       "objects.quest_4_8.text.title": "Misión 4",
-      "objects.quest_4_8.text.kind": "Equipo de",
+      "objects.quest_4_8.text.kind": "Jugadores que van",
       "objects.quest_4_8.text.body": "5",
-      "objects.quest_4_8.text.footer": "2 fracasos para hundirla",
+      "objects.quest_4_8.text.footer": "La hunden 2 Fracasos",
       "objects.quest_5_8.name": "Misión 5",
       "objects.quest_5_8.text.title": "Misión 5",
-      "objects.quest_5_8.text.kind": "Equipo de",
+      "objects.quest_5_8.text.kind": "Jugadores que van",
       "objects.quest_5_8.text.body": "5",
+      "objects.quest_5_8.text.footer": "La hunde 1 Fracaso",
       "objects.reject_1.name": "Equipo rechazado 1",
       "objects.reject_1.text.title": "Rechazado",
       "objects.reject_1.text.body": "1",

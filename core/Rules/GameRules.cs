@@ -265,6 +265,11 @@ namespace Core.Rules
         /// <summary>Messages from <c>message</c> effects, oldest first (last 50).</summary>
         public List<string> Log { get; set; } = new List<string>();
         /// <summary>
+        /// Messages logged since the game started, counting those dropped from <see cref="Log"/>: a view that showed the
+        /// first N knows the lines after them are new even once the log is full.
+        /// </summary>
+        public int LogTotal { get; set; }
+        /// <summary>
         /// Seats out of the game (<c>eliminate</c>: a lynch, an execution): they take no actions and cast no votes, sleep
         /// through eyes-closed phases, are not heard, and turns and seat choices pass them by.
         /// </summary>

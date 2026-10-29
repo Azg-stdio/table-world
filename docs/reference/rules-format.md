@@ -1464,6 +1464,7 @@ object or object or object or object or object or object or object or object or 
 | `heldZoneMoves` | array of [ZoneMove](#zonemove) |  |
 | `secrets` | array of [SecretChoice](#secretchoice) |  |
 | `log` | array of string |  |
+| `logTotal` | integer |  |
 | `eliminated` | array of string |  |
 | `votes` | map of [VoteTally](#votetally) |  |
 | `lastVote` | string |  |

@@ -970,6 +970,7 @@ namespace Core.Engine
         {
             var log = Session!.Log;
             log.Add(line);
+            Session.LogTotal = Math.Max(Session.LogTotal, log.Count - 1) + 1;
             if (log.Count > MaxLog)
                 log.RemoveAt(0);
             _events.Add(new GameMessage(line));

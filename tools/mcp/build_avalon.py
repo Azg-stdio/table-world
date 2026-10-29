@@ -96,7 +96,8 @@ STRINGS = {
     'questFails': ('Quest {$var.quest} fails.', 'La misión {$var.quest} fracasa.'),
     'questSucceeds': ('Quest {$var.quest} succeeds.', 'La misión {$var.quest} tiene éxito.'),
     'threeFailed': ('Three quests failed.', 'Tres misiones fracasaron.'),
-    'threeSucceeded': ('Three quests succeeded. The Assassin names Merlin.', 'Tres misiones tuvieron éxito. El Asesino nombra a Merlín.'),
+    'threeSucceeded': ('Three quests succeeded. Assassin: click the player you think is Merlin.',
+                       'Tres misiones tuvieron éxito. Asesino: haz clic en quien creas que es Merlín.'),
     'wasMerlin': ('{$param.target.name} was Merlin.', '{$param.target.name} era Merlín.'),
     'wasNotMerlin': ('{$param.target.name} was not Merlin.', '{$param.target.name} no era Merlín.'),
 }
@@ -105,14 +106,14 @@ call("set_translations", language="en", gameLanguage="en",
 
 # Roles without `knows`: nobody is told who the others are; the ritual shows them.
 ROLES = [
-    {"id": "merlin", "name": "Merlin", "team": "good", "description": "You see the minions' thumbs (not Mordred's). Stay hidden from the Assassin."},
-    {"id": "percival", "name": "Percival", "team": "good", "optional": True, "description": "You see two thumbs: Merlin's and Morgana's, not which is which."},
-    {"id": "servant", "name": "Loyal servant", "team": "good", "count": "fill", "description": "Play Success, find the minions."},
-    {"id": "assassin", "name": "Assassin", "team": "evil", "description": "If good completes three quests, name Merlin: evil wins."},
-    {"id": "morgana", "name": "Morgana", "team": "evil", "optional": True, "description": "Percival sees your thumb up, as Merlin's: he cannot tell you apart."},
-    {"id": "mordred", "name": "Mordred", "team": "evil", "optional": True, "description": "Merlin does not see you among the minions."},
-    {"id": "oberon", "name": "Oberon", "team": "evil", "optional": True, "description": "Keep your eyes closed with the minions: they do not know you."},
-    {"id": "minion", "name": "Minion of Mordred", "team": "evil", "count": "fill", "description": "Play Fail when it suits you; hide among the loyal."},
+    {"id": "merlin", "name": "Merlin", "team": "good", "description": "You know the minions. Steer good quietly: if the Assassin finds you, evil wins."},
+    {"id": "percival", "name": "Percival", "team": "good", "optional": True, "description": "One of the two thumbs you saw is Merlin. Protect Merlin; the other is Morgana."},
+    {"id": "servant", "name": "Loyal servant", "team": "good", "count": "fill", "description": "Always play Success. Reject teams with minions on them."},
+    {"id": "assassin", "name": "Assassin", "team": "evil", "description": "Make quests fail. If good wins three, guess Merlin: right, and evil wins."},
+    {"id": "morgana", "name": "Morgana", "team": "evil", "optional": True, "description": "Make quests fail. Percival may take you for Merlin: play along."},
+    {"id": "mordred", "name": "Mordred", "team": "evil", "optional": True, "description": "Make quests fail. Merlin does not know you are evil."},
+    {"id": "oberon", "name": "Oberon", "team": "evil", "optional": True, "description": "Make quests fail. The other minions do not know you, nor you them."},
+    {"id": "minion", "name": "Minion of Mordred", "team": "evil", "count": "fill", "description": "Get on teams and play Fail. Pretend to be loyal."},
 ]
 call("set_roles", rolesJson=json.dumps({
     "teams": [{"id": "good", "name": "Loyal servants of Arthur"}, {"id": "evil", "name": "Minions of Mordred"}],
@@ -312,6 +313,9 @@ end
 -- The pile is shuffled and its cards turned over one by one; then they and the cards not played go back.
 function questShown(ctx)
   local shown = QUEST_SHOWN
+  -- The cards not played leave the hands at once: everyone has played.
+  local deck = getObjectFromGUID("quest_deck")
+  for _, card in ipairs(cardsIn(hands(), {"success", "fail"})) do deck.putObject(card) end
   Wait.time(function()
     if QUEST_SHOWN ~= shown then return end
     local pile = getObjectFromGUID("quest_pile")
@@ -472,7 +476,7 @@ call("add_action", actionJson=json.dumps({
 
 call("add_phase", phaseJson=json.dumps({"id": "assassinate", "name": "The Assassin strikes", "actions": ["assassinate"]}))
 call("add_action", actionJson=json.dumps({
-    "id": "assassinate", "name": "Name Merlin", "actor": "any",
+    "id": "assassinate", "name": "Name Merlin", "actor": "any", "onPlayer": True,
     "params": [{"name": "target", "type": "seat"}],
     "preconditions": [compare("$actor.role", "assassin"), {"not": compare("$param.target", "$actor.id")}],
     "effects": [
@@ -493,9 +497,8 @@ call("place_object", objectJson=json.dumps({
     "transform": {"position": [0.5, 0, 0.25]}}))
 for players, sizes in SIZES.items():
     for q in range(1, 6):
-        text = {"title": f"Quest {q}", "kind": "Team of", "body": str(sizes[q - 1])}
-        if q == 4 and players >= 7:
-            text["footer"] = "2 fails to sink it"
+        text = {"title": f"Quest {q}", "kind": "Players who go", "body": str(sizes[q - 1]),
+                "footer": "2 Fails sink it" if q == 4 and players >= 7 else "1 Fail sinks it"}
         call("place_object", objectJson=json.dumps({
             "id": f"quest_{q}_{players}", "type": "Card", "name": f"Quest {q}", "locked": True, "size": [0.14, 0.19],
             "text": text, "style": CARD, "container": "quest_box", "transform": {"position": [0.5, 0, 0.25]}}))
@@ -518,20 +521,20 @@ role_cards = []
 for role in ROLES:
     team = role["team"]
     role_cards.append({"id": f"role_{role['id']}", "title": role["name"],
-                       "kind": "Loyal servants of Arthur" if team == "good" else "Minions of Mordred",
+                       "kind": "Good side" if team == "good" else "Evil side",
                        "body": role["description"], "count": COUNTS.get(role["id"], 1), "style": GOOD if team == "good" else EVIL,
                        "tags": ["role"]})
 call("create_text_deck", id="role_deck", name="Roles", cards=json.dumps(role_cards), x=-0.18, z=0.25,
      style=json.dumps(dict(BACK, backLabel="AVALON")))
 call("create_text_deck", id="vote_deck", name="Votes", x=0.34, z=0.25, style=json.dumps(dict(BACK, backLabel="VOTE")), cards=json.dumps([
-    {"id": "aye", "title": "Approve", "body": "Yes", "count": 10, "meta": {"vote": "approve"}, "tags": ["vote"],
+    {"id": "aye", "title": "Approve", "body": "YES", "footer": "Face down on your spot", "count": 10, "meta": {"vote": "approve"}, "tags": ["vote"],
      "style": {"paper": [0.86, 0.95, 0.86], "ink": [0.08, 0.3, 0.1], "accent": [0.2, 0.55, 0.25]}},
-    {"id": "nay", "title": "Reject", "body": "No", "count": 10, "meta": {"vote": "reject"}, "tags": ["vote"],
+    {"id": "nay", "title": "Reject", "body": "NO", "footer": "Face down on your spot", "count": 10, "meta": {"vote": "reject"}, "tags": ["vote"],
      "style": {"paper": [0.98, 0.88, 0.86], "ink": [0.35, 0.08, 0.06], "accent": [0.66, 0.14, 0.12]}},
 ]))
 call("create_text_deck", id="quest_deck", name="Quest cards", x=-0.34, z=0.25, style=json.dumps(dict(BACK, backLabel="QUEST")), cards=json.dumps([
-    {"id": "success", "title": "Success", "body": "OK", "count": 10, "meta": {"quest": "success"}, "tags": ["quest"], "style": GOOD},
-    {"id": "fail", "title": "Fail", "body": "X", "count": 10, "meta": {"quest": "fail"}, "tags": ["quest"], "style": EVIL},
+    {"id": "success", "title": "Success", "body": "SUCCESS", "footer": "Onto the quest pile", "count": 10, "meta": {"quest": "success"}, "tags": ["quest"], "style": GOOD},
+    {"id": "fail", "title": "Fail", "body": "FAIL", "footer": "Minions only: sinks it", "count": 10, "meta": {"quest": "fail"}, "tags": ["quest"], "style": EVIL},
 ]))
 # Where the quest cards are laid: the pile (a deck they go into face down) and the row they are turned over on.
 call("place_object", objectJson=json.dumps({"id": "quest_pile", "type": "Deck", "name": "Quest pile", "cards": [], "locked": True,
@@ -644,14 +647,14 @@ ES = {
     'teams.evil.name': 'Esbirros de Mordred',
 }
 ROLES_ES = {
-    "merlin": ("Merlín", "Ves los pulgares de los esbirros (no el de Mordred). Escóndete del Asesino."),
-    "percival": ("Percival", "Ves dos pulgares: el de Merlín y el de Morgana, sin saber cuál es cuál."),
-    "servant": ("Leal servidor", "Juega Éxito y descubre a los esbirros."),
-    "assassin": ("Asesino", "Si el bien cumple tres misiones, nombra a Merlín: gana el mal."),
-    "morgana": ("Morgana", "Percival ve tu pulgar arriba, igual que el de Merlín: no sabe quién es quién."),
-    "mordred": ("Mordred", "Merlín no te ve entre los esbirros."),
-    "oberon": ("Oberón", "Mantén los ojos cerrados con los esbirros: ellos no te conocen."),
-    "minion": ("Esbirro de Mordred", "Juega Fracaso cuando te convenga; escóndete entre los leales."),
+    "merlin": ("Merlín", "Sabes quiénes son los esbirros. Guía al bien sin delatarte: si el Asesino te encuentra, gana el mal."),
+    "percival": ("Percival", "Uno de los dos pulgares que viste es Merlín: protégelo. El otro es Morgana."),
+    "servant": ("Leal servidor", "Juega siempre Éxito. Rechaza los equipos con esbirros."),
+    "assassin": ("Asesino", "Haz fracasar misiones. Si el bien gana tres, adivina quién es Merlín: si aciertas, gana el mal."),
+    "morgana": ("Morgana", "Haz fracasar misiones. Percival puede creer que eres Merlín: síguele el juego."),
+    "mordred": ("Mordred", "Haz fracasar misiones. Merlín no sabe que eres del mal."),
+    "oberon": ("Oberón", "Haz fracasar misiones. Los otros esbirros no te conocen, ni tú a ellos."),
+    "minion": ("Esbirro de Mordred", "Entra en los equipos y juega Fracaso. Finge ser leal."),
 }
 for role, (name, text) in ROLES_ES.items():
     ES[f"roles.{role}.name"] = name
@@ -660,14 +663,17 @@ for role, (name, text) in ROLES_ES.items():
     for k in range(1, COUNTS.get(role, 1) + 1):
         card = f"cards.role_{role}" + ("" if k == 1 else f"_{k}")
         ES[f"{card}.text.title"] = name
-        ES[f"{card}.text.kind"] = ES["teams.good.name"] if team == "good" else ES["teams.evil.name"]
+        ES[f"{card}.text.kind"] = "Bando del bien" if team == "good" else "Bando del mal"
         ES[f"{card}.text.body"] = text
 for k in range(1, 11):
     suffix = "" if k == 1 else f"_{k}"
-    ES[f"cards.aye{suffix}.text.title"], ES[f"cards.aye{suffix}.text.body"] = "Aprobar", "Sí"
-    ES[f"cards.nay{suffix}.text.title"], ES[f"cards.nay{suffix}.text.body"] = "Rechazar", "No"
-    ES[f"cards.success{suffix}.text.title"], ES[f"cards.success{suffix}.text.body"] = "Éxito", "OK"
-    ES[f"cards.fail{suffix}.text.title"], ES[f"cards.fail{suffix}.text.body"] = "Fracaso", "X"
+    ES[f"cards.aye{suffix}.text.title"], ES[f"cards.aye{suffix}.text.body"] = "Aprobar", "SÍ"
+    ES[f"cards.nay{suffix}.text.title"], ES[f"cards.nay{suffix}.text.body"] = "Rechazar", "NO"
+    ES[f"cards.aye{suffix}.text.footer"] = ES[f"cards.nay{suffix}.text.footer"] = "Boca abajo en tu sitio"
+    ES[f"cards.success{suffix}.text.title"], ES[f"cards.success{suffix}.text.body"] = "Éxito", "ÉXITO"
+    ES[f"cards.fail{suffix}.text.title"], ES[f"cards.fail{suffix}.text.body"] = "Fracaso", "FRACASO"
+    ES[f"cards.success{suffix}.text.footer"] = "Al montón de la misión"
+    ES[f"cards.fail{suffix}.text.footer"] = "Solo esbirros: la hunde"
 # A deck card's name and description are its title and body (tooltips, search).
 for key in [k for k in ES if k.startswith("cards.") and k.endswith(".text.title")]:
     ES[key.replace(".text.title", ".name")] = ES[key]
@@ -679,10 +685,9 @@ for players, sizes in SIZES.items():
     for q in range(1, 6):
         card = f"objects.quest_{q}_{players}"
         ES[f"{card}.name"] = ES[f"{card}.text.title"] = f"Misión {q}"
-        ES[f"{card}.text.kind"] = "Equipo de"
+        ES[f"{card}.text.kind"] = "Jugadores que van"
         ES[f"{card}.text.body"] = str(sizes[q - 1])
-        if q == 4 and players >= 7:
-            ES[f"{card}.text.footer"] = "2 fracasos para hundirla"
+        ES[f"{card}.text.footer"] = "La hunden 2 Fracasos" if q == 4 and players >= 7 else "La hunde 1 Fracaso"
 for n in range(1, 6):
     ES[f"objects.reject_{n}.name"] = f"Equipo rechazado {n}"
     ES[f"objects.reject_{n}.text.title"] = "Gana el mal" if n == 5 else "Rechazado"
