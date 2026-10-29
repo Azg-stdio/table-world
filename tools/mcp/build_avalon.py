@@ -15,6 +15,11 @@ Played with the hands, as at a real table (Miguel, 2026-10-28):
 The tools used are the general ones (new_game, set_roles, set_variables, set_script, add_phase, add_action, add_event,
 define_zone, place_object, create_supply, create_text_deck, set_turn, get_rules_document and set_rules_document for the
 score panel and locks, set_translations, translate_game, validate_rules, save_game); nothing in the server knows Avalon.
+
+The mood (M12, 2026-10-29): a tavern room with the parchment theme; blue for the loyal and red for the minions wherever
+their names are read, green Approve and red Reject; the tavern playlist under the talk and the dark one through the
+ritual and the Assassin's choice, from the player's music library (list_music); the room goes dark and cold when eyes
+close, red when the Assassin strikes; a gong, drums, bells and a sting mark the moments.
 """
 import json
 import os
@@ -116,7 +121,8 @@ ROLES = [
     {"id": "minion", "name": "Minion of Mordred", "team": "evil", "count": "fill", "description": "Get on teams and play Fail. Pretend to be loyal."},
 ]
 call("set_roles", rolesJson=json.dumps({
-    "teams": [{"id": "good", "name": "Loyal servants of Arthur"}, {"id": "evil", "name": "Minions of Mordred"}],
+    "teams": [{"id": "good", "name": "Loyal servants of Arthur", "color": "#4a8cff"},
+              {"id": "evil", "name": "Minions of Mordred", "color": "#d8322a"}],
     "list": ROLES,
     "byPlayers": {"5": {"good": 3, "evil": 2}, "6": {"good": 4, "evil": 2}, "7": {"good": 4, "evil": 3},
                   "8": {"good": 5, "evil": 3}, "9": {"good": 6, "evil": 3}, "10": {"good": 6, "evil": 4}},
@@ -329,7 +335,11 @@ function questShown(ctx)
         local card = getObjectFromGUID("quest_pile").takeObject({
           position = {x = row.x + (i - (count + 1) / 2) * 0.08 * unit, y = row.y + 0.3, z = row.z},
           rotation = {x = 0, y = 0, z = 0}})
-        if card then SHOWN[#SHOWN + 1] = card end
+        if card then
+          SHOWN[#SHOWN + 1] = card
+          local name = card.getName()
+          playSound((name == "Fail" or name == "Fracaso") and "sting" or "drum", 0.7)
+        end
       end, 0.9 * i)
     end
     Wait.time(function() if QUEST_SHOWN == shown then collectQuest() end end, 0.9 * count + 5)
@@ -374,7 +384,8 @@ def compare(left, right, op="=="):
 def win(team):
     """A team wins, and every role is shown, as players turn their cards over at the end."""
     return [{"lua": {"call": "rolesShown"}}, {"forEach": {"players": True, "do": [{"revealRole": {"seat": "$it"}}]}},
-            {"win": {"team": team}}]
+            {"light": {"part": "room", "seconds": 3}}, {"music": {"playlist": "tavern", "crossfade": 4}},
+            {"sound": {"play": "fanfare" if team == "good" else "gong"}}, {"win": {"team": team}}]
 
 
 def refuse(key):
@@ -401,7 +412,20 @@ RITUAL = [
      "banner": "Percival: one raised thumb is Merlin, the other Morgana."},
     {"id": "ritual_open", "name": "Eyes open", "seconds": 4, "next": "propose", "banner": "Everyone, open your eyes."},
 ]
+NIGHT = [{"light": {"part": "room", "scale": 0.08, "tint": [0.6, 0.7, 1.0], "seconds": 2.5}},
+         {"light": {"part": "table", "scale": 0.4, "tint": [0.75, 0.82, 1.0], "seconds": 2.5}},
+         {"music": {"playlist": "ritual", "crossfade": 3}}]
+DAWN = [{"light": {"part": "room", "seconds": 3}}, {"light": {"part": "table", "seconds": 3}},
+        {"music": {"playlist": "tavern", "crossfade": 4}}]
+MOOD = {
+    "ritual_close": NIGHT + [{"sound": {"play": "gong"}}],
+    "ritual_minions": [{"sound": {"play": "drum", "to": "awake", "volume": 0.6}}],
+    "ritual_merlin": [{"sound": {"play": "bell", "to": "awake", "volume": 0.5}}],
+    "ritual_percival": [{"sound": {"play": "bell", "to": "awake", "volume": 0.5}}],
+    "ritual_open": DAWN + [{"sound": {"play": "chime"}}],
+}
 for phase in RITUAL:
+    phase["onEnter"] = MOOD.get(phase["id"], []) + phase.get("onEnter", [])
     call("add_phase", phaseJson=json.dumps(phase))
 
 # ---- choosing the team: the leader clicks players --------------------------------------------------------------------
@@ -435,8 +459,9 @@ call("add_action", actionJson=json.dumps({
     "id": "team_vote", "name": "Team vote", "actor": "any", "button": False,
     "vote": {
         "options": ["approve", "reject"], "labels": {"approve": "Approve", "reject": "Reject"},
+        "colors": {"approve": "#3fae5a", "reject": "#d8322a"},
         "reveal": "named", "decide": "majority", "otherwise": "reject",
-        "onResult": [{"lua": {"call": "votesShown"}}, {"if": {
+        "onResult": [{"lua": {"call": "votesShown"}}, {"sound": {"play": "drum", "volume": 0.8}}, {"if": {
             "condition": compare("$vote.result", "approve"),
             "then": [{"setVariable": {"name": "rejections", "value": 0}}, {"lua": {"call": "rejectTrack"}}, {"gotoPhase": {"phase": "quest"}}],
             "else": [{"setVariable": {"name": "rejections", "delta": 1}}, {"lua": {"call": "rejectTrack"}},
@@ -455,6 +480,7 @@ call("add_action", actionJson=json.dumps({
     "preconditions": [{"or": [compare("$actor.team", "evil"), compare("$param.choice", "success")]}],
     "vote": {
         "options": ["success", "fail"], "labels": {"success": "Success", "fail": "Fail"},
+        "colors": {"success": "#4a8cff", "fail": "#d8322a"},
         # The rules judge the fail cards (one fails it, two on the fourth quest with 7 or more): no majority result.
         "who": "$var.team", "reveal": "count", "decide": "none",
         "onResult": [
@@ -474,18 +500,33 @@ call("add_action", actionJson=json.dumps({
     },
 }))
 
-call("add_phase", phaseJson=json.dumps({"id": "assassinate", "name": "The Assassin strikes", "actions": ["assassinate"]}))
+call("add_phase", phaseJson=json.dumps({"id": "assassinate", "name": "The Assassin strikes", "actions": ["assassinate"], "onEnter": [
+    {"light": {"part": "room", "scale": 0.3, "tint": [1.0, 0.55, 0.5], "seconds": 2}}, {"music": {"playlist": "ritual", "crossfade": 3}},
+    {"sound": {"play": "sting"}}]}))
 call("add_action", actionJson=json.dumps({
     "id": "assassinate", "name": "Name Merlin", "actor": "any", "onPlayer": True,
     "params": [{"name": "target", "type": "seat"}],
     "preconditions": [compare("$actor.role", "assassin"), {"not": compare("$param.target", "$actor.id")}],
     "effects": [
         {"revealRole": {"seat": "$param.target"}},
+        {"sound": {"play": "bell"}},
         {"if": {"condition": compare("$param.target.role", "merlin"),
                 "then": [{"message": {"text": "@wasMerlin"}}] + win("evil"),
                 "else": [{"message": {"text": "@wasNotMerlin"}}] + win("good")}},
     ],
 }))
+
+# ---- the place and the soundtrack (M12) ---------------------------------------------------------------------------------
+call("set_environment", room="tavern", theme="parchment")
+library = call("list_music", limit=200)
+tracks = {t["url"] for t in library["tracks"]}
+VOL3 = "library:fantasy-rpg-music-pack-vol-3/"
+tavern = [VOL3 + f"ambient-{n}-loop" for n in range(1, 11)]
+ritual = [VOL3 + f"dark-{n}" for n in range(1, 6)]
+missing = [t for t in tavern + ritual if t not in tracks]
+if missing:
+    print(f"note: {len(missing)} tracks are not in this computer's music library (import AlkaKrab's Fantasy RPG Music Pack Vol.3 with import_music)")
+call("set_music", playlistsJson=json.dumps({"tavern": tavern, "ritual": ritual}), start="tavern", shuffle=True, volume=0.6)
 
 # ---- the table ----------------------------------------------------------------------------------------------------------
 # One card per quest and player count (8, 9 and 10 share theirs), kept in a box: the game lays out the five for the
@@ -603,6 +644,8 @@ document["ui"] = {"panels": [{
         {"type": "label", "text": "Leader: {$current.name}"},
         {"type": "label", "text": "Team: {$var.team}"},
     ]}]}
+# The score panel's words in their sides' colours, in both languages (the engine colours seats, teams and options).
+document["game"]["highlights"] = {"Succeeded": "#4a8cff", "Éxitos": "#4a8cff", "Failed": "#d8322a", "Fracasos": "#d8322a"}
 call("set_rules_document", documentJson=json.dumps(document))
 
 # Spanish, for every text translate_game lists.

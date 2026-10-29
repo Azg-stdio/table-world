@@ -6,6 +6,61 @@
 Every tool returns JSON with `ok`, plus `errors` (path, code, message, suggestion) when it refuses, or
 `problems` when an edit was kept but the document is still incomplete.
 
+## AtmosphereTools
+
+### `import_music`
+
+Import a music pack into the player's music library from a zip or a folder of audio files (MP3, OGG, WAV): one file per track in its smallest format, loops kept as their own tracks, the pack's licence file kept beside them. Only import music the player has the right to use: ask them, then pass rightsConfirmed true. Importing the same pack again replaces it. Replies with the pack and its tracks.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `path` | string | required | Full path of the zip or folder on this computer. |
+| `rightsConfirmed` | boolean | `false` | The player confirmed they may use this music (its licence allows it). |
+| `name` | string | none | The pack's name; default the zip's or folder's name. |
+| `author` | string | none | Who made it, when the pack does not say. |
+| `source` | string | none | Where to get it (the author's page), for friends who want it too. |
+
+### `list_music`
+
+The player's music library: every pack they imported and its tracks, each with its address (library:<pack>/<track>), title, length in seconds and tags (ambient, dark, action, loop, fx...). Use it to pick a game's soundtrack: ambient or loop tracks under talk and play, dark ones for tense moments (a night, a betrayal), fx for short stingers (with a sound effect). search matches words in titles, packs and tags; tag keeps one tag. The music is the player's, not the game's: games name tracks and players who lack them receive them while playing.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `search` | string | none | Words to match in titles, pack names and tags, e.g. 'dark' or 'ambient loop'. |
+| `tag` | string | none | Only tracks with this tag, e.g. loop. |
+| `limit` | integer | `80` | At most this many tracks (default 80). |
+
+### `preview_music`
+
+Play a track in the game window so the player hears it while you build (only on this computer, the table's music unchanged): a library track, an audio asset's id, or a web address. stop true stops the preview. Needs the game window open.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `track` | string | none | The track to hear. |
+| `stop` | boolean | `false` | Stop the preview. |
+
+### `set_environment`
+
+The place the table sits in and how the game looks: room gameNight (a dim room with a warm lamp, the default), tavern (stone, beams, a chandelier of candles, candles on the walls, a fire in the hearth: medieval and fantasy games), karaoke, or none; theme default or parchment (parchment panels, ink text and gold titles for the game's panels); wallColor/floorColor [r,g,b] 0-1; lighting {ambientIntensity, ambientColor, lampIntensity, lampColor, tableLightIntensity, tableLightColor}; table {feltColor, woodColor, feltAsset, size [w,d]}; look {ambientOcclusion, fog, bloom, vignette} (0-1 each, the room's post-processing). Pieces keep their true colours under any mood. Merges with what is there. Change light while playing with the light effect: {"light":{"part":"room","scale":0.1,"tint":[0.6,0.7,1],"seconds":2}}. Check the result with screenshot.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `room` | string | none | gameNight, tavern, karaoke or none. |
+| `theme` | string | none | default or parchment. |
+| `json` | string | none | JSON: wallColor, floorColor, lighting, table and look, any of them, e.g. {"table":{"feltColor":[0.3,0.07,0.07]}}. |
+
+### `set_music`
+
+The game's soundtrack: named playlists of tracks (library:<pack>/<track> from list_music, an audio asset's id, or a web address), e.g. {"tavern":["library:fantasy/ambient-1-loop",...],"ritual":[...]}, which playlist starts with the game, and its volume (0-1, under each player's music volume). Merges with the playlists already there; an empty list removes one. Phases and actions change the music with the music effect: {"music":{"playlist":"ritual","crossfade":3}} (also track, pause, resume, stop, volume); a playlist already playing is left as it is. Mark moments with the sound effect: {"sound":{"play":"gong","to":"awake"}} (built-in cues gong, chime, bell, drum, sting, fanfare, page, whoosh, knock; or a library track or audio asset).
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `playlistsJson` | string | none | JSON object: playlist name -> array of track addresses (or {url, title}). |
+| `start` | string | none | The playlist the game starts with. |
+| `shuffle` | boolean | none | Play each playlist in a random order. |
+| `repeat` | boolean | none | Play the same track again when it ends. |
+| `volume` | number | none | The game's music level, 0-1. |
+
 ## GameTools
 
 ### `add_action`

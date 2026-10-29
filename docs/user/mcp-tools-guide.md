@@ -97,6 +97,14 @@ right seat, that cards are readable and that nothing overlaps. It needs the game
 screenshot {"view": "top"}
 ```
 
+**`set_environment`**: the place the table sits in and how the game looks: the room (`gameNight`, `tavern` with its
+candles and fire, `karaoke`, `none`), the panels' `theme` (`parchment` for a medieval game), and in `json` the light,
+the table's felt and wood, and the room's `look` (vignette, bloom, fog). Pieces keep their true colours in any room.
+
+```call
+set_environment {"room": "tavern", "theme": "parchment", "json": {"look": {"vignette": 0.5}}}
+```
+
 **`set_notebook`**: a page of the table's notebook, which players open from Notes in the top bar while they play:
 the rulebook (a page per chapter), a quick reference, a scenario, or a page private to one seat. A PDF rulebook goes on
 the table instead, as a `Pdf` object players click to read.
@@ -154,6 +162,41 @@ that lays out what is dropped in it, or one that shuffles it.
 ```call
 define_zone {"zoneJson": {"id": "middle", "type": "ScriptingZone", "transform": {"position": [0, 0.05, 0]},
              "size": [0.3, 0.1, 0.2]}}
+```
+
+### Music and sounds
+
+The music comes from the player's own music library (packs they imported), never with the game: a game names its
+tracks, and friends who lack a pack receive the tracks from the host while playing. Ask the player before importing a
+pack: only music they may use (its licence) goes in.
+
+**`import_music`**: a pack from a zip or a folder of MP3, OGG or WAV files into the library, once the player confirms
+they may use it. One file per track (the smallest format), loops kept as their own tracks, the licence kept beside them.
+
+```call
+import_music {"path": "Fantasy Pack.zip", "rightsConfirmed": true, "source": "https://example.com/the-author"}
+```
+
+**`list_music`**: what the library holds, each track with its address, length and tags (ambient, dark, loop, fx...).
+Pick ambient or loop tracks for talk and play, dark ones for a tense moment, fx for a stinger.
+
+```call
+list_music {"search": "loop"}
+```
+
+**`preview_music`**: plays a track in the game window, on this computer only, so the player hears it before you add it.
+It needs the game window open.
+
+```call
+preview_music {"track": "library:fantasy-pack/ambient-1-loop"}
+```
+
+**`set_music`**: the game's playlists and the one it starts with. Phases switch between them with the `music` effect
+(`{"music": {"playlist": "ritual", "crossfade": 3}}`) and mark moments with the `sound` effect (`{"sound": {"play":
+"gong", "to": "awake"}}`).
+
+```call
+set_music {"playlistsJson": "{\"tavern\": [\"library:fantasy-pack/ambient-1-loop\"], \"ritual\": [\"library:fantasy-pack/dark-1\"]}", "start": "tavern", "shuffle": true, "volume": 0.6}
 ```
 
 ## 3. Write the rules

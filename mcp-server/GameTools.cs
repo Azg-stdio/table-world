@@ -813,6 +813,8 @@ namespace TableWorld.Mcp
             };
         }
 
+        internal static object[] ErrorList(IEnumerable<ValidationError> errors) => Errors(errors);
+
         private static object[] Errors(IEnumerable<ValidationError> errors) =>
             errors.Select(e => (object)new { path = e.Path, code = e.Code, message = e.Message, suggestion = e.Suggestion }).ToArray();
 

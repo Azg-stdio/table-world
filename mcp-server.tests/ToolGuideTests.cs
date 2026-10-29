@@ -44,9 +44,12 @@ namespace TableWorld.Mcp.Tests
                 {
                     if (args.TryGetValue("path", out var path) && path is string relative)
                         args["path"] = Path.Combine(folder, Path.GetFileName(relative));
+                    // The import example needs a pack: a zip with one short track, as a player's would be.
+                    if (tool == "import_music" && args["path"] is string zip && !File.Exists(zip))
+                        MusicPack(zip);
                     var reply = await _server.Call(tool, args);
                     // Looking needs a game window, which these tests run without: the example must say so plainly.
-                    if (tool == "screenshot")
+                    if (tool == "screenshot" || tool == "preview_music")
                     {
                         Assert.Contains("No game window", (string?)reply["error"] ?? "");
                         continue;
@@ -58,6 +61,31 @@ namespace TableWorld.Mcp.Tests
             finally
             {
                 Directory.Delete(folder, true);
+            }
+        }
+
+        /// <summary>A zip with two one-second WAV tracks, laid out like a downloaded pack.</summary>
+        private static void MusicPack(string zip)
+        {
+            var samples = 8000;
+            var wav = new byte[44 + samples];
+            System.Text.Encoding.ASCII.GetBytes("RIFF").CopyTo(wav, 0);
+            BitConverter.GetBytes(36 + samples).CopyTo(wav, 4);
+            System.Text.Encoding.ASCII.GetBytes("WAVEfmt ").CopyTo(wav, 8);
+            BitConverter.GetBytes(16).CopyTo(wav, 16);
+            BitConverter.GetBytes((short)1).CopyTo(wav, 20);
+            BitConverter.GetBytes((short)1).CopyTo(wav, 22);
+            BitConverter.GetBytes(8000).CopyTo(wav, 24);
+            BitConverter.GetBytes(8000).CopyTo(wav, 28);
+            BitConverter.GetBytes((short)1).CopyTo(wav, 32);
+            BitConverter.GetBytes((short)8).CopyTo(wav, 34);
+            System.Text.Encoding.ASCII.GetBytes("data").CopyTo(wav, 36);
+            BitConverter.GetBytes(samples).CopyTo(wav, 40);
+            using var archive = System.IO.Compression.ZipFile.Open(zip, System.IO.Compression.ZipArchiveMode.Create);
+            foreach (var name in new[] { "Tracks/Ambient 1 Loop.wav", "Tracks/Dark 1.wav" })
+            {
+                using var stream = archive.CreateEntry(name).Open();
+                stream.Write(wav, 0, wav.Length);
             }
         }
 

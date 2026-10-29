@@ -4687,7 +4687,10 @@
     ]
   },
   "environment": {
+    "room": "tavern",
+    "theme": "parchment",
     "lighting": {},
+    "look": {},
     "table": {
       "size": [
         2.4,
@@ -4695,10 +4698,102 @@
       ]
     }
   },
+  "music": {
+    "shuffle": true,
+    "playlists": {
+      "tavern": [
+        {
+          "title": "Ambient 1 (loop)",
+          "url": "library:fantasy-rpg-music-pack-vol-3/ambient-1-loop",
+          "hash": "sha256:8442c251a8de4849710e5853aabfb0414f13c72ecdd8c36a9059dd9542f7e0fc"
+        },
+        {
+          "title": "Ambient 2 (loop)",
+          "url": "library:fantasy-rpg-music-pack-vol-3/ambient-2-loop",
+          "hash": "sha256:309d4b97cd4a8d8274a01bb741ab0826aeee27b2e7e58915b4392403baa3e134"
+        },
+        {
+          "title": "Ambient 3 (loop)",
+          "url": "library:fantasy-rpg-music-pack-vol-3/ambient-3-loop",
+          "hash": "sha256:b504552cb6b6067bea09f049d17eda3e0cd12f4457f0b078cb6bbdb415046fd4"
+        },
+        {
+          "title": "Ambient 4 (loop)",
+          "url": "library:fantasy-rpg-music-pack-vol-3/ambient-4-loop",
+          "hash": "sha256:91f13b0a01a19416f2f5a664dd84fbb8e2c888a4637d61ce6c471eb40242f6a5"
+        },
+        {
+          "title": "Ambient 5 (loop)",
+          "url": "library:fantasy-rpg-music-pack-vol-3/ambient-5-loop",
+          "hash": "sha256:3dfa3e5b4f9145ed3a0770951aee050c3c25ef2b274487f3b5d975e26fef95ba"
+        },
+        {
+          "title": "Ambient 6 (loop)",
+          "url": "library:fantasy-rpg-music-pack-vol-3/ambient-6-loop",
+          "hash": "sha256:4c0c290e98e776fc32b0108761657805431281abf2fa61239087400d70a3e283"
+        },
+        {
+          "title": "Ambient 7 (loop)",
+          "url": "library:fantasy-rpg-music-pack-vol-3/ambient-7-loop",
+          "hash": "sha256:835c46d323c029fea9ca547ee75140994e90cd363be391b15e0e9944bffe6989"
+        },
+        {
+          "title": "Ambient 8 (loop)",
+          "url": "library:fantasy-rpg-music-pack-vol-3/ambient-8-loop",
+          "hash": "sha256:9a4657270f0b5ca7f1b5aa7b5e98453bc8294142d0c3913c40ea53de999463fa"
+        },
+        {
+          "title": "Ambient 9 (loop)",
+          "url": "library:fantasy-rpg-music-pack-vol-3/ambient-9-loop",
+          "hash": "sha256:c96a2dff8e06b309389035d157120d3befcd720be0184f0ce53d38c783f209d2"
+        },
+        {
+          "title": "Ambient 10 (loop)",
+          "url": "library:fantasy-rpg-music-pack-vol-3/ambient-10-loop",
+          "hash": "sha256:d2342f9631053d0766090906468be106c493ec87c80b01ab38c515aeb9ea9945"
+        }
+      ],
+      "ritual": [
+        {
+          "title": "Dark 1",
+          "url": "library:fantasy-rpg-music-pack-vol-3/dark-1",
+          "hash": "sha256:0ca3af58eef6e9268ecd404ed3fe21d84d492bd6787bd047078a17ca30bfcaad"
+        },
+        {
+          "title": "Dark 2",
+          "url": "library:fantasy-rpg-music-pack-vol-3/dark-2",
+          "hash": "sha256:24ea2407b156196a8158a5ad6bf683b180b3df895cccef68fb2df3df93e6352a"
+        },
+        {
+          "title": "Dark 3",
+          "url": "library:fantasy-rpg-music-pack-vol-3/dark-3",
+          "hash": "sha256:8db47c6df9d8592c0599084236dbc49b03c064a8946b63f2351d41ea1a6ce6df"
+        },
+        {
+          "title": "Dark 4",
+          "url": "library:fantasy-rpg-music-pack-vol-3/dark-4",
+          "hash": "sha256:79266fe801586165d344eaff973c1716086b9172086ac104229bf6b4f7725ad2"
+        },
+        {
+          "title": "Dark 5",
+          "url": "library:fantasy-rpg-music-pack-vol-3/dark-5",
+          "hash": "sha256:081e00d154f7849bec34b8dae6eef1cf609467f5443b934a4008f2c90cabaabb"
+        }
+      ]
+    },
+    "start": "tavern",
+    "volume": 0.6
+  },
   "game": {
     "id": "avalon",
     "name": "Avalon",
     "description": "Hidden loyalties: good completes three quests, evil fails three or finds Merlin at the end. A leader picks each quest's team, everyone votes on it, and the team succeeds or fails it in secret.",
+    "highlights": {
+      "Succeeded": "#4a8cff",
+      "Éxitos": "#4a8cff",
+      "Failed": "#d8322a",
+      "Fracasos": "#d8322a"
+    },
     "language": "en",
     "minPlayers": 5,
     "maxPlayers": 10
@@ -4743,6 +4838,43 @@
     {
       "id": "ritual_close",
       "name": "Eyes closed",
+      "onEnter": [
+        {
+          "light": {
+            "part": "room",
+            "scale": 0.08,
+            "tint": [
+              0.6,
+              0.7,
+              1.0
+            ],
+            "seconds": 2.5
+          }
+        },
+        {
+          "light": {
+            "part": "table",
+            "scale": 0.4,
+            "tint": [
+              0.75,
+              0.82,
+              1.0
+            ],
+            "seconds": 2.5
+          }
+        },
+        {
+          "music": {
+            "playlist": "ritual",
+            "crossfade": 3.0
+          }
+        },
+        {
+          "sound": {
+            "play": "gong"
+          }
+        }
+      ],
       "awake": "nobody",
       "sleepText": "Everyone, close your eyes.",
       "voice": "none",
@@ -4752,6 +4884,15 @@
     {
       "id": "ritual_minions",
       "name": "The minions",
+      "onEnter": [
+        {
+          "sound": {
+            "play": "drum",
+            "volume": 0.6,
+            "to": "awake"
+          }
+        }
+      ],
       "awake": "$var.minionEyes",
       "sleepText": "Minions of Mordred, open your eyes and find each other.",
       "voice": "none",
@@ -4762,6 +4903,15 @@
     {
       "id": "ritual_merlin",
       "name": "Merlin",
+      "onEnter": [
+        {
+          "sound": {
+            "play": "bell",
+            "volume": 0.5,
+            "to": "awake"
+          }
+        }
+      ],
       "awake": "role:merlin",
       "sleepText": "The minions raise their thumbs (not Mordred). Merlin, open your eyes.",
       "voice": "none",
@@ -4773,6 +4923,15 @@
     {
       "id": "ritual_percival",
       "name": "Percival",
+      "onEnter": [
+        {
+          "sound": {
+            "play": "bell",
+            "volume": 0.5,
+            "to": "awake"
+          }
+        }
+      ],
       "advanceWhen": {
         "condition": {
           "compare": {
@@ -4793,6 +4952,31 @@
     {
       "id": "ritual_open",
       "name": "Eyes open",
+      "onEnter": [
+        {
+          "light": {
+            "part": "room",
+            "seconds": 3.0
+          }
+        },
+        {
+          "light": {
+            "part": "table",
+            "seconds": 3.0
+          }
+        },
+        {
+          "music": {
+            "playlist": "tavern",
+            "crossfade": 4.0
+          }
+        },
+        {
+          "sound": {
+            "play": "chime"
+          }
+        }
+      ],
       "seconds": 4,
       "next": "propose",
       "banner": "Everyone, open your eyes."
@@ -4873,6 +5057,31 @@
       "name": "The Assassin strikes",
       "actions": [
         "assassinate"
+      ],
+      "onEnter": [
+        {
+          "light": {
+            "part": "room",
+            "scale": 0.3,
+            "tint": [
+              1.0,
+              0.55,
+              0.5
+            ],
+            "seconds": 2.0
+          }
+        },
+        {
+          "music": {
+            "playlist": "ritual",
+            "crossfade": 3.0
+          }
+        },
+        {
+          "sound": {
+            "play": "sting"
+          }
+        }
       ]
     }
   ],
@@ -4970,12 +5179,22 @@
           "approve": "Approve",
           "reject": "Reject"
         },
+        "colors": {
+          "approve": "#3fae5a",
+          "reject": "#d8322a"
+        },
         "decide": "majority",
         "otherwise": "reject",
         "onResult": [
           {
             "lua": {
               "call": "votesShown"
+            }
+          },
+          {
+            "sound": {
+              "play": "drum",
+              "volume": 0.8
             }
           },
           {
@@ -5050,6 +5269,23 @@
                         }
                       },
                       {
+                        "light": {
+                          "part": "room",
+                          "seconds": 3.0
+                        }
+                      },
+                      {
+                        "music": {
+                          "playlist": "tavern",
+                          "crossfade": 4.0
+                        }
+                      },
+                      {
+                        "sound": {
+                          "play": "gong"
+                        }
+                      },
+                      {
                         "win": {
                           "player": "",
                           "team": "evil"
@@ -5102,6 +5338,10 @@
         "labels": {
           "success": "Success",
           "fail": "Fail"
+        },
+        "colors": {
+          "success": "#4a8cff",
+          "fail": "#d8322a"
         },
         "who": "$var.team",
         "reveal": "count",
@@ -5198,6 +5438,23 @@
                   }
                 },
                 {
+                  "light": {
+                    "part": "room",
+                    "seconds": 3.0
+                  }
+                },
+                {
+                  "music": {
+                    "playlist": "tavern",
+                    "crossfade": 4.0
+                  }
+                },
+                {
+                  "sound": {
+                    "play": "gong"
+                  }
+                },
+                {
                   "win": {
                     "player": "",
                     "team": "evil"
@@ -5281,6 +5538,11 @@
           }
         },
         {
+          "sound": {
+            "play": "bell"
+          }
+        },
+        {
           "if": {
             "condition": {
               "compare": {
@@ -5313,6 +5575,23 @@
                 }
               },
               {
+                "light": {
+                  "part": "room",
+                  "seconds": 3.0
+                }
+              },
+              {
+                "music": {
+                  "playlist": "tavern",
+                  "crossfade": 4.0
+                }
+              },
+              {
+                "sound": {
+                  "play": "gong"
+                }
+              },
+              {
                 "win": {
                   "player": "",
                   "team": "evil"
@@ -5340,6 +5619,23 @@
                       }
                     }
                   ]
+                }
+              },
+              {
+                "light": {
+                  "part": "room",
+                  "seconds": 3.0
+                }
+              },
+              {
+                "music": {
+                  "playlist": "tavern",
+                  "crossfade": 4.0
+                }
+              },
+              {
+                "sound": {
+                  "play": "fanfare"
                 }
               },
               {
@@ -5404,17 +5700,19 @@
     ]
   },
   "scripts": {
-    "global": "\nSIZES = { [5] = {2, 3, 2, 3, 3}, [6] = {2, 3, 4, 3, 4}, [7] = {2, 3, 3, 4, 4},\n          [8] = {3, 4, 4, 5, 5}, [9] = {3, 4, 4, 5, 5}, [10] = {3, 4, 4, 5, 5} }\n\n-- The team size and the fails it takes for the quest about to be played.\nfunction setQuest(ctx)\n  local players = #Game.getSeats()\n  local quest = Game.getVariable(\"quest\")\n  Game.setVariable(\"size\", SIZES[players][quest])\n  if quest == 4 and players >= 7 then Game.setVariable(\"needFails\", 2) else Game.setVariable(\"needFails\", 1) end\nend\n\n-- ---- where things are -------------------------------------------------------------------------------------------\n\nHOME = {}\n\nlocal function at(id)\n  local o = getObjectFromGUID(id)\n  return o and o.getPosition()\nend\n\nlocal function put(id, p)\n  local o = getObjectFromGUID(id)\n  if o and p then o.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z}) end\nend\n\nlocal function number(seat) return seat:match(\"(%d+)$\") end\n\n-- Before a seat: a share of the way from the middle of the table to its hand, and to the player's left by `left`.\nlocal function before(seat, share, left)\n  local p = at(\"hand_\" .. number(seat))\n  local x, z = p.x * share, p.z * share\n  if left then\n    local length = math.sqrt(p.x * p.x + p.z * p.z)\n    x, z = x + p.z / length * left, z - p.x / length * left\n  end\n  return {x = x, y = p.y, z = z}\nend\n\nlocal function startsWith(text, prefix) return text and text:sub(1, #prefix) == prefix end\n\n-- Every card on the table whose own id starts with one of `prefixes`, in hands and on the given zones.\nlocal function cardsIn(zones, prefixes)\n  local found = {}\n  for _, zone in ipairs(zones) do\n    local z = getObjectFromGUID(zone)\n    if z then\n      for _, o in ipairs(z.getObjects()) do\n        for _, prefix in ipairs(prefixes) do\n          if startsWith(o.getGUID(), prefix) then found[#found + 1] = o end\n        end\n      end\n    end\n  end\n  return found\nend\n\nlocal function hands()\n  local list = {}\n  for _, seat in ipairs(Game.getSeats()) do list[#list + 1] = \"hand_\" .. number(seat) end\n  return list\nend\n\n-- A card of a deck into a seat's hand (the deck names it by the card's own id).\nlocal function deal(deck, id, seat)\n  getObjectFromGUID(deck).takeObject({guid = id, position = at(\"hand_\" .. number(seat)), rotation = {x = 0, y = 0, z = 0}})\nend\n\n-- ---- the start ------------------------------------------------------------------------------------------------------\n\nPIECES = {\"reject_marker\"}\n\n-- Each player's role card into their hand, the minions' eyes for the ritual, where every piece starts.\nfunction setUp(ctx)\n  for _, id in ipairs(PIECES) do HOME[id] = at(id) end\n  local next = {}\n  local eyes = {}\n  local forMerlin = {}\n  local forPercival = {}\n  for _, seat in ipairs(Game.getSeats()) do\n    local role = Game.getRole(seat)\n    next[role] = (next[role] or 0) + 1\n    local id = \"role_\" .. role\n    if next[role] > 1 then id = id .. \"_\" .. next[role] end\n    deal(\"role_deck\", id, seat)\n    if Game.getTeam(seat) == \"evil\" and role ~= \"oberon\" then eyes[#eyes + 1] = seat end\n    -- The thumbs the game raises: every minion's but Mordred's for Merlin; Merlin's and Morgana's for Percival.\n    if Game.getTeam(seat) == \"evil\" and role ~= \"mordred\" then forMerlin[#forMerlin + 1] = seat end\n    if role == \"merlin\" or role == \"morgana\" then forPercival[#forPercival + 1] = seat end\n    if role == \"percival\" then Game.setVariable(\"percival\", true) end\n  end\n  Game.setVariable(\"minionEyes\", eyes)\n  Game.setVariable(\"thumbsMerlin\", forMerlin)\n  Game.setVariable(\"thumbsPercival\", forPercival)\nend\n\n-- The five quest cards for this many players, out of the box onto the middle of the table; the box goes with the rest.\nQUESTS = {}\nfunction layQuests(ctx)\n  local players = #Game.getSeats()\n  local group = players >= 8 and 8 or players\n  local left, right = at(\"reject_1\"), at(\"reject_5\")\n  local unit = (right.x - left.x) / 0.32   -- the track's ends are 0.32 m apart: table units per metre\n  local box = getObjectFromGUID(\"quest_box\")\n  for q = 1, 5 do\n    local card = box.takeObject({guid = \"quest_\" .. q .. \"_\" .. group,\n      position = {x = (-0.36 + 0.18 * (q - 1)) * unit, y = left.y + 0.3, z = 0.05 * unit}, rotation = {x = 0, y = 180, z = 0}})\n    QUESTS[q] = card and card.getGUID()\n  end\n  box.destruct()\nend\n\n-- ---- choosing the team ------------------------------------------------------------------------------------------\n\n-- ---- the team vote: Approve and Reject cards ----------------------------------------------------------------------\n\nlocal function spots()\n  local list = {}\n  for _, seat in ipairs(Game.getSeats()) do list[#list + 1] = \"vote_\" .. number(seat) end\n  return list\nend\n\n-- Every vote card back into its deck: those on the spots and those left in hands.\nVOTES_SHOWN = 0\nlocal function collectVotes()\n  VOTES_SHOWN = VOTES_SHOWN + 1\n  local deck = getObjectFromGUID(\"vote_deck\")\n  local all = cardsIn(spots(), {\"aye\", \"nay\"})\n  for _, card in ipairs(cardsIn(hands(), {\"aye\", \"nay\"})) do all[#all + 1] = card end\n  for _, card in ipairs(all) do deck.putObject(card) end\nend\n\nfunction votesOut(ctx)\n  -- A quick new vote: last one's cards come back first.\n  collectVotes()\n  for k, seat in ipairs(Game.getSeats()) do\n    deal(\"vote_deck\", k == 1 and \"aye\" or (\"aye_\" .. k), seat)\n    deal(\"vote_deck\", k == 1 and \"nay\" or (\"nay_\" .. k), seat)\n  end\nend\n\n-- The cards laid down turn over together, and go back to their deck a moment later with those left in hands.\nfunction votesShown(ctx)\n  for _, card in ipairs(cardsIn(spots(), {\"aye\", \"nay\"})) do card.flip() end\n  local shown = VOTES_SHOWN\n  Wait.time(function() if VOTES_SHOWN == shown then collectVotes() end end, 5)\nend\n\n-- ---- the quest: Success and Fail cards ------------------------------------------------------------------------------\n\n-- Every quest card back into its deck: from the pile, turned over, or left in hands. A turning-over still running stops.\nQUEST_SHOWN = 0\nSHOWN = {}\nlocal function collectQuest()\n  QUEST_SHOWN = QUEST_SHOWN + 1\n  local deck = getObjectFromGUID(\"quest_deck\")\n  local pile = getObjectFromGUID(\"quest_pile\")\n  for _ = 1, #pile.getObjects() do\n    local card = pile.takeObject({position = at(\"quest_drop\")})\n    if card then deck.putObject(card) end\n  end\n  for _, card in ipairs(SHOWN) do deck.putObject(card) end\n  SHOWN = {}\n  for _, card in ipairs(cardsIn(hands(), {\"success\", \"fail\"})) do deck.putObject(card) end\nend\n\nfunction questOut(ctx)\n  collectQuest()\n  local team = Game.getVariable(\"team\") or {}\n  for k, seat in ipairs(team) do\n    deal(\"quest_deck\", k == 1 and \"success\" or (\"success_\" .. k), seat)\n    deal(\"quest_deck\", k == 1 and \"fail\" or (\"fail_\" .. k), seat)\n  end\nend\n\n-- A card laid on the quest pile goes into it, face down: nobody can tell later whose it was.\nfunction toPile(ctx)\n  local card = getObjectFromGUID(ctx.it)\n  if card then getObjectFromGUID(\"quest_pile\").putObject(card) end\nend\n\n-- The pile is shuffled and its cards turned over one by one; then they and the cards not played go back.\nfunction questShown(ctx)\n  local shown = QUEST_SHOWN\n  -- The cards not played leave the hands at once: everyone has played.\n  local deck = getObjectFromGUID(\"quest_deck\")\n  for _, card in ipairs(cardsIn(hands(), {\"success\", \"fail\"})) do deck.putObject(card) end\n  Wait.time(function()\n    if QUEST_SHOWN ~= shown then return end\n    local pile = getObjectFromGUID(\"quest_pile\")\n    pile.shuffle()\n    local count = #pile.getObjects()\n    local row = at(\"reveal_row\")\n    local unit = (at(\"reject_5\").x - at(\"reject_1\").x) / 0.32\n    for i = 1, count do\n      Wait.time(function()\n        if QUEST_SHOWN ~= shown then return end\n        local card = getObjectFromGUID(\"quest_pile\").takeObject({\n          position = {x = row.x + (i - (count + 1) / 2) * 0.08 * unit, y = row.y + 0.3, z = row.z},\n          rotation = {x = 0, y = 0, z = 0}})\n        if card then SHOWN[#SHOWN + 1] = card end\n      end, 0.9 * i)\n    end\n    Wait.time(function() if QUEST_SHOWN == shown then collectQuest() end end, 0.9 * count + 5)\n  end, 0.5)\nend\n\nfunction markQuest(ctx)\n  local quest = math.floor(Game.getVariable(\"quest\"))\n  if ctx.args.result == \"fail\" then\n    local n = math.floor(Game.getVariable(\"fails\"))\n    put(n == 1 and \"evil\" or (\"evil_\" .. n), at(QUESTS[quest]))\n  else\n    local n = math.floor(Game.getVariable(\"successes\"))\n    put(n == 1 and \"good\" or (\"good_\" .. n), at(QUESTS[quest]))\n  end\nend\n\nfunction rejectTrack(ctx)\n  local n = math.floor(Game.getVariable(\"rejections\"))\n  if n == 0 then put(\"reject_marker\", HOME[\"reject_marker\"]) else put(\"reject_marker\", at(\"reject_\" .. n)) end\nend\n\n-- ---- the end ----------------------------------------------------------------------------------------------------------\n\n-- Every role card turned over in front of its player.\nfunction rolesShown(ctx)\n  for _, seat in ipairs(Game.getSeats()) do\n    for _, card in ipairs(cardsIn({\"hand_\" .. number(seat)}, {\"role_\"})) do\n      local p = before(seat, 0.56)\n      card.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z})\n      card.setRotationSmooth({x = 0, y = 0, z = 0})\n    end\n  end\nend\n"
+    "global": "\nSIZES = { [5] = {2, 3, 2, 3, 3}, [6] = {2, 3, 4, 3, 4}, [7] = {2, 3, 3, 4, 4},\n          [8] = {3, 4, 4, 5, 5}, [9] = {3, 4, 4, 5, 5}, [10] = {3, 4, 4, 5, 5} }\n\n-- The team size and the fails it takes for the quest about to be played.\nfunction setQuest(ctx)\n  local players = #Game.getSeats()\n  local quest = Game.getVariable(\"quest\")\n  Game.setVariable(\"size\", SIZES[players][quest])\n  if quest == 4 and players >= 7 then Game.setVariable(\"needFails\", 2) else Game.setVariable(\"needFails\", 1) end\nend\n\n-- ---- where things are -------------------------------------------------------------------------------------------\n\nHOME = {}\n\nlocal function at(id)\n  local o = getObjectFromGUID(id)\n  return o and o.getPosition()\nend\n\nlocal function put(id, p)\n  local o = getObjectFromGUID(id)\n  if o and p then o.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z}) end\nend\n\nlocal function number(seat) return seat:match(\"(%d+)$\") end\n\n-- Before a seat: a share of the way from the middle of the table to its hand, and to the player's left by `left`.\nlocal function before(seat, share, left)\n  local p = at(\"hand_\" .. number(seat))\n  local x, z = p.x * share, p.z * share\n  if left then\n    local length = math.sqrt(p.x * p.x + p.z * p.z)\n    x, z = x + p.z / length * left, z - p.x / length * left\n  end\n  return {x = x, y = p.y, z = z}\nend\n\nlocal function startsWith(text, prefix) return text and text:sub(1, #prefix) == prefix end\n\n-- Every card on the table whose own id starts with one of `prefixes`, in hands and on the given zones.\nlocal function cardsIn(zones, prefixes)\n  local found = {}\n  for _, zone in ipairs(zones) do\n    local z = getObjectFromGUID(zone)\n    if z then\n      for _, o in ipairs(z.getObjects()) do\n        for _, prefix in ipairs(prefixes) do\n          if startsWith(o.getGUID(), prefix) then found[#found + 1] = o end\n        end\n      end\n    end\n  end\n  return found\nend\n\nlocal function hands()\n  local list = {}\n  for _, seat in ipairs(Game.getSeats()) do list[#list + 1] = \"hand_\" .. number(seat) end\n  return list\nend\n\n-- A card of a deck into a seat's hand (the deck names it by the card's own id).\nlocal function deal(deck, id, seat)\n  getObjectFromGUID(deck).takeObject({guid = id, position = at(\"hand_\" .. number(seat)), rotation = {x = 0, y = 0, z = 0}})\nend\n\n-- ---- the start ------------------------------------------------------------------------------------------------------\n\nPIECES = {\"reject_marker\"}\n\n-- Each player's role card into their hand, the minions' eyes for the ritual, where every piece starts.\nfunction setUp(ctx)\n  for _, id in ipairs(PIECES) do HOME[id] = at(id) end\n  local next = {}\n  local eyes = {}\n  local forMerlin = {}\n  local forPercival = {}\n  for _, seat in ipairs(Game.getSeats()) do\n    local role = Game.getRole(seat)\n    next[role] = (next[role] or 0) + 1\n    local id = \"role_\" .. role\n    if next[role] > 1 then id = id .. \"_\" .. next[role] end\n    deal(\"role_deck\", id, seat)\n    if Game.getTeam(seat) == \"evil\" and role ~= \"oberon\" then eyes[#eyes + 1] = seat end\n    -- The thumbs the game raises: every minion's but Mordred's for Merlin; Merlin's and Morgana's for Percival.\n    if Game.getTeam(seat) == \"evil\" and role ~= \"mordred\" then forMerlin[#forMerlin + 1] = seat end\n    if role == \"merlin\" or role == \"morgana\" then forPercival[#forPercival + 1] = seat end\n    if role == \"percival\" then Game.setVariable(\"percival\", true) end\n  end\n  Game.setVariable(\"minionEyes\", eyes)\n  Game.setVariable(\"thumbsMerlin\", forMerlin)\n  Game.setVariable(\"thumbsPercival\", forPercival)\nend\n\n-- The five quest cards for this many players, out of the box onto the middle of the table; the box goes with the rest.\nQUESTS = {}\nfunction layQuests(ctx)\n  local players = #Game.getSeats()\n  local group = players >= 8 and 8 or players\n  local left, right = at(\"reject_1\"), at(\"reject_5\")\n  local unit = (right.x - left.x) / 0.32   -- the track's ends are 0.32 m apart: table units per metre\n  local box = getObjectFromGUID(\"quest_box\")\n  for q = 1, 5 do\n    local card = box.takeObject({guid = \"quest_\" .. q .. \"_\" .. group,\n      position = {x = (-0.36 + 0.18 * (q - 1)) * unit, y = left.y + 0.3, z = 0.05 * unit}, rotation = {x = 0, y = 180, z = 0}})\n    QUESTS[q] = card and card.getGUID()\n  end\n  box.destruct()\nend\n\n-- ---- choosing the team ------------------------------------------------------------------------------------------\n\n-- ---- the team vote: Approve and Reject cards ----------------------------------------------------------------------\n\nlocal function spots()\n  local list = {}\n  for _, seat in ipairs(Game.getSeats()) do list[#list + 1] = \"vote_\" .. number(seat) end\n  return list\nend\n\n-- Every vote card back into its deck: those on the spots and those left in hands.\nVOTES_SHOWN = 0\nlocal function collectVotes()\n  VOTES_SHOWN = VOTES_SHOWN + 1\n  local deck = getObjectFromGUID(\"vote_deck\")\n  local all = cardsIn(spots(), {\"aye\", \"nay\"})\n  for _, card in ipairs(cardsIn(hands(), {\"aye\", \"nay\"})) do all[#all + 1] = card end\n  for _, card in ipairs(all) do deck.putObject(card) end\nend\n\nfunction votesOut(ctx)\n  -- A quick new vote: last one's cards come back first.\n  collectVotes()\n  for k, seat in ipairs(Game.getSeats()) do\n    deal(\"vote_deck\", k == 1 and \"aye\" or (\"aye_\" .. k), seat)\n    deal(\"vote_deck\", k == 1 and \"nay\" or (\"nay_\" .. k), seat)\n  end\nend\n\n-- The cards laid down turn over together, and go back to their deck a moment later with those left in hands.\nfunction votesShown(ctx)\n  for _, card in ipairs(cardsIn(spots(), {\"aye\", \"nay\"})) do card.flip() end\n  local shown = VOTES_SHOWN\n  Wait.time(function() if VOTES_SHOWN == shown then collectVotes() end end, 5)\nend\n\n-- ---- the quest: Success and Fail cards ------------------------------------------------------------------------------\n\n-- Every quest card back into its deck: from the pile, turned over, or left in hands. A turning-over still running stops.\nQUEST_SHOWN = 0\nSHOWN = {}\nlocal function collectQuest()\n  QUEST_SHOWN = QUEST_SHOWN + 1\n  local deck = getObjectFromGUID(\"quest_deck\")\n  local pile = getObjectFromGUID(\"quest_pile\")\n  for _ = 1, #pile.getObjects() do\n    local card = pile.takeObject({position = at(\"quest_drop\")})\n    if card then deck.putObject(card) end\n  end\n  for _, card in ipairs(SHOWN) do deck.putObject(card) end\n  SHOWN = {}\n  for _, card in ipairs(cardsIn(hands(), {\"success\", \"fail\"})) do deck.putObject(card) end\nend\n\nfunction questOut(ctx)\n  collectQuest()\n  local team = Game.getVariable(\"team\") or {}\n  for k, seat in ipairs(team) do\n    deal(\"quest_deck\", k == 1 and \"success\" or (\"success_\" .. k), seat)\n    deal(\"quest_deck\", k == 1 and \"fail\" or (\"fail_\" .. k), seat)\n  end\nend\n\n-- A card laid on the quest pile goes into it, face down: nobody can tell later whose it was.\nfunction toPile(ctx)\n  local card = getObjectFromGUID(ctx.it)\n  if card then getObjectFromGUID(\"quest_pile\").putObject(card) end\nend\n\n-- The pile is shuffled and its cards turned over one by one; then they and the cards not played go back.\nfunction questShown(ctx)\n  local shown = QUEST_SHOWN\n  -- The cards not played leave the hands at once: everyone has played.\n  local deck = getObjectFromGUID(\"quest_deck\")\n  for _, card in ipairs(cardsIn(hands(), {\"success\", \"fail\"})) do deck.putObject(card) end\n  Wait.time(function()\n    if QUEST_SHOWN ~= shown then return end\n    local pile = getObjectFromGUID(\"quest_pile\")\n    pile.shuffle()\n    local count = #pile.getObjects()\n    local row = at(\"reveal_row\")\n    local unit = (at(\"reject_5\").x - at(\"reject_1\").x) / 0.32\n    for i = 1, count do\n      Wait.time(function()\n        if QUEST_SHOWN ~= shown then return end\n        local card = getObjectFromGUID(\"quest_pile\").takeObject({\n          position = {x = row.x + (i - (count + 1) / 2) * 0.08 * unit, y = row.y + 0.3, z = row.z},\n          rotation = {x = 0, y = 0, z = 0}})\n        if card then\n          SHOWN[#SHOWN + 1] = card\n          local name = card.getName()\n          playSound((name == \"Fail\" or name == \"Fracaso\") and \"sting\" or \"drum\", 0.7)\n        end\n      end, 0.9 * i)\n    end\n    Wait.time(function() if QUEST_SHOWN == shown then collectQuest() end end, 0.9 * count + 5)\n  end, 0.5)\nend\n\nfunction markQuest(ctx)\n  local quest = math.floor(Game.getVariable(\"quest\"))\n  if ctx.args.result == \"fail\" then\n    local n = math.floor(Game.getVariable(\"fails\"))\n    put(n == 1 and \"evil\" or (\"evil_\" .. n), at(QUESTS[quest]))\n  else\n    local n = math.floor(Game.getVariable(\"successes\"))\n    put(n == 1 and \"good\" or (\"good_\" .. n), at(QUESTS[quest]))\n  end\nend\n\nfunction rejectTrack(ctx)\n  local n = math.floor(Game.getVariable(\"rejections\"))\n  if n == 0 then put(\"reject_marker\", HOME[\"reject_marker\"]) else put(\"reject_marker\", at(\"reject_\" .. n)) end\nend\n\n-- ---- the end ----------------------------------------------------------------------------------------------------------\n\n-- Every role card turned over in front of its player.\nfunction rolesShown(ctx)\n  for _, seat in ipairs(Game.getSeats()) do\n    for _, card in ipairs(cardsIn({\"hand_\" .. number(seat)}, {\"role_\"})) do\n      local p = before(seat, 0.56)\n      card.setPositionSmooth({x = p.x, y = p.y + 1, z = p.z})\n      card.setRotationSmooth({x = 0, y = 0, z = 0})\n    end\n  end\nend\n"
   },
   "roles": {
     "teams": [
       {
         "id": "good",
-        "name": "Loyal servants of Arthur"
+        "name": "Loyal servants of Arthur",
+        "color": "#4a8cff"
       },
       {
         "id": "evil",
-        "name": "Minions of Mordred"
+        "name": "Minions of Mordred",
+        "color": "#d8322a"
       }
     ],
     "list": [
