@@ -61,7 +61,7 @@ namespace TableWorld.View.Bridge
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(GameInfoPath)!);
                 Directory.CreateDirectory(GameLibrary.UserFolder);
-                File.WriteAllText(GameInfoPath, new JObject { ["gamesFolder"] = GamesFolder, ["server"] = ServerPath }.ToString());
+                File.WriteAllText(GameInfoPath, new JObject { ["gamesFolder"] = GamesFolder, ["server"] = ServerPath, ["logsFolder"] = SessionJournal.PlayerFolder }.ToString());
             }
             catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
             {

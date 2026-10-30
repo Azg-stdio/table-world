@@ -195,17 +195,37 @@ namespace Core.Engine
     }
 
     /// <summary>A line for the game log (a <c>message</c> effect or a win). Not tied to an object.</summary>
-    /// <summary>A card shown to everyone (<see cref="ShowCommand"/>): the views show <see cref="Card"/>'s face big.</summary>
+    /// <summary>A card shown (<see cref="ShowCommand"/>): the views of <see cref="Seats"/> (everyone when null) show <see cref="Card"/>'s face big.</summary>
     public sealed class CardShown : StateEvent
     {
         /// <summary>What to draw: the card itself, or the top card of the deck that was shown.</summary>
         public Card Card { get; }
         public string? Seat { get; }
+        public List<string>? Seats { get; }
 
-        public CardShown(string objectId, Card card, string? seat) : base(objectId)
+        public CardShown(string objectId, Card card, string? seat, List<string>? seats = null) : base(objectId)
         {
             Card = card;
             Seat = seat;
+            Seats = seats;
+        }
+
+        /// <summary>Whether the machine of <paramref name="seat"/> (null: a spectator) sees it.</summary>
+        public bool For(string? seat) => Seats == null || seat != null && Seats.Contains(seat);
+    }
+
+    /// <summary>The rules made a player's move for them (an <c>auto</c> action with one possible choice).</summary>
+    public sealed class AutoMoved : StateEvent
+    {
+        public string Seat { get; }
+        public string Action { get; }
+        public Dictionary<string, string> Params { get; }
+
+        public AutoMoved(string seat, string action, Dictionary<string, string> parameters) : base("")
+        {
+            Seat = seat;
+            Action = action;
+            Params = parameters;
         }
     }
 

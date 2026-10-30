@@ -162,6 +162,9 @@ namespace Core.Engine
             };
             if (card == null)
                 return CommandResult.Fail("objectId", ErrorCodes.InvalidValue, $"'{c.ObjectId}' is not a card or a deck with cards.", "Show a card, or a deck to show its top card.");
+            // Shown to some players only: what it is stays theirs (the rules say who looked).
+            if (c.Seats != null)
+                return CommandResult.Success(new List<StateEvent> { new CardShown(obj.Id, card, c.Actor, c.Seats) });
             var name = Names.Of(State, card);
             return CommandResult.Success(new List<StateEvent>
             {

@@ -219,7 +219,7 @@ Load a game document (or a saved game in progress) from a JSON file.
 
 ### `new_game`
 
-Start a new game document: name, player seats with a hand zone each, and the builtin standard deck images. Up to 4 seats are seat_south, seat_north, seat_east, seat_west (hands hand_<side>) on a 1.6 x 1.0 m table; 5 to 12 seats are seat_1..seat_N clockwise from the south side (hands hand_<n>, seat list order is turn order) on a table that grows to fit them. shape round puts every seat (seat_1..seat_N, hands hand_<n>, clockwise from the south) evenly round a round table, 1.6 m across and growing to about 2 m for ten, so everyone sees everyone. get_table_state shows where each hand lies. Make one table for every player count: players = the most players, minPlayers = the fewest; start_game then picks who plays. People beyond the seats can still join a session and watch. Replaces the current document.
+Start a new game document: name, player seats with a hand zone each, and the builtin standard deck images. Up to 4 seats are seat_south, seat_north, seat_east, seat_west, added in that order (hands hand_<side>) on a 1.6 x 1.0 m table, four listed clockwise (south, west, north, east: list order is turn order); 5 to 12 seats are seat_1..seat_N clockwise from the south side (hands hand_<n>, seat list order is turn order) on a table that grows to fit them. shape round puts every seat (seat_1..seat_N, hands hand_<n>, clockwise from the south) evenly round a round table, 1.6 m across and growing to about 2 m for ten, so everyone sees everyone. get_table_state shows where each hand lies. Make one table for every player count: players = the most players, minPlayers = the fewest; start_game then picks who plays. People beyond the seats can still join a session and watch. Replaces the current document.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
@@ -403,6 +403,19 @@ What is left to translate the game into a language: every text of the game (name
 ### `validate_rules`
 
 Check the whole game document. Returns every problem with its path, code, message and a suggestion.
+
+## LogTools
+
+### `get_log`
+
+Read what happened, from a journal (one line per event: seq, at, kind, seat, details). source game: the game window's journal of this session (every command players and rules did or refused with the reason, the rules' log lines, turns, moves the rules made by themselves, Lua prints, warnings and errors); source agent: this server's own (every tool call with its arguments, result and time, and the commands of a game run here without a window). Use it when a move was refused or something looks wrong, and to follow a playtest: pass the last seq you saw as after. Kinds: table, command, refused, rules, private, auto, shown, turn, script, warning, error, log, tool.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `source` | string | none | 'game' or 'agent'; default game when a game window is connected, else agent. |
+| `after` | Int64 | `0` | Only lines after this seq. |
+| `kinds` | string | none | Comma-separated kinds to keep, e.g. 'refused,error'; empty for all. |
+| `max` | integer | `50` | At most this many of the newest lines. |
 
 ## TableTools
 

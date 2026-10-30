@@ -1003,13 +1003,15 @@ namespace TableWorld.View
             view.Held = false;
             SetHeldLayer(view, false);
             _table.NotifyTouched(view.Id);
-            // Into your own hand (over the hand bar, or over your hand zone): straight into its slot, no fall.
+            // Into your own hand (over the hand bar, or over your hand zone): straight into its slot, no fall. A card
+            // being played from the hand is played wherever it is let go, unless it is put back among the hand's cards.
             if (view.Model is Card && HandOfLocalSeat() is { } ownHand)
             {
                 var slot = IgnoreDevices ? null : HandDrop?.Invoke(_lastPointer);
                 var at = view.transform.position;
                 var overZone = Geometry.Contains(ownHand, new Vec3(at.x, ownHand.Transform.Position.Y, at.z));
-                if (slot != null || overZone)
+                var playing = _playFromHand != null && Gestures.Plays(_table.Game, _table.LocalSeat, view.Id).Count > 0;
+                if (playing ? !IgnoreDevices && HandCardAt?.Invoke(_lastPointer) != null : slot != null || overZone)
                 {
                     _playFromHand = null;
                     if (PutInHand(view, ownHand, slot))
@@ -1039,11 +1041,10 @@ namespace TableWorld.View
                 }
                 return;
             }
-            if (_playFromHand is { } hand)
+            if (_playFromHand != null)
             {
                 _playFromHand = null;
-                var p = view.transform.position;
-                if (!Geometry.Contains(hand, new Vec3(p.x, hand.Transform.Position.Y, p.z)) && PlayFromHand(view))
+                if (PlayFromHand(view))
                     return;
             }
             if (joinBelow)
@@ -1185,9 +1186,18 @@ namespace TableWorld.View
             var game = _table.Game;
             var seat = _table.LocalSeat;
             var plays = Gestures.Plays(game, seat, card.Id);
-            // No rule plays this card: it is put down like any card (onto a deck, the table), as free play always allows.
+            // No rule plays this card now (another player's turn, or the game waits for something else, such as a click
+            // on a player): back into the hand with the reason. Put down on the table, the hand would empty with nothing
+            // happening, and the game could not go on.
             if (plays.Count == 0)
-                return false;
+            {
+                card.SnapToState();
+                _table.PresentHands();
+                _table.Tell(game.Session.CurrentSeat != seat
+                    ? Ui.T("It is {seat}'s turn.", ("seat", Names.Seat(game.State, game.Session.CurrentSeat)))
+                    : Ui.T("Not now: {phase}.", ("phase", Names.Phase(game.State, game.Session.Phase))));
+                return true;
+            }
             if (_table.Execute(plays[0]).Ok)
                 return true;
             // A play the rules refused: back to its slot in the hand (the state never moved it); the HUD says why.
@@ -1242,7 +1252,9 @@ namespace TableWorld.View
                 _table.ReportPose(view);
             if (!otherAxis)
                 return _table.Execute(new FlipCommand { ObjectId = view.Id, Actor = _table.LocalSeat }).Ok;
-            return Turn(view, Quaternion.AngleAxis(180f, view.transform.right));
+            // End to end as this player sees the card: it may be drawn turned toward them (ObjectView.TurnQuarters).
+            var across = view.transform.rotation * Quaternion.Euler(0f, 90f * view.TurnQuarters, 0f) * Vector3.right;
+            return Turn(view, Quaternion.AngleAxis(180f, across));
         }
 
         // ---- Q/E rotation (TTS): tap = next 15° step, snapped; hold = continuous, stops anywhere ---------------------
@@ -1719,7 +1731,10 @@ namespace TableWorld.View
 
         // ---- looking ----------------------------------------------------------------------------------------------
 
-        /// <summary>Alt starts a look at the hovered object and releasing Alt ends it; looks opened by code stay until closed.</summary>
+        /// <summary>
+        /// Alt starts a look at the hovered object and releasing Alt ends it; looks opened by code stay until closed. Cards
+        /// shown in the HUD (the hand bar, a picker) are looked at by the HUD itself (<see cref="Hud.UiLook"/>).
+        /// </summary>
         private void UpdateLook(bool alt, bool shift)
         {
             if (!alt && !_lookingByKey)

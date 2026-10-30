@@ -28,6 +28,30 @@ namespace Core.Tests.Engine
         }
 
         [Fact]
+        public void Move_TakesOutOfABag_AndCopiesOutOfAnInfiniteOne()
+        {
+            var doc = Newtonsoft.Json.Linq.JObject.Parse(MiniGame.Json(MiniGame.Action(
+                @"{ ""move"": { ""from"": ""tokens"", ""count"": 2, ""to"": ""z"" } }, { ""move"": { ""from"": ""bank"", ""count"": 3, ""to"": ""z"" } }")));
+            var objects = (Newtonsoft.Json.Linq.JArray)doc["objects"]!;
+            objects.Add(Newtonsoft.Json.Linq.JObject.Parse(@"{ ""id"": ""tokens"", ""type"": ""Bag"", ""transform"": { ""position"": [0.5, 0, 0.3] } }"));
+            objects.Add(Newtonsoft.Json.Linq.JObject.Parse(@"{ ""id"": ""bank"", ""type"": ""InfiniteBag"", ""transform"": { ""position"": [-0.5, 0, 0.3] } }"));
+            foreach (var (id, bag) in new[] { ("t1", "tokens"), ("t2", "tokens"), ("t3", "tokens"), ("coin", "bank") })
+                objects.Add(Newtonsoft.Json.Linq.JObject.Parse($@"{{ ""id"": ""{id}"", ""type"": ""Token"", ""container"": ""{bag}"" }}"));
+            var game = MiniGame.Start(doc.ToString());
+            var result = game.Execute(new PerformActionCommand { Actor = "s1", ActionId = "a" });
+            Assert.True(result.Ok, result.Error?.ToString());
+            Assert.Equal(5, game.Table.ObjectsIn("z").Count());
+            Assert.Single(game.Table.ContentsOf("tokens"));
+            Assert.Single(game.Table.ContentsOf("bank"));
+
+            // All of an infinite bag is refused: it never runs out.
+            var effects = (Newtonsoft.Json.Linq.JArray)doc["actions"]![0]!["effects"]!;
+            effects[1]!["move"]!["take"] = "all";
+            game = MiniGame.Start(doc.ToString());
+            Assert.False(game.Execute(new PerformActionCommand { Actor = "s1", ActionId = "a" }).Ok);
+        }
+
+        [Fact]
         public void Deal_ToHandsAndToTaggedDecks()
         {
             var game = MiniGame.Run(@"{ ""deal"": { ""from"": ""d"", ""count"": 2, ""toZone"": ""$it.hand"" } }");

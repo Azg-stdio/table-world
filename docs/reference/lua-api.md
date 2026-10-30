@@ -22,7 +22,7 @@ API the local mods' calls find is measured in [`docs/data/lua-coverage-*.md`](..
 | `dynamic` | table | `eval`, `prepare` |
 | `editNotebookTab` | function |  |
 | `error` | function |  |
-| `Game` | table | `addResource`, `endPhase`, `endTurn`, `getCurrentSeat`, `getDiceTotal`, `getLanguage`, `getLegalActions`, `getPhase`, `getResource`, `getRole`, `getSeatColor`, `getSeats`, `getTeam`, `getTurn`, `getVariable`, `getWinner`, `gotoPhase`, `isOver`, `isStarted`, `log`, `perform`, `revealRole`, `roll`, `setResource`, `setRole`, `setTeam`, `setVariable`, `text`, `tr`, `win`, `winTeam` |
+| `Game` | table | `addResource`, `eliminate`, `endPhase`, `endTurn`, `getCurrentSeat`, `getDiceTotal`, `getLanguage`, `getLegalActions`, `getPhase`, `getResource`, `getRole`, `getSeatColor`, `getSeats`, `getTeam`, `getTurn`, `getVariable`, `getWinner`, `gotoPhase`, `isOut`, `isOver`, `isStarted`, `log`, `perform`, `revealRole`, `revive`, `roll`, `setResource`, `setRole`, `setTeam`, `setVariable`, `text`, `tr`, `turnTo`, `win`, `winTeam` |
 | `getAllObjects` | function |  |
 | `getmetatable` | function |  |
 | `getNotebookTabs` | function |  |

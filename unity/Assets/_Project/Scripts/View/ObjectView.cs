@@ -32,6 +32,16 @@ namespace TableWorld.View
         /// <summary>Child holding the mesh when it is rotated relative to the object (standees).</summary>
         public Transform Visual { get; private set; }
 
+        /// <summary>A card's or deck's mesh as the state lies (see <see cref="TurnQuarters"/>), or null for other pieces.</summary>
+        internal Mesh UnturnedMesh;
+
+        /// <summary>
+        /// Quarter turns this machine draws the card or deck turned by, so it reads the right way up from the local seat
+        /// (<see cref="TableView.CardsFaceMe"/>). Only the drawing and the click box turn: the pose, the physics body and
+        /// what is sent to others stay as they are.
+        /// </summary>
+        public int TurnQuarters { get; internal set; }
+
         /// <summary>Extra renderer at the object's foot (a standee's stand), or null.</summary>
         public Renderer Base { get; internal set; }
 

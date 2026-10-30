@@ -629,6 +629,7 @@
     background-color: rgba(16, 18, 22, 0.9);
 }
 
+/* Width and height are set from code: most of the screen's height (TableOverlay.LookHeightShare). */
 .look-image {
     width: 420px;
     height: 420px;

@@ -24,6 +24,7 @@ namespace Core.Net
                 {
                     case GameMessage _:
                     case PrivateMessage _:
+                    case AutoMoved _:
                     case SoundCue _:
                         break;
                     case LightingChanged _:

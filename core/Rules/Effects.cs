@@ -232,10 +232,30 @@ namespace Core.Rules
         public string Reason { get; set; } = "";
     }
 
-    /// <summary>Shows a card big on every screen to read it out (a deck shows its top card); nothing moves.</summary>
+    /// <summary>
+    /// Shows a card big on screen to read it out (a deck shows its top card); nothing moves. On every screen, or with
+    /// <see cref="To"/> (a seat, <c>team:&lt;id&gt;</c>, <c>role:&lt;id&gt;</c>) on those players' only: a look at
+    /// another player's hand. A card shown to some players is not named in the log.
+    /// </summary>
     public sealed class ShowEffect : Effect
     {
         public string Object { get; set; } = "";
+        public string? To { get; set; }
+    }
+
+    /// <summary>Brings an eliminated <see cref="Seat"/> back into the game (a new round): it acts, votes and takes turns again.</summary>
+    public sealed class ReviveEffect : Effect
+    {
+        public string Seat { get; set; } = "";
+    }
+
+    /// <summary>
+    /// Ends the current turn and gives the next one to <see cref="Seat"/> instead of the next seat in order (the round's
+    /// winner starts the next round; the Assassin takes the last decision). Takes effect after the current effect list.
+    /// </summary>
+    public sealed class TurnToEffect : Effect
+    {
+        public string Seat { get; set; } = "";
     }
 
     /// <summary>Starts a blind round (<see cref="On"/>) or reveals it, from the rules: everyone moves in secret, then all is shown.</summary>
@@ -328,6 +348,8 @@ namespace Core.Rules
             ["closeVote"] = typeof(CloseVoteEffect),
             ["castBallot"] = typeof(CastBallotEffect),
             ["eliminate"] = typeof(EliminateEffect),
+            ["revive"] = typeof(ReviveEffect),
+            ["turnTo"] = typeof(TurnToEffect),
             ["lua"] = typeof(LuaEffect),
             ["refuse"] = typeof(RefuseEffect),
             ["blindRound"] = typeof(BlindRoundEffect),
@@ -420,6 +442,16 @@ namespace Core.Rules
         public Condition? Condition { get; set; }
     }
 
+    /// <summary>
+    /// <see cref="Condition"/> with the words a player reads when it does not hold as a precondition ("Green is protected
+    /// by the Handmaid"), instead of "not possible now". Legal choices still leave out what it refuses.
+    /// </summary>
+    public sealed class CheckCondition : Condition
+    {
+        public Condition? Condition { get; set; }
+        public string Reason { get; set; } = "";
+    }
+
     public static class ConditionKinds
     {
         public static readonly IReadOnlyDictionary<string, Type> ByName = new Dictionary<string, Type>
@@ -435,6 +467,7 @@ namespace Core.Rules
             ["and"] = typeof(AndCondition),
             ["or"] = typeof(OrCondition),
             ["not"] = typeof(NotCondition),
+            ["check"] = typeof(CheckCondition),
         };
 
         public static readonly IReadOnlyList<string> Operators = new[] { "==", "!=", "<", "<=", ">", ">=" };

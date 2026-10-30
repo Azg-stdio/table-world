@@ -466,6 +466,14 @@ namespace Core.Rules
                     break;
                 case ShowEffect show:
                     Target(show.Object, $"{path}.object");
+                    if (show.To != null && show.To != "all")
+                        Audience(show.To, $"{path}.to");
+                    break;
+                case ReviveEffect back:
+                    Seat(back.Seat, $"{path}.seat");
+                    break;
+                case TurnToEffect turn:
+                    Seat(turn.Seat, $"{path}.seat");
                     break;
                 case MusicEffect music:
                 {
@@ -581,6 +589,12 @@ namespace Core.Rules
                 case AndCondition and: for (var i = 0; i < and.Conditions.Count; i++) Cond(and.Conditions[i], $"{path}[{i}]"); break;
                 case OrCondition or: for (var i = 0; i < or.Conditions.Count; i++) Cond(or.Conditions[i], $"{path}[{i}]"); break;
                 case NotCondition not when not.Condition != null: Cond(not.Condition, path); break;
+                case CheckCondition check:
+                    if (check.Condition == null)
+                        Add($"{path}.condition", ErrorCodes.MissingField, "check needs a condition.");
+                    else
+                        Cond(check.Condition, $"{path}.condition");
+                    break;
             }
         }
 

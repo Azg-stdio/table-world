@@ -2824,6 +2824,30 @@
         {
           "type": "object",
           "properties": {
+            "revive": {
+              "$ref": "#/$defs/ReviveEffect"
+            }
+          },
+          "required": [
+            "revive"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "turnTo": {
+              "$ref": "#/$defs/TurnToEffect"
+            }
+          },
+          "required": [
+            "turnTo"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
             "lua": {
               "$ref": "#/$defs/LuaEffect"
             }
@@ -3170,6 +3194,18 @@
             "not"
           ],
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "check": {
+              "$ref": "#/$defs/CheckCondition"
+            }
+          },
+          "required": [
+            "check"
+          ],
+          "additionalProperties": false
         }
       ]
     },
@@ -3264,6 +3300,18 @@
       "properties": {
         "list": {},
         "value": {}
+      },
+      "additionalProperties": false
+    },
+    "CheckCondition": {
+      "type": "object",
+      "properties": {
+        "condition": {
+          "$ref": "#/$defs/Condition"
+        },
+        "reason": {
+          "type": "string"
+        }
       },
       "additionalProperties": false
     },
@@ -3466,6 +3514,24 @@
       },
       "additionalProperties": false
     },
+    "ReviveEffect": {
+      "type": "object",
+      "properties": {
+        "seat": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "TurnToEffect": {
+      "type": "object",
+      "properties": {
+        "seat": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
     "LuaEffect": {
       "type": "object",
       "properties": {
@@ -3500,6 +3566,9 @@
       "type": "object",
       "properties": {
         "object": {
+          "type": "string"
+        },
+        "to": {
           "type": "string"
         }
       },
@@ -4609,6 +4678,9 @@
           "type": "boolean"
         },
         "onPlayer": {
+          "type": "boolean"
+        },
+        "auto": {
           "type": "boolean"
         }
       },

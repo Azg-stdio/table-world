@@ -27,6 +27,9 @@ namespace Core.Engine
         private string? _pendingGoto;
         private bool _pendingEndPhase;
         private bool _pendingEndTurn;
+        private string? _pendingTurnTo;
+        /// <summary>Auto actions performed in the command in progress (a guard against rules that never wait).</summary>
+        private int _autoMoves;
 
         public TableEngine Table { get; }
         public TableState State => Table.State;
@@ -155,6 +158,8 @@ namespace Core.Engine
             _events = new List<StateEvent>();
             _pendingGoto = null;
             _pendingEndPhase = _pendingEndTurn = false;
+            _pendingTurnTo = null;
+            _autoMoves = 0;
             _scriptsRan = false;
             _secretsRead = false;
             _inRules = true;
@@ -310,7 +315,9 @@ namespace Core.Engine
             _ctx = new Context { Actor = seat, Params = command.Params };
             for (var i = 0; i < action.Preconditions.Count; i++)
                 if (!Holds(action.Preconditions[i]))
-                    throw new RuleException($"preconditions[{i}]", ErrorCodes.PreconditionFailed,
+                    throw action.Preconditions[i] is CheckCondition { Reason: { Length: > 0 } reason }
+                        ? new RuleException($"preconditions[{i}]", ErrorCodes.PreconditionFailed, Template(reason))
+                        : new RuleException($"preconditions[{i}]", ErrorCodes.PreconditionFailed,
                         $"Action '{action.Id}' is not possible now: precondition {i} ({action.Preconditions[i].Kind}) does not hold.")
                         .Text("refusal.notPossible", ("action", ActionName(action)));
 
@@ -423,11 +430,13 @@ namespace Core.Engine
                     EnterPhase(target);
                     continue;
                 }
-                if (_pendingEndTurn)
+                if (_pendingEndTurn || _pendingTurnTo != null)
                 {
+                    var to = _pendingTurnTo;
                     _pendingEndTurn = _pendingEndPhase = false;
+                    _pendingTurnTo = null;
                     ExitPhase();
-                    EndTurn();
+                    EndTurn(to);
                     continue;
                 }
                 var phase = CurrentPhase()!;
@@ -439,6 +448,14 @@ namespace Core.Engine
                 if (!advance)
                 {
                     RefreshAwake();
+                    if (AutoMove() is { } auto)
+                    {
+                        if (++_autoMoves > MaxTransitions)
+                            throw new RuleException("actions", ErrorCodes.RulesLoop, $"The rules made {MaxTransitions} automatic moves without waiting for a player.",
+                                "An auto action must move the game on (end the phase or the turn).");
+                        _events.Add(new AutoMoved(auto.Actor!, auto.ActionId, new Dictionary<string, string>(auto.Params)));
+                        Perform(auto);
+                    }
                     return;
                 }
                 _pendingEndPhase = false;
@@ -459,7 +476,31 @@ namespace Core.Engine
                 "Check advanceWhen: a cycle of 'immediate' phases or conditions that always hold never stops.");
         }
 
-        private void EndTurn()
+        /// <summary>
+        /// The current player's move when the game can make it for them: their only legal action is marked <c>auto</c> and
+        /// has a single choice. Null otherwise.
+        /// </summary>
+        private PerformActionCommand? AutoMove()
+        {
+            var seat = Session!.CurrentSeat;
+            if (seat == null || IsOut(seat) || !State.Actions.Any(a => a.Auto))
+                return null;
+            var saved = _ctx;
+            try
+            {
+                var legal = LegalActions(seat);
+                if (legal.Count != 1 || legal[0].Choices.Count != 1 || State.Actions.FirstOrDefault(a => a.Id == legal[0].ActionId) is not { Auto: true })
+                    return null;
+                return new PerformActionCommand { Actor = seat, ActionId = legal[0].ActionId, Params = new Dictionary<string, string>(legal[0].Choices[0]) };
+            }
+            finally
+            {
+                _ctx = saved;
+            }
+        }
+
+        /// <summary>Ends the turn; the next goes to <paramref name="to"/> (a <c>turnTo</c>) or to the next seat in order.</summary>
+        private void EndTurn(string? to = null)
         {
             var session = Session!;
             RunEvent(GameEvents.OnTurnEnd);
@@ -467,10 +508,16 @@ namespace Core.Engine
             if (session.Over)
                 return;
             session.Turn++;
-            session.CurrentSeat = NextSeat(session.CurrentSeat!);
+            session.CurrentSeat = to ?? NextSeat(session.CurrentSeat!);
             RunEvent(GameEvents.OnTurnStart);
             EnterPhase(State.Turn!.Phases[0]);
         }
+
+        /// <summary><paramref name="seat"/>, when it plays and is not out: a turn can go to it.</summary>
+        private string PlayingSeat(string seat, string path) =>
+            Playing.Any(s => s.Id == seat) && !IsOut(seat)
+                ? seat
+                : throw new RuleException(path, ErrorCodes.UnknownSeat, $"Seat '{seat}' is not in the game, so the turn cannot go to it.");
 
         /// <summary>The seats playing this game, in seat order: those it started with, or every seat.</summary>
         public List<Seat> Playing => Session?.Players is { Count: > 0 } players
@@ -634,6 +681,8 @@ namespace Core.Engine
                 case CloseVoteEffect close: CloseVote(close.Action); break;
                 case CastBallotEffect ballot: CastBallot(ballot); break;
                 case EliminateEffect gone: Eliminate(ResolveSeat(gone.Seat, "eliminate.seat"), gone.RevealRole); break;
+                case ReviveEffect back: Session!.Eliminated.Remove(ResolveSeat(back.Seat, "revive.seat")); break;
+                case TurnToEffect turn: _pendingTurnTo = PlayingSeat(ResolveSeat(turn.Seat, "turnTo.seat"), "turnTo.seat"); break;
                 case RevealRoleEffect show:
                     RevealRole(ResolveSeat(show.Seat, "revealRole.seat"), Audience(show.To, "revealRole.to"), show.TeamOnly, show.Set);
                     break;
@@ -652,7 +701,14 @@ namespace Core.Engine
                     var target = ResolveTarget(show.Object, "show.object");
                     var id = target switch { TableObject o => o.Id, CardRef r => r.Deck.Id, _ => null }
                         ?? throw new RuleException("show.object", ErrorCodes.UnknownObject, $"'{show.Object}' is not a card or deck.");
-                    TableCommand(new ShowCommand { ObjectId = id });
+                    // To some players only: who they are may be a secret (the host sends it to their machines alone).
+                    List<string>? seats = null;
+                    if (show.To != null && show.To != "all")
+                    {
+                        _secretsRead = true;
+                        seats = Audience(show.To, "show.to");
+                    }
+                    TableCommand(new ShowCommand { ObjectId = id, Seats = seats });
                     break;
                 }
                 case MusicEffect music:
@@ -763,6 +819,9 @@ namespace Core.Engine
                     session.Variables[c.Name!] = c.Value?.DeepClone() ?? JValue.CreateNull();
                     break;
                 case "endTurn": _pendingEndTurn = true; break;
+                case "turnTo": _pendingTurnTo = PlayingSeat(SeatOf(), "seat"); break;
+                case "eliminate": Eliminate(SeatOf(), c.Value is JValue { Type: JTokenType.Boolean } revealRole && (bool)revealRole); break;
+                case "revive": session.Eliminated.Remove(SeatOf()); break;
                 case "endPhase": _pendingEndPhase = true; break;
                 case "gotoPhase":
                     if (State.Phases.All(p => p.Id != c.Name))
@@ -933,6 +992,8 @@ namespace Core.Engine
             }
             var source = ResolveTarget(move.From!, "move.from");
             var count = SourceCount(source);
+            if (source is InfiniteBag && (move.Take == "all" || move.Take == "allButTop"))
+                throw new RuleException("move.take", ErrorCodes.InvalidValue, "An infinite bag never runs out: take a count from it, not all.");
             var take = move.Take switch
             {
                 "all" => count,
@@ -968,23 +1029,27 @@ namespace Core.Engine
             }
         }
 
+        /// <summary>How many things <paramref name="source"/> holds to take; an infinite bag never runs out.</summary>
         private int SourceCount(object source) => source switch
         {
             Deck deck => deck.Cards.Count,
+            InfiniteBag _ => int.MaxValue,
+            Bag bag => Table.ContentsOf(bag.Id).Count(),
             Zone zone => PiecesIn(zone.Id).Count(),
-            _ => 0,
+            _ => throw new RuleException("move.from", ErrorCodes.WrongObjectType, "Things can be taken from a deck, a bag or a zone."),
         };
 
-        /// <summary>Takes the top (or bottom) item off a deck or a zone's stack, as a loose object near the target.</summary>
+        /// <summary>Takes the top (or bottom) item off a deck, out of a bag, or off a zone's stack, as a loose object near the target.</summary>
         private TableObject TakeOne(object source, bool fromBottom, object target, bool? faceUp)
         {
             switch (source)
             {
-                case Deck deck:
+                case Deck _:
+                case Bag _:
                 {
                     var result = TableCommand(new TakeCommand
                     {
-                        ContainerId = deck.Id,
+                        ContainerId = ((TableObject)source).Id,
                         FromBottom = fromBottom,
                         Position = PositionOf(target),
                         Rotation = faceUp is { } up ? FaceRotation(target, up) : (Vec3?)null,
@@ -999,7 +1064,7 @@ namespace Core.Engine
                     return fromBottom ? stack[stack.Count - 1] : stack[0];
                 }
                 default:
-                    throw new RuleException("move.from", ErrorCodes.WrongObjectType, "Cards can be taken from a deck or a zone.");
+                    throw new RuleException("move.from", ErrorCodes.WrongObjectType, "Things can be taken from a deck, a bag or a zone.");
             }
         }
 
@@ -1117,6 +1182,7 @@ namespace Core.Engine
             AndCondition and => and.Conditions.All(Holds),
             OrCondition or => or.Conditions.Any(Holds),
             NotCondition not => !Holds(not.Condition!),
+            CheckCondition check => Holds(check.Condition!),
             _ => throw new RuleException(condition.Kind, ErrorCodes.RuleFailed, $"Condition '{condition.Kind}' is not supported."),
         };
 
@@ -1428,7 +1494,7 @@ namespace Core.Engine
                         "top" => stack.FirstOrDefault(),
                         "bottom" => stack.LastOrDefault(),
                         "id" => new JValue(zone.Id),
-                        "name" => zone.Name == null ? null : new JValue(zone.Name),
+                        "name" => zone.Name == null ? null : new JValue(Translations.Text(State, $"zones.{zone.Id}.name", zone.Name)),
                         _ => null,
                     };
                 }
@@ -1436,7 +1502,7 @@ namespace Core.Engine
                     return part switch
                     {
                         "meta" => card.Entry.Meta,
-                        "name" => card.Entry.Name == null ? null : new JValue(card.Entry.Name),
+                        "name" => card.Entry.Name == null ? null : new JValue(Names.Of(State, card.Entry)),
                         "id" => card.Entry.Id == null ? null : new JValue(card.Entry.Id),
                         "faceIndex" => new JValue(card.Entry.FaceIndex),
                         _ => null,
@@ -1454,10 +1520,11 @@ namespace Core.Engine
             }
         }
 
-        private static object? ObjectProperty(TableObject obj, string part, string[] parts, ref int i) => part switch
+        private object? ObjectProperty(TableObject obj, string part, string[] parts, ref int i) => part switch
         {
             "id" => new JValue(TableEngine.OwnId(obj)),
-            "name" => obj.Name == null ? null : new JValue(obj.Name),
+            // Names as players read them, in the session's language.
+            "name" => obj.Name == null ? null : new JValue(Names.Of(State, obj)),
             "meta" => obj is Card card ? card.Meta : null,
             "faceUp" => new JValue(obj.IsFaceUp),
             "value" => obj is Die { Value: { } value } ? new JValue(value) : null,

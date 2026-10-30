@@ -18,6 +18,33 @@ namespace TableWorld.View.Meshes
 
         private static readonly Dictionary<string, Mesh> Cache = new Dictionary<string, Mesh>();
 
+        /// <summary>
+        /// <paramref name="mesh"/> turned <paramref name="quarters"/> quarter turns about +Y (its name keeps its kind, so a
+        /// turned box still gets a box collider): a card drawn turned toward one player without moving it.
+        /// </summary>
+        public static Mesh Turned(Mesh mesh, int quarters)
+        {
+            quarters = ((quarters % 4) + 4) % 4;
+            if (quarters == 0)
+                return mesh;
+            return Cached($"{mesh.name}:q{quarters}", () =>
+            {
+                var turn = Quaternion.Euler(0f, 90f * quarters, 0f);
+                var turned = Object.Instantiate(mesh);
+                var vertices = mesh.vertices;
+                var normals = mesh.normals;
+                for (var i = 0; i < vertices.Length; i++)
+                    vertices[i] = turn * vertices[i];
+                for (var i = 0; i < normals.Length; i++)
+                    normals[i] = turn * normals[i];
+                turned.vertices = vertices;
+                turned.normals = normals;
+                turned.RecalculateBounds();
+                turned.RecalculateTangents();
+                return turned;
+            });
+        }
+
         public static Mesh Box(Vector3 size) =>
             Cached($"box:{size.x:F5}:{size.y:F5}:{size.z:F5}", () => Prism(Rectangle(size.x, size.z), size.y));
 

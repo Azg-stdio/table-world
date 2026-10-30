@@ -35,12 +35,16 @@ namespace TableWorld.Mcp
         {
             var host = new ScriptHost(() => Game?.Table, command =>
             {
-                var result = Game!.Execute(command);
+                var result = Recorded(Game!, command);
                 _scripts?.OnCommand(command, result, null);
                 return result;
             });
             host.RulesEngine = () => Game;
-            host.Log += line => _scriptLines.Add("[Lua] " + line);
+            host.Log += line =>
+            {
+                _scriptLines.Add("[Lua] " + line);
+                Recorder?.Journal.Text("script", line);
+            };
             host.Broadcast += line => _scriptLines.Add(line);
             game.Scripts = host;
             _scripts = host;
@@ -133,6 +137,16 @@ namespace TableWorld.Mcp
 
         /// <summary>Set when the game window is connected: play then runs in the game (the authoritative host).</summary>
         public UnityBridge? Bridge { get; set; }
+
+        /// <summary>Writes the commands of a game run here (no game window) into this server's journal; the window keeps its own.</summary>
+        public Core.Logging.JournalRecorder? Recorder { get; init; }
+
+        private CommandResult Recorded(GameEngine game, Command command)
+        {
+            var result = game.Execute(command);
+            Recorder?.Record(game.State, command, result, null);
+            return result;
+        }
 
         public bool Remote => Bridge?.Connected == true;
 
@@ -469,7 +483,8 @@ namespace TableWorld.Mcp
             var copy = TableJson.Parse(TableJson.Serialize(Document)).State!;
             Game = new GameEngine(copy, Seed);
             StartScripts(Game);
-            var result = Game.Execute(new StartGameCommand { Seats = seats.ToList(), Roles = roles.ToList(), Language = language });
+            Recorder?.Table(copy, FilePath, "agent");
+            var result = Recorded(Game, new StartGameCommand { Seats = seats.ToList(), Roles = roles.ToList(), Language = language });
             if (!result.Ok)
                 Game = null;
             Changed?.Invoke(Current);
@@ -494,7 +509,7 @@ namespace TableWorld.Mcp
             }
             if (Game == null)
                 return PlayResult.Refused(new ValidationError("", ErrorCodes.GameNotStarted, "No game is running.", "Call start_game first."));
-            var result = Game.Execute(command);
+            var result = Recorded(Game, command);
             if (result.Ok)
                 _scripts?.OnCommand(command, result, null);
             if (result.Ok || result.StateRestored)
@@ -524,7 +539,7 @@ namespace TableWorld.Mcp
             CommandResult result;
             if (Game != null)
             {
-                result = Game.Execute(command);
+                result = Recorded(Game, command);
             }
             else
             {

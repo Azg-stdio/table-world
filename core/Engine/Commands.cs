@@ -80,11 +80,13 @@ namespace Core.Engine
 
     /// <summary>
     /// Shows a card's face to everyone, big on every screen, to read it out (an event card drawn on your turn). Nothing
-    /// moves or turns over. A deck shows its top card.
+    /// moves or turns over. A deck shows its top card. With <see cref="Seats"/>, only those players see it (the rules let
+    /// one player look at another's hand): the card is sent to their machines alone and the log does not name it.
     /// </summary>
     public sealed class ShowCommand : Command
     {
         public string ObjectId { get; set; } = "";
+        public List<string>? Seats { get; set; }
     }
 
     /// <summary>

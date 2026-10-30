@@ -91,11 +91,42 @@ namespace TableWorld.Mcp.Tests
             var expected = new[]
             {
                 "add_action", "add_asset", "add_event", "add_phase", "add_resource", "add_to_games", "ask_host", "create_deck", "create_supply", "create_text_deck", "deal", "define_zone",
-                "get_rules_document", "get_rules_reference", "get_table_state", "import_music", "list_music", "load_game", "new_game", "perform_action",
+                "get_log", "get_rules_document", "get_rules_reference", "get_table_state", "import_music", "list_music", "load_game", "new_game", "perform_action",
                 "place_object", "preview_music", "remove", "reset_game", "run_lua", "save_game", "screenshot", "set_environment", "set_messages", "set_music", "set_notebook", "set_roles", "set_rules_document", "set_script", "set_translations", "set_turn", "set_variables",
                 "set_win_condition", "start_game", "table_action", "translate_game", "validate_rules",
             };
             Assert.Equal(expected, tools);
+        }
+
+        /// <summary>
+        /// The server's journal (docs/dev/logging.md): every tool call, and the commands of a game run here without a window,
+        /// a refused move with its reason; get_log reads it from a given line on and by kind.
+        /// </summary>
+        [Fact]
+        public async Task GetLog_ReadsToolCalls_AndTheGamesCommands_WithRefusals()
+        {
+            Ok(await Call("new_game", ("id", "logged"), ("name", "Logged"), ("players", 2)));
+            Ok(await Call("add_action", ("actionJson", "{\"id\":\"pass\",\"actor\":\"current\",\"effects\":[{\"endTurn\":{}}]}")));
+            Ok(await Call("add_phase", ("phaseJson", "{\"id\":\"main\",\"actions\":[\"pass\"]}")));
+            Ok(await Call("start_game"));
+            var mark = (long)(await Call("get_log", ("source", "agent"), ("max", 1)))["last"]!;
+            var first = (string)(await Call("get_rules_document"))["session"]!["currentSeat"]!;
+            var other = first == "seat_south" ? "seat_north" : "seat_south";
+            await Call("perform_action", ("seat", other), ("action", "pass"));
+
+            var log = await Call("get_log", ("source", "agent"), ("after", mark));
+            Ok(log);
+            var lines = log["lines"]!.ToList();
+            Assert.Contains(lines, l => (string?)l["kind"] == "tool" && (string?)l["tool"] == "get_rules_document" && (bool)l["ok"]!);
+            var refused = lines.Single(l => (string?)l["kind"] == "refused");
+            Assert.Equal(other, (string?)refused["seat"]);
+            Assert.Equal("not_your_turn", (string?)refused["code"]);
+            Assert.Contains(lines, l => (string?)l["kind"] == "tool" && (string?)l["tool"] == "perform_action" && !(bool)l["ok"]!);
+
+            var onlyRefusals = await Call("get_log", ("source", "agent"), ("after", mark), ("kinds", "refused"));
+            Assert.Single(onlyRefusals["lines"]!);
+            Assert.False((bool)(await Call("get_log", ("source", "nowhere")))["ok"]!);
+            Ok(await Call("reset_game"));
         }
 
         [Fact]

@@ -12,9 +12,13 @@ namespace Core.Tests.Rules
         {
             var (size, places) = SeatLayout.Arrange(4);
             Assert.Equal(TableLookDef.DefaultSize, size);
-            Assert.Equal(new[] { "seat_south", "seat_north", "seat_east", "seat_west" }, places.Select(p => p.SeatId));
-            Assert.Equal(new[] { "hand_south", "hand_north", "hand_east", "hand_west" }, places.Select(p => p.HandId));
+            // Listed clockwise seen from above, as turns go round; each side keeps its colour.
+            Assert.Equal(new[] { "seat_south", "seat_west", "seat_north", "seat_east" }, places.Select(p => p.SeatId));
+            Assert.Equal(new[] { "hand_south", "hand_west", "hand_north", "hand_east" }, places.Select(p => p.HandId));
+            Assert.Equal(new[] { "red", "yellow", "blue", "green" }, places.Select(p => p.Color));
             Assert.Equal(new Vec3(0f, 0.05f, -0.42f), places[0].Position);
+            Assert.Equal(new[] { "seat_south", "seat_north" }, SeatLayout.Spread(places.Select(p => p.SeatId).ToList(), 2));
+            Assert.Equal(new[] { "seat_south", "seat_north", "seat_east" }, SeatLayout.Arrange(3).Places.Select(p => p.SeatId));
         }
 
         [Theory]

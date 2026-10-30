@@ -283,6 +283,9 @@ the votes are counted, the count is logged, and `onResult` runs.
 - An action with `"onPlayer": true` and one seat parameter is done by clicking a player: their chalker or their name
   over it, while the action is legal for that seat (the leader clicking players for the team, again to take one off). It
   gets no button.
+- An action with `"auto": true` is done by itself when it is the current player's only legal action and has a single
+  legal choice: a card that may pick only one player picks them (Love Letter with two players left). Put who may be
+  picked in its preconditions (`check` gives each a reason), so the legal choices are the real ones.
 - `marks` (top level) put a mark over players' chalkers for everyone to see: `{ "id": "team", "seats": "$var.team",
   "shape": "arrow" }` (a bobbing arrow) or `"shape": "crown"`; `seats` is an audience like `awake` (`$current`, a list,
   `team:`, `role:`, a seat); `color` is `[r, g, b]`, gold by default.
@@ -329,7 +332,7 @@ Each effect is a single-key object, e.g. `{ "shuffle": { "object": "deck_main" }
 
 | Effect | Fields |
 |---|---|
-| `move` | `object` (one thing), or `from` (deck or zone) + `take` (`top` default, `bottom`, `all`, `allButTop`) + `count` (default 1); `to` (deck, bag or zone); `at` (`top`/`bottom`, into decks); `faceUp` |
+| `move` | `object` (one thing), or `from` (deck, bag or zone; an infinite bag gives copies, never `all`) + `take` (`top` default, `bottom`, `all`, `allButTop`) + `count` (default 1); `to` (deck, bag or zone); `at` (`top`/`bottom`, into decks); `faceUp` |
 | `deal` | `from`, `count` per seat, `seats` (default all), exactly one of `toZone` (with `$it` = seat, e.g. `$it.hand`) or `toTag` (the deck tagged `<tag>:<seat>`), `faceDown` |
 | `shuffle` / `flip` | `object` |
 | `lock` | `object`, `locked` (default true) |
@@ -343,6 +346,9 @@ Each effect is a single-key object, e.g. `{ "shuffle": { "object": "deck_main" }
 | `gotoPhase` | `phase` |
 | `win` | `player`, or `team` (hidden roles: every seat of that team wins; the log names them) |
 | `eliminate` | `seat`, `revealRole` (show its role to all): the seat is out — no actions or votes, asleep at night, not heard, skipped by turns and seat choices |
+| `revive` | `seat`: an eliminated seat is back in the game (a new round) |
+| `turnTo` | `seat`: ends the turn (after the current effect list) and gives the next one to that seat instead of the next in order; refused for a seat that is out |
+| `show` | `object` (a card, or a deck's top card) shown big on screen, nothing moves; `to` (a seat, `team:<id>`, `role:<id>`) shows it on those players' screens only, sent to their machines alone and not named in the log |
 | `revealRole` | `seat`; `to` (a seat, `team:<id>`, `role:<id>`; every seat when left out or `all`); `teamOnly` (show only the team); `set` (show a trait of an extra role set) |
 | `setRole` | `seat`, `role` (an id or a reference), `set`, `tell` (let the player know); the new role brings its team |
 | `swapRoles` | `a`, `b`, `set`, `tell`; each seat's team goes with its role |
@@ -369,6 +375,7 @@ Moving cards into a deck makes them take the deck's orientation; into a zone the
 | `and` / `or` | an array of conditions: `{ "and": [ ..., ... ] }` |
 | `not` | one condition: `{ "not": { "isCurrentPlayer": { "player": "$actor" } } }` |
 | `inList` | `list` (a list, e.g. `$var.team`), `value`: the list holds it |
+| `check` | `condition`, `reason`: holds when its condition does; as a precondition that fails, the player reads `reason` (`{$ref}` filled, `@key` translated) instead of "not possible now" |
 
 `op` is one of `==`, `!=`, `<`, `<=`, `>`, `>=`.
 

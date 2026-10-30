@@ -251,8 +251,12 @@ namespace Core.Net
                     sent = new PerformActionCommand { Actor = perform.Actor, ActionId = perform.ActionId };
                 var order = OrderMessage(origin, clientSeq, sent);
                 order["hash"] = hash;
-                // A private line goes to its seat only.
-                order["events"] = EventCodec.EncodeAll(result.Events.Where(e => !(e is PrivateMessage p) || p.Seat == seat).Where(e => !(e is SoundCue cue) || cue.For(seat)));
+                // A private line, cue or shown card goes to its seats only.
+                order["events"] = EventCodec.EncodeAll(result.Events.Where(e => !(e is PrivateMessage p) || p.Seat == seat).Where(e => !(e is SoundCue cue) || cue.For(seat))
+                    .Where(e => !(e is CardShown shown) || shown.For(seat))
+                    // A move the rules made for a player keeps a secret choice as secret as the player's own would be.
+                    .Where(e => !(e is AutoMoved auto) || auto.Seat == seat
+                                || !(Game.State.Actions.FirstOrDefault(a => a.Id == auto.Action) is { } done && (done.Secret || done.Vote != null))));
                 if (TablePatch.Build(Game.State, result, seat, Game.Table) is { } patch)
                     order["patch"] = patch;
                 else

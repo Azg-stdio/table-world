@@ -397,6 +397,54 @@ namespace TableWorld.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator Alt_OverACardInTheHandBar_LooksAtIt_Big()
+        {
+            Assert.IsTrue(_table.Execute(new MoveCommand { ObjectId = "king_hearts", Position = new Vec3(0f, 0f, -0.42f), Actor = "seat_south" }).Ok);
+            yield return new WaitForSeconds(0.5f);
+            var hud = Object.FindAnyObjectByType<HudController>();
+            hud.HandBar.SetCollapsed(false);
+            var root = hud.GetComponent<UIDocument>().rootVisualElement;
+            var card = root.Q("hand-king_hearts");
+            yield return Point(TopOf(card));
+            Press(_keyboard.leftAltKey);
+            yield return null;
+            yield return null;
+            var overlay = hud.Overlay;
+            Assert.IsTrue(overlay.LookingAtUi, "Alt over a hand card looks at it");
+            Assert.IsFalse(root.Q("lookPanel").ClassListContains("hidden"));
+            yield return null;
+            var image = root.Q("lookImage").worldBound;
+            Assert.Greater(image.height, card.worldBound.height * 1.8f, "the close-up is far bigger than the hand's cards");
+            Release(_keyboard.leftAltKey);
+            yield return null;
+            yield return null;
+            Assert.IsFalse(overlay.LookingAtUi);
+            Assert.IsTrue(root.Q("lookPanel").ClassListContains("hidden"));
+        }
+
+        [UnityTest]
+        public IEnumerator Alt_OverACardInAPicker_LooksAtIt()
+        {
+            var hud = Object.FindAnyObjectByType<HudController>();
+            var root = hud.GetComponent<UIDocument>().rootVisualElement;
+            var face = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), Vector2.zero);
+            var picker = new ActionPicker(root);
+            picker.Show("Play a card", new[] { new ActionPicker.Choice { Label = "King", Image = face, Pick = () => { } } });
+            yield return null;
+            // The HUD has its own picker by the same name: this test's is the last one added.
+            var choice = root.Query("actionPicker").Last().Q(className: "action-choice");
+            yield return Point(TopOf(choice));
+            Press(_keyboard.leftAltKey);
+            yield return null;
+            yield return null;
+            Assert.IsTrue(hud.Overlay.LookingAtUi, "Alt over a card in the picker looks at it");
+            Assert.AreEqual("King", root.Q<Label>("lookCaption").text);
+            Release(_keyboard.leftAltKey);
+            yield return null;
+            picker.Hide();
+        }
+
+        [UnityTest]
         public IEnumerator HandEdge_DraggedDown_HidesTheHand_AndStaysToBringItBack()
         {
             const string json = @"{ ""game"": { ""id"": ""hand_edge"", ""name"": ""Hand edge"" },

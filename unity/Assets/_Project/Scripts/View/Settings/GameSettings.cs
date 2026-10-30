@@ -62,6 +62,8 @@ namespace TableWorld.View.Settings
         public float ZoomSpeed { get; set; } = 1f;
         public float PanSpeed { get; set; } = 1f;
         public bool InvertOrbitY { get; set; }
+        /// <summary>Cards lying on the table are drawn turned toward you, so they read the right way up (only on your screen).</summary>
+        public bool CardsFaceMe { get; set; } = true;
         /// <summary>
         /// Keep to the free orbit camera (motion sickness, taste): Space and a game's start no longer sit you in first
         /// person at your seat; O still does.
@@ -162,6 +164,7 @@ namespace TableWorld.View.Settings
             AudioListener.volume = MasterVolume;
             TableSounds.Volume = TableVolume;
             MusicPlayerView.Volume = MusicVolume;
+            TableView.CardsFaceMe = CardsFaceMe;
             Voice.VoiceChat.Mode = VoiceMode;
             Voice.VoiceChat.Device = Microphone;
             Voice.VoiceChat.Volume = VoiceVolume;

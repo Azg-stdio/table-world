@@ -14,7 +14,7 @@ namespace TableWorld.View.Hud
         public sealed class Choice
         {
             public string Label;
-            /// <summary>The card's face, or null for a choice that is not a card.</summary>
+            /// <summary>The card's face, or null for a choice that is not a card. Alt over it shows it big.</summary>
             public Sprite Image;
             public Action Pick;
         }
@@ -69,6 +69,7 @@ namespace TableWorld.View.Hud
                     // A runtime card image (a cell of a sprite sheet) can only be set from code.
                     face.style.backgroundImage = new StyleBackground(choice.Image);
                     button.Add(face);
+                    UiLook.Mark(button, choice.Image, choice.Label);
                 }
                 var label = new Label(choice.Label) { pickingMode = PickingMode.Ignore, enableRichText = false };
                 label.AddToClassList("action-choice-label");

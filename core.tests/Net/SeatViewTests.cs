@@ -199,6 +199,7 @@ namespace Core.Tests.Net
                 new NotebookChanged(), new DrawingsChanged(), new CardShown("c", new Card { Id = "c", Name = "Ace", FaceIndex = 3 }, "s1"),
                 new GameMessage("Red wins."), new PrivateMessage("s1", "You are Merlin."), new Searched("deck", "s1"), new ScreenChanged(),
                 new SoundCue("gong", 0.5f, new List<string> { "s1" }),
+                new AutoMoved("s1", "target", new Dictionary<string, string> { ["target"] = "s2" }),
             };
             var all = typeof(StateEvent).Assembly.GetTypes().Where(t => typeof(StateEvent).IsAssignableFrom(t) && !t.IsAbstract).Select(t => t.Name);
             Assert.Equal(all.OrderBy(n => n), events.Select(e => e.GetType().Name).OrderBy(n => n));
@@ -211,6 +212,7 @@ namespace Core.Tests.Net
             }
             Assert.Equal(5, ((DieRolled)EventCodec.Decode(EventCodec.Encode(new DieRolled("d6", 5)))).Value);
             Assert.Equal("Ace", ((CardShown)EventCodec.Decode(EventCodec.Encode(events.OfType<CardShown>().Single()))).Card.Name);
+            Assert.Equal("s2", ((AutoMoved)EventCodec.Decode(EventCodec.Encode(events.OfType<AutoMoved>().Single()))).Params["target"]);
         }
     }
 }

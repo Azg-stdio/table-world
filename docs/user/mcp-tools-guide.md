@@ -311,6 +311,16 @@ perform_action {"seat": "seat_south", "action": "draw_card"}
 table_action {"action": "roll", "target": "d6"}
 ```
 
+**`get_log`**: reads what happened, one line per event. `source: "game"` is the game window's journal of the session:
+every command players and rules did, or refused with the reason, the rules' lines, turns, moves the rules made by
+themselves, Lua prints, warnings and errors. `source: "agent"` is the server's own: every tool call with its arguments,
+result and time. When a move is refused or something looks wrong, read the refusals and errors; to follow a playtest,
+pass the last `seq` you saw as `after`.
+
+```call
+get_log {"source": "agent", "kinds": "refused,error", "max": 20}
+```
+
 **`reset_game`**: stops the game and goes back to the setup. Rules can only be edited while no game is running.
 
 ```call

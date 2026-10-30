@@ -41,6 +41,8 @@ namespace TableWorld.View.Hud
 
         /// <summary>Opens the Connect an AI agent page (the HUD's <see cref="AgentPanel"/>).</summary>
         public Action OpenAgent { get; set; }
+        /// <summary>The player asked for a problem report (the HUD saves it and says where).</summary>
+        public Action SaveReport { get; set; }
 
         /// <summary>Raised instead of quitting when set (tests).</summary>
         public Action QuitOverride { get; set; }
@@ -67,6 +69,11 @@ namespace TableWorld.View.Hud
             {
                 _menu.AddToClassList(Hidden);
                 OpenAgent?.Invoke();
+            };
+            root.Q<Button>("escReport").clicked += () =>
+            {
+                Close();
+                SaveReport?.Invoke();
             };
             root.Q<Button>("escControls").clicked += () =>
             {
@@ -211,6 +218,7 @@ namespace TableWorld.View.Hud
             Slider(Ui.T("Zoom speed"), GameSettings.MinScale, GameSettings.MaxScale, s.ZoomSpeed, v => s.ZoomSpeed = v, Times);
             Slider(Ui.T("Keyboard pan speed"), GameSettings.MinScale, GameSettings.MaxScale, s.PanSpeed, v => s.PanSpeed = v, Times);
             Choice(Ui.T("Invert vertical orbit"), new[] { false, true }, s.InvertOrbitY, v => s.InvertOrbitY = v, v => v ? Ui.T("On") : Ui.T("Off"));
+            Choice(Ui.T("Cards on the table face me"), new[] { true, false }, s.CardsFaceMe, v => s.CardsFaceMe = v, v => v ? Ui.T("On") : Ui.T("Off"));
 
             Group(Ui.T("Keys"));
             foreach (GameAction action in Enum.GetValues(typeof(GameAction)))

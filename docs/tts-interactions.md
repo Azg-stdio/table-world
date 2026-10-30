@@ -15,7 +15,7 @@ The list of player interactions Table World must reproduce, taken from Tabletop 
 |---|---|---|---|---|
 | Orbit | hold RMB on empty table + move | KB:basic | ✅ | input |
 | Pan | hold MMB + move; WASD | KB:basic | ✅ | input |
-| Zoom | mouse wheel | KB:basic | ✅ | input |
+| Zoom | mouse wheel | KB:basic | ✅ seated: the wheel leans you over the table, then zooms the view up to 4× toward the pointer (wheel back unzooms, then sits you back) | input |
 | Quick zoom to pointer / back | press MMB (no drag) on empty table; Z | KB:basic | ✅ | play, input |
 | Reset camera | Space | KB:basic | ✅ (the start view is behind your own seat: your seat online, the first seat alone) | play, input |
 | Camera mode (3rd person, 1st person, top-down) | P | KB:basic, KB:adv | ✅ 3rd + top-down (first person ⏭ M6) | play, input |
@@ -50,7 +50,7 @@ The list of player interactions Table World must reproduce, taken from Tabletop 
 
 | Interaction | TTS binding | Source | Status | Test |
 |---|---|---|---|---|
-| Alt zoom (close-up of hovered object, best for cards) | hold Alt | KB:basic, KB:adv | ✅ flat objects (cards, decks, tokens, tiles, boards) are always shown square on to their face, even standing in a hand | play, input |
+| Alt zoom (close-up of hovered object, best for cards) | hold Alt | KB:basic, KB:adv | ✅ flat objects (cards, decks, tokens, tiles, boards) are always shown square on to their face, even standing in a hand; over any card the HUD shows too (the hand bar, an action's picker, the search window: `UiLook`); most of the screen's height, so it reads far bigger than the hand. Table World: cards lying on the table are drawn turned toward your seat, on your screen only (setting "Cards on the table face me") | play, input |
 | Zoom further / rotate in Alt zoom | wheel / Q E | KB:basic | ✅ | play |
 | Peek (see the underside; others are alerted) | hold Alt + Shift | KB:adv | ✅ (alerting others: M3) | play |
 | Magnify area | M (+ wheel) | KB:adv | ⏭ polish (after playtest) | — |
@@ -84,7 +84,7 @@ While a game with rules runs, gestures become rules actions, so turns, limits an
 
 | Gesture | Becomes | Status | Test |
 |---|---|---|---|
-| Drag a card out of your hand and drop it anywhere outside the hand | the legal action that takes that card as a parameter (UNO: play it); not legal → back to the hand with the reason | ✅ | core, play |
+| Drag a card out of your hand and drop it anywhere (over your own hand zone too; only back among the hand bar's cards puts it back) | the legal action that takes that card as a parameter (UNO: play it); refused, or no rule plays it now (another player's turn, the game waits for a click on a player) → back to the hand with the reason, never left on the table | ✅ | core, play |
 | Drag from a pile the rules draw from | that legal draw action (UNO: draw and end the turn; War: play your top card); not legal → refused with the reason | ✅ | core, play |
 | Drag from a pile the rules only gather (UNO's discard) | refused: piles the rules use cannot be taken from freely | ✅ | core, play |
 | Anything else (dice, free tokens, cards on the table) | free play, as before | ✅ | — |

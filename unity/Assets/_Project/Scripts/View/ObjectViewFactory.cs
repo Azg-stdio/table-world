@@ -309,6 +309,7 @@ namespace TableWorld.View
             var back = assets.Back(card);
             var (faceAsset, faceIndex) = view.HideFace ? back : assets.Face(card);
             SetPrism(view, mesh, assets.ImageMaterial(faceAsset, Ivory), assets.ImageMaterial(back.AssetId, Ivory), assets.Plain(CardEdge), CardMass);
+            KeepTurn(view, mesh);
             SetCell(view, assets, MeshFactory.TopSubmesh, assets.CellScaleOffset(faceAsset, faceIndex));
             UseCardPhysics(view);
             SetCell(view, assets, MeshFactory.BottomSubmesh, assets.CellScaleOffset(back.AssetId, back.Index));
@@ -338,6 +339,7 @@ namespace TableWorld.View
             var (faceAsset, faceIndex) = assets.Face(deck, faceSideCard);
             var (backAsset, backIndex) = assets.Back(deck, backSideCard);
             SetPrism(view, mesh, assets.ImageMaterial(faceAsset, Ivory), assets.ImageMaterial(backAsset, Ivory), assets.Plain(CardEdge), CardMass * count);
+            KeepTurn(view, mesh);
             UseCardPhysics(view);
             view.Renderer.enabled = true;
             view.Collider.isTrigger = false;
@@ -395,6 +397,37 @@ namespace TableWorld.View
         {
             view.Body.angularDamping = FlatAngularDamping;
             view.Body.centerOfMass = new Vector3(0f, -thickness * 0.8f, 0f);
+        }
+
+        /// <summary>A card or deck redrawn keeps the turn this machine draws it with.</summary>
+        private static void KeepTurn(ObjectView view, Mesh mesh)
+        {
+            view.UnturnedMesh = mesh;
+            var quarters = view.TurnQuarters;
+            view.TurnQuarters = 0;
+            Turn(view, quarters);
+        }
+
+        /// <summary>
+        /// Draws a card or deck <paramref name="quarters"/> quarter turns about its own up axis, with its click box, leaving
+        /// its pose alone (<see cref="ObjectView.TurnQuarters"/>).
+        /// </summary>
+        public static void Turn(ObjectView view, int quarters)
+        {
+            quarters = ((quarters % 4) + 4) % 4;
+            if (view.UnturnedMesh == null || quarters == view.TurnQuarters)
+                return;
+            view.TurnQuarters = quarters;
+            var mesh = MeshFactory.Turned(view.UnturnedMesh, quarters);
+            view.Filter.sharedMesh = mesh;
+            if (view.Collider is BoxCollider box && view.Visual == view.transform)
+            {
+                var bounds = mesh.bounds;
+                if (box.center != bounds.center)
+                    box.center = bounds.center;
+                if (box.size != bounds.size)
+                    box.size = bounds.size;
+            }
         }
 
         private static void UseCardPhysics(ObjectView view)

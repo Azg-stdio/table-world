@@ -181,6 +181,12 @@ namespace Core.Rules
         /// name) the player clicks, while it is legal for that seat (the leader picking the team). No button is shown.
         /// </summary>
         public bool OnPlayer { get; set; }
+
+        /// <summary>
+        /// Done by itself when it is the current player's only move and has one possible choice (the only other player a
+        /// card can pick): nobody is asked to click what cannot be otherwise. Its preconditions decide what is possible.
+        /// </summary>
+        public bool Auto { get; set; }
     }
 
     /// <summary>A piece put in (or taken out of) a zone during a blind round, whose zone effects wait for the reveal.</summary>

@@ -17,15 +17,20 @@ AtmosphereTools.LibraryFolder = Arguments.Value(args, "--music");
 var games = file == null ? Arguments.Value(args, "--games") ?? GamesFolder.Find() : null;
 // --no-bridge: headless only (tests, CI); no game window can attach.
 var withBridge = System.Array.IndexOf(args, "--no-bridge") < 0;
+// This server's journal (docs/dev/logging.md): every tool call, and the commands of a game it runs without a window.
+var journal = Core.Logging.Journal.Start(McpLogs.Folder(), file != null ? System.IO.Path.GetFileNameWithoutExtension(file) : "agent", Core.Logging.Journal.McpPrefix);
+journal.Write("server", new Newtonsoft.Json.Linq.JObject { ["version"] = Core.Version.Get(), ["file"] = file, ["games"] = games, ["bridge"] = withBridge });
+builder.Services.AddSingleton(new McpJournal(journal));
+var recorder = new Core.Logging.JournalRecorder(journal);
 if (!withBridge)
-    builder.Services.AddSingleton(new GameSession(file) { GamesFolder = games });
+    builder.Services.AddSingleton(new GameSession(file) { GamesFolder = games, Recorder = recorder });
 else
 {
     builder.Services.AddSingleton<UnityBridge>();
     builder.Services.AddHostedService(sp => sp.GetRequiredService<UnityBridge>());
     builder.Services.AddSingleton(sp =>
     {
-        var session = new GameSession(file) { Bridge = sp.GetRequiredService<UnityBridge>(), GamesFolder = games };
+        var session = new GameSession(file) { Bridge = sp.GetRequiredService<UnityBridge>(), GamesFolder = games, Recorder = recorder };
         var bridge = session.Bridge;
         bridge.StateReported += session.Report;
         bridge.StateChanged += session.MarkChanged;
@@ -37,6 +42,7 @@ else
 builder.Services
     .AddMcpServer(options => options.ServerInfo = new() { Name = "table-world", Version = Core.Version.Get() })
     .WithStdioServerTransport()
+    .WithRequestFilters(filters => filters.AddCallToolFilter(next => McpLogs.Record(journal, next)))
     .WithToolsFromAssembly()
     .WithResourcesFromAssembly()
     .WithPromptsFromAssembly();

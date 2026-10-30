@@ -6,7 +6,8 @@ namespace Core.Rules
     /// <summary>
     /// Where seats sit around a new table: each seat gets a colour, a hand zone on the table's edge facing it, and the
     /// table grows when the hands no longer fit. Up to four seats keep the classic sides (<c>seat_south</c>,
-    /// <c>seat_north</c>, <c>seat_east</c>, <c>seat_west</c>) on the default 1.6 × 1.0 m table; five or more are numbered
+    /// <c>seat_north</c>, <c>seat_east</c>, <c>seat_west</c>, filled in that order; four are listed clockwise, south,
+    /// west, north, east) on the default 1.6 × 1.0 m table; five or more are numbered
     /// <c>seat_1</c>… in clockwise order seen from above, starting at the east end of the south side, so list order is
     /// turn order. More people than seats can still join a session: they watch, talk and take a seat that frees up.
     /// Round, every seat is numbered, clockwise from the south (<see cref="ArrangeRound"/>).
@@ -104,11 +105,18 @@ namespace Core.Rules
             var places = new List<Place>();
             if (seats <= 4)
             {
+                // Sides fill south, north, east, west (each keeps its colour); the list goes clockwise from above, as
+                // turns do: with four, west comes between south and north.
                 var sides = new[] { ("south", 0f, -0.42f, 0f, 0.6f), ("north", 0f, 0.42f, 180f, 0.6f), ("east", 0.68f, 0f, 270f, 0.5f), ("west", -0.68f, 0f, 90f, 0.5f) };
                 for (var i = 0; i < seats; i++)
                 {
                     var (where, x, z, yaw, handWidth) = sides[i];
                     places.Add(new Place { SeatId = $"seat_{where}", HandId = $"hand_{where}", Color = Colors[i], Position = new Vec3(x, 0.05f, z), Yaw = yaw, Width = handWidth });
+                }
+                if (seats == 4)
+                {
+                    places.Insert(1, places[3]);
+                    places.RemoveAt(4);
                 }
                 return (TableLookDef.DefaultSize, places);
             }

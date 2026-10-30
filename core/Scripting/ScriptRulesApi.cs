@@ -177,6 +177,12 @@ namespace Core.Scripting
             t["addResource"] = Fn(args => Change("addResource", Arg(args, 0), Arg(args, 1), ToJson(args.Count > 2 ? args[2] : DynValue.Nil)));
             t["setVariable"] = Fn(args => Change("setVariable", null, Arg(args, 0), ToJson(args.Count > 1 ? args[1] : DynValue.Nil)));
             t["endTurn"] = Fn(_ => Change("endTurn"));
+            // turnTo(seat): end the turn and give the next one to that seat.
+            t["turnTo"] = Fn(args => Change("turnTo", Arg(args, 0)));
+            // eliminate(seat, revealRole) puts a seat out; revive(seat) brings it back (a new round); isOut(seat) asks.
+            t["eliminate"] = Fn(args => Change("eliminate", Arg(args, 0), null, new JValue(args.Count > 1 && args[1].CastToBool())));
+            t["revive"] = Fn(args => Change("revive", Arg(args, 0)));
+            t["isOut"] = Fn(args => DynValue.NewBoolean(Game()?.Session is { } s && Arg(args, 0) is { } seat && s.Eliminated.Contains(seat)));
             t["endPhase"] = Fn(_ => Change("endPhase"));
             t["gotoPhase"] = Fn(args => Change("gotoPhase", null, Arg(args, 0)));
             t["win"] = Fn(args => Change("win", Arg(args, 0)));

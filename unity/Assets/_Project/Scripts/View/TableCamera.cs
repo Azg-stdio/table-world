@@ -47,6 +47,10 @@ namespace TableWorld.View
         public const float MaxHeadPitch = 80f;
         /// <summary>Seated, each wheel step leans this much of the way in (0 sitting back, 1 over the table).</summary>
         public const float LeanStep = 0.25f;
+        /// <summary>Seated and leaning all the way in, each wheel step in narrows the view by this much (an optical zoom)...</summary>
+        public const float ZoomStep = 1.3f;
+        /// <summary>...up to this many times closer: a card across the table reads like one in front of you.</summary>
+        public const float MaxZoom = 4f;
         /// <summary>Sitting down and lifting off blend over this long, in seconds.</summary>
         public const float BlendSeconds = 0.4f;
         /// <summary>Seated, the near clip plane: the eyes are a hand's length from the cards they hold.</summary>
@@ -88,6 +92,12 @@ namespace TableWorld.View
         public float Lean => _seated ? _lean : 0f;
 
         /// <summary>Seated, the head's turn from the chair's facing (degrees, right positive) and its pitch (down positive).</summary>
+        /// <summary>Seated, how many times closer the view is than the eyes see (1: no zoom).</summary>
+        public float Zoom => _seated ? _zoom : 1f;
+        private float _zoom = 1f;
+        /// <summary>The camera's own field of view, before any zoom.</summary>
+        private float _baseFov = -1f;
+
         public float HeadYaw => _headYaw;
         public float HeadPitch => _headPitch;
 
@@ -269,6 +279,7 @@ namespace TableWorld.View
             _headYaw = 0f;
             _headPitch = StartPitch();
             _lean = 0f;
+            _zoom = 1f;
             _beforeQuickZoom = null;
             _beforeTopDown = null;
             Apply();
@@ -476,7 +487,13 @@ namespace TableWorld.View
                         return true;
                     }
                     _pull = 0;
-                    _lean = Mathf.Clamp01(_lean + LeanStep * Mathf.Sign(scroll));
+                    // In: lean over the table, then zoom toward the pointer. Out: unzoom first, then sit back.
+                    if (scroll > 0f && _lean >= 1f)
+                        ZoomToward(mouse.position.ReadValue());
+                    else if (scroll < 0f && _zoom > 1f)
+                        _zoom = Mathf.Max(1f, _zoom / ZoomStep);
+                    else
+                        _lean = Mathf.Clamp01(_lean + LeanStep * Mathf.Sign(scroll));
                 }
             }
             if (keyboard != null && !keyboard.ctrlKey.isPressed && !SuppressKeys)
@@ -495,6 +512,22 @@ namespace TableWorld.View
                     _headYaw = Mathf.Min(MaxHeadYaw, _headYaw + _keyTurnSpeed * Time.unscaledDeltaTime);
             }
             return true;
+        }
+
+        /// <summary>
+        /// Seated: one step of optical zoom toward <paramref name="screen"/> (pixels): the view narrows and the head turns
+        /// toward the pointer by as much, so what is under the pointer stays under it.
+        /// </summary>
+        public void ZoomToward(Vector2 screen)
+        {
+            if (!_seated || _zoom >= MaxZoom || !TryGetComponent<Camera>(out var cam))
+                return;
+            var step = Mathf.Min(ZoomStep, MaxZoom / _zoom);
+            var aim = Quaternion.LookRotation(cam.ScreenPointToRay(screen).direction).eulerAngles;
+            var share = 1f - 1f / step;
+            _headYaw = Mathf.Clamp(Mathf.LerpAngle(_headYaw, Mathf.DeltaAngle(_seatYaw, aim.y), share), -MaxHeadYaw, MaxHeadYaw);
+            _headPitch = Mathf.Clamp(Mathf.LerpAngle(_headPitch, Mathf.DeltaAngle(0f, aim.x), share), MinHeadPitch, MaxHeadPitch);
+            _zoom *= step;
         }
 
         private void PanByPixels(Vector2 pixels)
@@ -542,6 +575,11 @@ namespace TableWorld.View
                 if (_liftedNearClip < 0f)
                     _liftedNearClip = cam.nearClipPlane;
                 cam.nearClipPlane = _seated || _blend < 1f ? Mathf.Min(SeatedNearClip, _liftedNearClip) : _liftedNearClip;
+                if (_baseFov < 0f)
+                    _baseFov = cam.fieldOfView;
+                if (!_seated)
+                    _zoom = 1f;
+                cam.fieldOfView = _baseFov / _zoom;
             }
         }
     }

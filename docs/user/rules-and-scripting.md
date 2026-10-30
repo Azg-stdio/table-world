@@ -200,6 +200,10 @@ condition with `"team": "village"` can say "no wolf left". A vote with `"private
 variables listed in `secretVariables` never reach the players' machines (the wolves' victim until dawn).
 `games/werewolf.json` uses all of it.
 
+**Rounds.** A game played in rounds brings its players back with `{ "revive": { "seat": "$it" } }` inside a
+`forEach` over the players, and `{ "turnTo": { "seat": "$var.roundWinner" } }` ends the turn and gives the next one to
+that seat (the round's winner starts) instead of the next in order. `games/love-letter.json` plays rounds this way.
+
 **Gestures.** `events.onGesture` reacts to a player's wink (K) or emote aimed at the face they look at: `$param.gesture`
 and `$param.target` say which and at whom. Only the host and the two players involved know the target. See
 [the rules format](../rules-schema.md#gestures).
@@ -238,8 +242,10 @@ pile, is empty, and comparisons with it are false.
 **Effects** change the table: `move`, `deal`, `shuffle`, `flip`, `lock`, `roll`, `setVariable`, `setResource`,
 `message`, `endTurn`, `endPhase`, `gotoPhase` and `win`, plus `if` and `forEach` to build logic from them, `reveal` for
 secret choices, `refuse` and `blindRound` for pieces moved by hand (section 3), `show` to put a card big on every
-screen so it is read out (an event card drawn on your turn; players can do the same from the card's menu), and `lua`
-to call a script (section 8).
+screen so it is read out (an event card drawn on your turn; players can do the same from the card's menu), or with
+`to` on some players' screens only (`{ "show": { "object": "$param.target.hand.top", "to": "$actor" } }`: a look at
+another player's hand; the card reaches only their machines and the log does not name it), `turnTo` and `revive` for
+rounds (section 4), and `lua` to call a script (section 8).
 
 **Conditions** ask questions: `zoneCount`, `compare`, `variable`, `resource`, `isCurrentPlayer`, `objectIn` and
 `hasTag`, combined with `and`, `or` and `not`.
@@ -461,7 +467,8 @@ whole action is undone and the player sees the reason. The `Game` table reads an
 | `Game.getResource(seat, id)`, `Game.setResource(seat, id, value)`, `Game.addResource(seat, id, delta)` | A player's resource (clamped to its min and max) |
 | `Game.getVariable(name)`, `Game.setVariable(name, value)` | A game variable: numbers, text, or tables |
 | `Game.getCurrentSeat()`, `Game.getPhase()`, `Game.getTurn()`, `Game.getSeats()`, `Game.getSeatColor(seat)` | Where the game is |
-| `Game.endTurn()`, `Game.endPhase()`, `Game.gotoPhase(id)` | Move the game on (after the action's effects) |
+| `Game.endTurn()`, `Game.endPhase()`, `Game.gotoPhase(id)`, `Game.turnTo(seat)` | Move the game on (after the action's effects); `turnTo` gives the next turn to that seat |
+| `Game.eliminate(seat, revealRole)`, `Game.revive(seat)`, `Game.isOut(seat)` | Put a player out, bring them back (a new round), ask |
 | `Game.win(seat)`, `Game.isStarted()`, `Game.isOver()`, `Game.getWinner()` | The end of the game |
 | `Game.perform(seat, action, params)` | Perform an action as a player, from a button or an event (not from inside another action) |
 | `Game.getLegalActions(seat)` | The actions a player may perform now |

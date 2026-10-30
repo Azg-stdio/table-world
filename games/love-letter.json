@@ -1,0 +1,2948 @@
+{
+  "schemaVersion": "0.1",
+  "assets": [
+    {
+      "id": "std_deck",
+      "path": "builtin:standard_deck",
+      "columns": 10,
+      "rows": 7
+    },
+    {
+      "id": "std_back",
+      "path": "builtin:standard_back",
+      "columns": 1,
+      "rows": 1
+    },
+    {
+      "id": "faces",
+      "path": "love-letter-assets/faces.jpg",
+      "columns": 10,
+      "rows": 7,
+      "url": "http://i.imgur.com/tysJ4C9.jpg"
+    },
+    {
+      "id": "back",
+      "path": "love-letter-assets/back.jpg",
+      "columns": 1,
+      "rows": 1,
+      "url": "http://i.imgur.com/YhHoTYN.jpg"
+    },
+    {
+      "id": "piece_gem",
+      "type": "model",
+      "path": "builtin:gem",
+      "columns": 1,
+      "rows": 1
+    }
+  ],
+  "objects": [
+    {
+      "id": "deck",
+      "type": "Deck",
+      "name": "Deck",
+      "locked": true,
+      "transform": {
+        "position": [
+          -0.045,
+          0.0,
+          0.03
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          180.0
+        ]
+      },
+      "faceAsset": "faces",
+      "backAsset": "back",
+      "cards": [
+        {
+          "id": "guard",
+          "name": "Guard",
+          "description": "Name a card other than Guard and choose a player: if they hold it, they are out of the round.",
+          "tags": [
+            "guard",
+            "v1"
+          ],
+          "meta": {
+            "kind": "guard",
+            "value": 1
+          }
+        },
+        {
+          "id": "guard_2",
+          "name": "Guard",
+          "description": "Name a card other than Guard and choose a player: if they hold it, they are out of the round.",
+          "tags": [
+            "guard",
+            "v1"
+          ],
+          "faceIndex": 1,
+          "meta": {
+            "kind": "guard",
+            "value": 1
+          }
+        },
+        {
+          "id": "guard_3",
+          "name": "Guard",
+          "description": "Name a card other than Guard and choose a player: if they hold it, they are out of the round.",
+          "tags": [
+            "guard",
+            "v1"
+          ],
+          "faceIndex": 2,
+          "meta": {
+            "kind": "guard",
+            "value": 1
+          }
+        },
+        {
+          "id": "guard_4",
+          "name": "Guard",
+          "description": "Name a card other than Guard and choose a player: if they hold it, they are out of the round.",
+          "tags": [
+            "guard",
+            "v1"
+          ],
+          "faceIndex": 3,
+          "meta": {
+            "kind": "guard",
+            "value": 1
+          }
+        },
+        {
+          "id": "guard_5",
+          "name": "Guard",
+          "description": "Name a card other than Guard and choose a player: if they hold it, they are out of the round.",
+          "tags": [
+            "guard",
+            "v1"
+          ],
+          "faceIndex": 4,
+          "meta": {
+            "kind": "guard",
+            "value": 1
+          }
+        },
+        {
+          "id": "priest",
+          "name": "Priest",
+          "description": "Look at another player's hand.",
+          "tags": [
+            "priest",
+            "v2"
+          ],
+          "faceIndex": 5,
+          "meta": {
+            "kind": "priest",
+            "value": 2
+          }
+        },
+        {
+          "id": "priest_2",
+          "name": "Priest",
+          "description": "Look at another player's hand.",
+          "tags": [
+            "priest",
+            "v2"
+          ],
+          "faceIndex": 6,
+          "meta": {
+            "kind": "priest",
+            "value": 2
+          }
+        },
+        {
+          "id": "baron",
+          "name": "Baron",
+          "description": "You and another player compare hands in secret: the lower one is out of the round.",
+          "tags": [
+            "baron",
+            "v3"
+          ],
+          "faceIndex": 7,
+          "meta": {
+            "kind": "baron",
+            "value": 3
+          }
+        },
+        {
+          "id": "baron_2",
+          "name": "Baron",
+          "description": "You and another player compare hands in secret: the lower one is out of the round.",
+          "tags": [
+            "baron",
+            "v3"
+          ],
+          "faceIndex": 8,
+          "meta": {
+            "kind": "baron",
+            "value": 3
+          }
+        },
+        {
+          "id": "handmaid",
+          "name": "Handmaid",
+          "description": "Until your next turn, other players' cards cannot choose you.",
+          "tags": [
+            "handmaid",
+            "v4"
+          ],
+          "faceIndex": 10,
+          "meta": {
+            "kind": "handmaid",
+            "value": 4
+          }
+        },
+        {
+          "id": "handmaid_2",
+          "name": "Handmaid",
+          "description": "Until your next turn, other players' cards cannot choose you.",
+          "tags": [
+            "handmaid",
+            "v4"
+          ],
+          "faceIndex": 11,
+          "meta": {
+            "kind": "handmaid",
+            "value": 4
+          }
+        },
+        {
+          "id": "prince",
+          "name": "Prince",
+          "description": "Choose any player (you too): they discard their hand and draw a new card.",
+          "tags": [
+            "prince",
+            "v5"
+          ],
+          "faceIndex": 12,
+          "meta": {
+            "kind": "prince",
+            "value": 5
+          }
+        },
+        {
+          "id": "prince_2",
+          "name": "Prince",
+          "description": "Choose any player (you too): they discard their hand and draw a new card.",
+          "tags": [
+            "prince",
+            "v5"
+          ],
+          "faceIndex": 13,
+          "meta": {
+            "kind": "prince",
+            "value": 5
+          }
+        },
+        {
+          "id": "king",
+          "name": "King",
+          "description": "Trade hands with another player.",
+          "tags": [
+            "king",
+            "v6"
+          ],
+          "faceIndex": 14,
+          "meta": {
+            "kind": "king",
+            "value": 6
+          }
+        },
+        {
+          "id": "countess",
+          "name": "Countess",
+          "description": "If you hold her with the King or a Prince, you must play her.",
+          "tags": [
+            "countess",
+            "v7"
+          ],
+          "faceIndex": 15,
+          "meta": {
+            "kind": "countess",
+            "value": 7
+          }
+        },
+        {
+          "id": "princess",
+          "name": "Princess",
+          "description": "If you discard her, you are out of the round.",
+          "tags": [
+            "princess",
+            "v8"
+          ],
+          "faceIndex": 16,
+          "meta": {
+            "kind": "princess",
+            "value": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "token_pool",
+      "type": "Bag",
+      "name": "Affection tokens bag",
+      "transform": {
+        "position": [
+          0.14,
+          0.0,
+          0.06
+        ],
+        "scale": [
+          0.6,
+          0.6,
+          0.6
+        ]
+      },
+      "tint": [
+        0.86,
+        0.2,
+        0.18
+      ]
+    },
+    {
+      "id": "token_pool_piece",
+      "type": "Model",
+      "name": "Affection tokens",
+      "transform": {
+        "position": [
+          0.14,
+          0.0,
+          0.06
+        ]
+      },
+      "container": "token_pool",
+      "tint": [
+        0.86,
+        0.2,
+        0.18
+      ],
+      "asset": "piece_gem",
+      "material": "glass"
+    },
+    {
+      "id": "token_pool_piece_2",
+      "type": "Model",
+      "name": "Affection tokens",
+      "transform": {
+        "position": [
+          0.14,
+          0.0,
+          0.06
+        ]
+      },
+      "container": "token_pool",
+      "tint": [
+        0.86,
+        0.2,
+        0.18
+      ],
+      "asset": "piece_gem",
+      "material": "glass"
+    },
+    {
+      "id": "token_pool_piece_3",
+      "type": "Model",
+      "name": "Affection tokens",
+      "transform": {
+        "position": [
+          0.14,
+          0.0,
+          0.06
+        ]
+      },
+      "container": "token_pool",
+      "tint": [
+        0.86,
+        0.2,
+        0.18
+      ],
+      "asset": "piece_gem",
+      "material": "glass"
+    },
+    {
+      "id": "token_pool_piece_4",
+      "type": "Model",
+      "name": "Affection tokens",
+      "transform": {
+        "position": [
+          0.14,
+          0.0,
+          0.06
+        ]
+      },
+      "container": "token_pool",
+      "tint": [
+        0.86,
+        0.2,
+        0.18
+      ],
+      "asset": "piece_gem",
+      "material": "glass"
+    },
+    {
+      "id": "token_pool_piece_5",
+      "type": "Model",
+      "name": "Affection tokens",
+      "transform": {
+        "position": [
+          0.14,
+          0.0,
+          0.06
+        ]
+      },
+      "container": "token_pool",
+      "tint": [
+        0.86,
+        0.2,
+        0.18
+      ],
+      "asset": "piece_gem",
+      "material": "glass"
+    },
+    {
+      "id": "token_pool_piece_6",
+      "type": "Model",
+      "name": "Affection tokens",
+      "transform": {
+        "position": [
+          0.14,
+          0.0,
+          0.06
+        ]
+      },
+      "container": "token_pool",
+      "tint": [
+        0.86,
+        0.2,
+        0.18
+      ],
+      "asset": "piece_gem",
+      "material": "glass"
+    },
+    {
+      "id": "token_pool_piece_7",
+      "type": "Model",
+      "name": "Affection tokens",
+      "transform": {
+        "position": [
+          0.14,
+          0.0,
+          0.06
+        ]
+      },
+      "container": "token_pool",
+      "tint": [
+        0.86,
+        0.2,
+        0.18
+      ],
+      "asset": "piece_gem",
+      "material": "glass"
+    },
+    {
+      "id": "token_pool_piece_8",
+      "type": "Model",
+      "name": "Affection tokens",
+      "transform": {
+        "position": [
+          0.14,
+          0.0,
+          0.06
+        ]
+      },
+      "container": "token_pool",
+      "tint": [
+        0.86,
+        0.2,
+        0.18
+      ],
+      "asset": "piece_gem",
+      "material": "glass"
+    },
+    {
+      "id": "token_pool_piece_9",
+      "type": "Model",
+      "name": "Affection tokens",
+      "transform": {
+        "position": [
+          0.14,
+          0.0,
+          0.06
+        ]
+      },
+      "container": "token_pool",
+      "tint": [
+        0.86,
+        0.2,
+        0.18
+      ],
+      "asset": "piece_gem",
+      "material": "glass"
+    },
+    {
+      "id": "token_pool_piece_10",
+      "type": "Model",
+      "name": "Affection tokens",
+      "transform": {
+        "position": [
+          0.14,
+          0.0,
+          0.06
+        ]
+      },
+      "container": "token_pool",
+      "tint": [
+        0.86,
+        0.2,
+        0.18
+      ],
+      "asset": "piece_gem",
+      "material": "glass"
+    },
+    {
+      "id": "token_pool_piece_11",
+      "type": "Model",
+      "name": "Affection tokens",
+      "transform": {
+        "position": [
+          0.14,
+          0.0,
+          0.06
+        ]
+      },
+      "container": "token_pool",
+      "tint": [
+        0.86,
+        0.2,
+        0.18
+      ],
+      "asset": "piece_gem",
+      "material": "glass"
+    },
+    {
+      "id": "token_pool_piece_12",
+      "type": "Model",
+      "name": "Affection tokens",
+      "transform": {
+        "position": [
+          0.14,
+          0.0,
+          0.06
+        ]
+      },
+      "container": "token_pool",
+      "tint": [
+        0.86,
+        0.2,
+        0.18
+      ],
+      "asset": "piece_gem",
+      "material": "glass"
+    },
+    {
+      "id": "token_pool_piece_13",
+      "type": "Model",
+      "name": "Affection tokens",
+      "transform": {
+        "position": [
+          0.14,
+          0.0,
+          0.06
+        ]
+      },
+      "container": "token_pool",
+      "tint": [
+        0.86,
+        0.2,
+        0.18
+      ],
+      "asset": "piece_gem",
+      "material": "glass"
+    },
+    {
+      "id": "reference_1",
+      "type": "Card",
+      "name": "List of cards",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.17,
+          0.0,
+          -0.26999998
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "faceAsset": "faces",
+      "faceIndex": 9,
+      "backAsset": "back"
+    },
+    {
+      "id": "reference_2",
+      "type": "Card",
+      "name": "List of cards",
+      "locked": true,
+      "transform": {
+        "position": [
+          -0.26999998,
+          0.0,
+          -0.17000002
+        ],
+        "rotation": [
+          0.0,
+          270.0,
+          0.0
+        ]
+      },
+      "faceAsset": "faces",
+      "faceIndex": 9,
+      "backAsset": "back"
+    },
+    {
+      "id": "reference_3",
+      "type": "Card",
+      "name": "List of cards",
+      "locked": true,
+      "transform": {
+        "position": [
+          -0.17000002,
+          0.0,
+          0.26999998
+        ]
+      },
+      "faceAsset": "faces",
+      "faceIndex": 9,
+      "backAsset": "back"
+    },
+    {
+      "id": "reference_4",
+      "type": "Card",
+      "name": "List of cards",
+      "locked": true,
+      "transform": {
+        "position": [
+          0.26999998,
+          0.0,
+          0.17
+        ],
+        "rotation": [
+          0.0,
+          90.0,
+          0.0
+        ]
+      },
+      "faceAsset": "faces",
+      "faceIndex": 9,
+      "backAsset": "back"
+    }
+  ],
+  "zones": [
+    {
+      "id": "hand_1",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          -0.0,
+          0.05,
+          -0.48
+        ]
+      },
+      "size": [
+        0.4,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_1"
+    },
+    {
+      "id": "hand_2",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          -0.48,
+          0.05,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          90.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.4,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_2"
+    },
+    {
+      "id": "hand_3",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          0.0,
+          0.05,
+          0.48
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.4,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_3"
+    },
+    {
+      "id": "hand_4",
+      "type": "HandZone",
+      "transform": {
+        "position": [
+          0.48,
+          0.05,
+          -0.0
+        ],
+        "rotation": [
+          0.0,
+          270.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.4,
+        0.1,
+        0.12
+      ],
+      "owner": "seat_4"
+    },
+    {
+      "id": "burn",
+      "type": "ScriptingZone",
+      "name": "Set aside",
+      "transform": {
+        "position": [
+          0.045,
+          0.05,
+          0.03
+        ]
+      },
+      "size": [
+        0.08,
+        0.1,
+        0.11
+      ]
+    },
+    {
+      "id": "aside",
+      "type": "LayoutZone",
+      "name": "Set aside face up",
+      "transform": {
+        "position": [
+          0.0,
+          0.05,
+          -0.085
+        ]
+      },
+      "size": [
+        0.21,
+        0.1,
+        0.1
+      ],
+      "maxPerRow": 3,
+      "spacing": 0.006,
+      "facing": "faceUp"
+    },
+    {
+      "id": "swap",
+      "type": "ScriptingZone",
+      "name": "Trade",
+      "transform": {
+        "position": [
+          0.7,
+          0.05,
+          0.42
+        ]
+      },
+      "size": [
+        0.08,
+        0.1,
+        0.1
+      ]
+    },
+    {
+      "id": "discard_1",
+      "type": "LayoutZone",
+      "name": "Discards",
+      "tags": [
+        "discard:seat_1"
+      ],
+      "transform": {
+        "position": [
+          -0.035,
+          0.05,
+          -0.325
+        ]
+      },
+      "size": [
+        0.28,
+        0.1,
+        0.19
+      ],
+      "maxPerRow": 4,
+      "spacing": 0.004,
+      "facing": "faceUp",
+      "manualOnly": true
+    },
+    {
+      "id": "tokens_1",
+      "type": "ScriptingZone",
+      "name": "Affection tokens",
+      "tags": [
+        "tokens:seat_1"
+      ],
+      "transform": {
+        "position": [
+          0.2,
+          0.05,
+          -0.38
+        ]
+      },
+      "size": [
+        0.09,
+        0.1,
+        0.06
+      ]
+    },
+    {
+      "id": "discard_2",
+      "type": "LayoutZone",
+      "name": "Discards",
+      "tags": [
+        "discard:seat_2"
+      ],
+      "transform": {
+        "position": [
+          -0.325,
+          0.05,
+          0.035
+        ],
+        "rotation": [
+          0.0,
+          90.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.28,
+        0.1,
+        0.19
+      ],
+      "maxPerRow": 4,
+      "spacing": 0.004,
+      "facing": "faceUp",
+      "manualOnly": true
+    },
+    {
+      "id": "tokens_2",
+      "type": "ScriptingZone",
+      "name": "Affection tokens",
+      "tags": [
+        "tokens:seat_2"
+      ],
+      "transform": {
+        "position": [
+          -0.38,
+          0.05,
+          -0.2
+        ],
+        "rotation": [
+          0.0,
+          90.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.09,
+        0.1,
+        0.06
+      ]
+    },
+    {
+      "id": "discard_3",
+      "type": "LayoutZone",
+      "name": "Discards",
+      "tags": [
+        "discard:seat_3"
+      ],
+      "transform": {
+        "position": [
+          0.035,
+          0.05,
+          0.325
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.28,
+        0.1,
+        0.19
+      ],
+      "maxPerRow": 4,
+      "spacing": 0.004,
+      "facing": "faceUp",
+      "manualOnly": true
+    },
+    {
+      "id": "tokens_3",
+      "type": "ScriptingZone",
+      "name": "Affection tokens",
+      "tags": [
+        "tokens:seat_3"
+      ],
+      "transform": {
+        "position": [
+          -0.2,
+          0.05,
+          0.38
+        ],
+        "rotation": [
+          0.0,
+          180.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.09,
+        0.1,
+        0.06
+      ]
+    },
+    {
+      "id": "discard_4",
+      "type": "LayoutZone",
+      "name": "Discards",
+      "tags": [
+        "discard:seat_4"
+      ],
+      "transform": {
+        "position": [
+          0.325,
+          0.05,
+          -0.035
+        ],
+        "rotation": [
+          0.0,
+          270.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.28,
+        0.1,
+        0.19
+      ],
+      "maxPerRow": 4,
+      "spacing": 0.004,
+      "facing": "faceUp",
+      "manualOnly": true
+    },
+    {
+      "id": "tokens_4",
+      "type": "ScriptingZone",
+      "name": "Affection tokens",
+      "tags": [
+        "tokens:seat_4"
+      ],
+      "transform": {
+        "position": [
+          0.38,
+          0.05,
+          0.2
+        ],
+        "rotation": [
+          0.0,
+          270.0,
+          0.0
+        ]
+      },
+      "size": [
+        0.09,
+        0.1,
+        0.06
+      ]
+    }
+  ],
+  "players": {
+    "seats": [
+      {
+        "id": "seat_1",
+        "color": "red",
+        "handZone": "hand_1"
+      },
+      {
+        "id": "seat_2",
+        "color": "blue",
+        "handZone": "hand_2"
+      },
+      {
+        "id": "seat_3",
+        "color": "green",
+        "handZone": "hand_3"
+      },
+      {
+        "id": "seat_4",
+        "color": "yellow",
+        "handZone": "hand_4"
+      }
+    ]
+  },
+  "environment": {
+    "room": "tavern",
+    "theme": "parchment",
+    "lighting": {},
+    "look": {},
+    "table": {
+      "size": [
+        1.2,
+        1.2
+      ],
+      "shape": "round"
+    }
+  },
+  "music": {
+    "shuffle": true,
+    "playlists": {
+      "tavern": [
+        {
+          "title": "Ambient 1 (loop)",
+          "url": "library:fantasy-rpg-music-pack-vol-3/ambient-1-loop",
+          "hash": "sha256:8442c251a8de4849710e5853aabfb0414f13c72ecdd8c36a9059dd9542f7e0fc"
+        },
+        {
+          "title": "Ambient 2 (loop)",
+          "url": "library:fantasy-rpg-music-pack-vol-3/ambient-2-loop",
+          "hash": "sha256:309d4b97cd4a8d8274a01bb741ab0826aeee27b2e7e58915b4392403baa3e134"
+        },
+        {
+          "title": "Ambient 3 (loop)",
+          "url": "library:fantasy-rpg-music-pack-vol-3/ambient-3-loop",
+          "hash": "sha256:b504552cb6b6067bea09f049d17eda3e0cd12f4457f0b078cb6bbdb415046fd4"
+        },
+        {
+          "title": "Ambient 4 (loop)",
+          "url": "library:fantasy-rpg-music-pack-vol-3/ambient-4-loop",
+          "hash": "sha256:91f13b0a01a19416f2f5a664dd84fbb8e2c888a4637d61ce6c471eb40242f6a5"
+        },
+        {
+          "title": "Ambient 5 (loop)",
+          "url": "library:fantasy-rpg-music-pack-vol-3/ambient-5-loop",
+          "hash": "sha256:3dfa3e5b4f9145ed3a0770951aee050c3c25ef2b274487f3b5d975e26fef95ba"
+        },
+        {
+          "title": "Ambient 6 (loop)",
+          "url": "library:fantasy-rpg-music-pack-vol-3/ambient-6-loop",
+          "hash": "sha256:4c0c290e98e776fc32b0108761657805431281abf2fa61239087400d70a3e283"
+        },
+        {
+          "title": "Ambient 7 (loop)",
+          "url": "library:fantasy-rpg-music-pack-vol-3/ambient-7-loop",
+          "hash": "sha256:835c46d323c029fea9ca547ee75140994e90cd363be391b15e0e9944bffe6989"
+        },
+        {
+          "title": "Ambient 8 (loop)",
+          "url": "library:fantasy-rpg-music-pack-vol-3/ambient-8-loop",
+          "hash": "sha256:9a4657270f0b5ca7f1b5aa7b5e98453bc8294142d0c3913c40ea53de999463fa"
+        },
+        {
+          "title": "Ambient 9 (loop)",
+          "url": "library:fantasy-rpg-music-pack-vol-3/ambient-9-loop",
+          "hash": "sha256:c96a2dff8e06b309389035d157120d3befcd720be0184f0ce53d38c783f209d2"
+        },
+        {
+          "title": "Ambient 10 (loop)",
+          "url": "library:fantasy-rpg-music-pack-vol-3/ambient-10-loop",
+          "hash": "sha256:d2342f9631053d0766090906468be106c493ec87c80b01ab38c515aeb9ea9945"
+        }
+      ]
+    },
+    "start": "tavern",
+    "volume": 0.8
+  },
+  "game": {
+    "id": "love-letter",
+    "name": "Love Letter",
+    "description": "Get your letter to the Princess: hold the highest card when the deck runs out, or be the last one in the round. Each turn draw a card and play one of your two; each card does something to another player. Win rounds for affection tokens: 7 win with two players, 5 with three, 4 with four.",
+    "language": "en",
+    "minPlayers": 2,
+    "maxPlayers": 4
+  },
+  "resources": [
+    {
+      "id": "tokens",
+      "name": "Affection tokens",
+      "min": 0.0
+    }
+  ],
+  "variables": {
+    "round": 0,
+    "toWin": 4,
+    "played": "",
+    "target": "",
+    "protected": [],
+    "winners": [],
+    "targets": 0
+  },
+  "turn": {
+    "startingPlayer": "random",
+    "phases": [
+      "play",
+      "choose",
+      "guess"
+    ]
+  },
+  "phases": [
+    {
+      "id": "play",
+      "name": "Play a card",
+      "actions": [
+        "play_card"
+      ],
+      "onEnter": [
+        {
+          "setVariable": {
+            "name": "protected",
+            "remove": "$current"
+          }
+        },
+        {
+          "move": {
+            "from": "deck",
+            "take": "top",
+            "count": 1,
+            "to": "$current.hand",
+            "at": "top",
+            "faceUp": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "choose",
+      "name": "Choose a player",
+      "actions": [
+        "target"
+      ]
+    },
+    {
+      "id": "guess",
+      "name": "Name a card",
+      "actions": [
+        "guess"
+      ]
+    },
+    {
+      "id": "round_end",
+      "name": "Round over",
+      "onEnter": [
+        {
+          "message": {
+            "text": "@roundOver"
+          }
+        },
+        {
+          "lua": {
+            "call": "scoreRound"
+          }
+        },
+        {
+          "forEach": {
+            "players": true,
+            "do": [
+              {
+                "if": {
+                  "condition": {
+                    "not": {
+                      "compare": {
+                        "left": "$it.out",
+                        "op": "==",
+                        "right": true
+                      }
+                    }
+                  },
+                  "then": [
+                    {
+                      "move": {
+                        "from": "$it.hand",
+                        "take": "all",
+                        "count": 1,
+                        "to": "$it.discard",
+                        "at": "top",
+                        "faceUp": true
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "inList": {
+                      "list": "$var.winners",
+                      "value": "$it"
+                    }
+                  },
+                  "then": [
+                    {
+                      "setResource": {
+                        "player": "$it",
+                        "resource": "tokens",
+                        "delta": 1.0
+                      }
+                    },
+                    {
+                      "move": {
+                        "from": "token_pool",
+                        "take": "top",
+                        "count": 1,
+                        "to": "$it.tokens",
+                        "at": "top"
+                      }
+                    },
+                    {
+                      "message": {
+                        "text": "@winsRound"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "sound": {
+            "play": "fanfare",
+            "volume": 0.6
+          }
+        },
+        {
+          "message": {
+            "text": "@nextRound"
+          }
+        }
+      ],
+      "seconds": 10,
+      "hostEnds": true,
+      "next": "new_round"
+    },
+    {
+      "id": "new_round",
+      "name": "New round",
+      "onEnter": [
+        {
+          "forEach": {
+            "players": true,
+            "do": [
+              {
+                "move": {
+                  "from": "$it.hand",
+                  "take": "all",
+                  "count": 1,
+                  "to": "deck",
+                  "at": "top"
+                }
+              },
+              {
+                "move": {
+                  "from": "$it.discard",
+                  "take": "all",
+                  "count": 1,
+                  "to": "deck",
+                  "at": "top"
+                }
+              },
+              {
+                "revive": {
+                  "seat": "$it"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "move": {
+            "from": "burn",
+            "take": "all",
+            "count": 1,
+            "to": "deck",
+            "at": "top"
+          }
+        },
+        {
+          "move": {
+            "from": "aside",
+            "take": "all",
+            "count": 1,
+            "to": "deck",
+            "at": "top"
+          }
+        },
+        {
+          "setVariable": {
+            "name": "protected",
+            "value": []
+          }
+        },
+        {
+          "setVariable": {
+            "name": "round",
+            "delta": 1.0
+          }
+        },
+        {
+          "shuffle": {
+            "object": "deck"
+          }
+        },
+        {
+          "move": {
+            "from": "deck",
+            "take": "top",
+            "count": 1,
+            "to": "burn",
+            "at": "top",
+            "faceUp": false
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "compare": {
+                "left": "$alive.count",
+                "op": "==",
+                "right": 2
+              }
+            },
+            "then": [
+              {
+                "move": {
+                  "from": "deck",
+                  "take": "top",
+                  "count": 3,
+                  "to": "aside",
+                  "at": "top",
+                  "faceUp": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "deal": {
+            "from": "deck",
+            "count": 1,
+            "toZone": "$it.hand"
+          }
+        },
+        {
+          "message": {
+            "text": "@roundStarts"
+          }
+        },
+        {
+          "turnTo": {
+            "seat": "$var.winners.0"
+          }
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "id": "play_card",
+      "name": "Play a card",
+      "params": [
+        {
+          "name": "card",
+          "filter": {
+            "inZone": "$actor.hand",
+            "type": "Card"
+          }
+        }
+      ],
+      "effects": [
+        {
+          "lua": {
+            "call": "checkPlay"
+          }
+        },
+        {
+          "move": {
+            "object": "$param.card",
+            "take": "top",
+            "count": 1,
+            "to": "$actor.discard",
+            "at": "top",
+            "faceUp": true
+          }
+        },
+        {
+          "setVariable": {
+            "name": "played",
+            "value": "$param.card.meta.kind"
+          }
+        },
+        {
+          "message": {
+            "text": "@plays"
+          }
+        },
+        {
+          "sound": {
+            "play": "page",
+            "volume": 0.5
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "compare": {
+                "left": "$var.played",
+                "op": "==",
+                "right": "princess"
+              }
+            },
+            "then": [
+              {
+                "eliminate": {
+                  "seat": "$actor"
+                }
+              },
+              {
+                "move": {
+                  "from": "$actor.hand",
+                  "take": "all",
+                  "count": 1,
+                  "to": "$actor.discard",
+                  "at": "top",
+                  "faceUp": true
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "or": [
+                      {
+                        "compare": {
+                          "left": "$alive.count",
+                          "op": "<=",
+                          "right": 1
+                        }
+                      },
+                      {
+                        "zoneCount": {
+                          "zone": "deck",
+                          "op": "==",
+                          "value": 0
+                        }
+                      }
+                    ]
+                  },
+                  "then": [
+                    {
+                      "gotoPhase": {
+                        "phase": "round_end"
+                      }
+                    }
+                  ],
+                  "else": [
+                    {
+                      "endTurn": {}
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "compare": {
+                "left": "$var.played",
+                "op": "==",
+                "right": "countess"
+              }
+            },
+            "then": [
+              {
+                "if": {
+                  "condition": {
+                    "or": [
+                      {
+                        "compare": {
+                          "left": "$alive.count",
+                          "op": "<=",
+                          "right": 1
+                        }
+                      },
+                      {
+                        "zoneCount": {
+                          "zone": "deck",
+                          "op": "==",
+                          "value": 0
+                        }
+                      }
+                    ]
+                  },
+                  "then": [
+                    {
+                      "gotoPhase": {
+                        "phase": "round_end"
+                      }
+                    }
+                  ],
+                  "else": [
+                    {
+                      "endTurn": {}
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "compare": {
+                "left": "$var.played",
+                "op": "==",
+                "right": "handmaid"
+              }
+            },
+            "then": [
+              {
+                "setVariable": {
+                  "name": "protected",
+                  "add": "$actor"
+                }
+              },
+              {
+                "message": {
+                  "text": "@protected"
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "or": [
+                      {
+                        "compare": {
+                          "left": "$alive.count",
+                          "op": "<=",
+                          "right": 1
+                        }
+                      },
+                      {
+                        "zoneCount": {
+                          "zone": "deck",
+                          "op": "==",
+                          "value": 0
+                        }
+                      }
+                    ]
+                  },
+                  "then": [
+                    {
+                      "gotoPhase": {
+                        "phase": "round_end"
+                      }
+                    }
+                  ],
+                  "else": [
+                    {
+                      "endTurn": {}
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "compare": {
+                "left": "$var.played",
+                "op": "==",
+                "right": "prince"
+              }
+            },
+            "then": [
+              {
+                "setVariable": {
+                  "name": "targets",
+                  "value": 0
+                }
+              },
+              {
+                "forEach": {
+                  "players": true,
+                  "do": [
+                    {
+                      "if": {
+                        "condition": {
+                          "and": [
+                            {
+                              "not": {
+                                "compare": {
+                                  "left": "$it.out",
+                                  "op": "==",
+                                  "right": true
+                                }
+                              }
+                            },
+                            {
+                              "compare": {
+                                "left": "$it.id",
+                                "op": "!=",
+                                "right": "$actor.id"
+                              }
+                            },
+                            {
+                              "not": {
+                                "inList": {
+                                  "list": "$var.protected",
+                                  "value": "$it"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "then": [
+                          {
+                            "setVariable": {
+                              "name": "targets",
+                              "delta": 1.0
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "compare": {
+                      "left": "$var.targets",
+                      "op": ">",
+                      "right": 0
+                    }
+                  },
+                  "then": [
+                    {
+                      "message": {
+                        "text": "@chooseOther"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "gotoPhase": {
+                  "phase": "choose"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "or": [
+                {
+                  "compare": {
+                    "left": "$var.played",
+                    "op": "==",
+                    "right": "guard"
+                  }
+                },
+                {
+                  "compare": {
+                    "left": "$var.played",
+                    "op": "==",
+                    "right": "priest"
+                  }
+                },
+                {
+                  "compare": {
+                    "left": "$var.played",
+                    "op": "==",
+                    "right": "baron"
+                  }
+                },
+                {
+                  "compare": {
+                    "left": "$var.played",
+                    "op": "==",
+                    "right": "king"
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "setVariable": {
+                  "name": "targets",
+                  "value": 0
+                }
+              },
+              {
+                "forEach": {
+                  "players": true,
+                  "do": [
+                    {
+                      "if": {
+                        "condition": {
+                          "and": [
+                            {
+                              "not": {
+                                "compare": {
+                                  "left": "$it.out",
+                                  "op": "==",
+                                  "right": true
+                                }
+                              }
+                            },
+                            {
+                              "compare": {
+                                "left": "$it.id",
+                                "op": "!=",
+                                "right": "$actor.id"
+                              }
+                            },
+                            {
+                              "not": {
+                                "inList": {
+                                  "list": "$var.protected",
+                                  "value": "$it"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "then": [
+                          {
+                            "setVariable": {
+                              "name": "targets",
+                              "delta": 1.0
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "compare": {
+                      "left": "$var.targets",
+                      "op": "==",
+                      "right": 0
+                    }
+                  },
+                  "then": [
+                    {
+                      "message": {
+                        "text": "@noTarget"
+                      }
+                    },
+                    {
+                      "if": {
+                        "condition": {
+                          "or": [
+                            {
+                              "compare": {
+                                "left": "$alive.count",
+                                "op": "<=",
+                                "right": 1
+                              }
+                            },
+                            {
+                              "zoneCount": {
+                                "zone": "deck",
+                                "op": "==",
+                                "value": 0
+                              }
+                            }
+                          ]
+                        },
+                        "then": [
+                          {
+                            "gotoPhase": {
+                              "phase": "round_end"
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "endTurn": {}
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "else": [
+                    {
+                      "if": {
+                        "condition": {
+                          "compare": {
+                            "left": "$var.targets",
+                            "op": ">",
+                            "right": 1
+                          }
+                        },
+                        "then": [
+                          {
+                            "message": {
+                              "text": "@chooseOther"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "gotoPhase": {
+                        "phase": "choose"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "target",
+      "name": "Choose",
+      "params": [
+        {
+          "name": "target",
+          "type": "seat"
+        }
+      ],
+      "preconditions": [
+        {
+          "check": {
+            "condition": {
+              "not": {
+                "and": [
+                  {
+                    "compare": {
+                      "left": "$param.target.id",
+                      "op": "==",
+                      "right": "$actor.id"
+                    }
+                  },
+                  {
+                    "compare": {
+                      "left": "$var.played",
+                      "op": "!=",
+                      "right": "prince"
+                    }
+                  }
+                ]
+              }
+            },
+            "reason": "@notYourself"
+          }
+        },
+        {
+          "check": {
+            "condition": {
+              "not": {
+                "and": [
+                  {
+                    "compare": {
+                      "left": "$param.target.id",
+                      "op": "!=",
+                      "right": "$actor.id"
+                    }
+                  },
+                  {
+                    "inList": {
+                      "list": "$var.protected",
+                      "value": "$param.target"
+                    }
+                  }
+                ]
+              }
+            },
+            "reason": "@isProtected"
+          }
+        }
+      ],
+      "effects": [
+        {
+          "setVariable": {
+            "name": "target",
+            "value": "$param.target.id"
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "compare": {
+                "left": "$var.played",
+                "op": "==",
+                "right": "guard"
+              }
+            },
+            "then": [
+              {
+                "message": {
+                  "text": "@guardAims"
+                }
+              },
+              {
+                "gotoPhase": {
+                  "phase": "guess"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "compare": {
+                "left": "$var.played",
+                "op": "==",
+                "right": "priest"
+              }
+            },
+            "then": [
+              {
+                "message": {
+                  "text": "@priestLooks"
+                }
+              },
+              {
+                "show": {
+                  "object": "$param.target.hand.top",
+                  "to": "$actor"
+                }
+              },
+              {
+                "message": {
+                  "text": "@priestSees",
+                  "to": "$actor"
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "or": [
+                      {
+                        "compare": {
+                          "left": "$alive.count",
+                          "op": "<=",
+                          "right": 1
+                        }
+                      },
+                      {
+                        "zoneCount": {
+                          "zone": "deck",
+                          "op": "==",
+                          "value": 0
+                        }
+                      }
+                    ]
+                  },
+                  "then": [
+                    {
+                      "gotoPhase": {
+                        "phase": "round_end"
+                      }
+                    }
+                  ],
+                  "else": [
+                    {
+                      "endTurn": {}
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "compare": {
+                "left": "$var.played",
+                "op": "==",
+                "right": "baron"
+              }
+            },
+            "then": [
+              {
+                "message": {
+                  "text": "@baronCompares"
+                }
+              },
+              {
+                "show": {
+                  "object": "$param.target.hand.top",
+                  "to": "$actor"
+                }
+              },
+              {
+                "show": {
+                  "object": "$actor.hand.top",
+                  "to": "$param.target"
+                }
+              },
+              {
+                "message": {
+                  "text": "@baronSeesTarget",
+                  "to": "$actor"
+                }
+              },
+              {
+                "message": {
+                  "text": "@baronSeesActor",
+                  "to": "$param.target"
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "compare": {
+                      "left": "$actor.hand.top.meta.value",
+                      "op": ">",
+                      "right": "$param.target.hand.top.meta.value"
+                    }
+                  },
+                  "then": [
+                    {
+                      "eliminate": {
+                        "seat": "$param.target"
+                      }
+                    },
+                    {
+                      "move": {
+                        "from": "$param.target.hand",
+                        "take": "all",
+                        "count": 1,
+                        "to": "$param.target.discard",
+                        "at": "top",
+                        "faceUp": true
+                      }
+                    }
+                  ],
+                  "else": [
+                    {
+                      "if": {
+                        "condition": {
+                          "compare": {
+                            "left": "$actor.hand.top.meta.value",
+                            "op": "<",
+                            "right": "$param.target.hand.top.meta.value"
+                          }
+                        },
+                        "then": [
+                          {
+                            "eliminate": {
+                              "seat": "$actor"
+                            }
+                          },
+                          {
+                            "move": {
+                              "from": "$actor.hand",
+                              "take": "all",
+                              "count": 1,
+                              "to": "$actor.discard",
+                              "at": "top",
+                              "faceUp": true
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "message": {
+                              "text": "@baronTie"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "or": [
+                      {
+                        "compare": {
+                          "left": "$alive.count",
+                          "op": "<=",
+                          "right": 1
+                        }
+                      },
+                      {
+                        "zoneCount": {
+                          "zone": "deck",
+                          "op": "==",
+                          "value": 0
+                        }
+                      }
+                    ]
+                  },
+                  "then": [
+                    {
+                      "gotoPhase": {
+                        "phase": "round_end"
+                      }
+                    }
+                  ],
+                  "else": [
+                    {
+                      "endTurn": {}
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "compare": {
+                "left": "$var.played",
+                "op": "==",
+                "right": "prince"
+              }
+            },
+            "then": [
+              {
+                "message": {
+                  "text": "@princeTargets"
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "compare": {
+                      "left": "$param.target.hand.top.meta.kind",
+                      "op": "==",
+                      "right": "princess"
+                    }
+                  },
+                  "then": [
+                    {
+                      "eliminate": {
+                        "seat": "$param.target"
+                      }
+                    },
+                    {
+                      "move": {
+                        "from": "$param.target.hand",
+                        "take": "all",
+                        "count": 1,
+                        "to": "$param.target.discard",
+                        "at": "top",
+                        "faceUp": true
+                      }
+                    }
+                  ],
+                  "else": [
+                    {
+                      "move": {
+                        "from": "$param.target.hand",
+                        "take": "all",
+                        "count": 1,
+                        "to": "$param.target.discard",
+                        "at": "top",
+                        "faceUp": true
+                      }
+                    },
+                    {
+                      "if": {
+                        "condition": {
+                          "zoneCount": {
+                            "zone": "deck",
+                            "op": ">",
+                            "value": 0
+                          }
+                        },
+                        "then": [
+                          {
+                            "move": {
+                              "from": "deck",
+                              "take": "top",
+                              "count": 1,
+                              "to": "$param.target.hand",
+                              "at": "top",
+                              "faceUp": true
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "move": {
+                              "from": "burn",
+                              "take": "top",
+                              "count": 1,
+                              "to": "$param.target.hand",
+                              "at": "top",
+                              "faceUp": true
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "or": [
+                      {
+                        "compare": {
+                          "left": "$alive.count",
+                          "op": "<=",
+                          "right": 1
+                        }
+                      },
+                      {
+                        "zoneCount": {
+                          "zone": "deck",
+                          "op": "==",
+                          "value": 0
+                        }
+                      }
+                    ]
+                  },
+                  "then": [
+                    {
+                      "gotoPhase": {
+                        "phase": "round_end"
+                      }
+                    }
+                  ],
+                  "else": [
+                    {
+                      "endTurn": {}
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "compare": {
+                "left": "$var.played",
+                "op": "==",
+                "right": "king"
+              }
+            },
+            "then": [
+              {
+                "message": {
+                  "text": "@kingTrades"
+                }
+              },
+              {
+                "move": {
+                  "from": "$actor.hand",
+                  "take": "all",
+                  "count": 1,
+                  "to": "swap",
+                  "at": "top"
+                }
+              },
+              {
+                "move": {
+                  "from": "$param.target.hand",
+                  "take": "all",
+                  "count": 1,
+                  "to": "$actor.hand",
+                  "at": "top",
+                  "faceUp": true
+                }
+              },
+              {
+                "move": {
+                  "from": "swap",
+                  "take": "all",
+                  "count": 1,
+                  "to": "$param.target.hand",
+                  "at": "top",
+                  "faceUp": true
+                }
+              },
+              {
+                "if": {
+                  "condition": {
+                    "or": [
+                      {
+                        "compare": {
+                          "left": "$alive.count",
+                          "op": "<=",
+                          "right": 1
+                        }
+                      },
+                      {
+                        "zoneCount": {
+                          "zone": "deck",
+                          "op": "==",
+                          "value": 0
+                        }
+                      }
+                    ]
+                  },
+                  "then": [
+                    {
+                      "gotoPhase": {
+                        "phase": "round_end"
+                      }
+                    }
+                  ],
+                  "else": [
+                    {
+                      "endTurn": {}
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "onPlayer": true,
+      "auto": true
+    },
+    {
+      "id": "guess",
+      "name": "Name a card",
+      "params": [
+        {
+          "name": "card",
+          "type": "choice",
+          "options": [
+            "priest",
+            "baron",
+            "handmaid",
+            "prince",
+            "king",
+            "countess",
+            "princess"
+          ],
+          "labels": {
+            "priest": "Priest (2)",
+            "baron": "Baron (3)",
+            "handmaid": "Handmaid (4)",
+            "prince": "Prince (5)",
+            "king": "King (6)",
+            "countess": "Countess (7)",
+            "princess": "Princess (8)"
+          }
+        }
+      ],
+      "effects": [
+        {
+          "if": {
+            "condition": {
+              "compare": {
+                "left": "$param.card",
+                "op": "==",
+                "right": "priest"
+              }
+            },
+            "then": [
+              {
+                "message": {
+                  "text": "@guess_priest"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "compare": {
+                "left": "$param.card",
+                "op": "==",
+                "right": "baron"
+              }
+            },
+            "then": [
+              {
+                "message": {
+                  "text": "@guess_baron"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "compare": {
+                "left": "$param.card",
+                "op": "==",
+                "right": "handmaid"
+              }
+            },
+            "then": [
+              {
+                "message": {
+                  "text": "@guess_handmaid"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "compare": {
+                "left": "$param.card",
+                "op": "==",
+                "right": "prince"
+              }
+            },
+            "then": [
+              {
+                "message": {
+                  "text": "@guess_prince"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "compare": {
+                "left": "$param.card",
+                "op": "==",
+                "right": "king"
+              }
+            },
+            "then": [
+              {
+                "message": {
+                  "text": "@guess_king"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "compare": {
+                "left": "$param.card",
+                "op": "==",
+                "right": "countess"
+              }
+            },
+            "then": [
+              {
+                "message": {
+                  "text": "@guess_countess"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "compare": {
+                "left": "$param.card",
+                "op": "==",
+                "right": "princess"
+              }
+            },
+            "then": [
+              {
+                "message": {
+                  "text": "@guess_princess"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "compare": {
+                "left": "$var.target.hand.top.meta.kind",
+                "op": "==",
+                "right": "$param.card"
+              }
+            },
+            "then": [
+              {
+                "message": {
+                  "text": "@guardRight"
+                }
+              },
+              {
+                "eliminate": {
+                  "seat": "$var.target"
+                }
+              },
+              {
+                "move": {
+                  "from": "$var.target.hand",
+                  "take": "all",
+                  "count": 1,
+                  "to": "$var.target.discard",
+                  "at": "top",
+                  "faceUp": true
+                }
+              }
+            ],
+            "else": [
+              {
+                "message": {
+                  "text": "@guardWrong"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "condition": {
+              "or": [
+                {
+                  "compare": {
+                    "left": "$alive.count",
+                    "op": "<=",
+                    "right": 1
+                  }
+                },
+                {
+                  "zoneCount": {
+                    "zone": "deck",
+                    "op": "==",
+                    "value": 0
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "gotoPhase": {
+                  "phase": "round_end"
+                }
+              }
+            ],
+            "else": [
+              {
+                "endTurn": {}
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "events": {
+    "onGameStart": [
+      {
+        "if": {
+          "condition": {
+            "compare": {
+              "left": "$alive.count",
+              "op": "==",
+              "right": 2
+            }
+          },
+          "then": [
+            {
+              "setVariable": {
+                "name": "toWin",
+                "value": 7
+              }
+            }
+          ]
+        }
+      },
+      {
+        "if": {
+          "condition": {
+            "compare": {
+              "left": "$alive.count",
+              "op": "==",
+              "right": 3
+            }
+          },
+          "then": [
+            {
+              "setVariable": {
+                "name": "toWin",
+                "value": 5
+              }
+            }
+          ]
+        }
+      },
+      {
+        "forEach": {
+          "players": true,
+          "do": [
+            {
+              "move": {
+                "from": "$it.hand",
+                "take": "all",
+                "count": 1,
+                "to": "deck",
+                "at": "top"
+              }
+            },
+            {
+              "move": {
+                "from": "$it.discard",
+                "take": "all",
+                "count": 1,
+                "to": "deck",
+                "at": "top"
+              }
+            },
+            {
+              "revive": {
+                "seat": "$it"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "move": {
+          "from": "burn",
+          "take": "all",
+          "count": 1,
+          "to": "deck",
+          "at": "top"
+        }
+      },
+      {
+        "move": {
+          "from": "aside",
+          "take": "all",
+          "count": 1,
+          "to": "deck",
+          "at": "top"
+        }
+      },
+      {
+        "setVariable": {
+          "name": "protected",
+          "value": []
+        }
+      },
+      {
+        "setVariable": {
+          "name": "round",
+          "delta": 1.0
+        }
+      },
+      {
+        "shuffle": {
+          "object": "deck"
+        }
+      },
+      {
+        "move": {
+          "from": "deck",
+          "take": "top",
+          "count": 1,
+          "to": "burn",
+          "at": "top",
+          "faceUp": false
+        }
+      },
+      {
+        "if": {
+          "condition": {
+            "compare": {
+              "left": "$alive.count",
+              "op": "==",
+              "right": 2
+            }
+          },
+          "then": [
+            {
+              "move": {
+                "from": "deck",
+                "take": "top",
+                "count": 3,
+                "to": "aside",
+                "at": "top",
+                "faceUp": true
+              }
+            }
+          ]
+        }
+      },
+      {
+        "deal": {
+          "from": "deck",
+          "count": 1,
+          "toZone": "$it.hand"
+        }
+      },
+      {
+        "message": {
+          "text": "@roundStarts"
+        }
+      }
+    ]
+  },
+  "winConditions": [
+    {
+      "when": {
+        "compare": {
+          "left": "$player.res.tokens",
+          "op": ">=",
+          "right": "$var.toWin"
+        }
+      },
+      "winner": "$player"
+    }
+  ],
+  "ui": {
+    "panels": [
+      {
+        "id": "score",
+        "title": "Love Letter",
+        "anchor": "right",
+        "elements": [
+          {
+            "text": "Round {$var.round} · {$var.toWin} tokens win"
+          },
+          {
+            "text": "Cards left in the deck: {$obj.deck.count}"
+          },
+          {
+            "text": "Protected: {$var.protected}"
+          },
+          {
+            "text": "{$seat.seat_1.name}: {$seat.seat_1.res.tokens}"
+          },
+          {
+            "text": "{$seat.seat_2.name}: {$seat.seat_2.res.tokens}"
+          },
+          {
+            "text": "{$seat.seat_3.name}: {$seat.seat_3.res.tokens}"
+          },
+          {
+            "text": "{$seat.seat_4.name}: {$seat.seat_4.res.tokens}"
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "global": "\n-- A card's value, from its tag v1..v8.\nlocal function value(o)\n  for _, tag in ipairs(o.getTags()) do\n    local v = tag:match(\"^v(%d)$\")\n    if v then return tonumber(v) end\n  end\n  return 0\nend\n\nlocal function side(seat) return seat:match(\"^seat_(.+)$\") end\n\nlocal function cards(zone)\n  local z = getObjectFromGUID(zone)\n  return z and z.getObjects() or {}\nend\n\n-- The Countess must be played when the other card is the King or a Prince.\nfunction checkPlay(ctx)\n  local card = getObjectFromGUID(ctx.params.card)\n  local v = card and value(card) or 0\n  if v ~= 5 and v ~= 6 then return end\n  for _, o in ipairs(cards(\"hand_\" .. side(ctx.actor))) do\n    if value(o) == 7 then return false, Game.text(\"countess\") end\n  end\nend\n\n-- Who wins the round: the highest card in hand among those still in, then the highest total of discards; a tie past\n-- both shares the round.\nfunction scoreRound(ctx)\n  local best, winners = -1, {}\n  for _, seat in ipairs(Game.getSeats()) do\n    if not Game.isOut(seat) then\n      local high, discards = 0, 0\n      for _, o in ipairs(cards(\"hand_\" .. side(seat))) do high = math.max(high, value(o)) end\n      for _, o in ipairs(cards(\"discard_\" .. side(seat))) do discards = discards + value(o) end\n      local score = high * 100 + discards\n      if score > best then\n        best, winners = score, {seat}\n      elseif score == best then\n        winners[#winners + 1] = seat\n      end\n    end\n  end\n  Game.setVariable(\"winners\", winners)\nend\n"
+  },
+  "marks": [
+    {
+      "id": "protected",
+      "seats": "$var.protected",
+      "color": [
+        0.85,
+        0.9,
+        1.0
+      ]
+    }
+  ],
+  "translations": {
+    "en": {
+      "strings.plays": "{$actor.name} plays the {$param.card.name}.",
+      "strings.protected": "{$actor.name} is protected until their next turn.",
+      "strings.noTarget": "Everyone else is protected: the card has no effect.",
+      "strings.chooseOther": "{$actor.name}: click the player you choose.",
+      "strings.notYourself": "Choose another player.",
+      "strings.isProtected": "{$param.target.name} is protected by the Handmaid.",
+      "strings.guardAims": "{$actor.name} points the Guard at {$var.target.name}: name a card.",
+      "strings.guardRight": "Right: {$var.target.name} held it.",
+      "strings.guardWrong": "Wrong: {$var.target.name} does not hold it.",
+      "strings.priestLooks": "{$actor.name} looks at {$param.target.name}'s hand.",
+      "strings.priestSees": "{$param.target.name} holds the {$param.target.hand.top.name}.",
+      "strings.baronCompares": "{$actor.name} and {$param.target.name} compare hands in secret.",
+      "strings.baronTie": "A tie: both stay in.",
+      "strings.baronSeesTarget": "{$param.target.name} holds the {$param.target.hand.top.name}.",
+      "strings.baronSeesActor": "{$actor.name} holds the {$actor.hand.top.name}.",
+      "strings.princeTargets": "{$actor.name} makes {$param.target.name} discard their hand.",
+      "strings.kingTrades": "{$actor.name} and {$param.target.name} trade hands.",
+      "strings.countess": "You hold the Countess with the King or a Prince: you must play the Countess.",
+      "strings.roundOver": "Round {$var.round} is over: the hands are turned up.",
+      "strings.winsRound": "{$it.name} wins the round and an affection token.",
+      "strings.roundStarts": "Round {$var.round}: {$var.toWin} tokens win the game.",
+      "strings.nextRound": "The next round is dealt in a moment.",
+      "strings.guess_priest": "{$actor.name} names the Priest.",
+      "strings.guess_baron": "{$actor.name} names the Baron.",
+      "strings.guess_handmaid": "{$actor.name} names the Handmaid.",
+      "strings.guess_prince": "{$actor.name} names the Prince.",
+      "strings.guess_king": "{$actor.name} names the King.",
+      "strings.guess_countess": "{$actor.name} names the Countess.",
+      "strings.guess_princess": "{$actor.name} names the Princess."
+    },
+    "es": {
+      "game.name": "Love Letter",
+      "game.description": "Haz llegar tu carta a la Princesa: ten la carta más alta cuando se acabe el mazo, o sé el último en la ronda. En tu turno roba una carta y juega una de tus dos; cada carta le hace algo a otro jugador. Gana rondas para conseguir fichas de afecto: ganan 7 con dos jugadores, 5 con tres y 4 con cuatro.",
+      "actions.play_card.name": "Jugar una carta",
+      "actions.target.name": "Elegir",
+      "actions.guess.name": "Nombrar una carta",
+      "phases.new_round.name": "Nueva ronda",
+      "phases.play.name": "Juega una carta",
+      "phases.choose.name": "Elige a un jugador",
+      "phases.guess.name": "Nombra una carta",
+      "phases.round_end.name": "Fin de la ronda",
+      "resources.tokens.name": "Fichas de afecto",
+      "objects.deck.name": "Mazo",
+      "zones.burn.name": "Apartada",
+      "zones.aside.name": "Apartadas boca arriba",
+      "zones.swap.name": "Intercambio",
+      "objects.token_pool.name": "Fichas de afecto",
+      "strings.plays": "{$actor.name} juega {$param.card.name}.",
+      "strings.protected": "{$actor.name} queda protegido hasta su próximo turno.",
+      "strings.noTarget": "Todos los demás están protegidos: la carta no tiene efecto.",
+      "strings.chooseOther": "{$actor.name}: haz clic en el jugador que eliges.",
+      "strings.notYourself": "Elige a otro jugador.",
+      "strings.isProtected": "{$param.target.name} está protegido por la Doncella.",
+      "strings.guardAims": "{$actor.name} apunta la Guardia a {$var.target.name}: nombra una carta.",
+      "strings.guardRight": "Acierto: {$var.target.name} la tenía.",
+      "strings.guardWrong": "Fallo: {$var.target.name} no la tiene.",
+      "strings.priestLooks": "{$actor.name} mira la mano de {$param.target.name}.",
+      "strings.priestSees": "{$param.target.name} tiene {$param.target.hand.top.name}.",
+      "strings.baronCompares": "{$actor.name} y {$param.target.name} comparan sus manos en secreto.",
+      "strings.baronTie": "Empate: los dos siguen.",
+      "strings.baronSeesTarget": "{$param.target.name} tiene {$param.target.hand.top.name}.",
+      "strings.baronSeesActor": "{$actor.name} tiene {$actor.hand.top.name}.",
+      "strings.princeTargets": "{$actor.name} hace que {$param.target.name} descarte su mano.",
+      "strings.kingTrades": "{$actor.name} y {$param.target.name} intercambian sus manos.",
+      "strings.countess": "Tienes a la Condesa con el Rey o un Príncipe: debes jugar la Condesa.",
+      "strings.roundOver": "Termina la ronda {$var.round}: se muestran las manos.",
+      "strings.winsRound": "{$it.name} gana la ronda y una ficha de afecto.",
+      "strings.roundStarts": "Ronda {$var.round}: {$var.toWin} fichas ganan la partida.",
+      "strings.nextRound": "La siguiente ronda se reparte en un momento.",
+      "strings.guess_priest": "{$actor.name} nombra Sacerdote.",
+      "strings.guess_baron": "{$actor.name} nombra Barón.",
+      "strings.guess_handmaid": "{$actor.name} nombra Doncella.",
+      "strings.guess_prince": "{$actor.name} nombra Príncipe.",
+      "strings.guess_king": "{$actor.name} nombra Rey.",
+      "strings.guess_countess": "{$actor.name} nombra Condesa.",
+      "strings.guess_princess": "{$actor.name} nombra Princesa.",
+      "params.guess.card.priest": "Sacerdote (2)",
+      "params.guess.card.baron": "Barón (3)",
+      "params.guess.card.handmaid": "Doncella (4)",
+      "params.guess.card.prince": "Príncipe (5)",
+      "params.guess.card.king": "Rey (6)",
+      "params.guess.card.countess": "Condesa (7)",
+      "params.guess.card.princess": "Princesa (8)",
+      "cards.guard.name": "Guardia",
+      "cards.guard.description": "Nombra una carta que no sea Guardia y elige a un jugador: si la tiene, queda fuera de la ronda.",
+      "cards.guard_2.name": "Guardia",
+      "cards.guard_2.description": "Nombra una carta que no sea Guardia y elige a un jugador: si la tiene, queda fuera de la ronda.",
+      "cards.guard_3.name": "Guardia",
+      "cards.guard_3.description": "Nombra una carta que no sea Guardia y elige a un jugador: si la tiene, queda fuera de la ronda.",
+      "cards.guard_4.name": "Guardia",
+      "cards.guard_4.description": "Nombra una carta que no sea Guardia y elige a un jugador: si la tiene, queda fuera de la ronda.",
+      "cards.guard_5.name": "Guardia",
+      "cards.guard_5.description": "Nombra una carta que no sea Guardia y elige a un jugador: si la tiene, queda fuera de la ronda.",
+      "cards.priest.name": "Sacerdote",
+      "cards.priest.description": "Mira la mano de otro jugador.",
+      "cards.priest_2.name": "Sacerdote",
+      "cards.priest_2.description": "Mira la mano de otro jugador.",
+      "cards.baron.name": "Barón",
+      "cards.baron.description": "Tú y otro jugador comparan sus manos en secreto: el de la carta menor queda fuera de la ronda.",
+      "cards.baron_2.name": "Barón",
+      "cards.baron_2.description": "Tú y otro jugador comparan sus manos en secreto: el de la carta menor queda fuera de la ronda.",
+      "cards.handmaid.name": "Doncella",
+      "cards.handmaid.description": "Hasta tu próximo turno, las cartas de los demás no pueden elegirte.",
+      "cards.handmaid_2.name": "Doncella",
+      "cards.handmaid_2.description": "Hasta tu próximo turno, las cartas de los demás no pueden elegirte.",
+      "cards.prince.name": "Príncipe",
+      "cards.prince.description": "Elige a cualquier jugador (también a ti): descarta su mano y roba una carta nueva.",
+      "cards.prince_2.name": "Príncipe",
+      "cards.prince_2.description": "Elige a cualquier jugador (también a ti): descarta su mano y roba una carta nueva.",
+      "cards.king.name": "Rey",
+      "cards.king.description": "Intercambia tu mano con la de otro jugador.",
+      "cards.countess.name": "Condesa",
+      "cards.countess.description": "Si la tienes junto al Rey o un Príncipe, debes jugarla.",
+      "cards.princess.name": "Princesa",
+      "cards.princess.description": "Si la descartas, quedas fuera de la ronda.",
+      "ui.score.title": "Love Letter",
+      "ui.score.0.text": "Ronda {$var.round} · ganan {$var.toWin} fichas",
+      "ui.score.1.text": "Cartas en el mazo: {$obj.deck.count}",
+      "ui.score.2.text": "Protegidos: {$var.protected}",
+      "ui.score.3.text": "{$seat.seat_1.name}: {$seat.seat_1.res.tokens}",
+      "ui.score.4.text": "{$seat.seat_2.name}: {$seat.seat_2.res.tokens}",
+      "ui.score.5.text": "{$seat.seat_3.name}: {$seat.seat_3.res.tokens}",
+      "ui.score.6.text": "{$seat.seat_4.name}: {$seat.seat_4.res.tokens}",
+      "objects.token_pool_piece.name": "Ficha de afecto",
+      "objects.token_pool_piece_2.name": "Ficha de afecto",
+      "objects.token_pool_piece_3.name": "Ficha de afecto",
+      "objects.token_pool_piece_4.name": "Ficha de afecto",
+      "objects.token_pool_piece_5.name": "Ficha de afecto",
+      "objects.token_pool_piece_6.name": "Ficha de afecto",
+      "objects.token_pool_piece_7.name": "Ficha de afecto",
+      "objects.token_pool_piece_8.name": "Ficha de afecto",
+      "objects.token_pool_piece_9.name": "Ficha de afecto",
+      "objects.token_pool_piece_10.name": "Ficha de afecto",
+      "objects.token_pool_piece_11.name": "Ficha de afecto",
+      "objects.token_pool_piece_12.name": "Ficha de afecto",
+      "objects.token_pool_piece_13.name": "Ficha de afecto",
+      "objects.reference_1.name": "Lista de cartas",
+      "zones.discard_1.name": "Descartes",
+      "zones.tokens_1.name": "Fichas de afecto",
+      "objects.reference_2.name": "Lista de cartas",
+      "zones.discard_2.name": "Descartes",
+      "zones.tokens_2.name": "Fichas de afecto",
+      "objects.reference_3.name": "Lista de cartas",
+      "zones.discard_3.name": "Descartes",
+      "zones.tokens_3.name": "Fichas de afecto",
+      "objects.reference_4.name": "Lista de cartas",
+      "zones.discard_4.name": "Descartes",
+      "zones.tokens_4.name": "Fichas de afecto"
+    }
+  }
+}

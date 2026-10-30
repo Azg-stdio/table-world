@@ -9,7 +9,7 @@ namespace TableWorld.View
     /// </summary>
     public sealed class LookCamera : MonoBehaviour
     {
-        public const int Resolution = 768;
+        public const int Resolution = 1024;
 
         /// <summary>Unnamed layer used only while looking: the camera renders the target alone, so a peek from under the table works.</summary>
         public const int LookLayer = 31;
@@ -84,8 +84,10 @@ namespace TableWorld.View
                 var normal = _target.transform.up;
                 var side = normal.y >= -0.01f ? normal : -normal;
                 var direction = _peek ? -side : side;
-                // The image's top edge is the piece's −Z side (TTS's convention).
-                var top = Quaternion.AngleAxis(_yaw, direction) * -_target.transform.forward;
+                // The image's top edge is the drawing's −Z side (TTS's convention): the drawing, not the pose, since a card
+                // may be drawn turned toward this player (ObjectView.TurnQuarters), and the close-up shows it as they see it.
+                var drawn = _target.transform.rotation * Quaternion.Euler(0f, 90f * _target.TurnQuarters, 0f);
+                var top = Quaternion.AngleAxis(_yaw, direction) * (drawn * Vector3.back);
                 var local = _target.Filter.sharedMesh.bounds.size;
                 var scale = _target.transform.lossyScale;
                 var size = Mathf.Max(local.x * scale.x, local.z * scale.z, 0.02f);

@@ -92,6 +92,7 @@
                 <ui:Button name="escSettings" class="hud-button escape-button" text="Settings" />
                 <ui:Button name="escControls" class="hud-button escape-button" text="Controls" />
                 <ui:Button name="escAgent" class="hud-button escape-button" text="Connect an AI agent" />
+                <ui:Button name="escReport" class="hud-button escape-button" text="Save a problem report" />
                 <ui:Button name="escLeave" class="hud-button escape-button" text="Leave session" />
                 <ui:Button name="escQuit" class="hud-button escape-button" text="Quit to desktop" />
                 <ui:VisualElement name="escQuitConfirm" class="escape-confirm hidden">

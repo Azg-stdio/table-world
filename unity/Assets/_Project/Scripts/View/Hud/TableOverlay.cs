@@ -18,6 +18,8 @@ namespace TableWorld.View.Hud
     public sealed class TableOverlay
     {
         public const float TooltipNameSeconds = 0.6f;
+        /// <summary>The Alt close-up's height as a share of the screen's.</summary>
+        public const float LookHeightShare = 0.78f;
         public const float TooltipDescriptionSeconds = 1.6f;
         private const string Hidden = "hidden";
 
@@ -103,6 +105,7 @@ namespace TableWorld.View.Hud
             UpdateBox();
             UpdateTooltip();
             UpdateMeasure();
+            UpdateUiLook();
             if (_look.Target != null)
             {
                 var mouse = UnityEngine.InputSystem.Mouse.current;
@@ -612,6 +615,7 @@ namespace TableWorld.View.Hud
                 // Card faces are runtime images, so they can only be set from code.
                 image.style.backgroundImage = new StyleBackground(face);
                 cell.Add(image);
+                UiLook.Mark(cell, face, label);
             }
             var name = new Label(label);
             name.AddToClassList("search-card-name");
@@ -656,12 +660,75 @@ namespace TableWorld.View.Hud
             _look.Show(view, peek);
             _lookPanel.EnableInClassList(Hidden, view == null);
             if (view == null)
+            {
+                _uiLooking = false;
+                _uiLook = null;
                 return;
-            // A render texture is created at runtime, so it can only be set from code.
-            _lookImage.style.backgroundImage = Background.FromRenderTexture(_look.Texture);
+            }
+            // A card of your own hand shows its own face image, sharp; anything else the look camera's picture. Both are
+            // made at runtime, so they can only be set from code, and so is the size: most of the screen's height, so the
+            // close-up is far larger than the hand bar's cards.
+            var face = OwnHandFace(view);
+            _lookImage.style.backgroundImage = face != null ? new StyleBackground(face) : Background.FromRenderTexture(_look.Texture);
+            SizeLook(face != null ? face.rect.width / Mathf.Max(1f, face.rect.height) : 1f);
+            _uiLooking = false;
+            _uiLook = null;
             // Peeking shows the face, so its name; a plain look at a face-down card shows only its back (G39).
             _lookCaption.text = view.HideFace ? Ui.T("A card in another player's hand")
                 : peek ? Ui.T("Peek: ") + Names.Of(_table.Engine.State, view.Model) : DisplayName(view.Model, _table.Engine.State);
+        }
+
+        /// <summary>The close-up takes most of the screen's height (set from code: it depends on the screen and the card).</summary>
+        private void SizeLook(float aspect)
+        {
+            var screenHeight = _root.panel?.visualTree.layout.height is { } h && h > 0f ? h : 800f;
+            var height = screenHeight * LookHeightShare;
+            _lookImage.style.height = height;
+            _lookImage.style.width = height * aspect;
+        }
+
+        /// <summary>The close-up shows a card of the HUD (<see cref="UiLook"/>), not a table piece.</summary>
+        private bool _uiLooking;
+        private UiLook _uiLook;
+
+        /// <summary>Holding Alt over a card shown in the HUD shows it big; letting go of Alt puts it away.</summary>
+        private void UpdateUiLook()
+        {
+            var keyboard = UnityEngine.InputSystem.Keyboard.current;
+            var mouse = UnityEngine.InputSystem.Mouse.current;
+            var alt = keyboard != null && keyboard.altKey.isPressed && !(_interaction.KeyboardBlocked?.Invoke() ?? false);
+            var over = alt && mouse != null && _interaction.Looking == null ? UiLook.At(_root.panel, mouse.position.ReadValue()) : null;
+            if (over != null && over != _uiLook)
+            {
+                _uiLook = over;
+                _uiLooking = true;
+                _lookImage.style.backgroundImage = new StyleBackground(over.Image);
+                SizeLook(over.Image.rect.width / Mathf.Max(1f, over.Image.rect.height));
+                _lookCaption.text = over.Caption;
+                _lookPanel.RemoveFromClassList(Hidden);
+            }
+            else if (!alt && _uiLooking)
+            {
+                _uiLooking = false;
+                _uiLook = null;
+                if (_look.Target == null)
+                    _lookPanel.AddToClassList(Hidden);
+            }
+        }
+
+        /// <summary>Whether the close-up shows a card from the HUD (tests).</summary>
+        public bool LookingAtUi => _uiLooking;
+
+        /// <summary>The face image of <paramref name="view"/> when it is a card in this player's own hand, else null.</summary>
+        private Sprite OwnHandFace(ObjectView view)
+        {
+            if (!(view.Model is Card card) || view.HideFace || _table.Spectating)
+                return null;
+            var hand = _table.Engine.State.Players.Seats.FirstOrDefault(s => s.Id == _table.LocalSeat)?.HandZone;
+            if (hand == null || !_table.Engine.ZonesOf(card.Id).Contains(hand))
+                return null;
+            var (asset, index) = _table.Assets.Face(card);
+            return _images.Face(_table.Assets, asset, index);
         }
 
         /// <summary>

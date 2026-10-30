@@ -94,6 +94,9 @@ namespace TableWorld.View
             // The light over the spot a carried piece will go to (M12).
             if (GetComponent<CatchGuide>() == null)
                 gameObject.AddComponent<CatchGuide>();
+            // What happens at the table, kept on disk for a problem report or an agent (docs/dev/logging.md).
+            if (GetComponent<SessionJournal>() == null)
+                gameObject.AddComponent<SessionJournal>();
             // Voice chat and the other players' chalkers (T7.3).
             if (GetComponent<Voice.VoiceChat>() == null)
             {
@@ -833,11 +836,51 @@ namespace TableWorld.View
         /// <summary>The session's language the pieces were last drawn in (ADR 0011): a change redraws them.</summary>
         private string _drawnLanguage;
 
+        /// <summary>
+        /// Cards and decks lying on the table are drawn turned toward this player's seat, in quarter turns, so their faces
+        /// (and backs) read the right way up (a player setting; each machine turns them for its own player only).
+        /// </summary>
+        public static bool CardsFaceMe { get; set; } = true;
+
+        /// <summary>The yaw a card lying on the table has when it reads upright from the local seat, or null for no seat.</summary>
+        private float? ReadingYaw()
+        {
+            var seat = LocalSeat == null ? null : Engine.State.Players.Seats.FirstOrDefault(s => s.Id == LocalSeat);
+            var hand = seat?.HandZone == null ? null : Engine.State.Zones.FirstOrDefault(z => z.Id == seat.HandZone);
+            // A hand's yaw is 0 for the south seat, and a card reads upright from there at yaw 180 (ADR 0005).
+            return hand == null ? (float?)null : hand.Transform.Rotation.Y + 180f;
+        }
+
+        private void TurnCardsToMe()
+        {
+            var reading = CardsFaceMe ? ReadingYaw() : null;
+            foreach (var view in _views.Values)
+            {
+                if (view == null || view.UnturnedMesh == null || view.Held)
+                    continue;
+                var quarters = 0;
+                // Flat on the table, out of hands and containers: a face up shows its face, a face down its back, which
+                // reads upright the same way as the face. A piece lying face down has its own up axis pointing down, so a
+                // turn of its drawing goes the other way round on the table.
+                var up = view.transform.up.y;
+                if (reading is { } yaw && !view.InHand && view.Model.Container == null && Mathf.Abs(up) > 0.9f)
+                {
+                    var forward = view.transform.forward;
+                    var lies = Mathf.Atan2(forward.x, forward.z) * Mathf.Rad2Deg;
+                    quarters = up > 0f
+                        ? Mathf.RoundToInt(Mathf.DeltaAngle(lies, yaw) / 90f)
+                        : -Mathf.RoundToInt(Mathf.DeltaAngle(lies, yaw) / 90f);
+                }
+                ObjectViewFactory.Turn(view, quarters);
+            }
+        }
+
         private void LateUpdate()
         {
             DrawScriptControls();
             if (Engine == null)
                 return;
+            TurnCardsToMe();
             var interaction = _interaction != null ? _interaction : (_interaction = GetComponent<TableInteraction>());
             // Carrying a piece that has its own spot (a zone catches it), the spot's light says where: the outlines stay away.
             var carried = interaction != null ? interaction.Held : null;

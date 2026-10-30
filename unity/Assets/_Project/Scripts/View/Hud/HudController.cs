@@ -29,6 +29,8 @@ namespace TableWorld.View.Hud
         private Label _netStatus;
         private Button _blindButton;
         private ActionPicker _picker;
+        /// <summary>The seat and action the open picker chooses for ("seat/action"): it closes when that is no longer legal.</summary>
+        private string _pickerFor;
         private DiceTotalsView _diceTotals;
         private SeatJoinView _seatJoins;
         /// <summary>Hot seat, before the start: the seats this machine's players sat at (the first seat to begin with).</summary>
@@ -266,6 +268,7 @@ namespace TableWorld.View.Hud
             ApplySettings(_escape.Settings);
             _agent = new AgentPanel(_root, CloseAgent);
             _escape.OpenAgent = _agent.Show;
+            _escape.SaveReport = SaveProblemReport;
             if (_table != null)
             {
                 _saves = new SaveLibrary(_table);
@@ -1295,6 +1298,9 @@ namespace TableWorld.View.Hud
             if (key == _shownGameKey)
                 return;
             _shownGameKey = key;
+            // A picker for an action the game has moved past (the turn went on, another table loaded) closes.
+            if (_picker.Visible && !legal.Any(l => $"{l.Seat}/{l.Action.ActionId}" == _pickerFor))
+                _picker.Hide();
 
             AnnounceTurn();
             _turnLabel.text = !state.HasRules ? (turns is { Enabled: true } ? FreeTurnText(turns) : Ui.T("Free play"))
@@ -1361,10 +1367,15 @@ namespace TableWorld.View.Hud
                     continue;
                 }
                 var choices = action.Choices;
-                AddGameButton($"{name} ({choices.Count})", () => _picker.Show(name, choices.Select(c => new ActionPicker.Choice
+                var pickerFor = $"{actor}/{id}";
+                AddGameButton($"{name} ({choices.Count})", () =>
                 {
-                    Label = ChoiceLabel(id, c), Image = ChoiceImage(c), Pick = () => Perform(c),
-                }).ToList()));
+                    _pickerFor = pickerFor;
+                    _picker.Show(name, choices.Select(c => new ActionPicker.Choice
+                    {
+                        Label = ChoiceLabel(id, c), Image = ChoiceImage(c), Pick = () => Perform(c),
+                    }).ToList());
+                });
             }
         }
 
@@ -1623,9 +1634,12 @@ namespace TableWorld.View.Hud
 
         private void OnCommand(Command command, CommandResult result)
         {
-            // A card shown to everyone (by a player, a rule or a script) comes up big on every screen.
-            if (result.Ok && result.Events.OfType<CardShown>().LastOrDefault() is { } shown)
-                _showcase?.Show(shown.Card, Names.Message(_table.Engine.State, "shows", ("seat", Names.Seat(_table.Engine.State, shown.Seat)), ("card", Names.Of(_table.Engine.State, shown.Card))));
+            // A card shown (by a player, a rule or a script) comes up big on the screens of those it is shown to. At a
+            // hot-seat table the one who acted is at the screen, though the turn may have passed on with the same move.
+            var viewer = _table.Networked ? _table.LocalSeat : command.Actor ?? _table.LocalSeat;
+            if (result.Ok && result.Events.OfType<CardShown>().LastOrDefault(e => e.For(viewer)) is { } shown)
+                _showcase?.Show(shown.Card, shown.Seats != null ? Names.Of(_table.Engine.State, shown.Card)
+                    : Names.Message(_table.Engine.State, "shows", ("seat", Names.Seat(_table.Engine.State, shown.Seat)), ("card", Names.Of(_table.Engine.State, shown.Card))));
             // What table scripts do is theirs to tell (chat, their own UI); their refusals are in the log.
             if (command.ByScript)
                 return;
@@ -1904,6 +1918,21 @@ namespace TableWorld.View.Hud
         private void Load() =>
             _table.LoadFileInSteps(TableView.SavePath(TableView.QuickSaveName), Ui.T("Quicksave"),
                 ok => ShowStatus(ok ? Ui.T("Loaded quicksave") : Ui.T("No quicksave yet"), error: !ok));
+
+        /// <summary>Zips the session's journals and the game's log for the player to send, and opens the folder holding it.</summary>
+        private void SaveProblemReport()
+        {
+            try
+            {
+                var zip = SessionJournal.SaveReport();
+                ShowStatus(Ui.T("Problem report saved: {file}", ("file", zip)), error: false);
+                Application.OpenURL("file:///" + System.IO.Path.GetDirectoryName(zip)!.Replace('\\', '/'));
+            }
+            catch (System.Exception e) when (e is System.IO.IOException || e is System.UnauthorizedAccessException)
+            {
+                ShowStatus(Ui.T("The problem report could not be saved: {reason}", ("reason", e.Message)), error: true);
+            }
+        }
 
         private void ShowStatus(string text, bool error)
         {

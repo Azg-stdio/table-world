@@ -69,21 +69,14 @@ namespace TableWorld.Tests.PlayMode
 
             if (unplayable != null)
             {
-                // No legal play for it: put down by hand like any card (free play), and still this seat's turn.
+                // No legal play for it: let go on the table, it goes back into the hand (the game would otherwise lose it).
                 Assert.IsTrue(_interaction.Grab(_table.ViewOf(unplayable), false));
-                // A clear spot of felt, away from the piles (dropped on one it would join it).
                 _interaction.DragTo(new Vector3(-0.6f, 0f, 0.3f));
                 yield return new WaitForSeconds(0.3f);
                 _interaction.Release();
                 yield return new WaitForSeconds(0.5f);
-                Assert.IsFalse(_table.Engine.ZonesOf(unplayable).Contains(hand), "an unplayable card is put down, not bounced back: at " + _table.Engine.Find(unplayable).Transform.Position + " zones " + string.Join(",", _table.Engine.ZonesOf(unplayable)) + " log " + string.Join(" / ", _table.Game.Session.Log.TakeLast(3)));
+                Assert.IsTrue(_table.Engine.ZonesOf(unplayable).Contains(hand), "an unplayable card goes back into the hand: at " + _table.Engine.Find(unplayable).Transform.Position);
                 Assert.AreEqual(seat, Current);
-                // Back into the hand for the rest of the test.
-                Assert.IsTrue(_interaction.Grab(_table.ViewOf(unplayable), false));
-                _interaction.DragTo(_table.Engine.State.Zones.First(z => z.Id == hand).Transform.Position.ToUnity());
-                yield return new WaitForSeconds(0.3f);
-                _interaction.Release();
-                yield return null;
             }
 
             if (playable.Count > 0)
@@ -108,6 +101,60 @@ namespace TableWorld.Tests.PlayMode
             Assert.AreNotEqual(seat, Current, "the turn passed");
             // The discard pile belongs to the rules: no free takes.
             Assert.IsFalse(_interaction.Grab(_table.ViewOf("discard"), false));
+        }
+
+        [UnityTest]
+        public IEnumerator WhileTheGameWaitsForAPlayerClick_AThrownCard_GoesBackToTheHand()
+        {
+            // Love Letter with four: a Guard, Priest, Baron, King or Prince played waits for a click on a player.
+            var game = GameLibrary.List().First(e => e.File.EndsWith("love-letter.json"));
+            Assert.IsTrue(_table.Load(File.ReadAllText(game.File), game.PackageRoot));
+            Assert.IsTrue(_table.Execute(new StartGameCommand { Seats = new System.Collections.Generic.List<string> { "seat_1", "seat_2", "seat_3", "seat_4" } }).Ok);
+            yield return null;
+            var seat = Current;
+            var hand = HandOf(seat);
+            var choosing = new[] { "Guard", "Priest", "Baron", "King", "Prince" };
+            var cards = _table.Engine.ObjectsIn(hand).ToList();
+            var aimed = cards.FirstOrDefault(c => choosing.Contains(c.Name) && !(cards.Any(o => o.Name == "Countess") && (c.Name == "King" || c.Name == "Prince")));
+            if (aimed == null)
+                Assert.Ignore("no card in this deal waits for a player");
+            Assert.IsTrue(_table.Execute(_table.Game.LegalActions(seat).Where(a => a.ActionId == "play_card").SelectMany(a => a.Choices)
+                .Where(c => c["card"] == aimed.Id).Select(c => new PerformActionCommand { Actor = seat, ActionId = "play_card", Params = c }).First()).Ok);
+            Assert.AreEqual("choose", _table.Game.Session.Phase);
+
+            var other = _table.Engine.ObjectsIn(hand).Single();
+            Assert.IsTrue(_interaction.Grab(_table.ViewOf(other.Id), false));
+            _interaction.DragTo(new Vector3(0.1f, 0f, 0.1f));
+            yield return new WaitForSeconds(0.3f);
+            _interaction.Release();
+            yield return new WaitForSeconds(0.3f);
+            Assert.IsTrue(_table.Engine.ZonesOf(other.Id).Contains(hand), "the card goes back into the hand");
+            Assert.AreEqual("choose", _table.Game.Session.Phase, "the game still waits for the click");
+            Assert.IsTrue(_table.Game.Session.Log.Any(l => l.Contains("click") || l.Contains("clic")), "the log says to click a player: " + string.Join(" / ", _table.Game.Session.Log));
+        }
+
+        [UnityTest]
+        public IEnumerator APlayableCard_IsPlayed_WhereverItIsLetGo_EvenOverTheHand()
+        {
+            // Love Letter: every card in the hand can be played (the Countess rule aside), so the deal never matters.
+            var game = GameLibrary.List().First(e => e.File.EndsWith("love-letter.json"));
+            Assert.IsTrue(_table.Load(File.ReadAllText(game.File), game.PackageRoot));
+            Assert.IsTrue(_table.Execute(new StartGameCommand { Seats = new System.Collections.Generic.List<string> { "seat_1", "seat_3" } }).Ok);
+            yield return null;
+            var seat = Current;
+            var hand = HandOf(seat);
+            var playable = _table.Game.LegalActions(seat).Where(a => a.ActionId == "play_card").SelectMany(a => a.Choices).Select(c => c["card"])
+                .Where(id => _table.Engine.Find(id).Name != "King" && _table.Engine.Find(id).Name != "Prince").ToList();
+            if (playable.Count == 0)
+                Assert.Ignore("only the King and a Prince in hand: the Countess rule may refuse them");
+            Assert.IsTrue(_interaction.Grab(_table.ViewOf(playable[0]), false));
+            // Let go just in front of the player, over their own hand zone: still a play, not back into the hand.
+            _interaction.DragTo(_table.Engine.State.Zones.First(z => z.Id == hand).Transform.Position.ToUnity());
+            yield return new WaitForSeconds(0.3f);
+            _interaction.Release();
+            yield return null;
+            Assert.IsFalse(_table.Engine.ZonesOf(playable[0]).Contains(hand), "played, not put back into the hand");
+            Assert.IsTrue(_table.Game.Session.Log.Any(l => l.Contains("plays") || l.Contains("juega")), string.Join(" / ", _table.Game.Session.Log));
         }
     }
 }

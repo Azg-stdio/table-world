@@ -101,6 +101,17 @@ namespace Core.Tests.Text
         }
 
         [Fact]
+        public void TheRulesLines_NameThingsInTheSessionsLanguage()
+        {
+            var json = Json.Replace(@"""text"": ""@noche""", @"""text"": ""{$obj.ficha.name}, {$obj.mazo.top.name}, {$actor.name}""");
+            var game = new Core.Engine.GameEngine(Parse(json), 1);
+            Assert.True(game.Execute(new Core.Engine.StartGameCommand { Language = "en" }).Ok);
+            var played = game.Execute(new Core.Engine.PerformActionCommand { Actor = "a", ActionId = "elegir", Params = { ["casilla"] = "bosque" } });
+            Assert.True(played.Ok, played.Error?.ToString());
+            Assert.Contains("Nyra's token, Shield, Huntress", game.Session!.Log);
+        }
+
+        [Fact]
         public void AGameInOneLanguage_ReadsAsWritten_AndHasNothingToCheck()
         {
             var state = Parse(OneLanguage);

@@ -33,7 +33,9 @@ Note these in `docs/milestones/M3-multiplayer.md` (simulation record) or tell th
 - Lag: time between pressing a button and seeing the card move, for the host and for the friends.
 - Anything that differed between screens: card positions, the War counters, who won.
 - Confusing controls (the full list is in `docs/tts-interactions.md`; **Alt** looks at a card, right-click opens menus).
-- Logs, if something broke: `%USERPROFILE%\AppData\LocalLow\DefaultCompany\Table World\Player.log` on each machine.
+- If something broke: on each machine, **Escape → Save a problem report**. It zips that machine's journal of the
+  session (every move, refusal with its reason, rules line and error; see `docs/dev/logging.md`) and the game's log,
+  and opens the folder holding the zip. The host's report is the most useful: it holds everything the table held.
 
 ## 5. Checklist: what only a test with friends can confirm
 

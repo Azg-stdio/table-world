@@ -247,7 +247,10 @@ namespace TableWorld.View.Hud
                 // Runtime card images (cells of a sprite sheet) can only be set from code.
                 var (faceAsset, faceIndex) = _table.Assets.Face(card);
                 if (_images.Face(_table.Assets, faceAsset, faceIndex) is { } sprite)
+                {
                     element.style.backgroundImage = new StyleBackground(sprite);
+                    UiLook.Mark(element, sprite, Names.Of(_table.Engine.State, card));
+                }
                 element.style.width = cardWidth;
                 element.style.height = _cardHeight;
                 element.style.bottom = BottomPadding;
