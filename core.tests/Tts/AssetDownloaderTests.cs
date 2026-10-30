@@ -81,6 +81,8 @@ namespace Core.Tests.Tts
                 Assert.Contains(result.Failed, f => f.Url.EndsWith("big") && f.Reason.Contains("larger"));
                 Assert.Contains(result.Failed, f => f.Url.EndsWith("missing") && f.Reason.Contains("404"));
                 Assert.Contains(result.Failed, f => f.Url.StartsWith("ftp") && f.Reason.Contains("web address"));
+                // Only the 404 is gone for good; a file too large or a bad address is not the server saying "no such file".
+                Assert.Equal("http://cdn.test/missing", result.Gone.Single().Url);
                 Assert.False(File.Exists(Path.Combine(folder, "big.png")));
                 Assert.Equal(new byte[] { 9 }, File.ReadAllBytes(already));
                 Assert.Equal(3, stub.Requests);

@@ -285,7 +285,9 @@ namespace TableWorld.View.Hud
             _root.Q<Button>("saveButton").clicked += Save;
             _picker = new ActionPicker(_root);
             _diceTotals = new DiceTotalsView(_root, _table);
-            _seatJoins = new SeatJoinView(_root, _table, () => _table.Game is { State: { HasRules: true }, Session: null },
+            // The seat pluses: before a rules game starts, and always at a free table (an imported TTS game, a sandbox),
+            // where people sit down and get up whenever they like.
+            _seatJoins = new SeatJoinView(_root, _table, () => _table.Game is { State: { HasRules: true }, Session: null } or { State: { HasRules: false } },
                 SitterLabel, CanClickSeat, ClickSeat);
             if (_root.Q<Button>("calculatorButton") is { } calculator)
                 calculator.clicked += AddCalculator;
@@ -1725,8 +1727,16 @@ namespace TableWorld.View.Hud
             }
             var list = _gamesPanel.Q<ScrollView>("gamesList");
             list.Clear();
+            var importedTitle = false;
             foreach (var entry in GameLibrary.List())
             {
+                if (entry.Imported && !importedTitle)
+                {
+                    importedTitle = true;
+                    var title = new Label(Ui.T("Imported from Tabletop Simulator"));
+                    title.AddToClassList("selection-title");
+                    list.Add(title);
+                }
                 var button = new Button(() => OpenGame(entry)) { text = entry.Name };
                 button.AddToClassList("menu-item");
                 list.Add(button);
@@ -1778,7 +1788,11 @@ namespace TableWorld.View.Hud
             try
             {
                 var result = await new Core.Tts.AssetDownloader().Download(files, progress);
-                var failed = result.Failed.Count > 0 ? Ui.T("; {count} could not be fetched (listed in the log)", ("count", result.Failed.Count)) : "";
+                // Addresses that no longer work are not offered again; their objects show a question mark.
+                Core.Tts.TtsPackage.MarkGone(folder, result.Gone);
+                var retry = result.Failed.Count - result.Gone.Count;
+                var failed = (retry > 0 ? Ui.T("; {count} could not be fetched (listed in the log)", ("count", retry)) : "") +
+                             (result.Gone.Count > 0 ? Ui.T("; {count} are no longer online (they show a question mark)", ("count", result.Gone.Count)) : "");
                 foreach (var (url, reason) in result.Failed.Take(50))
                     Debug.LogWarning($"[Import] {url}: {reason}");
                 ShowStatus(Ui.T("{name}: {downloaded} files downloaded ({value} MB){failed}. Open it from Games to see them.", ("name", name), ("downloaded", result.Downloaded), ("value", result.Bytes / (1024 * 1024)), ("failed", failed)), error: false);
@@ -1805,7 +1819,7 @@ namespace TableWorld.View.Hud
             var saves = Core.Tts.TtsPackage.Find(folder);
             if (saves.Count == 0)
                 return;
-            var title = new Label(Ui.T("Import from Tabletop Simulator"));
+            var title = new Label(Ui.T("Import a game from Tabletop Simulator"));
             title.AddToClassList("selection-title");
             list.Add(title);
             foreach (var save in saves)

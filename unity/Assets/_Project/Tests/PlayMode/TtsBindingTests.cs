@@ -898,6 +898,37 @@ namespace TableWorld.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator AtAFreeTable_SeatsHaveTheirPlus_AndEachSeatedPersonCanBePlayed()
+        {
+            // A free table (no rules: an imported TTS game) has no Start, but people still sit down: the pluses stay.
+            const string json = @"{ ""game"": { ""id"": ""free"", ""name"": ""Free"" },
+  ""players"": { ""seats"": [
+    { ""id"": ""white"", ""color"": ""white"", ""handZone"": ""hand_white"" },
+    { ""id"": ""red"", ""color"": ""red"", ""handZone"": ""hand_red"" } ] },
+  ""zones"": [
+    { ""id"": ""hand_white"", ""type"": ""HandZone"", ""owner"": ""white"", ""transform"": { ""position"": [0, 0.05, -0.42] }, ""size"": [0.6, 0.1, 0.12] },
+    { ""id"": ""hand_red"", ""type"": ""HandZone"", ""owner"": ""red"", ""transform"": { ""position"": [0, 0.05, 0.42], ""rotation"": [0, 180, 0] }, ""size"": [0.6, 0.1, 0.12] } ] }";
+            Assert.IsTrue(_table.Load(json, null));
+            yield return new WaitForSeconds(0.6f);
+            var hud = Object.FindAnyObjectByType<HudController>();
+            var root = hud.GetComponent<UIDocument>().rootVisualElement;
+            Assert.IsFalse(root.Q("seatJoins").ClassListContains("hidden"), "a free table shows the seat pluses");
+            var red = root.Q("seatJoins").Children().First(m => m.tooltip == "Sit at Red");
+            Assert.AreEqual("+", red.Q<Label>().text);
+
+            hud.ClickSeat("red");
+            yield return new WaitForSeconds(0.4f);
+            Assert.AreEqual("Red", red.Q<Label>().text, "sat at: the seat's name");
+            CollectionAssert.AreEqual(new[] { "white", "red" }, hud.HotSeats().ToArray(), "both people sit, each with a chalker");
+
+            // Its chip plays that person: the view and the commands are Red's.
+            hud.SitAt("red");
+            yield return new WaitForSeconds(0.3f);
+            Assert.AreEqual("red", _table.LocalSeat);
+            Assert.IsFalse(root.Q("seatJoins").ClassListContains("hidden"), "still there while playing");
+        }
+
+        [UnityTest]
         public IEnumerator ACoinDroppedOnTheBank_GoesBackIn()
         {
             // A bank as create_supply makes it: an infinite bag holding one gold coin model.

@@ -29,6 +29,14 @@ namespace Core.Tts
             public long Bytes;
             /// <summary>URL and why it failed.</summary>
             public List<(string Url, string Reason)> Failed = new List<(string, string)>();
+            /// <summary>The failed URLs whose server said the file is not there (403, 404, 410): trying again will not help.</summary>
+            public List<(string Url, string Reason)> Gone = new List<(string, string)>();
+        }
+
+        /// <summary>A server answer that means the file is gone, not that the server is busy.</summary>
+        private sealed class GoneException : InvalidOperationException
+        {
+            public GoneException(string message) : base(message) { }
         }
 
         /// <summary>
@@ -60,7 +68,11 @@ namespace Core.Tts
                 catch (Exception e) when (!(e is OperationCanceledException) || !cancel.IsCancellationRequested)
                 {
                     lock (result)
+                    {
                         result.Failed.Add((file.Url, e is TaskCanceledException ? "timed out" : e.Message));
+                        if (e is GoneException)
+                            result.Gone.Add((file.Url, e.Message));
+                    }
                 }
                 finally
                 {
@@ -89,6 +101,8 @@ namespace Core.Tts
                 Finish(part, target);
                 return 0;
             }
+            if (response.StatusCode == HttpStatusCode.Forbidden || response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.Gone)
+                throw new GoneException($"the server answered {(int)response.StatusCode}");
             if (!response.IsSuccessStatusCode)
                 throw new InvalidOperationException($"the server answered {(int)response.StatusCode}");
             var resumed = response.StatusCode == HttpStatusCode.PartialContent;

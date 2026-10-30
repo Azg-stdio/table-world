@@ -41,6 +41,7 @@ namespace TableWorld.View.Builtin
             ['='] = new[] { "     ", "     ", "#####", "     ", "#####", "     ", "     " },
             ['C'] = new[] { " ####", "#    ", "#    ", "#    ", "#    ", "#    ", " ####" },
             ['.'] = new[] { "     ", "     ", "     ", "     ", "     ", " ##  ", " ##  " },
+            ['?'] = new[] { " ### ", "#   #", "    #", "   # ", "  #  ", "     ", "  #  " },
         };
 
         public enum Suit { Clubs, Diamonds, Hearts, Spades }

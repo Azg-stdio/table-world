@@ -148,6 +148,32 @@ namespace TableWorld.View.Builtin
             return canvas.ToTexture("builtin:d6_template");
         }
 
+        /// <summary>
+        /// What an image shows when its file is not there (not in the package, not in the TTS cache, or its address no
+        /// longer works): a grey card with a question mark in each of the image's <paramref name="columns"/> ×
+        /// <paramref name="rows"/> cells, so every card of a missing sheet says so instead of showing a fragment or a
+        /// blank. No words: it reads the same in every language.
+        /// </summary>
+        public static Texture2D Unavailable(int columns, int rows)
+        {
+            columns = Mathf.Max(1, columns);
+            rows = Mathf.Max(1, rows);
+            var cell = Mathf.Max(16, Mathf.Min(128, 2048 / Mathf.Max(columns, rows)));
+            var canvas = new Canvas(cell * columns, cell * rows);
+            var fill = new Color32(200, 198, 194, 255);
+            var mark = new Color32(120, 118, 114, 255);
+            var scale = Mathf.Max(1, cell / 16);
+            for (var i = 0; i < columns * rows; i++)
+            {
+                var x = i % columns * cell;
+                var y = i / columns * cell;
+                canvas.FillRect(x, y, cell, cell, fill);
+                canvas.StrokeRect(x + scale, y + scale, cell - 2 * scale, cell - 2 * scale, Mathf.Max(1, scale / 2), mark);
+                PixelFont.DrawText(canvas, "?", x + (cell - PixelFont.TextWidth("?", scale)) / 2, y + (cell - PixelFont.GlyphHeight * scale) / 2, scale, mark);
+            }
+            return canvas.ToTexture($"builtin:unavailable_{columns}x{rows}");
+        }
+
         private static void DrawFrame(Canvas canvas, int x, int y)
         {
             canvas.FillRect(x, y, CardWidth, CardHeight, Paper);

@@ -45,10 +45,15 @@ namespace Core.Tts
             public string SaveName = "";
             public DateTime Imported;
             public List<(string Url, string Path)> Missing = new List<(string, string)>();
+            /// <summary>Missing files whose address no longer works (a download got 403, 404 or 410), and what the server said.</summary>
+            public List<(string Url, string Reason)> Gone = new List<(string, string)>();
 
-            /// <summary>The files still missing from <paramref name="packageFolder"/> (some may have been downloaded since).</summary>
+            /// <summary>
+            /// The files still missing from <paramref name="packageFolder"/> that a download could bring (some may have
+            /// been downloaded since; gone ones never will).
+            /// </summary>
             public List<(string Url, string Path)> MissingNow(string packageFolder) =>
-                Missing.Where(m => !System.IO.File.Exists(System.IO.Path.Combine(packageFolder, m.Path))).ToList();
+                Missing.Where(m => !System.IO.File.Exists(System.IO.Path.Combine(packageFolder, m.Path)) && Gone.All(g => g.Url != m.Url)).ToList();
         }
 
         public const string InfoFile = "import.json";
@@ -144,6 +149,8 @@ namespace Core.Tts
         /// </summary>
         public static Report Write(string saveFile, string ttsFolder, string packageFolder)
         {
+            // What an earlier import learned by downloading: addresses that no longer work stay known as gone.
+            var gone = ReadInfo(packageFolder)?.Gone ?? new List<(string Url, string Reason)>();
             var import = TtsImporter.Import(File.ReadAllText(saveFile), url =>
                 CachedFile(ttsFolder, new ImportedAsset { Type = AssetType.Image, CacheKey = TtsImporter.CacheKey(url), Url = url }) is { } file ? ImageSize.Of(file) : null);
             Directory.CreateDirectory(packageFolder);
@@ -166,7 +173,9 @@ namespace Core.Tts
             File.WriteAllText(report.TableFile, TableJson.Serialize(import.State));
             var notes = new List<string> { $"Imported from {Path.GetFileName(saveFile)} on {DateTime.Now:yyyy-MM-dd HH:mm}.",
                 $"{report.Objects} objects; {report.Copied} of {import.Assets.Count} files found in the Tabletop Simulator cache." };
-            notes.AddRange(report.Missing.Select(m => $"Not in the cache yet: {m.Url}"));
+            gone = gone.Where(g => report.Missing.Any(m => m.Url == g.Url)).ToList();
+            notes.AddRange(report.Missing.Where(m => gone.All(g => g.Url != m.Url)).Select(m => $"Not in the cache yet: {m.Url}"));
+            notes.AddRange(gone.Select(GoneNote));
             notes.AddRange(import.Notes);
             File.WriteAllLines(Path.Combine(packageFolder, "import-notes.txt"), notes);
             var info = new Newtonsoft.Json.Linq.JObject
@@ -177,6 +186,7 @@ namespace Core.Tts
                 ["saveName"] = NameOf(saveFile) ?? "",
                 ["imported"] = DateTime.Now.ToString("o"),
                 ["missing"] = new Newtonsoft.Json.Linq.JArray(report.Missing.Select(m => new Newtonsoft.Json.Linq.JObject { ["url"] = m.Url, ["path"] = m.Path })),
+                ["gone"] = GoneJson(gone),
             };
             File.WriteAllText(Path.Combine(packageFolder, InfoFile), info.ToString());
             return report;
@@ -202,6 +212,9 @@ namespace Core.Tts
                 foreach (var m in (o["missing"] as Newtonsoft.Json.Linq.JArray ?? new Newtonsoft.Json.Linq.JArray()).OfType<Newtonsoft.Json.Linq.JObject>())
                     if ((string?)m["url"] is { } url && (string?)m["path"] is { } path && Asset.IsSafePath(path))
                         info.Missing.Add((url, path));
+                foreach (var g in (o["gone"] as Newtonsoft.Json.Linq.JArray ?? new Newtonsoft.Json.Linq.JArray()).OfType<Newtonsoft.Json.Linq.JObject>())
+                    if ((string?)g["url"] is { } url)
+                        info.Gone.Add((url, (string?)g["reason"] ?? ""));
                 return info;
             }
             catch (Exception e) when (e is IOException || e is Newtonsoft.Json.JsonException || e is FormatException || e is InvalidCastException)
@@ -209,6 +222,34 @@ namespace Core.Tts
                 return null;
             }
         }
+
+        /// <summary>
+        /// Records files a download found gone (<see cref="AssetDownloader.Result.Gone"/>): the game stops offering to
+        /// download them, and <c>import-notes.txt</c> says so. Their objects show the unavailable picture.
+        /// </summary>
+        public static void MarkGone(string packageFolder, IEnumerable<(string Url, string Reason)> urls)
+        {
+            var file = Path.Combine(packageFolder, InfoFile);
+            if (!File.Exists(file))
+                return;
+            var o = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(file));
+            var gone = ReadInfo(packageFolder)?.Gone ?? new List<(string Url, string Reason)>();
+            var added = urls.Where(u => gone.All(g => g.Url != u.Url)).GroupBy(u => u.Url).Select(g => g.First()).ToList();
+            if (added.Count == 0)
+                return;
+            gone.AddRange(added);
+            o["gone"] = GoneJson(gone);
+            File.WriteAllText(file, o.ToString());
+            var notes = Path.Combine(packageFolder, "import-notes.txt");
+            if (File.Exists(notes))
+                File.AppendAllLines(notes, added.Select(GoneNote));
+        }
+
+        private static string GoneNote((string Url, string Reason) g) =>
+            $"No longer online ({(g.Reason.Length > 0 ? g.Reason : "it could not be fetched")}): {g.Url}";
+
+        private static Newtonsoft.Json.Linq.JArray GoneJson(IEnumerable<(string Url, string Reason)> gone) =>
+            new Newtonsoft.Json.Linq.JArray(gone.Select(g => new Newtonsoft.Json.Linq.JObject { ["url"] = g.Url, ["reason"] = g.Reason }));
 
         /// <summary>True when the package is an import made by an older importer (or before imports recorded their version).</summary>
         public static bool IsImport(string packageFolder) =>

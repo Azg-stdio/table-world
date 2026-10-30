@@ -17,6 +17,8 @@ namespace TableWorld.View
         {
             public string Name;
             public string File;
+            /// <summary>Imported from Tabletop Simulator: listed apart, its name marked "(TTS)".</summary>
+            public bool Imported;
             /// <summary>Folder the game's asset paths are relative to.</summary>
             public string PackageRoot => Path.GetDirectoryName(File);
         }
@@ -47,9 +49,16 @@ namespace TableWorld.View
             {
                 var files = Directory.GetFiles(folder, "*.json")
                     .Concat(Directory.GetDirectories(folder).Select(d => Path.Combine(d, "table.json")).Where(System.IO.File.Exists));
-                entries.AddRange(files.Select(f => new Entry { Name = NameOf(f), File = f }));
+                foreach (var file in files)
+                {
+                    // Only a game in its own folder can be an import (import.json sits next to its table.json).
+                    var imported = Path.GetFileName(file) == "table.json" && Core.Tts.TtsPackage.IsImport(Path.GetDirectoryName(file));
+                    var name = NameOf(file);
+                    entries.Add(new Entry { Name = imported ? Core.Tts.TtsImporter.ImportedName(name) : name, File = file, Imported = imported });
+                }
             }
-            return entries.OrderBy(e => e.Name).ToList();
+            // Games made in Table World first, then the imported ones.
+            return entries.OrderBy(e => e.Imported).ThenBy(e => e.Name).ToList();
         }
 
         /// <summary><c>game.name</c> from the file, or the file name when it has none (or is not JSON).</summary>

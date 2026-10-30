@@ -52,14 +52,21 @@ namespace Core.Tts
         /// <summary>
         /// The importer's version, recorded in each package (<c>import.json</c>). Raise it when an import would come out
         /// different (a new object type, a mapping fixed), so games imported before are offered a re-import.
-        /// 2: PDFs (T8.8) and import.json. 3: model bags keep their image; textured models keep their tint; states keep their snap points; bowls; custom table image and sky; attached objects (ChildObjects). 4: custom tokens at TTS's size. 5: bundles' looping effect. 6: the save's lighting.
+        /// 2: PDFs (T8.8) and import.json. 3: model bags keep their image; textured models keep their tint; states keep their snap points; bowls; custom table image and sky; attached objects (ChildObjects). 4: custom tokens at TTS's size. 5: bundles' looping effect. 6: the save's lighting. 7: decks saved with only DeckIDs; Go stones and backgammon pieces; seats for saves without hands; names end in (TTS).
         /// </summary>
-        public const int Version = 6;
+        public const int Version = 7;
 
         public static ImportResult Import(string saveJson, Func<string, (int Width, int Height)?>? imageSize = null) =>
             new TtsImporter { _imageSize = imageSize }.Run(JObject.Parse(saveJson));
 
         private Func<string, (int Width, int Height)?>? _imageSize;
+
+        /// <summary>
+        /// An imported game's name: the save's, marked "(TTS)" so it never reads as one of the games made in Table World
+        /// (Love Letter built with an agent and Love Letter imported sit side by side).
+        /// </summary>
+        public static string ImportedName(string name) =>
+            name.TrimEnd().EndsWith("(TTS)", StringComparison.OrdinalIgnoreCase) ? name.TrimEnd() : $"{name.TrimEnd()} (TTS)";
 
         /// <summary>TTS's cache name for a URL: the URL with everything but letters and digits removed.</summary>
         public static string CacheKey(string url) => Regex.Replace(url ?? "", "[^A-Za-z0-9]", "");
@@ -70,7 +77,7 @@ namespace Core.Tts
         private ImportResult Run(JObject save)
         {
             if ((string?)save["SaveName"] is { Length: > 0 } saveName)
-                State.Game = new GameInfo { Id = "tts", Name = saveName };
+                State.Game = new GameInfo { Id = "tts", Name = ImportedName(saveName) };
             if ((string?)save["LuaScript"] is { Length: > 0 } global)
                 State.Scripts["global"] = global;
             if ((string?)save["LuaScriptState"] is { Length: > 0 } globalState)
@@ -88,6 +95,8 @@ namespace Core.Tts
             foreach (var o in save["ObjectStates"] as JArray ?? new JArray())
                 if (o is JObject obj)
                     Convert(obj, container: null);
+            if (State.Players.Seats.Count == 0)
+                DefaultSeats((string?)save["Table"] == "Table_Circular");
             foreach (var seat in State.Players.Seats)
                 seat.HandZone = State.Zones.OfType<HandZone>().FirstOrDefault(z => z.Owner == seat.Id)?.Id;
             Settle();
@@ -171,6 +180,9 @@ namespace Core.Tts
                 if (width > TableLookDef.DefaultSize.X || depth > TableLookDef.DefaultSize.Y)
                     look.Size = new Vec2(Math.Min(30f, width), Math.Min(30f, depth));
             }
+            // Default seats' hands lie on the edge of the table they were laid out for: at least that table.
+            if (_seatsTable is { } seats && (look.Size == null || look.Size.Value.X < seats.X || look.Size.Value.Y < seats.Y))
+                look.Size = new Vec2(Math.Max(seats.X, look.Size?.X ?? 0f), Math.Max(seats.Y, look.Size?.Y ?? 0f));
             if (ttsTable == "Table_None")
             {
                 // No TTS table, so no 0.96 to measure from: the level most pieces rest at becomes our table height.
@@ -536,7 +548,13 @@ namespace Core.Tts
                     return Builtin("pawn", o);
                 case "Bowl":
                     return Builtin("bowl", o);
+                case "go_game_piece_black":
+                case "go_game_piece_white":
+                    return Builtin("go_stone", o);
             }
+            // backgammon_piece_white, backgammon_piece_brown: TTS draws them as checkers in their ColorDiffuse.
+            if (name.StartsWith("backgammon_piece_", StringComparison.Ordinal))
+                return Builtin("checker", o);
             if (name.StartsWith("Die_", StringComparison.Ordinal) && int.TryParse(new string(name.Substring(4).TakeWhile(char.IsDigit).ToArray()), out var n) && Die.SupportedFaces.Contains(n))
                 return new Die { Faces = n, Tint = Tint(o) };
             if (name.StartsWith("Checker_", StringComparison.Ordinal))
@@ -625,11 +643,13 @@ namespace Core.Tts
         private Deck Deck(JObject o)
         {
             var deck = new Deck();
-            // DeckIDs[0] is the top card, as our cards[0]; the contained cards carry their own data.
-            foreach (var c in o["ContainedObjects"] as JArray ?? new JArray())
+            // DeckIDs[0] is the top card, as our cards[0]; the contained cards carry their own data. Old saves (2015 and
+            // before: Love Letter, Avalon) keep only DeckIDs and the deck's own CustomDeck: each id becomes a bare card.
+            var cards = (o["ContainedObjects"] as JArray)?.OfType<JObject>().ToList() ?? new List<JObject>();
+            if (cards.Count == 0 && o["DeckIDs"] is JArray ids)
+                cards = ids.Select(id => new JObject { ["CardID"] = id, ["CustomDeck"] = o["CustomDeck"]?.DeepClone(), ["SidewaysCard"] = o["SidewaysCard"]?.DeepClone() }).ToList();
+            foreach (var card in cards)
             {
-                if (!(c is JObject card))
-                    continue;
                 var look = CardLook(card);
                 if (deck.Cards.Count == 0)
                 {
@@ -687,6 +707,34 @@ namespace Core.Tts
             if ((string?)o["XmlUI"] is { Length: > 0 } xml)
                 zone.ScriptUi = Ui(xml, $"{name} {o["GUID"]}");
             return zone;
+        }
+
+        /// <summary>TTS's player colours, in TTS's order.</summary>
+        private static readonly string[] TtsColors = { "white", "brown", "red", "orange", "yellow", "green", "teal", "blue", "purple", "pink" };
+
+        /// <summary>The table the default seats need (<see cref="DefaultSeats"/>), or null.</summary>
+        private Vec2? _seatsTable;
+
+        /// <summary>
+        /// Old saves (2015 and before: Love Letter, Avalon) keep no hands, yet TTS seats players at its colours round any
+        /// table. Without seats a table cannot be played: they get TTS's ten colours, each with a hand round the table as
+        /// a new game's seats have, and the table grows to fit them.
+        /// </summary>
+        private void DefaultSeats(bool round)
+        {
+            var (size, places) = SeatLayout.Arrange(TtsColors.Length, round ? TableShape.Round : TableShape.Rectangle);
+            _seatsTable = size;
+            for (var i = 0; i < places.Count; i++)
+            {
+                var place = places[i];
+                var hand = new HandZone { Id = Claim("hand_" + TtsColors[i], "hand"), Owner = Seat(TtsColors[i]), Size = new Vec3(place.Width, 0.1f, 0.12f) };
+                hand.Transform.Position = place.Position;
+                hand.Transform.Rotation = new Vec3(0, place.Yaw, 0);
+                State.Zones.Add(hand);
+            }
+            if (State.Game != null)
+                State.Game.MaxPlayers = Math.Max(State.Game.MaxPlayers, TtsColors.Length);
+            _result.Notes.Add($"The save has no hands: seats for TTS's {TtsColors.Length} player colours, each with a hand round the table.");
         }
 
         /// <summary>The seat of a TTS player colour, made the first time a colour appears.</summary>

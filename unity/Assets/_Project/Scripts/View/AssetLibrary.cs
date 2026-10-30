@@ -48,6 +48,7 @@ namespace TableWorld.View
             if (_texturesByPath.TryGetValue(asset.Path, out var texture) && texture != null)
                 Object.Destroy(texture);
             _texturesByPath.Remove(asset.Path);
+            _unavailable.Remove(asset.Path);
             RedrawTextWithArt(asset.Path);
             if (_meshesByPath.TryGetValue(asset.Path, out var mesh) && mesh != null)
                 Object.Destroy(mesh);
@@ -138,7 +139,7 @@ namespace TableWorld.View
         {
             if (Mathf.Abs(tint.r - 1f) + Mathf.Abs(tint.g - 1f) + Mathf.Abs(tint.b - 1f) < 0.01f)
                 return ImageMaterial(assetId, tint);
-            var texture = Texture(assetId);
+            var texture = Texture(assetId) ?? Unavailable(assetId);
             if (texture == null)
                 return Plain(tint);
             var key = $"img:{assetId}:{ColorUtility.ToHtmlStringRGB(tint)}";
@@ -149,6 +150,26 @@ namespace TableWorld.View
                 _materials[key] = material;
             }
             return material;
+        }
+
+        /// <summary>Image files found missing (not in the package, nobody to send them); a download clears them through Forget.</summary>
+        private readonly HashSet<string> _unavailable = new HashSet<string>();
+        private readonly Dictionary<(int, int), Texture2D> _unavailableSheets = new Dictionary<(int, int), Texture2D>();
+
+        /// <summary>
+        /// What an object shows for an image whose file is not there (a file TTS never cached, an address that no longer
+        /// works): <see cref="BuiltinTextures.Unavailable"/> in the image's grid, so it reads as missing, not blank. Null
+        /// for an image that is only loading. Skies, felts and script UI keep their own fallbacks (they use Texture).
+        /// </summary>
+        private Texture2D Unavailable(string assetId)
+        {
+            var asset = Localized(Find(assetId));
+            if (asset == null || !_unavailable.Contains(asset.Path))
+                return null;
+            var grid = (Mathf.Max(1, asset.Columns), Mathf.Max(1, asset.Rows));
+            if (!_unavailableSheets.TryGetValue(grid, out var sheet) || sheet == null)
+                _unavailableSheets[grid] = sheet = BuiltinTextures.Unavailable(grid.Item1, grid.Item2);
+            return sheet;
         }
 
         /// <summary>Outlines by the texture they were traced from (a re-decoded image is traced again).</summary>
@@ -169,10 +190,13 @@ namespace TableWorld.View
                 : new List<Core.Models.Silhouette.Loop>());
         }
 
-        /// <summary>Material showing the whole image of <paramref name="assetId"/>, or a plain material when it has none.</summary>
+        /// <summary>
+        /// Material showing the whole image of <paramref name="assetId"/>; the unavailable picture when its file is not
+        /// there; a plain material while it loads or when it has none.
+        /// </summary>
         public Material ImageMaterial(string assetId, Color fallback)
         {
-            var texture = Texture(assetId);
+            var texture = Texture(assetId) ?? Unavailable(assetId);
             if (texture == null)
                 return Plain(fallback);
             var key = "img:" + assetId;
@@ -277,6 +301,7 @@ namespace TableWorld.View
                 else if (_fetch == null)
                 {
                     Debug.LogWarning($"[AssetLibrary] Missing image '{asset.Path}' (package: {_packageRoot ?? "none"}).");
+                    _unavailable.Add(asset.Path);
                 }
             }
             // A network client does not cache a miss: the bytes may still be on their way.
@@ -624,6 +649,8 @@ namespace TableWorld.View
         private static int _downloading;
 
         private readonly HashSet<string> _fetching = new HashSet<string>();
+        /// <summary>Files whose web address failed this session (a dead link, no connection).</summary>
+        private readonly HashSet<string> _webFailed = new HashSet<string>();
 
         /// <summary>Files still coming from the web.</summary>
         public int Fetching => _fetching.Count;
@@ -655,7 +682,7 @@ namespace TableWorld.View
         /// </summary>
         private bool FetchFromWeb(Asset asset)
         {
-            if (!Asset.IsWebAddress(asset.Url))
+            if (!Asset.IsWebAddress(asset.Url) || _webFailed.Contains(asset.Path))
                 return false;
             if (!_fetching.Add(asset.Path))
                 return true;
@@ -682,9 +709,11 @@ namespace TableWorld.View
                         File.Move(part, target);
                     }
                     _fetching.Remove(asset.Path);
-                    if (ok)
-                        foreach (var id in _assets.Values.Where(a => a.Url == asset.Url).Select(a => a.Id).ToList())
-                            Decoded?.Invoke(id);
+                    // A failed address is not asked again this session: its pieces redraw as missing (the unavailable picture).
+                    if (!ok)
+                        _webFailed.Add(asset.Path);
+                    foreach (var id in _assets.Values.Where(a => a.Url == asset.Url).Select(a => a.Id).ToList())
+                        Decoded?.Invoke(id);
                     if (WaitingDownloads.Count > 0 && _downloading < MaxDownloads)
                         WaitingDownloads.Dequeue()();
                 };

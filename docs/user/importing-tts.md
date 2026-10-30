@@ -12,11 +12,12 @@ it.
 
 1. Install Tabletop Simulator and open the game there at least once. This puts the game's images and models in TTS's
    cache, where Table World copies them from.
-2. In Table World, open **Games**. Under **Import from Tabletop Simulator** you see every game TTS has on this
+2. In Table World, open **Games**. Under **Import a game from Tabletop Simulator** you see every game TTS has on this
    computer, with where it comes from: **Workshop** (the game as published), **your save**, or **TTS autosave**, with
    the date. A save keeps the game as you left it (pages turned, pieces moved); each imports into its own game.
 3. Click a game. Importing a big game takes a few seconds. When it is done, the status line says how many objects and
-   files it brought in, and the game appears in the list of games.
+   files it brought in, and the game appears in the list of games, under **Imported from Tabletop Simulator** and with
+   "(TTS)" after its name, apart from the games made in Table World.
 4. If some files were not in the TTS cache, **Download its N missing files** appears under the game in the list. Click
    it to fetch them (see section 3). It stays there until every file has arrived, so you can do it later too.
 5. Open the game from **Games**, like any other game. Re-importing the same game updates it. When Table World learns
@@ -41,14 +42,15 @@ TTS installed somewhere else is not found yet.
 
 | In TTS | In Table World |
 |---|---|
-| Cards and decks, with their sprite sheets, backs and sideways cards | Cards and decks, the same order (the top card stays on top) |
+| Cards and decks, with their sprite sheets, backs and sideways cards (old saves that list only card numbers too) | Cards and decks, the same order (the top card stays on top) |
 | Custom tokens, tiles, boards and figurines | Tokens, tiles, boards and figures, the same size and shape |
 | Dice (standard and custom) | Dice, with the same face values |
 | Custom models (OBJ) and AssetBundles | Models; AssetBundle materials are converted for Table World's renderer |
 | Bags and infinite bags, with everything inside them | Bags and infinite bags |
-| Blocks, checkers, chess pawns, counters, clocks and notecards | Built-in pieces of the same kind |
+| Blocks, checkers, chess pawns, Go stones, backgammon pieces, counters, clocks and notecards | Built-in pieces of the same kind |
 | Objects with several states | Objects with states (switch them the same way) |
 | Hands, scripting zones, hidden zones, randomize zones and layout zones | The matching zones |
+| No hands at all (saves from 2015 and before) | Seats for TTS's ten player colours, each with a hand round the table |
 | Snap points, on the table and on objects | Snap points |
 | Lua scripts, global and per object or zone, with their saved state | Lua scripts, run by Table World's script host |
 | XmlUI, global and on objects | Script UI, drawn the way TTS draws it |
@@ -71,7 +73,10 @@ file goes, and `import-notes.txt` lists it as `Not in the cache yet: <address>`.
 - 4 at a time, at most 300 MB per file;
 - a download you stop resumes where it stopped the next time.
 
-Files that cannot be fetched are listed in the log; the game still opens without them. Most files are on Steam's
+Files that cannot be fetched are listed in the log; the game still opens without them. When the server says a file is
+not there any more (old links often die), `import-notes.txt` says `No longer online (…): <address>` and the game stops
+offering to download it. An object whose image is missing shows a grey picture with a question mark instead, so you can
+tell a missing image from a blank one. Most files are on Steam's
 content servers. Table World never downloads from the Workshop itself, and never downloads a game you do not have.
 
 Files a game's scripts load while it plays (an image set by a script, for example) are fetched when they are needed.

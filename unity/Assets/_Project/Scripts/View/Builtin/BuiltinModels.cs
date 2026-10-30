@@ -31,6 +31,7 @@ namespace TableWorld.View.Builtin
                 "bead" => Bead(),
                 "gem" => Gem(),
                 "cube" => Lifted(MeshFactory.Box(new Vector3(0.012f, 0.012f, 0.012f))),
+                "go_stone" => GoStone(),
                 _ => null,
             };
             if (mesh != null)
@@ -97,6 +98,29 @@ namespace TableWorld.View.Builtin
             }
             profile[11].x = 0f;
             return Turned(profile, 28);
+        }
+
+        /// <summary>
+        /// TTS's Go stone (<c>go_game_piece_black/white</c>, coloured by its tint): a lens 2.2 cm across and 9 mm thick, as
+        /// a real stone, with a small flat underside so it rests still. Size not yet verified against TTS.
+        /// </summary>
+        private static Mesh GoStone()
+        {
+            const float r = 0.011f, h = 0.009f, foot = 0.004f, bottom = 0.0025f;
+            var profile = new List<Vector2> { new Vector2(0f, 0f), new Vector2(foot, 0f) };
+            // Lower dome from the foot to the rim, then the upper dome to the top.
+            for (var i = 1; i <= 6; i++)
+            {
+                var a = Mathf.PI / 2f * i / 6f;
+                profile.Add(new Vector2(foot + (r - foot) * Mathf.Sin(a), bottom * (1f - Mathf.Cos(a))));
+            }
+            for (var i = 1; i <= 10; i++)
+            {
+                var a = Mathf.PI / 2f * i / 10f;
+                profile.Add(new Vector2(r * Mathf.Cos(a), bottom + (h - bottom) * Mathf.Sin(a)));
+            }
+            profile[profile.Count - 1] = new Vector2(0f, h);
+            return Turned(profile.ToArray(), 32);
         }
 
         /// <summary>A cut gem (crystals, points): six facets, 1.6 cm across, lying on its point's flat base.</summary>

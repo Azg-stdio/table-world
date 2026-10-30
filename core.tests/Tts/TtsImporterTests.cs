@@ -172,6 +172,98 @@ namespace Core.Tests.Tts
         }
 
         [Fact]
+        public void OldDecks_WithOnlyDeckIds_GetTheirCardsFromTheDecksSheet()
+        {
+            // Saves from 2015 and before (Love Letter, Avalon) list no contained cards: DeckIDs and the deck's CustomDeck only.
+            const string save = @"{ ""ObjectStates"": [
+                { ""GUID"": ""dd0002"", ""Name"": ""Deck"", ""SidewaysCard"": false, ""DeckIDs"": [ 114, 103, 100 ],
+                  ""CustomDeck"": { ""1"": { ""FaceURL"": ""http://i.imgur.com/FACE.jpg"", ""BackURL"": ""http://i.imgur.com/BACK.jpg"", ""NumWidth"": 10, ""NumHeight"": 7 } } } ] }";
+            var result = TtsImporter.Import(save);
+            var parsed = TableJson.Parse(TableJson.Serialize(result.State));
+            Assert.True(parsed.Ok, string.Join("\n", parsed.Errors));
+            var deck = (Deck)parsed.State!.Objects.Single(o => o.Id == "dd0002");
+            Assert.Equal(new[] { 14, 3, 0 }, deck.Cards.Select(c => c.FaceIndex));
+            Assert.Equal(3, deck.Cards.Select(c => c.Id).Distinct().Count());
+            Assert.Equal("http://i.imgur.com/FACE.jpg", parsed.State.Assets.Single(a => a.Id == deck.FaceAsset).Url);
+            Assert.Equal("http://i.imgur.com/BACK.jpg", parsed.State.Assets.Single(a => a.Id == deck.BackAsset).Url);
+            Assert.Contains(result.Assets, a => a.Url == "http://i.imgur.com/FACE.jpg");
+        }
+
+        [Fact]
+        public void SavesWithoutHands_SeatTtsColours_RoundATableThatFitsThem_AndNamesSayTts()
+        {
+            // Old saves keep no Hands; TTS still seats players at its colours. Without seats the table would not validate.
+            const string save = @"{ ""SaveName"": ""Love Letter"", ""ObjectStates"": [ { ""GUID"": ""bag001"", ""Name"": ""Bag"" } ] }";
+            var parsed = TableJson.Parse(TableJson.Serialize(TtsImporter.Import(save).State));
+            Assert.True(parsed.Ok, string.Join("\n", parsed.Errors));
+            var state = parsed.State!;
+            Assert.Equal("Love Letter (TTS)", state.Game!.Name);
+            Assert.Equal("Love Letter (TTS)", TtsImporter.ImportedName("Love Letter (TTS)"));
+            Assert.Equal(new[] { "white", "brown", "red", "orange", "yellow", "green", "teal", "blue", "purple", "pink" }, state.Players.Seats.Select(s => s.Id));
+            Assert.All(state.Players.Seats, s => Assert.Contains(state.Zones.OfType<HandZone>(), z => z.Id == s.HandZone && z.Owner == s.Id));
+            Assert.Equal(10, state.Game.MaxPlayers);
+            var table = state.Environment!.Table.Size!.Value;
+            Assert.All(state.Zones.OfType<HandZone>(), z =>
+                Assert.True(Math.Abs(z.Transform.Position.X) < table.X / 2 && Math.Abs(z.Transform.Position.Z) < table.Y / 2, $"{z.Id} off the table"));
+
+            // A save with hands keeps exactly its own seats.
+            Assert.Equal("red", TtsImporter.Import(Save).State.Players.Seats.Single().Id);
+        }
+
+        [Fact]
+        public void GoStones_AndBackgammonPieces_AreBuiltInPieces_InTheirColour()
+        {
+            const string save = @"{ ""ObjectStates"": [
+                { ""GUID"": ""go0001"", ""Name"": ""go_game_piece_black"", ""ColorDiffuse"": { ""r"": 0, ""g"": 0, ""b"": 0 } },
+                { ""GUID"": ""go0002"", ""Name"": ""go_game_piece_white"", ""ColorDiffuse"": { ""r"": 1, ""g"": 1, ""b"": 1 } },
+                { ""GUID"": ""bg0001"", ""Name"": ""backgammon_piece_brown"", ""ColorDiffuse"": { ""r"": 0.4, ""g"": 0.2, ""b"": 0.1 } } ] }";
+            var result = TtsImporter.Import(save);
+            var state = result.State;
+            string PathOf(string id) => state.Assets.Single(a => a.Id == ((Model)state.Objects.Single(o => o.Id == id)).Asset).Path;
+            Assert.Equal("builtin:go_stone", PathOf("go0001"));
+            Assert.Equal("builtin:go_stone", PathOf("go0002"));
+            Assert.Equal("builtin:checker", PathOf("bg0001"));
+            Assert.Equal(new[] { 0f, 0f, 0f }, ((Model)state.Objects.Single(o => o.Id == "go0001")).Tint);
+            Assert.Equal(0, result.Placeholders);
+        }
+
+        [Fact]
+        public void GoneFiles_AreNotOfferedAgain_AndStayGoneAcrossReimports()
+        {
+            var tts = Path.Combine(Path.GetTempPath(), "tw-tts-" + Guid.NewGuid().ToString("N"));
+            var package = Path.Combine(Path.GetTempPath(), "tw-pkg-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                Directory.CreateDirectory(Path.Combine(tts, "Mods", "Workshop"));
+                var file = Path.Combine(tts, "Mods", "Workshop", "123.json");
+                File.WriteAllText(file, Save);
+                TtsPackage.Write(file, tts, package);
+                var missing = TtsPackage.ReadInfo(package)!.MissingNow(package);
+                var dead = missing[0].Url;
+
+                TtsPackage.MarkGone(package, new[] { (dead, "the server answered 403"), (dead, "the server answered 403") });
+                var info = TtsPackage.ReadInfo(package)!;
+                Assert.Equal(dead, info.Gone.Single().Url);
+                Assert.Equal(missing.Count - 1, info.MissingNow(package).Count);
+                Assert.DoesNotContain(info.MissingNow(package), m => m.Url == dead);
+                var notes = File.ReadAllText(Path.Combine(package, "import-notes.txt"));
+                Assert.Contains($"No longer online (the server answered 403): {dead}", notes);
+
+                // Re-importing keeps what the download learned.
+                TtsPackage.Write(file, tts, package);
+                Assert.Equal(dead, TtsPackage.ReadInfo(package)!.Gone.Single().Url);
+                notes = File.ReadAllText(Path.Combine(package, "import-notes.txt"));
+                Assert.Contains($"No longer online (the server answered 403): {dead}", notes);
+                Assert.DoesNotContain($"Not in the cache yet: {dead}", notes);
+            }
+            finally
+            {
+                if (Directory.Exists(tts)) Directory.Delete(tts, true);
+                if (Directory.Exists(package)) Directory.Delete(package, true);
+            }
+        }
+
+        [Fact]
         public void Saves_SayWhereTheyComeFrom_AndImportIntoTheirOwnFolders()
         {
             var tts = Path.Combine(Path.GetTempPath(), "tw-tts-" + Guid.NewGuid().ToString("N"));
